@@ -1,12 +1,15 @@
-/* $Id: fileio.c,v 1.1 2000/06/27 01:47:57 amura Exp $ */
+/* $Id: fileio.c,v 1.2 2000/07/18 12:44:03 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
- * Revision 1.1  2000/06/27 01:47:57  amura
- * Initial revision
+ * Revision 1.2  2000/07/18 12:44:03  amura
+ * fix to emacs style backup
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:57  amura
+ * import to CVS
  *
  */
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
@@ -192,6 +195,7 @@ fbackupfile(fn) char *fn; {
 	void		*malloc();      /* 90.03.27  by A.Shirahashi */
 
 	strcpy(oname,fn);
+	toh68kfn(oname);
 #ifdef KANJI
 	bufetos(oname, strlen(oname)+1);
 #endif /* KANJI */
