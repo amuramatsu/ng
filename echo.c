@@ -12,13 +12,16 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: echo.c,v 1.2 2000/03/28 02:38:37 amura Exp $ */
+/* $Id: echo.c,v 1.3 2000/06/01 05:26:18 amura Exp $ */
 
 /* $Log: echo.c,v $
-/* Revision 1.2  2000/03/28 02:38:37  amura
-/* CANNA support.
-/* ,
+/* Revision 1.3  2000/06/01 05:26:18  amura
+/* Debug CANNA support
 /*
+ * Revision 1.2  2000/03/28  02:38:37  amura
+ * CANNA support.
+ * ,
+ *
  * Revision 1.1  2000/03/10  21:32:52  amura
  * Initial revision
  *
@@ -256,6 +259,7 @@ va_dcl
 
 #ifdef MINIBUF_EDIT
 /* Minibuffer hack from NGSCM by H.Kakugawa */
+extern int  refresh();
 
 static int  mb_init();
 static int  mb_get_buffer();
@@ -388,7 +392,8 @@ veread(fp, buf, nbuf, flag, ap)
 
     c = getkey(FALSE); 
 #ifdef CANNA
-    if(mb_cannamode && (ks.length != 0 || !(ISCTRL(c)||ISKANJI(c))) ){
+    if(mb_cannamode &&
+       (ks.length != 0 || !(c==' '||ISCTRL(c)||ISKANJI(c))) ){
 	if (mb_henkan(c))
 	    continue;
     }
@@ -753,7 +758,7 @@ mb_init(nbuf, fp, ap)
     Line.next = NULL;
   }
   if ((lp = (struct _Line*) malloc(sizeof(struct _Line))) == NULL)
-    return;
+    return 0;
   Line.prev  = lp;
   Line.next  = lp;
   lp->idx    = 0;
