@@ -1,9 +1,12 @@
-/* $Id: dired.c,v 1.6 2000/12/27 16:56:01 amura Exp $ */
+/* $Id: dired.c,v 1.7 2001/02/18 17:07:24 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
 /*
  * $Log: dired.c,v $
+ * Revision 1.7  2001/02/18 17:07:24  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.6  2000/12/27 16:56:01  amura
  * change d_makename() params for conservative reason, and bugfix in dires_()
  *
@@ -34,12 +37,37 @@ BUFFER *dired_();
 extern char* strncpy();
 #endif
 
+#ifdef	CHGMISC		/* 99.8.11 by M.Suzuki	*/
+static int SearchDir(dirname)
+char* dirname;
+{
+    LINE *llp;
+
+    for (llp=curbp->b_linep; lforw(llp)!=curbp->b_linep; llp=lforw(llp)){
+#ifndef	max
+#define	max(a,b)	(((a)<(b))?(b):(a))
+#endif
+	if (strncmp(dirname, llp->l_text, max(strlen(dirname),llength(llp)))
+	   == 0 ){
+	    curwp->w_dotp = llp;
+	    curwp->w_flag |= WFEDIT | WFMOVE;
+	    curwp->w_doto = llength(llp);
+	    return TRUE;
+	}
+    }
+    return FALSE;
+}
+#endif	/* CHGMISC	*/
+
 /*ARGSUSED*/
 dired(f, n)
 int f, n;
 {
     char dirname[NFILEN];
     BUFFER *bp;
+#ifdef	CHGMISC		/* 1999.8.17 by M.Suzuki	*/
+    char *fname;
+#endif	/* CHGMISC	*/
 #ifdef	EXTD_DIR
     int i;
 
@@ -54,7 +82,18 @@ int f, n;
     if(eread("Dired: ", dirname, NFILEN, EFNEW | EFCR) == ABORT)
 #endif	/* NO_FILECOMP */
 	return ABORT;
+#ifdef	CHGMISC		/* 1999.8.17 by M.Suzuki	*/
+    if((fname = adjustname(dirname)) == NULL) {
+	ewprintf("Bad directory name");
+	return FALSE;
+    }
+    if( !ffisdir(fname) ){
+	return filevisit_(fname,f,n);
+    }
+    if((bp = dired_(fname)) == NULL) return FALSE;
+#else
     if((bp = dired_(dirname)) == NULL) return FALSE;
+#endif	/* CHGMISC	*/
     curbp = bp;
 #ifdef	EXTD_DIR
     i = strlen(dirname);
@@ -119,7 +158,11 @@ int f, n;
     if(eread("Dired other window: ", dirname, NFILEN, EFNEW | EFCR) == ABORT)
 #endif	/* NO_FILECOMP */
 	return ABORT;
+#ifdef	CHGMISC		/* 99.6.18 by M.Suzuki	*/
     if((bp = dired_(dirname)) == NULL) return FALSE;
+#else
+    if((bp = dired_(dirname)) == NULL) return FALSE;
+#endif	/* CHGMISC	*/
 #ifdef	READONLY	/* 91.01.15  by K.Maeda */
     bp->b_flag |= BFRONLY;
 #endif	/* READONLY */
@@ -136,6 +179,10 @@ int f, n;
     if(n < 0) return FALSE;
     while(n--) {
 	if(llength(curwp->w_dotp) > 0)
+#ifdef	CHGMISC		/* 99.6.18 by M.Suzuki	*/
+	    if(lgetc(curwp->w_dotp,0) != '/' &&
+	       strncmp(curwp->w_dotp->l_text, "  total", 7) )
+#endif	/* CHGMISC	*/
 	    lputc(curwp->w_dotp, 0, 'D');
 	if(lforw(curwp->w_dotp) != curbp->b_linep)
 	    curwp->w_dotp = lforw(curwp->w_dotp);
@@ -152,6 +199,10 @@ int f, n;
     if(n < 0) return d_undelbak(f, -n);
     while(n--) {
 	if(llength(curwp->w_dotp) > 0)
+#ifdef	CHGMISC		/* 99.6.18 by M.Suzuki	*/
+	    if( lgetc(curwp->w_dotp,0) != '/' &&
+		strncmp(curwp->w_dotp->l_text,"  total",7) )
+#endif	/* CHGMISC	*/
 	    lputc(curwp->w_dotp, 0, ' ');
 	if(lforw(curwp->w_dotp) != curbp->b_linep)
 	    curwp->w_dotp = lforw(curwp->w_dotp);

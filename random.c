@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.5 2001/01/05 14:07:04 amura Exp $ */
+/* $Id: random.c,v 1.6 2001/02/18 17:07:26 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.6  2001/02/18 17:07:26  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.5  2001/01/05 14:07:04  amura
  * first implementation of Hojo Kanji support
  *
@@ -51,6 +54,9 @@ showcpos(f, n)
 	long		cchar=0;
 	register int	nline, row;
 	int		cline=0, cbyte=0;	/* Current line/char/byte */
+#ifdef	CHGMISC	/* 99.3.26 by M.Suzuki	*/
+	int		cbyte2;
+#endif	/* CHGMISC	*/
 	int		ratio;
 	int		x, y;
 
@@ -62,10 +68,20 @@ showcpos(f, n)
 		if (clp == curwp->w_dotp) {
 			cline = nline;		/* Mark line		*/
 			cchar = nchar + curwp->w_doto;
+#ifdef	CHGMISC	/* 99.3.26 by M.Suzuki	*/
+			if (curwp->w_doto == llength(clp)){
+				cbyte = '\n';
+				cbyte2 = 0;
+			} else {
+				cbyte = lgetc(clp, curwp->w_doto);
+				cbyte2 = lgetc(clp, curwp->w_doto+1);
+			}
+#else
 			if (curwp->w_doto == llength(clp))
 				cbyte = '\n';
 			else
 				cbyte = lgetc(clp, curwp->w_doto);
+#endif
 		}
 		nchar += llength(clp);		/* Now count the chars	*/
 		clp = lforw(clp);
@@ -81,6 +97,18 @@ showcpos(f, n)
 	row += colrow(clp, curwp->w_doto, &x, &y);
 	/*NOSTRICT*/
 	ratio = nchar ? (100L*cchar) / nchar : 100;
+#ifdef	CHGMISC		/* 99.3.26 by M.Suzuki	*/
+	if (ISKANJI(cbyte)){
+		char w[3];
+		w[0] = cbyte;
+		w[1] = cbyte2;
+		w[2] = '\0';
+		ewprintf("Char: %s (0%o,0%o)(0x%x,0x%x)  point=%ld(%d%%)  "
+			 "line=%d  offset=%d  row=%d  col=%d",
+			 w, cbyte, cbyte2, cbyte, cbyte2, cchar, ratio,
+			 cline, getcolpos(), row, x+1);
+	} else
+#endif	/* CHGMISC */
 	ewprintf(
 	"Char: %c (0%o)  point=%ld(%d%%)  line=%d  offset=%d  row=%d  col=%d",
 		cbyte, cbyte, cchar, ratio, cline, getcolpos(), row, x+1);

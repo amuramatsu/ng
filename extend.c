@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.1 2000/06/27 01:47:55 amura Exp $ */
+/* $Id: extend.c,v 1.2 2001/02/18 17:07:25 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -6,8 +6,11 @@
 
 /*
  * $Log: extend.c,v $
- * Revision 1.1  2000/06/27 01:47:55  amura
- * Initial revision
+ * Revision 1.2  2001/02/18 17:07:25  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:55  amura
+ * import to CVS
  *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
@@ -38,6 +41,11 @@ extern	char	*strncat();
 # endif
 #endif
 extern	int rescan pro((int, int));
+/* 91.02.06  Move static declaration to here for some compiler. by S.Yoshida */
+static	KEYMAP	*realocmap pro((KEYMAP*));
+static	VOID	fixmap pro((KEYMAP*,KEYMAP*,KEYMAP*));
+static	char	*skipwhite pro((char*));
+static	char	*parsetoken pro((char*));
 
 /* insert a string, mainly for use from macros (created by selfinsert) */
 /*ARGSUSED*/
@@ -86,11 +94,6 @@ int f, n;
     }
     return TRUE;
 }
-
-static KEYMAP *realocmap pro((KEYMAP *));
-static VOID fixmap pro((KEYMAP *, KEYMAP *, KEYMAP *));
-static char *skipwhite pro((char *));
-static char *parsetoken pro((char *));
 
 /*
  * Bind a key to a function.  Cases range from the trivial (replacing an
@@ -574,11 +577,13 @@ load(fname) char *fname; {
 	int	s = TRUE;
 	int	nbytes;
 	char	excbuf[256];
+	int	lineno = 0;
 
 	if ((fname = adjustname(fname)) == NULL)
 		return FALSE;	/* just to be careful */
 
 	if (ffropen(fname) != FIOSUC) return FALSE;
+	ewprintf("Loading %s ...",fname);
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	ksetfincode(NULL);
 #endif	/* KANJI */
@@ -587,13 +592,15 @@ load(fname) char *fname; {
 #else  /* HANKANA */
 	while ((s = ffgetline(excbuf, sizeof(excbuf)-1, &nbytes)) == FIOSUC) {
 #endif  /* HANKANA */
+		lineno++;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 		nbytes = kcodeconv(excbuf, nbytes, NULL);
 #endif	/* KANJI */
 		excbuf[nbytes] = '\0';
 		if (excline(excbuf) != TRUE) {
 			s = FIOERR;
-		    ewprintf("Error loading file %s", fname);
+			ewprintf("Error loading file %s in %d line",
+				 fname, lineno);
 			break;
 		}
 	}
@@ -601,6 +608,7 @@ load(fname) char *fname; {
 	excbuf[nbytes] = '\0';
 	if(s!=FIOEOF || (nbytes && excline(excbuf)!=TRUE))
 		return FALSE;
+	ewprintf("Loading %s ... done",fname);
 	return TRUE;
 }
 

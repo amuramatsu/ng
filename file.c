@@ -1,10 +1,13 @@
-/* $Id: file.c,v 1.5 2000/12/22 19:54:35 amura Exp $ */
+/* $Id: file.c,v 1.6 2001/02/18 17:07:25 amura Exp $ */
 /*
  *		File commands.
  */
 
 /*
  * $Log: file.c,v $
+ * Revision 1.6  2001/02/18 17:07:25  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.5  2000/12/22 19:54:35  amura
  * fix some bug in filename handling
  *
@@ -309,7 +312,11 @@ readin(fname) char *fname; {
 	if (bclear(curbp) != TRUE)		/* Might be old.	*/
 		return TRUE;
 	status = insertfile(fname, fname) ;
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+	curbp->b_flag &= ~(BFCHG|BFACHG);	/* No change.		*/
+#else
 	curbp->b_flag &= ~BFCHG;		/* No change.		*/
+#endif	/* AUTOSAVE	*/
 	for (wp=wheadp; wp!=NULL; wp=wp->w_wndp) {
 		if (wp->w_bufp == curbp) {
 			wp->w_dotp  = wp->w_linep = lforw(curbp->b_linep);
@@ -538,6 +545,15 @@ endoffile:
 	curwp->w_dotp = olp;
 	curwp->w_doto = opos;
 	if(olp == curbp->b_linep) curwp->w_dotp = lforw(olp);
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+#ifndef NO_BACKUP
+	if (newname != NULL)
+		bp->b_flag |= (BFCHG|BFBAK|BFACHG);/* Need a backup.	*/
+	else	bp->b_flag |= (BFCHG|BFACHG);
+#else
+	bp->b_flag |= (BFCHG|BFACHG);
+#endif
+#else	/* not AUTOSAVE */
 #ifndef NO_BACKUP
 	if (newname != NULL)
 		bp->b_flag |= BFCHG | BFBAK;	/* Need a backup.	*/
@@ -545,6 +561,7 @@ endoffile:
 #else
 	bp->b_flag |= BFCHG;
 #endif
+#endif	/* AUTOSAVE */
 	/* if the insert was at the end of buffer, set lp1 to the end of
 	 * buffer line, and lp2 to the beginning of the newly inserted
 	 * text.  (Otherwise lp2 is set to NULL.)  This is
@@ -682,6 +699,13 @@ filewrite(f, n)
 	if ((s=ereply("Write file: ", fname, NFILEN)) != TRUE)
 #endif	/* NO_FILECOMP */
 		return (s);
+#ifdef	AUTOSAVE	/* 01.01.06 by M.Suzuki	*/
+	{
+		char aname[NFILEN];
+		autosave_name(aname, fname, NFILEN);
+		unlink(aname);
+	}
+#endif	/* AUTOSAVE	*/
 	adjfname = adjustname(fname);
 	if ((s=writeout(curbp, adjfname)) == TRUE) {
 		if ((newname=malloc(strlen(adjfname)+1)) == NULL) {
@@ -697,12 +721,20 @@ filewrite(f, n)
 		if (curbp->b_cwd != NULL)
 			free(curbp->b_cwd);
 		curbp->b_cwd = NULL;
-#endif		
+#endif
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+#ifndef NO_BACKUP
+		curbp->b_flag &= ~(BFBAK | BFCHG | BFACHG);
+#else
+		curbp->b_flag &= ~(BFCHG|BFACHG);
+#endif
+#else	/* not AUTOSAVE */
 #ifndef NO_BACKUP
 		curbp->b_flag &= ~(BFBAK | BFCHG);
 #else
 		curbp->b_flag &= ~BFCHG;
 #endif
+#endif	/* AUTOSAVE */
 #ifdef	BUGFIX	/* 91.01.18  by S.Yoshida */
 	    {
 		BUFFER		*bp;
@@ -787,6 +819,13 @@ buffsave(bp) BUFFER *bp; {
 			return s;
 	}
 #endif
+#ifdef	AUTOSAVE	/* 01.01.06 by M.Suzuki	*/
+	{
+		char aname[NFILEN];
+		autosave_name(aname, bp->b_fname, NFILEN);
+		unlink(aname);
+	}
+#endif	/* AUTOSAVE	*/
 	if ((s=writeout(bp, bp->b_fname)) == TRUE) {
 #ifndef NO_BACKUP
 #ifdef	BUGFIX	/* 90.02.14  by S.Yoshida */
@@ -794,10 +833,18 @@ buffsave(bp) BUFFER *bp; {
 			fsetfilemode(bp->b_fname, m);
 		}
 #endif	/* BUGFIX */
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+		bp->b_flag &= ~(BFCHG | BFBAK | BFACHG);
+#else
 		bp->b_flag &= ~(BFCHG | BFBAK);
+#endif
+#else	/* not NO_BACKUP */
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+		bp->b_flag &= ~(BFCHG | BFACHG);
 #else
 		bp->b_flag &= ~BFCHG;
 #endif
+#endif	/* NO_BACKUP */
 		upmodes(bp);
 	}
 	return s;

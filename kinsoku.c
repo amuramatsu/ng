@@ -1,4 +1,4 @@
-/* $Id: kinsoku.c,v 1.3 2001/02/11 15:40:25 amura Exp $ */
+/* $Id: kinsoku.c,v 1.4 2001/02/18 17:07:26 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kinsoku.c,v $
+ * Revision 1.4  2001/02/18 17:07:26  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.3  2001/02/11 15:40:25  amura
  * some function are changed to static for speed/size
  *
@@ -85,7 +88,11 @@ kc_list_char(f, n)
 	char	line[DISPLEN + 1];	/* Display line buffer.		*/
 
 	if ((bp = bfind("*Kinsoku Chars*", TRUE)) == NULL) return FALSE;
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+	bp->b_flag &= ~(BFCHG | BFACHG);	/* Blow away old.	*/
+#else
 	bp->b_flag &= ~BFCHG;			/* Blow away old.	*/
+#endif	/* AUTOSAVE	*/
 	if (bclear(bp) != TRUE) return FALSE;
 
 	strcpy(line, "kinsoku-bol-chars:"); /* BOL KINSOKU char list. */

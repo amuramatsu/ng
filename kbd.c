@@ -1,10 +1,13 @@
-/* $Id: kbd.c,v 1.9 2001/01/05 14:07:04 amura Exp $ */
+/* $Id: kbd.c,v 1.10 2001/02/18 17:07:26 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
 
 /*
  * $Log: kbd.c,v $
+ * Revision 1.10  2001/02/18 17:07:26  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.9  2001/01/05 14:07:04  amura
  * first implementation of Hojo Kanji support
  *
@@ -133,6 +136,9 @@ int	flag;
 		if(promptp > prompt) *(promptp-1) = ' ';
 	}
 #endif
+#ifdef	AUTOSAVE
+	autosave_check(TRUE);
+#endif
 	if(pushed) {
 		c = pushedc;
 		pushed = FALSE;
@@ -160,6 +166,9 @@ int	flag;
 	    *promptp = '\0';
 	}
 #endif
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+	autosave_check(FALSE);
+#endif	/* AUTOSAVE */
 	return c;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.12 2001/02/14 09:18:55 amura Exp $ */
+/* $Id: display.c,v 1.13 2001/02/18 17:07:24 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.13  2001/02/18 17:07:24  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.12  2001/02/14 09:18:55  amura
  * code cleanup around putline()
  *
@@ -794,6 +797,58 @@ LINE	*lp;
 	return lines+1;
 }
 
+#if 0
+static VOID
+vtpute(c)
+int c;
+{
+    register VIDEO	*vp;
+
+    vp = vscreen[vtrow];
+
+    if (vtcol >= ncol) {
+#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
+		if (vtkattr == K2ND) {
+			vp->v_text[ncol - 2] = '$';
+		}
+#endif	/* KANJI */
+		vp->v_text[ncol - 1] = '$';
+    } else if (c == '\t'
+#ifdef	NOTAB
+		       && !(curbp->b_flag & BFNOTAB)
+#endif
+					  ) {
+	do {
+	    vtpute(' ');
+	}
+#ifdef	TABWIDTH	/* 95.08.29 by M.Suzuki	*/
+	while (((vtcol + lbound)%tabWidth) != 0 && vtcol < ncol);
+#else
+	while (((vtcol + lbound)&0x07) != 0 && vtcol < ncol);
+#endif	/* TABWIDTH */
+    } else if (ISCTRL(c) != FALSE) {
+	vtpute('^');
+	vtpute(CCHR(c));
+    } else {
+	if (vtcol >= 0) vp->v_text[vtcol] = c;
+	++vtcol;
+#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
+	if (vtkattr == K1ST) {
+		vtkattr = K2ND;
+	} else if (ISKANJI(c)) { /* FIXME : unsupported kana */
+		vtkattr = K1ST;
+	} else {
+		vtkattr = ASCII;
+	}
+	if (vtcol == 1 && vtkattr == K1ST) {
+		vtcol--;
+		lbound++;
+	}
+#endif	/* KANJI */
+    }
+}
+#endif
+
 /*
  * Make sure that the display is
  * right. This is a three part process. First,
@@ -1090,6 +1145,33 @@ ucopy(vvp, pvp) register VIDEO *vvp; register VIDEO *pvp; {
 	bcopy(&vvp->v_sub(0), &pvp->v_sub(0), ncol);
 #endif
 }
+
+#if 0
+/* updext: update the extended line which the cursor is currently
+ * on at a column greater than the terminal width. The line
+ * will be scrolled right or left to let the user see where
+ * the cursor is
+ */
+static VOID
+updext(currow, curcol)
+int currow, curcol;
+{
+    register LINE *lp;			/* pointer to current line */
+    register int j;			/* index into line */
+
+    /* calculate what column the left bound should be */
+    /* (force cursor into middle half of screen) */
+    lbound = curcol - (curcol % (ncol>>1)) - (ncol>>2);
+    /* scan through the line outputing characters to the virtual screen */
+    /* once we reach the left edge */
+    vtmove(currow, -lbound);			/* start scanning offscreen */
+    lp = curwp->w_dotp;				/* line to output */
+    for (j=0; j<llength(lp); ++j)		/* until the end-of-line */
+	vtpute(lgetc(lp, j));
+    vteeol();					/* truncate the virtual line */
+    vscreen[currow]->v_text[0] = '$';		/* and put a '$' in column 1 */
+}
+#endif
 
 /*
  * Update a single line. This routine only

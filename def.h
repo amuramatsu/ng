@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.13 2001/02/11 15:40:24 amura Exp $ */
+/* $Id: def.h,v 1.14 2001/02/18 17:07:27 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.14  2001/02/18 17:07:27  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.13  2001/02/11 15:40:24  amura
  * some function are changed to static for speed/size
  *
@@ -106,10 +109,10 @@ typedef int (*PF) pro((int, int)); /* generaly useful type */
 #else /* Maybe Win32 or UN*X */
 #define NFILEN	1024			/* Length, file name.		*/
 #endif
-#define NBUFN	24			/* Length, buffer name.		*/
+#define NBUFN	32			/* Length, buffer name.		*/
 #define NLINE	256			/* Length, line.		*/
 #define NINPUT	32			/* Length, small minibuf input	*/
-#define PBMODES 4			/* modes per buffer		*/
+#define PBMODES 8			/* modes per buffer		*/
 #define NKBDM	256			/* Length, keyboard macro.	*/
 #define NPAT	80			/* Length, pattern.		*/
 #define HUGE	1000			/* A rather large number.	*/
@@ -355,10 +358,12 @@ typedef struct	BUFFER {
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
 #define	BFRONLY	0x20			/* Read only mode.		*/
 #endif	/* READONLY */
-
 #ifdef CANNA
 #define BFCANNA 0x40
 #endif
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+#define	BFACHG	0x80			/* Auto save after changed.	*/
+#endif	/* AUTOSAVE */
 
 #ifdef ADDFUNC
 #define MG_RATIO_ALL -1 /* used at dotpos() to return value */
@@ -571,7 +576,6 @@ extern int lreplace pro((RSIZE, char *, int));
 extern int killmatches pro((int));
 extern int countmatches pro((int));
 extern int getregion pro((REGION *));
-extern int setsize pro((REGION *, RSIZE));
 extern int setprefix pro((int, int));
 extern int forwline pro((int, int));
 extern int readpattern pro((char *));
@@ -594,26 +598,21 @@ extern VOID ensurecwd pro((void));
 extern VOID edefset pro((char *));
 #endif
 extern int rescan pro((int, int));
+#ifdef	AUTOSAVE
+extern VOID autosave_check pro((int));
+extern VOID autosave_handler pro((void));
+extern VOID autosave_name pro((char*, char*, int));
+extern VOID del_autosave_file pro((char*));
+extern VOID clean_autosave_file pro((void));
+#endif
 
 /*
  * Standard I/O.
  */
-extern char *strcpy pro((char *, const char *));
-extern char *strcat pro((char *, const char *));
 #ifndef SUPPORT_ANSI
 extern VOIDptr malloc();
 extern VOIDptr realloc();
 #endif
-
-#ifdef	WIN32
-void	strcat_num( char *str, int num ) ;
-void	strcat_char( char *str, int c ) ;
-int	stricmp( const char *src, const char *dst ) ;
-int	chdir( const char *dir ) ;
-int	Sprintf( char *buf, const char *fmt, ... ) ;
-#define	exit(rc)	Exit(rc)
-#define	sprintf		Sprintf
-#endif	/* WIN32 */
 
 #ifdef	CANNA
 VOID canna_init();

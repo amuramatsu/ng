@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.3 2001/01/05 14:06:59 amura Exp $ */
+/* $Id: basic.c,v 1.4 2001/02/18 17:07:23 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: basic.c,v $
+ * Revision 1.4  2001/02/18 17:07:23  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.3  2001/01/05 14:06:59  amura
  * first implementation of Hojo Kanji support
  *
@@ -283,6 +286,9 @@ forwline(f, n)
 		warnreadonly();		   /* do only displaying warning.  */
 	    } else {
 #endif	/* READONLY */
+#ifdef	AUTOSAVE	/* 96.12.25 by M.Suzuki	*/
+		curbp->b_flag |= BFACHG;
+#endif	/* AUTOSAVE */
 		if(!(curbp->b_flag&BFCHG)) {	/* first change */
 			curbp->b_flag |= BFCHG;
 			curwp->w_flag |= WFMODE;

@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.10 2001/01/05 14:06:59 amura Exp $ */
+/* $Id: buffer.c,v 1.11 2001/02/18 17:07:23 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.11  2001/02/18 17:07:23  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.10  2001/01/05 14:06:59  amura
  * first implementation of Hojo Kanji support
  *
@@ -49,9 +52,67 @@
 int defb_tab = 8;
 int cmode_tab = 0;
 #endif  /* VARIABLE_TAB */
-static RSIZE	itor();
 #define	GETNUMLEN	6
+static RSIZE	itor pro((char*,int,RSIZE));
+static BUFFER *makelist pro((void));
 
+#ifdef	MOVE_BUFFER		/* 95.08.29 by M.Suzuki	*/
+/* Move to the next buffer	*/
+nextbuffer(f,n)
+{
+	register BUFFER *bp;
+
+	/* Get buffer to use from user */
+	if ((curbp->b_altb == NULL)
+	    && ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
+		 return FALSE;
+
+	bp = bheadp;
+	while (bp != NULL) {
+		if (fncmp(curbp->b_bname, bp->b_bname) == 0){
+			bp = bp->b_bufp;
+			break;
+		}
+		bp = bp->b_bufp;
+	}
+	if ( bp == NULL){
+		bp = bheadp;
+	}
+
+	/* and put it in current window */
+	curbp = bp;
+	return showbuffer(bp, curwp, WFFORCE|WFHARD);
+}
+
+/* Move to the previous buffer	*/
+prevbuffer(f,n)
+{
+	register BUFFER *bp,*bp1;
+
+	if ((curbp->b_altb == NULL)
+	    && ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
+		return FALSE;
+
+	bp1 = bp = bheadp;
+	while (bp != NULL) {
+		if (fncmp(curbp->b_bname, bp->b_bname) == 0){
+			if( bp == bp1 ){		/* abnomal found */
+				while( bp != NULL ){	/* last search */
+					bp1 = bp;
+					bp = bp->b_bufp;
+				}
+			}
+			break;
+		}
+		bp1 = bp;
+		bp = bp->b_bufp;
+	}
+
+	/* and put it in current window */
+	curbp = bp1;
+	return showbuffer(bp1, curwp, WFFORCE|WFHARD);
+}
+#endif	/* MOVE_BUFFER */
 
 /*
  * Attach a buffer to a window. The values of dot and mark come
@@ -263,14 +324,18 @@ makelist() {
 	register RSIZE	nbytes;
 	BUFFER		*blp;
 	char		b[6+1];
-	char		line[128];
+	char		line[4+NBUFN+7+NFILEN+4];
 #ifdef HANKANA
 	int nhankana;
 #endif
 
 	if ((blp = bfind("*Buffer List*", TRUE)) == NULL) return NULL;
 	if (bclear(blp) != TRUE) return NULL;
-	blp->b_flag &= ~BFCHG;			/* Blow away old.	*/
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+	blp->b_flag &= ~(BFCHG|BFACHG);		/* Blow away old.	*/
+#else
+  	blp->b_flag &= ~BFCHG;			/* Blow away old.	*/
+#endif	/* AUTOSAVE	*/
 
 	(VOID) strcpy(line, " MR Buffer");
 	cp1 = line + 10;
@@ -284,56 +349,16 @@ makelist() {
 	if (addline(blp, line) == FALSE) return NULL;
 	bp = bheadp;				/* For all buffers	*/
 	while (bp != NULL) {
-		cp1 = &line[0];			/* Start at left edge	*/
-		*cp1++ = (bp == curbp) ? '.' : ' ';
-		*cp1++ = ((bp->b_flag&BFCHG) != 0) ? '*' : ' ';
+		sprintf(line,"%c%c%c %-32s %7d %s",
+				(bp == curbp) ? '.' : ' ',
+				(bp->b_flag & BFCHG) ? '*' : ' ',
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-		*cp1++ = ((bp->b_flag&BFRONLY) != 0) ? '%' : ' ';
-#else	/* NOT READONLY */
-		*cp1++ = ' ';			/* Gap.			*/
-#endif	/* READONLY */
-		*cp1++ = ' ';
-		cp2 = &bp->b_bname[0];		/* Buffer name		*/
-#ifdef HANKANA
-		nhankana = 0;
+				(bp->b_flag & BFRONLY) ? '%' : ' ',
+#else
+				' ',
 #endif
-		while ((c = *cp2++) != 0) {
-			*cp1++ = c;
-#ifdef HANKANA
-			if (ISHANKANA(c)) {
-			  nhankana++;
-			}
-#endif
-		}
-		while (cp1 < &line[4+NBUFN+1])
-			*cp1++ = ' ';
-#ifdef HANKANA
-		while (nhankana-- > 0) {
-		  *cp1++ = ' ';
-		}
-#endif
-		nbytes = 0;			/* Count bytes in buf.	*/
-		if (bp != blp) {
-			lp = lforw(bp->b_linep);
-			while (lp != bp->b_linep) {
-				nbytes += llength(lp)+1;
-				lp = lforw(lp);
-			}
-			if(nbytes) nbytes--;	/* no bonus newline	*/
-		}
-		(VOID) itor(b, 6, nbytes);	/* 6 digit buffer size. */
-		cp2 = &b[0];
-		while ((c = *cp2++) != 0)
-			*cp1++ = c;
-		*cp1++ = ' ';			/* Gap..		*/
-		cp2 = bp->b_fname;		/* File name		*/
-		if (cp2 != NULL) {
-			while ((c = *cp2++) != 0) {
-				if (cp1 < &line[128-1])
-					*cp1++ = c;
-			}
-		}
-		*cp1 = 0;			/* Add to the buffer.	*/
+				bp->b_bname, nbytes,
+				(bp->b_fname != NULL) ? bp->b_fname : "" );
 		if (addline(blp, line) == FALSE)
 			return NULL;
 		bp = bp->b_bufp;
@@ -423,7 +448,11 @@ anycb(f) {
 			}
 			if ((f == TRUE || (save = eyorn(prompt)) == TRUE)
 			&&  buffsave(bp) == TRUE) {
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+				bp->b_flag &= ~(BFCHG|BFACHG);
+#else
 				bp->b_flag &= ~BFCHG;
+#endif	/* AUTOSAVE	*/
 				upmodes(bp);
 			} else s = TRUE;
 			if (save == ABORT) return (save);
@@ -548,7 +577,14 @@ bclear(bp) register BUFFER *bp; {
 	if ((bp->b_flag&BFCHG) != 0		/* Changed.		*/
 	&& (s=eyesno("Buffer modified; kill anyway")) != TRUE)
 		return (s);
+#ifdef	AUTOSAVE	/* 96.12.25 by M.Suzuki	*/
+	if (bp->b_bname && bp->b_bname[0] != '*' ){/* file buffer only	*/
+		del_autosave_file(bp->b_fname);
+	}
+	bp->b_flag  &= ~(BFCHG|BFACHG);		/* Not changed		*/
+#else
 	bp->b_flag  &= ~BFCHG;			/* Not changed		*/
+#endif	/* AUTOSAVE	*/
 	while ((lp=lforw(bp->b_linep)) != bp->b_linep)
 		lfree(lp);
 	bp->b_dotp  = bp->b_linep;		/* Fix "."		*/
@@ -707,7 +743,11 @@ notmodified(f, n)
 {
 	register WINDOW *wp;
 
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+	curbp->b_flag &= ~(BFCHG|BFACHG);
+#else
 	curbp->b_flag &= ~BFCHG;
+#endif	/* AUTOSAVE	*/
 	wp = wheadp;				/* Update mode lines.	*/
 	while (wp != NULL) {
 		if (wp->w_bufp == curbp)

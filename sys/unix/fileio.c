@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.9 2001/02/11 15:39:01 amura Exp $ */
+/* $Id: fileio.c,v 1.10 2001/02/18 17:07:40 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.10  2001/02/18 17:07:40  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.9  2001/02/11 15:39:01  amura
  * change getuid() geteuid()
  *
@@ -865,3 +868,24 @@ copy_dir_name (d, s)
     return (d);
 }
 #endif	/* NEW_COMPLETE */
+
+#ifdef	AUTOSAVE
+VOID
+autosave_name(buff, name, buflen)
+char* buff;
+char* name;
+{
+    strcpy(buff, name);
+    if (strlen(name)) {
+	char *fn = index(name, BDC1);
+	if (fn == NULL){
+	    fn = buff;
+	} else {
+	    fn++;
+	}
+	strcpy(&buff[strlen(buff)-strlen(fn)], "#");
+	strcat(buff, fn);
+	strcat(buff, "#");
+    }
+}
+#endif	/* AUTOSAVE */

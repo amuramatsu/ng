@@ -1,10 +1,13 @@
-/* $Id: complt.c,v 1.6 2001/01/05 14:07:00 amura Exp $ */
+/* $Id: complt.c,v 1.7 2001/02/18 17:07:24 amura Exp $ */
 /*
  *	Complete completion functions.
  */
 
 /*
  * $Log: complt.c,v $
+ * Revision 1.7  2001/02/18 17:07:24  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.6  2001/01/05 14:07:00  amura
  * first implementation of Hojo Kanji support
  *
@@ -58,7 +61,7 @@ complete (buf, flags)
 {
     int    res;
 
-    switch (flags & (EFFUNC | EFBUF | EFFILE))
+    switch (flags & EFAUTO)
       {
       case EFFUNC:
 	res = complete_funcname (buf);
@@ -292,14 +295,18 @@ complete_list_names (buf, flags)
 
     if ((bp = bfind ("*Completions*", TRUE)) == NULL)
       return (FALSE);
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+    bp->b_flag &= ~(BFCHG|BFACHG);    /* avoid recursive veread */
+#else
     bp->b_flag &= ~BFCHG;    /* avoid recursive veread */
+#endif	/* AUTOSAVE	*/
     if (bclear (bp) != TRUE)
       return (FALSE);
 
     if (addline(bp, "Possible completions are:") == FALSE)
       return (FALSE);
 
-    switch (flags & (EFFUNC | EFBUF | EFFILE))
+    switch (flags & EFAUTO)
       {
       case EFFUNC:
 	res = complete_list_funcnames (buf, bp);

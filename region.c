@@ -1,4 +1,4 @@
-/* $Id: region.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: region.c,v 1.2 2001/02/18 17:07:27 amura Exp $ */
 /*
  *		Region based commands.
  * The routines in this file
@@ -10,8 +10,11 @@
 
 /*
  * $Log: region.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2001/02/18 17:07:27  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 
@@ -20,6 +23,18 @@
 #ifdef	UNDO
 #include	"undo.h"
 #endif
+
+int getregion pro((REGION*));
+static int setsize pro((REGION*,RSIZE));
+
+#ifdef	CHGMISC		/* 97.11.10 by M.Suzuki	*/
+copywordregion(f, n)
+{
+	setmark(f, n);
+	forwword(f,n);
+	return copyregion(f, n);
+}
+#endif	/* CHGMISC	*/
 
 /*
  * Kill the region. Ask "getregion"
@@ -300,6 +315,7 @@ getregion(rp) register REGION *rp; {
 /*
  * Set size, and check for overflow.
  */
+static int
 setsize(rp, size) register REGION *rp; register RSIZE size; {
 
 	rp->r_size = size;

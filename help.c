@@ -1,8 +1,8 @@
-/* $Id: help.c,v 1.2 2000/12/14 18:12:14 amura Exp $ */
+/* $Id: help.c,v 1.3 2001/02/18 17:07:25 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 /*
- * $Id: help.c,v 1.2 2000/12/14 18:12:14 amura Exp $
+ * $Id: help.c,v 1.3 2001/02/18 17:07:25 amura Exp $
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -89,6 +89,10 @@ found:
     else if((pep = function_name(funct)) != NULL)
 	    ewprintf("%k runs the command %s", pep);
     else    ewprintf("%k is bound to an unnamed function");
+#ifdef KANJI		/* code from Ng-1.3.1L+6 */
+    if (ISKANJI(c))
+	getkey(FALSE);	/* eat up kanji 2nd byte */
+#endif
     return TRUE;
 }
 
@@ -109,7 +113,11 @@ wallchart(f, n)
 
 #ifdef	BUGFIX	/* 91.02.06  by S.Yoshida */
 	if ((bp = bfind("*help*", TRUE)) == NULL) return FALSE;
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+	bp->b_flag &= ~(BFCHG | BFACHG);/* Blow away old.	*/
+#else
 	bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
+#endif	/* AUTOSAVE	*/
 #else	/* ORIGINAL */
 	bp = bfind("*help*", TRUE);
 #endif	/* BUGFIX */
@@ -193,7 +201,16 @@ int f, n;
     fepmode_off();
 #endif
     do {
+#ifdef KANJI		/* code from Ng-1.3.1L+6 */
+	int c = getkey(FALSE);
+	if (ISKANJI(c)) {
+	    getkey(FALSE);
+	    return ABORT;
+	}
+	funct = doscan(kp, c);
+#else
 	funct = doscan(kp, getkey(FALSE));
+#endif
     } while(funct==NULL || funct==help_help);
 #ifndef NO_MACRO
     if(macrodef && macrocount < MAXMACRO) macro[macrocount-1].m_funct = funct;

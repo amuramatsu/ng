@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.11 2001/02/14 09:16:59 amura Exp $ */
+/* $Id: config.h,v 1.12 2001/02/18 17:07:27 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -73,7 +73,9 @@
 #define EMACS_QUERY_KEYS /* isearch/query-replace key bindings compatible */
 			/* with GNU Emacs 19 and later (by Shimbo)*/
 
-#define	UNDO		/* Enable buffer undo */
+#define	UNDO		/* enable buffer undo */
+
+#define AUTOSAVE	/* enable autosaver (ported form M.Suziki's work) */
 
 /*----------------------------------------------------------------------*/
 /*	Features for Ng/KANgee (KANJI version Mg2a).			*/
@@ -111,7 +113,7 @@
 /*................................................*/
 #ifdef HAVE_CONFIG_H	/* Do not edit this line. */
 #include "sysconfig.h"	/* Do not edit this line. */
-#endif			/* Do not edit this line. */
+#else			/* Do not edit this line. */
 #if defined(_WIN32)&&!defined(__CYGWIN__)&&!defined(WIN32)
 #define	WIN32		/* Do not edit this line. */
 #endif			/* Do not edit this line. */
@@ -132,6 +134,7 @@
 /*#define CANNA		/* use CANNA kana-kanji server (by Endo) */
 
 /*................................................*/
+#endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */

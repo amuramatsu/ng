@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.12 2001/02/01 16:28:48 amura Exp $ */
+/* $Id: line.c,v 1.13 2001/02/18 17:07:26 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.13  2001/02/18 17:07:26  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.12  2001/02/01 16:28:48  amura
  * remove small kludge because it raise warning with mpatrol
  *
@@ -197,6 +200,9 @@ VOID
 lchange(flag) register int flag; {
 	register WINDOW *wp;
 
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+	curbp->b_flag |= BFACHG;
+#endif	/* AUTOSAVE	*/
 	if ((curbp->b_flag&BFCHG) == 0) {	/* First change, so	*/
 		flag |= WFMODE;			/* update mode lines.	*/
 		curbp->b_flag |= BFCHG;

@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.10 2001/02/11 15:40:25 amura Exp $ */
+/* $Id: kanji.c,v 1.11 2001/02/18 17:07:25 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.11  2001/02/18 17:07:25  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
  * Revision 1.10  2001/02/11 15:40:25  amura
  * some function are changed to static for speed/size
  *
@@ -371,7 +374,11 @@ k_list_code(f, n)
 	char	 line[80];
 
 	if ((bp = bfind("*Kanji Codes*", TRUE)) == NULL) return FALSE;
-	bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+	bp->b_flag &= ~(BFCHG | BFACHG);	/* Blow away old.	*/
+#else
+	bp->b_flag &= ~BFCHG;			/* Blow away old.	*/
+#endif	/* AUTOSAVE	*/
 	if (bclear(bp) != TRUE) return FALSE;
 
 	strcpy(line, "* List of kanji-code related variables *");

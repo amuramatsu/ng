@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: shell.c,v 1.2 2001/02/18 17:07:27 amura Exp $ */
 /*
  *		Shell commands.
  * The file contains the command
@@ -8,8 +8,11 @@
 
 /*
  * $Log: shell.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2001/02/18 17:07:27  amura
+ * append AUTOSAVE feature (but NOW not work)
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 
@@ -51,7 +54,11 @@ shellcmnd(f, n)
 		bp->b_doto = wp->w_doto;
 		curbp = obp;
 		curwp = owp;
+#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+		bp->b_flag &= ~(BFCHG | BFACHG);
+#else
 		bp->b_flag &= ~BFCHG;
+#endif	/* AUTOSAVE	*/
 	}
 	unlink(result);
 	return s;
