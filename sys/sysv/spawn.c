@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.2 2000/06/27 01:59:43 amura Exp $ */
+/* $Id: spawn.c,v 1.2.2.1 2000/12/01 10:03:37 amura Exp $ */
 /*
  * Name:	MicroGnuEmacs
  *		Spawn CLI for System V.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.2.2.1  2000/12/01 10:03:37  amura
+ * fix for some strict compiler
+ *
  * Revision 1.2  2000/06/27 01:59:43  amura
  * small bugfix
  *
@@ -66,8 +69,7 @@ spawncli(f, n)
 		if (shellp == NULL)
 			shellp = "/bin/sh";	/* Safer.		*/
 		shname = strrchr( shellp, '/' ); 
-		shname = shname ? shname++ : shellp;
-		
+		shname = shname ? shname+1 : shellp;
 	}
 	ttcolor(CTEXT);
 	ttnowindow();
