@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.10 2001/11/28 19:02:11 amura Exp $ */
+/* $Id: sysdef.h,v 1.11 2002/04/18 13:49:22 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.11  2002/04/18 13:49:22  amura
+ * HUMAN68K's console output routine is modified for speed
+ *
  * Revision 1.10  2001/11/28 19:02:11  amura
  * Small fixes arount termcap library.
  *
@@ -70,7 +73,9 @@
 #undef	CTRLMAP			/* Build ctrlmap feature in as default off */
 #endif
 #endif
+
 #define	MAKEBACKUP	FALSE		/* Making backup file is off.	*/
+#define HAVE_ORIGINAL_PUTLINE		/* Use port specified putline()	*/
 #define WITHOUT_TERMCAP	TRUE		/* This port unused termcap lib */
 
 typedef long	RSIZE;			/* Type for file/region sizes	*/

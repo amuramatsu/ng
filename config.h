@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.21 2002/04/07 01:00:53 amura Exp $ */
+/* $Id: config.h,v 1.22 2002/04/18 13:49:21 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -193,6 +193,8 @@
 /*................................................*/
 
 #define FEPCTRL		/* Enable FEP auto control. */
+
+/*#undef DIRECT_IOCS*/	/* use IOCS to output directory */
 
 #define	EMACS_BACKUP_STYLE
 			/* Backup files like as GNU Emacs */
@@ -407,6 +409,12 @@
 
 #ifdef WIN32
 #  define MOUSE
+#endif
+
+#ifdef DIRECT_IOCS
+#  ifndef WITHOUT_TERMCAP
+#    define WITHOUT_TERMCAP
+#  endif
 #endif
 
 #ifdef CLIPBOARD

@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.5 2002/04/06 22:59:26 amura Exp $ */
+/* $Id: sysdef.h,v 1.6 2002/04/18 13:49:22 amura Exp $ */
 /*
  *		Human68k system definitions
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.6  2002/04/18 13:49:22  amura
+ * HUMAN68K's console output routine is modified for speed
+ *
  * Revision 1.5  2002/04/06 22:59:26  amura
  * now Human68k port is validated
  *
@@ -39,6 +42,7 @@
 					/* (default mode is bsmap on)	*/
 #define	MAKEBACKUP	FALSE		/* Making backup file is off.	*/
 #define	LOCAL_VARARGS
+#define HAVE_ORIGINAL_PUTLINE		/* Use port specified putline()	*/
 
 typedef long	RSIZE;			/* Type for file/region sizes	*/
 typedef short	KCHAR;			/* Type for internal keystrokes	*/

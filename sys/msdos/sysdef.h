@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.7 2001/11/24 08:24:29 amura Exp $ */
+/* $Id: sysdef.h,v 1.8 2002/04/18 13:49:22 amura Exp $ */
 /*
  *		MS-DOS based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.8  2002/04/18 13:49:22  amura
+ * HUMAN68K's console output routine is modified for speed
+ *
  * Revision 1.7  2001/11/24 08:24:29  amura
  * Rewrite all sources (for msdos port)
  *
@@ -50,6 +53,9 @@ extern void *alloca(int);		/* defind in alloca.asm		*/
 #ifdef	__TURBOC__	/* 90.03.23  by A.Shirahashi */
 #define	LOCAL_VARARGS
 #endif	/* __TURBOC__ */
+#ifdef PC9801
+#define HAVE_ORIGINAL_PUTLINE		/* Use port specified putline()	*/
+#endif
 
 typedef long	RSIZE;			/* Type for file/region sizes	*/
 typedef short	KCHAR;			/* Type for internal keystrokes	*/

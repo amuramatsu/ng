@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.3 2001/11/28 21:45:12 amura Exp $ */
+/* $Id: sysdef.h,v 1.4 2002/04/18 13:49:21 amura Exp $ */
 /*
  *		Epoc32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.4  2002/04/18 13:49:21  amura
+ * HUMAN68K's console output routine is modified for speed
+ *
  * Revision 1.3  2001/11/28 21:45:12  amura
  * Rewrite to new source code style
  *
@@ -31,7 +34,8 @@
 #define	NO_RESIZE			/* Screen size is constant.	*/
 #define	BSMAP		TRUE		/* Bs map feature can use.	*/
 					/* (default mode is bsmap on)	*/
-#define	MAKEBACKUP	TRUE		/* Making backup file is off.	*/
+#define	MAKEBACKUP	FALSE		/* Making backup file is off.	*/
+#define HAVE_ORIGINAL_PUTLINE		/* Use port specified putline()	*/
 #define WITHOUT_TERMCAP	TRUE		/* This port unused termcap lib */
 
 typedef int	RSIZE;			/* Type for file/region sizes	*/

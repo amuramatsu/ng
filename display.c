@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.18 2001/11/25 19:52:02 amura Exp $ */
+/* $Id: display.c,v 1.19 2002/04/18 13:49:21 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.19  2002/04/18 13:49:21  amura
+ * HUMAN68K's console output routine is modified for speed
+ *
  * Revision 1.18  2001/11/25 19:52:02  amura
  * change for compiler warnings reducing
  *
@@ -423,7 +426,7 @@ register int c;
 	}
 }
 
-#if defined(MEMMAP)&&(!defined(PC9801))&&(!defined(WIN32))&&(!defined(EPOC32))
+#if defined(MEMMAP) && !defined(HAVE_ORIGINAL_PUTLINE)
 static VOID
 #ifdef SS_SUPPORT
 putline(row, col, s, t, color)
@@ -473,7 +476,7 @@ short color;	/* this is dummy */
     vtrow = oldrow;
     vtcol = oldcol;
 }
-#endif /* MEMMAP && !PC9801 && !WIN32 && !EPOC32 */
+#endif /* MEMMAP && !HAVE_ORIGINAL_PUTLINE */
 
 /* Mark '\\' end of line 
  * whether curcol is not on the top of line.

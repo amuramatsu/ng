@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.6 2001/11/28 19:02:10 amura Exp $ */
+/* $Id: ttydef.h,v 1.7 2002/04/18 13:49:21 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: ttydef.h,v $
+ * Revision 1.7  2002/04/18 13:49:21  amura
+ * HUMAN68K's console output routine is modified for speed
+ *
  * Revision 1.6  2001/11/28 19:02:10  amura
  * Small fixes arount termcap library.
  *
@@ -28,11 +31,13 @@
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /* 90.02.05	Modified for Ng 1.0 by S.Yoshida */
 
-#if defined(PC9801)||defined(WIN32)||defined(EPOC32)
-#define	MEMMAP			/* Not memory mapped video.	*/
+#ifdef HAVE_ORIGINAL_PUTLINE
+# ifndef MEMMAP
+#  define MEMMAP			/* Memory mapped video.	*/
+# endif
 #else	/* not !PC9801 && !WIN32 && !EPOC32 */
 #define GOSLING			/* Compile in fancy display.	*/
-#endif	/* PC9801 */
+#endif
 
 #if !(defined(NROW)&&defined(NCOL))
 #if defined(MSDOS)	/* 90.04.02  by S.Yoshida */

@@ -1,7 +1,10 @@
-# $Id: Makefile,v 1.4 2002/04/17 17:50:10 amura Exp $
+# $Id: Makefile,v 1.5 2002/04/18 13:49:22 amura Exp $
 # Makefile for Ng on Human68k (SHARP X68000)
 #
 # $Log: Makefile,v $
+# Revision 1.5  2002/04/18 13:49:22  amura
+# HUMAN68K's console output routine is modified for speed
+#
 # Revision 1.4  2002/04/17 17:50:10  amura
 # add dependent rule of ttyio.o
 #
@@ -115,7 +118,7 @@ regex.o:	$(INCS) $(OINCS) $(REINCS)
 
 skg.o: 		$(INCS) $(OINCS) macro.h key.h undo.h
 
-ttyio.o:	$(INCS) $(OINCS) fepctrl.h
+ttyio.o:	$(INCS) $(OINCS) fepctrl.h kanji.h kinit.h
 
 sysdef.h:	sys\$(SYS)\sysdef.h	# Update, if needed.
 	copy sys\$(SYS)\sysdef.h
@@ -138,8 +141,8 @@ spawn.c:	sys\$(SYS)\spawn.c
 ttyio.c:	sys\$(SYS)\ttyio.c
 	copy sys\$(SYS)\ttyio.c
 
-tty.c:		sys\default\tty.c
-	copy sys\default\tty.c
+tty.c:		sys\$(SYS)\tty.c
+	copy sys\$(SYS)\tty.c
 
 ttykbd.c:	sys\default\ttykbd.c
 	copy sys\default\ttykbd.c
