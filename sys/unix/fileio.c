@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.6 2000/12/27 16:55:43 amura Exp $ */
+/* $Id: fileio.c,v 1.7 2000/12/28 07:25:40 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.7  2000/12/28 07:25:40  amura
+ * fix filename complition
+ *
  * Revision 1.6  2000/12/27 16:55:43  amura
  * change d_makename() params for conservative reason, and bugfix in dires_()
  *
@@ -724,9 +727,8 @@ char *name, **buf;
     char *buffer;
     struct stat st;
     char *home;
-    size_t homelen;
+    int homelen;
 
-    strcpy(pathbuf, name);
     if(name[0] == '~' && name[1] == '/' && (home = getenv("HOME"))) {
 	homelen = strlen(home);
 	strncpy(pathbuf, home, sizeof(pathbuf));
@@ -752,7 +754,7 @@ char *name, **buf;
 	strcpy(pathbuf, "./");
 	dirpartlen = 0;
     }
-    nampart = name + dirpartlen - homelen;
+    nampart = name + dirpartlen - homelen + 1;
     nampartlen = strlen(nampart);
     
 #ifndef	NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
