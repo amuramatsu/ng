@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.9.2.1 2005/02/20 09:41:48 amura Exp $ */
+/* $Id: fileio.c,v 1.9.2.2 2005/02/20 10:27:53 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.9.2.2  2005/02/20 10:27:53  amura
+ * path handling around "HOME" environment is fixed
+ *
  * Revision 1.9.2.1  2005/02/20 09:41:48  amura
  * fix return code
  *
@@ -476,6 +479,9 @@ register char *fn;
 #ifdef HOMEDIR
     else if (fn[0]=='~' && (fn[1]=='/' || fn[1]=='\\')) {
     	strcpy(fnb, getenv("HOME"));
+#ifdef KANJI
+	bufstoe(fnb, strlen(fnb)+1);
+#endif
     	while (*cp) {
 	    if (*cp == '\\')
 		*cp = '/';
@@ -667,7 +673,7 @@ char *suffix;
 			return home;
 		}
 	/*
-		strcat(home, "\\");
+		strcat(home, "/");
 		strcat(home, ngrcfile);
 		if (access(home, 0) == 0) {
 #ifdef	KANJI
@@ -680,9 +686,9 @@ char *suffix;
 	}
 #endif
 #ifdef	KANJI	/* 90.02.10  by S.Yoshida */
-	(VOID) strcat(home, "\\ng.ini");
+	(VOID) strcat(home, "/ng.ini");
 #else	/* NOT KANJI */
-	(VOID) strcat(home, "\\mg.ini");
+	(VOID) strcat(home, "/mg.ini");
 #endif	/* KANJI */
 	if (suffix != NULL) {
 		(VOID) strcat(home, "-");
@@ -984,8 +990,9 @@ fffiles(name, buf)
     
     if(name[0] == '~' && (name[1]=='/' || name[1]=='\\') &&
        (home = getenv("HOME"))) {
-	homelen = strlen(home) - 1;
 	strncpy(pathbuf, home, sizeof(pathbuf));
+	bufstoe(pathbuf, strlen(pathbuf)+1);
+	homelen = strlen(pathbuf) - 1;
 	pathbuf[NFILEN-1] = '\0';
 	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
     } else {
@@ -1017,7 +1024,7 @@ fffiles(name, buf)
         dirpartlen = 0;
     }
 #ifdef	HOMEDIR
-    nampart = name + dirpartlen - homelen + 1;
+    nampart = name + dirpartlen - homelen;
 #else
     nampart = name + dirpartlen;
 #endif
