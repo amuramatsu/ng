@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.6 2000/06/27 01:49:42 amura Exp $ */
+/* $Id: dir.c,v 1.7 2000/07/18 12:40:34 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -8,6 +8,9 @@
 
 /*
  * $Log: dir.c,v $
+ * Revision 1.7  2000/07/18 12:40:34  amura
+ * for Win32, enable to handle japanese directory
+ *
  * Revision 1.6  2000/06/27 01:49:42  amura
  * import to CVS
  *
@@ -46,7 +49,14 @@ char	*getcwd();
 char	*tounixfn();
 #else	/* NOT HUMAN68K */
 #ifdef	_WIN32
+#include <tchar.h>
 #include <direct.h>
+int	sjis2unicode(), unicode2sjis();
+#ifndef	__BORLANDC__
+#define	chdir	_tchdir
+#define	getcwd	_tgetcwd
+#endif	/* __BORLANDC__ */
+#define	HAVE_GETCWD 1
 #else	/* NOT _WIN32 */
 #ifdef	HAVE_GETCWD
 char	*getcwd();
@@ -76,8 +86,8 @@ VOID
 dirinit()
 {
 #ifdef	_WIN32
-	if (!(wdir = _getcwd(cwd, NFILEN-1)))
-#else
+	char wdir2[NFILEN];
+#endif
 #ifdef	MSDOS	/* 90.01.29  by S.Yoshida */
 	/* 90.07.01  Add fftolower() by S.Yoshida */
 	if (!(wdir = fftolower(getcwd(cwd, NFILEN - 1))))
@@ -92,12 +102,24 @@ dirinit()
 #endif
 #endif	/* HUMAN68K */
 #endif	/* MSDOS */
-#endif	/* _WIN32 */
 		panic("Can't get current directory!");
 #ifdef	_WIN32
+#ifdef	KANJI
+	unicode2sjis(wdir, wdir2, sizeof(wdir2));
+	strcpy(wdir, wdir2);
+	bufstoe(wdir, strlen(wdir)+1);
+#endif
+#ifndef	_WIN32_WCE
 	if (wdir[1]==':' && ISUPPER(wdir[0]))
 		wdir[0] = TOLOWER(wdir[0]);
+#endif	/* _WIN32_WCE */
+#else	/* _WIN32 */
+#if	defined(MSDOS)||defined(HUMAN68K)
+#ifdef	KANJI
+	bufstoe(wdir, strlen(wdir)+1);
 #endif
+#endif	/* MSDOS||HUMAN68K */
+#endif	/* _WIN32 */
 	if (startdir[0] == '\0') {
 		int i;
 		strncpy(startdir, cwd, NFILEN-1);
@@ -170,11 +192,21 @@ int
 rchdir(newdir)
 char *newdir;
 {
-#if defined(MSDOS)||defined(HUMAN68K)||defined(_WIN32)
+#if defined(MSDOS)||defined(HUMAN68K)||(defined(_WIN32)&&!defined(_WIN32_WCE))
     char dir[NFILEN];
+#ifdef _WIN32
+    char dir2[NFILEN];
+#endif
     int i;
 
     strcpy(dir, newdir);
+#ifdef	KANJI
+    bufetos(dir, strlen(dir)+1);
+#ifdef	_WIN32
+    sjis2unicode(dir, dir2, sizeof(dir2));
+    strcpy(dir, dir2);
+#endif
+#endif
     i = strlen(dir) - 1;
 #ifdef	BDC2
     if (dir[i] == BDC1 || dir[i] == BDC2)
@@ -182,7 +214,7 @@ char *newdir;
     if (dir[i] == BDC1)
 #endif
 	dir[i] = '\0';
-    if (newdir[1] == ':' && newdir[0] != wdir[0]) {
+    if (dir[1] == ':' && dir[0] != wdir[0]) {
 	int	drive;
 	drive = newdir[0];
 	/* 90.07.01  Change from TOUPPER() to TOLOWER() */
@@ -219,8 +251,17 @@ char *newdir;
 	return 0;
     }
 #else	/* NOT (MSDOS||HUMAN68K||_WIN32) */
+#if defined(_WIN32_WCE)&&defined(KANJI)
+    /* WinCE has no drive */
+    char dir[NFILEN], dir2[NFILEN];
+    strcpy(dir, newdir);
+    bufetos(dir, strlen(dir)+1);
+    sjis2unicode(dir, dir2, sizeof(dir2));
+    return chdir(dir2);
+#else	/* not _WIN32_WCE&&KANJI */
     /* Maybe this is just for AMIGA, UNIX */
     return chdir(newdir);
+#endif	/* _WIN32_WCE&&KANJI */
 #endif	/* MSDOS||HUMAN68K||_WIN32 */
 }
 
@@ -302,7 +343,12 @@ changedir(f, n)
 changedir(f, n)
 {
 	register int s;
+#if defined(_WIN32)&&defined(KANJI)
+	char bufc1[NPAT],bufc2[NPAT];
+	char *bufc = bufc1;
+#else
 	char bufc[NPAT];
+#endif
 
 #ifndef	NO_FILECOMP	/* 90.04.04  by K.Maeda */
 	if ((s=eread("Change default directory: ", bufc, NPAT, EFNEW|EFFILE|EFCR)) != TRUE)
@@ -313,6 +359,13 @@ changedir(f, n)
 	if (bufc[0] == '\0')
 		(VOID) strcpy(bufc, wdir);
 #ifdef	_WIN32	/* 90.02.11  by S.Yoshida */
+#ifdef	_WIN32_WCE
+#ifdef	KANJI
+	bufetos(bufc1, strlen(bufc1)+1);
+	sjis2unicode(bufc1, bufc2, sizeof(bufc2));
+	bufc = bufc2;
+#endif	/* KANJI */
+#else	/* not _WIN32_WCE */
 	else if (bufc[1] == ':' && bufc[0] != wdir[0]) {
 		int	drive;
 		int	ndrive;
@@ -326,12 +379,20 @@ changedir(f, n)
 		drive = drive - 'a' + 1;
 		_chdrive(drive);
 	}
+#ifdef	KANJI
+	bufetos(bufc1, strlen(bufc1)+1);
+	sjis2unicode(bufc1, bufc2, sizeof(bufc2));
+	bufc = bufc2;
+	if (bufc1[1] == ':' && bufc1[2] == '\0') {
+#else
 	if (bufc[1] == ':' && bufc[2] == '\0') {
+#endif
 		/* 90.07.01  Add fftolower() by S.Yoshida */
 		if (!(wdir = getcwd(cwd, NFILEN - 1)))
 			panic("Can't get current directory!");
 		ewprintf("Current directory is now %s", wdir);
 	} else
+#endif	/* _WIN32_WCE */
 #endif	/* _WIN32 */
 #ifdef	MSDOS	/* 90.02.11  by S.Yoshida */
 	else if (bufc[1] == ':' && bufc[0] != wdir[0]) {
@@ -351,6 +412,9 @@ changedir(f, n)
 		_dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
 #endif	/* __TURBOC__ */
 	}
+#ifdef	KANJI
+	bufetos(bufc, strlen(bufc)+1);
+#endif
 	if (bufc[1] == ':' && bufc[2] == '\0') {
 		/* 90.07.01  Add fftolower() by S.Yoshida */
 		if (!(wdir = fftolower(getcwd(cwd, NFILEN - 1))))
@@ -373,6 +437,9 @@ changedir(f, n)
 		    return(FALSE);
 		}
 	}
+#ifdef	KANJI
+	bufetos(bufc, strlen(bufc)+1);
+#endif
 	if (bufc[1] == ':' && bufc[2] == '\0') {
 		dirinit();
 		ewprintf("Current directory is now %s", wdir);
@@ -439,10 +506,13 @@ showcwdir(f, n)
 	/* 90.07.01  Add fftolower() by S.Yoshida */
 	if (!(wdir = fftolower(getcwd(cwd, NFILEN - 1))))
 		panic("Can't get current directory!");
+#ifdef	KANJI
+	bufstoe(wdir, strlen(wdir)+1);
+#endif
 #endif	/* MSDOS */
-#ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
+#if defined(HUMAN68K)||defined(_WIN32)	/* Sawayanagi / _WIN32 added by amura */
 	dirinit ();
-#endif	/* HUMAN68K */
+#endif	/* HUMAN68K || _WIN32 */
 	ewprintf("Current directory: %s", wdir);
 #endif	/* EXTD_DIR */
 	return(TRUE);

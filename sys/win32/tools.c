@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: tools.c,v 1.2 2000/07/18 12:40:35 amura Exp $ */
 /*
  * NG : C library compatible routine for Ng
  *
@@ -12,8 +12,11 @@
 
 /*
  * $Log: tools.c,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2000/07/18 12:40:35  amura
+ * for Win32, enable to handle japanese directory
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 
@@ -484,12 +487,12 @@ Sprintf( char *buf, const char *fmt, ... )
 #define CETOOLS_MAX_FILE_NAME 160 /* c.f. NFILEN at mg/def.h is 80 */
 
 #ifdef KANJI
-DWORD
-unicode2sjis(LPCTSTR src, BYTE *dst, DWORD max)
+int
+unicode2sjis(const char *src, unsigned char *dst, int max)
 {
 #ifdef UNICODE
-  return (DWORD)WideCharToMultiByte(CP_ACP, 0, src, -1,
-				    (LPSTR)dst, max, NULL, NULL);
+  return (unsigned long)WideCharToMultiByte(CP_ACP, 0, (LPCTSTR)src, -1,
+				    (LPWSTR)dst, max, NULL, NULL);
 #else
   int size = lstrlen(src) + 1;
   if (dst) {
@@ -499,12 +502,12 @@ unicode2sjis(LPCTSTR src, BYTE *dst, DWORD max)
 #endif
 }
 
-DWORD
-sjis2unicode(const BYTE *src, LPTSTR dst, DWORD max)
+int
+sjis2unicode(const unsigned char *src, char *dst, int max)
 {
 #ifdef UNICODE
-  return (DWORD)MultiByteToWideChar(CP_ACP, 0, (LPCSTR)src, -1,
-				    dst, max / sizeof(TCHAR)) * sizeof(TCHAR);
+  return MultiByteToWideChar(CP_ACP, 0, (LPCWSTR)src, -1,
+				    (LPSTR)dst, max / sizeof(TCHAR)) * sizeof(TCHAR);
 #else
   int size = strlen(src) + 1;
   if (dst) {

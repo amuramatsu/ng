@@ -1,9 +1,12 @@
-/* $Id: tools.h,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: tools.h,v 1.2 2000/07/18 12:40:35 amura Exp $ */
 
 /*
  * $Log: tools.h,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2000/07/18 12:40:35  amura
+ * for Win32, enable to handle japanese directory
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 
@@ -28,8 +31,8 @@ void	rel2abs( LPTSTR newPath, LPCTSTR oldPath, LPCTSTR adddir ) ;
 int		SendClipboard( const char *sjis ) ;
 int ReceiveClipboard(char *sjis, int bufsize);
 
-DWORD unicode2sjis(LPCTSTR src, BYTE *dst, DWORD max);
-DWORD sjis2unicode(const BYTE *src, LPTSTR dst, DWORD max);
+int unicode2sjis(const char *src, unsigned char *dst, int max);
+int sjis2unicode(const unsigned char *src, char *dst, int max);
 TCHAR sjis2unicode_char(WORD sjis);
 WORD unicode2sjis_char(TCHAR unicode);
 LONG RegQueryString(HKEY, LPCTSTR, LPTSTR, LPTSTR, DWORD*);
