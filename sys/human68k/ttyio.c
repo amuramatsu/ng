@@ -1,12 +1,15 @@
-/* $Id: ttyio.c,v 1.1 2000/06/27 01:47:57 amura Exp $ */
+/* $Id: ttyio.c,v 1.2 2000/07/20 12:41:56 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
 
 /*
  * $Log: ttyio.c,v $
- * Revision 1.1  2000/06/27 01:47:57  amura
- * Initial revision
+ * Revision 1.2  2000/07/20 12:41:56  amura
+ * enable to use XF1/2 key as META
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:57  amura
+ * import to CVS
  *
  */
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
@@ -277,6 +280,12 @@ ttgetc() {
 #  define OPT2		(0x08)
 #  define CAPSLOCK	(0x80)
 #endif /* CTRL */
+#ifndef	XF1_3GROUP
+#  define XF1_3GROUP	(0x0A)
+#  define XF1		(0x20 << 16)
+#  define XF2		(0x40 << 16)
+#  define XF3		(0x80 << 16)
+#endif	/* XF1_3GROUP */
 
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
 	if (nkey > 0) {
@@ -284,11 +293,12 @@ ttgetc() {
 	}	/* 91.01.14  by K.Maeda ---remove else */
 #endif	/* KANJI */
 	c = FGETC (1);
- 	shifts = K_SFTSNS();
+ 	shifts = K_SFTSNS() & 0xFFFF;
+	shifts |= K_KEYBIT(XF1_3GROUP)<<16;
 	if (c == ' ' && (shifts & CTRL))
 		c = 0;
 #ifdef DO_METAKEY
-	else if (use_metakey == TRUE && (shifts & (OPT1|OPT2)))
+	else if (use_metakey == TRUE && (shifts & (OPT1|OPT2|XF1|XF2)))
 		return ((KCHAR)(c | METABIT));
 #endif /* DO_METAKEY */
 	return ((KCHAR)c);
