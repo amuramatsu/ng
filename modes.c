@@ -1,4 +1,4 @@
-/* $Id: modes.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: modes.c,v 1.5.2.1 2003/03/08 01:34:06 amura Exp $ */
 /*
  * Commands to toggle modes. Without an argument, toggle mode.
  * Negitive or zero argument, mode off.	 Positive argument, mode on.
@@ -95,7 +95,6 @@ int f, n;
     return changemode(f, n, "blink");
 }
 
-#ifdef	NOTAB
 int
 notabmode(f, n)
 int f, n;
@@ -112,7 +111,6 @@ int f, n;
 	curbp->b_flag ^= BFNOTAB;
     return TRUE;
 }
-#endif
 
 #ifdef C_MODE	/* 90.07.24  by K.Takano */
 int
@@ -204,13 +202,11 @@ int f, n;
 	else
 	    defb_flag |= BFOVERWRITE;
     }
-#ifdef NOTAB
     if (strcmp(mode, "notab") == 0) {
     	if (n<=0)
 	    defb_flag &= ~BFNOTAB;
 	else
 	    defb_flag |= BFNOTAB;
     }
-#endif
     return TRUE;
 }

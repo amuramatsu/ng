@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.13 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: random.c,v 1.13.2.1 2003/03/08 01:34:06 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -112,11 +112,7 @@ getcolpos()
     
     for (i=0; i<curwp->w_doto; ++i) {
 	c = lgetc(curwp->w_dotp, i);
-	if (c == '\t'
-#ifdef	NOTAB
-	    && !(curbp->b_flag & BFNOTAB)
-#endif
-	    ) {
+	if (c == '\t' && !(curbp->b_flag & BFNOTAB)) {
 #ifdef	VARIABLE_TAB
 	    col = (col/tab + 1)*tab - 1;
 #else
@@ -454,10 +450,7 @@ int f, n;
 	    ++nicol;
 	}
 	if (lnewline() == FALSE || ((
-#ifdef NOTAB
-		curbp->b_flag&BFNOTAB) ?
-		linsert(nicol, ' ') == FALSE : (
-#endif
+		curbp->b_flag&BFNOTAB) ? linsert(nicol, ' ') == FALSE : (
 		    ((i=nicol/8)!=0 && linsert(i, '\t')==FALSE) ||
 		    ((i=nicol%8)!=0 && linsert(i,  ' ')==FALSE))))
 	    return FALSE;
@@ -784,7 +777,6 @@ int f, n;
     return TRUE;
 }
 
-#ifdef NOTAB
 /*ARGSUSED*/
 int
 space_to_tabstop(f, n)
@@ -803,7 +795,6 @@ int f, n;
 	return TRUE;
     return linsert((n<<3) - (curwp->w_doto & 7), ' ');
 }
-#endif
 
 #ifdef ZAPTOC_A
 # define ZAPTOCHAR

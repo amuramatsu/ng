@@ -1,4 +1,4 @@
-/* $Id: match.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: match.c,v 1.5.2.1 2003/03/08 01:34:06 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Limited parenthesis matching routines
@@ -242,11 +242,7 @@ register int  cbo;
 	bufo = 0;
 	for (cp = 0; cp < llength(clp); cp++) { /* expand tabs	*/
 	    c = lgetc(clp,cp);
-	    if (c != '\t'
-#ifdef	NOTAB
-		|| (curbp->b_flag & BFNOTAB)
-#endif
-		) {
+	    if (c != '\t' || (curbp->b_flag & BFNOTAB)) {
 		if (ISCTRL(c)) {
 		    buf[bufo++] = '^';
 		    buf[bufo++] = CCHR(c);

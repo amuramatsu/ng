@@ -1,4 +1,4 @@
-/* $Id: i_buffer.h,v 1.1.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: i_buffer.h,v 1.1.2.2 2003/03/08 01:34:06 amura Exp $ */
 /*
  * This file is the internal buffer definition of the NG
  * display editor.
@@ -52,9 +52,7 @@ typedef struct BUFFER {
 
 #define BFCHG		0x01		/* Changed.			*/
 #define BFBAK		0x02		/* Need to make a backup.	*/
-#ifdef	NOTAB
 #define BFNOTAB		0x04		/* no tab mode			*/
-#endif
 #define BFOVERWRITE	0x08		/* overwrite mode		*/
 #define	BFAUTOFILL	0x10		/* autofill mode with KANJI.	*/
 #ifdef	READONLY

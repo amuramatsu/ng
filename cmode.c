@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.7 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: cmode.c,v 1.7.2.1 2003/03/08 01:34:06 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -581,11 +581,9 @@ int nicol;
 #ifdef	UNDO
     if (undoptr!=NULL && *undoptr!=NULL)
 	(*undoptr)->u_type = UDNONE;
-    if (				/* insert space (and/or tab) */
-#ifdef	NOTAB
-	(curbp->b_flag & BFNOTAB) ?
+	/* insert space (and/or tab) */
+    if ((curbp->b_flag & BFNOTAB) ?
 	(cbo += nicol, linsert(nicol, ' ') == FALSE) :
-#endif
 #ifdef  VARIABLE_TAB
 	((i = nicol / tab)!=0 && (cbo += i, linsert(i, '\t') == FALSE)) ||
 	((i = nicol % tab)!=0 && (undoptr = undobefore,
@@ -597,11 +595,9 @@ int nicol;
 #endif
 	return (FALSE);
 #else	/* NOT UNDO */
-    if (				/* insert space (and/or tab) */
-#ifdef	NOTAB
-	(curbp->b_flag & BFNOTAB) ?
+	/* insert space (and/or tab) */
+    if ((curbp->b_flag & BFNOTAB) ?
 	(cbo += nicol, linsert(nicol, ' ') == FALSE) :
-#endif
 #ifdef  VARIABLE_TAB
 	((i = nicol / tab)!=0 && (cbo += i, linsert(i, '\t') == FALSE)) ||
 	((i = nicol % tab)!=0 && (cbo += i, linsert(i, ' ' ) == FALSE)))
