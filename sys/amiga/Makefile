@@ -1,9 +1,12 @@
-# $Id: Makefile,v 1.1 2000/06/27 01:48:01 amura Exp $
+# $Id: Makefile,v 1.2 2000/10/02 13:59:28 amura Exp $
 # Makefile for MicroEMACS. using Aztec small model
 #
 # $Log: Makefile,v $
-# Revision 1.1  2000/06/27 01:48:01  amura
-# Initial revision
+# Revision 1.2  2000/10/02 13:59:28  amura
+# edit for new ttymenu.c
+#
+# Revision 1.1.1.1  2000/06/27 01:48:01  amura
+# import to CVS
 #
 # Modified for Ng 1.3 AmigaDOS version by H.Ohkubo Dec.20,1992
 
@@ -24,7 +27,7 @@ ALLOCA = alloca.o
 # needed for the menu, mouse and Browser.
 
 MOUSEOBJ = ttymouse.o
-MENUOBJ  = ttymenu.o menustack.o
+MENUOBJ  = ttymenu.o
 OFFSETOBJ = offset.o
 ICONIFYOBJ = iconify.o ttyicon.o
 #REXXOBJ = rexx.o
@@ -152,14 +155,14 @@ ttyio.o:	$(S)/ttyio.c
 ttykbd.o:	$(S)/ttykbd.c kbd.h
 		cc $(CFLAGS) -o ttykbd.o $(S)/ttykbd.c
 
-ttymenu.o:	$(S)/ttymenu.c macro.h $(S)/KgMenus.h $(S)/KgMenus.c
+ttymenu.o:	$(S)/ttymenu.c macro.h $(S)/KgMenus.h $(S)/KgMenus.c $(S)/menumap.h
 		cc $(CFLAGS) -o ttymenu.o $(S)/ttymenu.c
 
 ttymouse.o:	$(S)/ttymouse.c macro.h
 		cc $(CFLAGS) -o ttymouse.o $(S)/ttymouse.c
 
-menustack.o:	$(S)/menustack.c
-		cc $(CFLAGS) -o menustack.o $(S)/menustack.c
+#menustack.o:	$(S)/menustack.c
+#		cc $(CFLAGS) -o menustack.o $(S)/menustack.c
 
 console.o:	$(S)/console.c
 		cc $(CFLAGS) -o console.o $(S)/console.c
