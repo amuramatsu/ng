@@ -1,4 +1,4 @@
-/* $Id: match.c,v 1.2 2000/11/16 14:31:13 amura Exp $ */
+/* $Id: match.c,v 1.3 2001/02/11 15:38:05 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Limited parenthesis matching routines
@@ -15,6 +15,9 @@
 
 /*
  * $Log: match.c,v $
+ * Revision 1.3  2001/02/11 15:38:05  amura
+ * bugfix on VARIABLE_TAB suggested by ng1.3.1L6
+ *
  * Revision 1.2  2000/11/16 14:31:13  amura
  * fix some typos which cause compile error when using
  * strict ANSI-C compiler (ex ACK, gcc-1.x)
@@ -255,7 +258,11 @@ register int  cbo;
 			else
 				do {
 					buf[bufo++] = ' ';
+#ifdef	VARIABLE_TABWIDTH
+				} while (bufo % curbp->b_tabwidth);
+#else
 				} while (bufo & 7);
+#endif
 		}
 		buf[bufo++] = '\0';
 		ewprintf("Matches %s",buf);
