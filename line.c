@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.11 2001/01/05 14:07:04 amura Exp $ */
+/* $Id: line.c,v 1.12 2001/02/01 16:28:48 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.12  2001/02/01 16:28:48  amura
+ * remove small kludge because it raise warning with mpatrol
+ *
  * Revision 1.11  2001/01/05 14:07:04  amura
  * first implementation of Hojo Kanji support
  *
@@ -856,7 +859,9 @@ kgrow(back) {
 		return FALSE;
 	}
 	nstart = (back == TRUE) ? (kstart + KBLOCK) : (KBLOCK / 4) ;
-	bcopy(&(kbufp[kstart]), &(nbufp[nstart]), (int) (kused-kstart));
+	if (kused-kstart > 0)
+		bcopy(&(kbufp[kstart]), &(nbufp[nstart]),
+		      (int) (kused-kstart));
 	if (kbufp != NULL)
 		free((char *) kbufp);
 	kbufp  = nbufp;
