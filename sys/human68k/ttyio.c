@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.11 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: ttyio.c,v 1.12 2003/02/25 14:11:16 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
@@ -83,9 +83,6 @@ ttopen()
 #endif
     if (ttraw() == FALSE)
 	panic("aborting due to terminal initialize failure");
-#ifdef	SIGWINCH	/* 90.02.13  by S.Yoshida */
-    signal(SIGWINCH, ttwinch);
-#endif	/* SIGWINCH */
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
     fepmode_init();
 #endif
@@ -297,12 +294,12 @@ VOID
 setttysize()
 {
 #ifdef DIRECT_IOCS
-    nrow = 32;
+    nrow = 31;
     ncol = 96;
 #else
     if ((nrow=tgetnum ("li")) <= 0
 	|| (ncol=tgetnum ("co")) <= 0) {
-	nrow = 32;
+	nrow = 31;
 	ncol = 96;
     }
 #endif
