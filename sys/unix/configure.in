@@ -1,5 +1,6 @@
-AC_REVISION($Id: configure.in,v 1.6 2000/12/27 17:57:13 amura Exp $)
 dnl Process this file with autoconf to produce a configure script.
+dnl $Id: configure.in,v 1.7 2001/02/01 16:33:46 amura Exp $
+AC_REVISION($Revision: 1.7 $)
 AC_INIT(basic.c)
 AC_CONFIG_HEADER(sysconfig.h:sys/unix/sysconfig.h.in)
 AC_CONFIG_AUX_DIR(sys/unix)
@@ -49,12 +50,12 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
-dnl CYGWIN has fd_set, but cannot detect AC_CHECK_TYPE
+dnl CYGWIN has fd_set, but cannot detect it by AC_CHECK_TYPE
 if test "$host_os" != "cygwin"; then
   AC_CHECK_TYPE(fd_set, int)
 fi
 dnl Minix define SIGTSTP but don't have suspend yet...
-dnl I want to use $host_os, but cannot use because Minix's sed has bug...
+dnl I want to use $host_os, but cannot use it because Minix's sed has bug...
 case "$host" in
   *-*-minix*)
     AC_DEFINE(UNDEF_SIGTSTP, 1);;
@@ -67,7 +68,7 @@ AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
 AC_FUNC_VFORK
 AC_CHECK_FUNCS(getcwd rmdir rename opendir select mkstemp bcopy bzero bcmp)
-AC_CHECK_FUNCS( rindex symlink dup2 sigprocmask getgroups)
+AC_CHECK_FUNCS(rindex symlink dup2 sigprocmask getgroups)
 
 dnl Checks for commands called from dired
 AC_PATH_PROG(cp_cmd, cp)
