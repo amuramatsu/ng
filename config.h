@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.4 2000/10/11 13:40:23 amura Exp $ */
+/* $Id: config.h,v 1.5 2000/10/23 13:21:25 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -175,6 +175,9 @@
 #define DROPFILES	/* Drag'n Drop file open */
 			/* If defined, ADDFUNC must be also. */
 
+#define	EMACS_BACKUP_STYLE
+			/* Backup files like as GNU Emacs */
+			/* If you use Win9x, this shold not set */
 /*................................................*/
 #endif			/* Do not edit this line. */
 /*................................................*/

@@ -1,7 +1,10 @@
-/* $Id: fileio.c,v 1.2 2000/09/01 19:37:52 amura Exp $ */
+/* $Id: fileio.c,v 1.3 2000/10/23 13:18:45 amura Exp $ */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.3  2000/10/23 13:18:45  amura
+ * support Windoze line backup file
+ *
  * Revision 1.2  2000/09/01 19:37:52  amura
  * support KANJI filename on WIN32
  *
@@ -969,6 +972,7 @@ fsetfilemode( char *fn, int mode )
 int
 fbackupfile( char *fn )
 {
+	int	len;
 	char	*nname ;
 	VOID	strmfe() ;	/* 90.07.26  Add by N.Kamei */
 	char	fns[ NFILEN ] ;
@@ -977,13 +981,21 @@ fbackupfile( char *fn )
 	TCHAR	szFns[ MAX_PATH ] ;
 	TCHAR	szNNames[ MAX_PATH ] ;
 
-	if ( ( nname = malloc( (unsigned) (strlen(fn) + 1 + 1) ) ) == NULL ) {
-		/* 90.07.26  1+1 -> 4+1 by N.Kamei */
-		ewprintf( "Can't get %d bytes", strlen(fn) + 1 + 1 ) ;
+#ifdef EMACS_BACKUP_STYLE
+	len = strlen(fn) + 1 + 1;
+#else
+	len = strlen(fn) + 4 + 1;
+#endif
+	if ( ( nname = malloc(len) ) == NULL ) {
+		ewprintf( "Can't get %d bytes", len) ;
 		return ABORT ;
 	}
 	(VOID) strcpy(nname, fn);
+#ifdef EMACS_BACKUP_STYLE
 	(VOID) strcat(nname, "~");
+#else
+	(VOID) strcat(nname, ".bak");
+#endif
 	strcpy( nnames, nname ) ;
 	strcpy( fns, fn ) ;
 #ifdef KANJI
