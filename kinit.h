@@ -1,4 +1,4 @@
-/* $Id: kinit.h,v 1.2 2000/09/21 17:28:30 amura Exp $ */
+/* $Id: kinit.h,v 1.3 2001/01/20 15:49:36 amura Exp $ */
 /*
  *	Initial KANJI code setting. (Like site-init.el in Nemacs)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: kinit.h,v $
+ * Revision 1.3  2001/01/20 15:49:36  amura
+ * move TOUFU charactor to kinit.h
+ *
  * Revision 1.2  2000/09/21 17:28:30  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -66,3 +69,8 @@
 #define TO_KANAFIO	'7'		/* to-kana-fileio		*/
 #define TO_KANADISPLAY	'7'		/* to-kana-display		*/
 #endif  /* HANKANA */
+
+#ifdef HOJO_KANJI
+#define TOUFU1ST	(0x22|0x80)	/* EUC igeta */
+#define TOUFU2ND	(0x2E|0x80)
+#endif

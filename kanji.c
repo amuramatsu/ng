@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.8 2001/01/11 13:15:17 amura Exp $ */
+/* $Id: kanji.c,v 1.9 2001/01/20 15:49:36 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.9  2001/01/20 15:49:36  amura
+ * move TOUFU charactor to kinit.h
+ *
  * Revision 1.8  2001/01/11 13:15:17  amura
  * add Shift-JIS toufu charactor
  *
@@ -76,10 +79,6 @@ char	*kcodename_l[] = {"noconv", "shift-jis", "jis", "euc", "nil", "t"};
 					/* defined at def.h.		*/
 
 #define	ESC	CCHR('[')		/* Escape char.			*/
-#ifdef HOJO_KANJI
-#define SJIS_TOUFU1ST	0x81
-#define SJIS_TOUFU2ND	0xa1
-#endif
 
 #define	issjis1st(c)	(((c) >= 0x81 && (c) <= 0x9f) || \
 			 ((c) >= 0xe0 && (c) <= 0xfc))
@@ -1025,7 +1024,10 @@ register int	c;	/* 90.07.25  Add "register". by S.Yoshida */
 				return 0;
 			    }
 			    /* print TOUFU */
-			    ttputkc(SJIS_TOUFU1ST, SJIS_TOUFU2ND);
+			    c1 = TOUFU1ST;
+			    c2 = TOUFU2ND;
+			    etos(c1, c2);
+			    ttputkc(c1, c2);
 			    c1 = '\0';
 			    c2 = '\0';
 			    return 2;
@@ -1584,8 +1586,11 @@ int	len;
 #endif  /* HANKANA */
 #ifdef	HOJO_KANJI
 			if (ISHOJO(c1)) {
-			    *q++ = SJIS_TOUFU1ST;
-			    *q++ = SJIS_TOUFU2ND;
+			    c1 = TOUFU1ST;
+			    c2 = TOUFU2ND;
+			    etos(c1,c2);
+			    *q++ = c1;
+			    *q++ = c2;
 			    p += 2;
 			} else
 #endif
