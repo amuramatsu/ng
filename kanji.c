@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.7 2001/01/05 14:07:03 amura Exp $ */
+/* $Id: kanji.c,v 1.8 2001/01/11 13:15:17 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.8  2001/01/11 13:15:17  amura
+ * add Shift-JIS toufu charactor
+ *
  * Revision 1.7  2001/01/05 14:07:03  amura
  * first implementation of Hojo Kanji support
  *
@@ -74,8 +77,8 @@ char	*kcodename_l[] = {"noconv", "shift-jis", "jis", "euc", "nil", "t"};
 
 #define	ESC	CCHR('[')		/* Escape char.			*/
 #ifdef HOJO_KANJI
-#define SJIS_TOUFU1ST	0
-#define SJIS_TOUFU2ND	0
+#define SJIS_TOUFU1ST	0x81
+#define SJIS_TOUFU2ND	0xa1
 #endif
 
 #define	issjis1st(c)	(((c) >= 0x81 && (c) <= 0x9f) || \
