@@ -6,12 +6,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
-/* $Id: dir.c,v 1.4 2000/06/01 05:22:25 amura Exp $ */
+/* $Id: dir.c,v 1.5 2000/06/04 05:42:59 amura Exp $ */
 
 /* $Log: dir.c,v $
-/* Revision 1.4  2000/06/01 05:22:25  amura
-/* More robust
+/* Revision 1.5  2000/06/04 05:42:59  amura
+/* win32 drive support
 /*
+ * Revision 1.4  2000/06/01  05:22:25  amura
+ * More robust
+ *
  * Revision 1.3  2000/03/28  02:37:46  amura
  * Added startdir.
  *
@@ -39,11 +42,15 @@ char	*fftolower();	/* 90.07.01  Add by S.Yoshida */
 char	*getcwd();
 char	*tounixfn();
 #else	/* NOT HUMAN68K */
+#ifdef	_WIN32
+#include <direct.h>
+#else	/* NOT _WIN32 */
 #ifdef	HAVE_GETCWD
 char	*getcwd();
 #else
 char	*getwd();
 #endif
+#endif	/* _WIN32 */
 #endif	/* HUMAN68K */
 #endif	/* MSDOS */
 #endif
@@ -65,21 +72,29 @@ static char startdir[NFILEN];
 VOID
 dirinit()
 {
+#ifdef	_WIN32
+	if (!(wdir = _getcwd(cwd, NFILEN-1)))
+#else
 #ifdef	MSDOS	/* 90.01.29  by S.Yoshida */
 	/* 90.07.01  Add fftolower() by S.Yoshida */
 	if (!(wdir = fftolower(getcwd(cwd, NFILEN - 1))))
 #else	/* NOT MSDOS */
-# ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
+#ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
 	if (!(wdir = tounixfn(getcwd(cwd, NFILEN - 1))))
-# else	/* NOT HUMAN68K && NOT MSDOS*/
-#  ifdef HAVE_GETCWD
+#else	/* NOT HUMAN68K && NOT MSDOS*/
+#ifdef HAVE_GETCWD
 	if (!(wdir = getcwd(cwd, NFILEN-1)))
-#  else
+#else
 	if (!(wdir = getwd(cwd)))
-#  endif
-# endif	/* HUMAN68K */
+#endif
+#endif	/* HUMAN68K */
 #endif	/* MSDOS */
+#endif	/* _WIN32 */
 		panic("Can't get current directory!");
+#ifdef	_WIN32
+	if (wdir[1]==':' && ISUPPER(wdir[0]))
+		wdir[0] = TOLOWER(wdir[0]);
+#endif
 	if (startdir[0] == '\0') {
 		int i;
 		strncpy(startdir, cwd, NFILEN-1);
@@ -152,7 +167,7 @@ int
 rchdir(newdir)
 char *newdir;
 {
-#if defined(MSDOS)||defined(HUMAN68K)
+#if defined(MSDOS)||defined(HUMAN68K)||defined(_WIN32)
     char dir[NFILEN];
     int i;
 
@@ -166,7 +181,6 @@ char *newdir;
 	dir[i] = '\0';
     if (newdir[1] == ':' && newdir[0] != wdir[0]) {
 	int	drive;
-	int	ndrive;
 	drive = newdir[0];
 	/* 90.07.01  Change from TOUPPER() to TOLOWER() */
 	/*                                 by S.Yoshida */
@@ -174,6 +188,9 @@ char *newdir;
 	    drive = TOLOWER(drive);
 	/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
 	drive = drive - 'a' + 1;
+#ifdef	_WIN32
+	_chdrive(drive);
+#else
 #ifdef	HUMAN68K
 	if (CHGDRV(drive) <= drive) {
 	    drive = drive - 'a';
@@ -186,6 +203,7 @@ char *newdir;
 	_dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
 #endif	/* __TURBOC__ */
 #endif	/* HUMAN68K */
+#endif	/* _WIN32 */
     }
     if (dir[1] == ':' && dir[2] == '\0') {
 	dirinit();
@@ -197,10 +215,10 @@ char *newdir;
 	dirinit();
 	return 0;
     }
-#else	/* !(MSDOS||HUMAN68K) */
-    /* Maybe this is just for AMIGA, UNIX and Windows */
+#else	/* NOT (MSDOS||HUMAN68K||_WIN32) */
+    /* Maybe this is just for AMIGA, UNIX */
     return chdir(newdir);
-#endif	/* MSDOS||HUMAN68K */
+#endif	/* MSDOS||HUMAN68K||_WIN32 */
 }
 
 VOID
@@ -291,6 +309,27 @@ changedir(f, n)
 		return(s);
 	if (bufc[0] == '\0')
 		(VOID) strcpy(bufc, wdir);
+#ifdef	_WIN32	/* 90.02.11  by S.Yoshida */
+	else if (bufc[1] == ':' && bufc[0] != wdir[0]) {
+		int	drive;
+		int	ndrive;
+		drive = bufc[0];
+		/* 90.07.01  Change from TOUPPER() to TOLOWER() */
+		/*                                 by S.Yoshida */
+		if (ISUPPER(drive)) {
+			drive = TOLOWER(drive);
+		}
+		/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
+		drive = drive - 'a' + 1;
+		_chdrive(drive);
+	}
+	if (bufc[1] == ':' && bufc[2] == '\0') {
+		/* 90.07.01  Add fftolower() by S.Yoshida */
+		if (!(wdir = getcwd(cwd, NFILEN - 1)))
+			panic("Can't get current directory!");
+		ewprintf("Current directory is now %s", wdir);
+	} else
+#endif	/* _WIN32 */
 #ifdef	MSDOS	/* 90.02.11  by S.Yoshida */
 	else if (bufc[1] == ':' && bufc[0] != wdir[0]) {
 		int	drive;
