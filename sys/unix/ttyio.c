@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.3 2000/12/01 10:12:55 amura Exp $ */
+/* $Id: ttyio.c,v 1.4 2000/12/18 17:20:41 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.4  2000/12/18 17:20:41  amura
+ * edit for cygwin
+ *
  * Revision 1.3  2000/12/01 10:12:55  amura
  * edit for adapting to POSIX
  *
@@ -111,7 +114,7 @@ char kbdq;			/* char we've already read	*/
  */
 ttopen() {
     register char *tv_stype;
-    char *getenv(), *tgetstr(), tcbuf[1024], err_str[72];
+    char *getenv(), *tgetstr(), tcbuf[2048], err_str[72];
 #ifndef	SUPPORT_ANSI
     int sprintf();
 #endif

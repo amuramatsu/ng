@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.3 2000/12/01 10:09:11 amura Exp $ */
+/* $Id: spawn.c,v 1.4 2000/12/18 17:20:41 amura Exp $ */
 /*
  *	Spawn. (for configure)
  * This interracts with the job control stuff
@@ -10,6 +10,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.4  2000/12/18 17:20:41  amura
+ * edit for cygwin
+ *
  * Revision 1.3  2000/12/01 10:09:11  amura
  * fix typos and edit MACROS adapting for POSIX
  *
@@ -25,7 +28,7 @@
 #include	"def.h"
 
 #include	<signal.h>
-#include	<strings.h>
+#include	<string.h>
 #ifdef	HAVE_VFORK_H
 #include	<vfork.h>
 #endif
@@ -35,17 +38,12 @@
 
 /* some system don't have job-control even if SIGTSTP is defined... */
 #ifdef	SIGTSTP
-# ifdef __CYGWIN__
+# ifndef HAVE_SIGSETMASK
+#  define sigsetmask(n) (n)
+# endif
+# ifdef	_MINIX	/* Minix don't have suspend yet ... */
 #  undef SIGTSTP
-# else	/* not __CYGWIN__ */
-#  ifndef HAVE_SETPGID
-#  ifndef HAVE_SETPGRP
-#  ifndef HAVE_SETSID
-#   undef SIGTSTP
-#  endif
-#  endif
-#  endif
-# endif /* __CYGWIN__ */
+# endif
 #endif
 
 #ifndef HAVE_RINDEX

@@ -1,4 +1,4 @@
-AC_REVISION($Id: configure.in,v 1.2 2000/12/01 10:10:39 amura Exp $)
+AC_REVISION($Id: configure.in,v 1.3 2000/12/18 17:20:41 amura Exp $)
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(basic.c)
 AC_CONFIG_HEADER(sysconfig.h:sys/unix/sysconfig.h.in)
@@ -48,7 +48,11 @@ AC_C_CONST
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
-AC_CHECK_TYPE(fd_set, int)
+
+dnl CYGWIN has fd_set, but cannot detect AC_CHECK_TYPE
+if test "$host_os" != "cygwin"; then
+ AC_CHECK_TYPE(fd_set, int)
+fi
 
 dnl Checks for library functions.
 AC_FUNC_ALLOCA
@@ -56,8 +60,7 @@ AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
 AC_FUNC_VFORK
-AC_CHECK_FUNCS(getcwd rmdir rename opendir select mkstemp bcopy bzero bcmp rindex symlink dup2)
-AC_CHECK_FUNCS(setpgid setpgrp setsid)
+AC_CHECK_FUNCS(getcwd rmdir rename opendir select mkstemp bcopy bzero bcmp rindex symlink dup2 sigsetmask)
 
 dnl Checks for commands called from dired
 AC_PATH_PROG(cp_cmd, cp)
