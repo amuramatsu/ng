@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.12 2002/04/06 22:59:26 amura Exp $ */
+/* $Id: fileio.c,v 1.13 2002/04/07 01:01:31 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.13  2002/04/07 01:01:31  amura
+ * HOMEDIR feature is enable always
+ *
  * Revision 1.12  2002/04/06 22:59:26  amura
  * now Human68k port is validated
  *
@@ -483,7 +486,6 @@ register char *fn;
 {
     register char *cp;
     static char fnb[NFILEN];
-    char *endp;
 
     fnb[NFILEN-1] = '\0';
     cp = fnb;
@@ -605,9 +607,11 @@ register char *fn;
 	    cp++;
 	}
     }
-    if ((cp[-1] == '\\' || cp[-1] == '/') && cp[-2] != ':'
-	&& (*endp != '\\' && *endp != '/' && *endp != ':'))
-        --cp;
+    if (cp[-1] == '\\' || cp[-1] == '/') {
+	/* 91.01.16  bug fix for case only "a:\". by S.Yoshida */
+	if (cp != &fnb[3] || fnb[1] != ':')
+	    --cp;
+    }
     *cp = '\0';
     return (fnb);
 }

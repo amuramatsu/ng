@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.12 2001/11/24 08:24:28 amura Exp $ */
+/* $Id: fileio.c,v 1.13 2002/04/07 01:01:31 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.13  2002/04/07 01:01:31  amura
+ * HOMEDIR feature is enable always
+ *
  * Revision 1.12  2001/11/24 08:24:28  amura
  * Rewrite all sources (for msdos port)
  *
@@ -452,34 +455,33 @@ register char *fn;
     register char *cp;
     static char fnb[NFILEN];
 
+    fnb[NFILEN-1] = '\0';
     cp = fnb;
-    if (fn[1] == ':') {
+    if ((ISUPPER(fn[0]) || ISLOWER(fn[0])) && fn[1] == ':') {
 	*cp++ = *fn++;
 	*cp++ = *fn++;
     }
-#ifdef HOMEDIR
     else if (fn[0]=='~' && (fn[1]=='/' || fn[1]=='\\')) {
-    	strcpy(fnb, getenv("HOME"));
-    	while (*cp) {
-    		if (*cp == '/')
-    			*cp = '\\';
-    		cp++;
+	char *home = getenv("HOME");
+	if (home != NULL) {
+	    strncpy(cp, home, NFILEN-1);
+	    while (*cp) {
+		if (*cp == '/')
+		    *cp = '\\';
+		cp++;
+	    }
+	    fn++;
     	}
-    	fn++;
     }
-#endif
+    else {
+	*cp++ = wdir[0];
+	*cp++ = wdir[1];
+    }
     switch(*fn) {
     case '/':
-	*fn = '\\';
     case '\\':
-	/* 91.01.21  Add following if() for bug fix. by S.Yoshida	*/
-	/* 		 This fix can consider that when current drive	*/
-	/*		 is "a:", "\file" and "a:\file" are same.	*/
-	if (cp == fnb) {
-	    *cp++ = wdir[0];	/* Current drive name.	*/
-	    *cp++ = wdir[1];	/* ':'			*/
-	}
-	*cp++ = *fn++;
+	*cp++ = '\\';
+	fn++;
 	break;
     default:
 #ifndef	NO_DIR	/* 91.01.17  NODIR -> NO_DIR. by S.Yoshida */
@@ -582,9 +584,8 @@ register char *fn;
     }
     if (cp[-1]=='\\') {
 	/* 91.01.16  bug fix for case only "a:\". by S.Yoshida */
-	if (cp != &fnb[3] || fnb[1] != ':') {
+	if (cp != &fnb[3] || fnb[1] != ':')
 	    --cp;
-	}
     }
     *cp = '\0';
     return fnb;
@@ -973,13 +974,12 @@ char *name, **buf;
     struct find_t fileinfo;
     int n, len, size, dirpartlen, nampartlen;
     char *buffer;
-#ifdef	HOMEDIR
     char *home;
     int homelen;
     
     if (name[0] == '~' && (name[1]=='/' || name[1]=='\\') &&
 	(home = getenv("HOME"))) {
-	homelen = strlen(home) - 1;
+	homelen = strlen(home);
 	strncpy(pathbuf, home, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
 	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
@@ -990,10 +990,6 @@ char *name, **buf;
 	strncpy(pathbuf, name, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
     }
-#else
-    strncpy(pathbuf, name, sizeof(pathbuf));
-    pathbuf[NFILEN-1] = '\0';
-#endif
     dirpart = NULL;
     for (cp = pathbuf; *cp; cp++) {
 	if (*cp == '/') {
@@ -1015,11 +1011,7 @@ char *name, **buf;
 	strcpy(pathbuf, ".\\");	/* 90.05.30  by A.Shirahashi */
 	dirpartlen = 0;
     }
-#ifdef	HOMEDIR
     nampart = name + dirpartlen - homelen;
-#else
-    nampart = name + dirpartlen;
-#endif
     nampartlen = strlen(nampart);
     for (cp = nampart; *cp; cp++) {		/* _dos_find*() return	*/
 	/* 90.05.30  by A.Shirahashi: Use "toupper()". */
@@ -1106,16 +1098,15 @@ char *name, **buf;
 	}
 	/* 90.06.08  by A.Shirahashi: to */
 	/* 00.12.28  by amura.. contributed by sahf */
-#ifdef HOMEDIR
 	if (home) {
-	    strcpy(buffer+len, "~");
-	    strcat(buffer+len, tmpnam+homelen+1);
-	    l -= homelen;
+	    strcpy(buffer + len, "~");
+	    strcat(buffer + len, tmpnam + homelen);
+	    len += l - homelen + 1;
 	}
-	else
-#endif
-	strcpy(buffer + len, tmpnam);
-	len += l;
+	else {
+	    strcpy(buffer + len, tmpnam);
+	    len += l;
+	}
 	n++;
     } while (_dos_findnext(&fileinfo) == 0);
     

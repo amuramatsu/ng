@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.17 2001/11/23 11:56:52 amura Exp $ */
+/* $Id: fileio.c,v 1.18 2002/04/07 01:01:32 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.18  2002/04/07 01:01:32  amura
+ * HOMEDIR feature is enable always
+ *
  * Revision 1.17  2001/11/23 11:56:52  amura
  * Rewrite all sources
  *
@@ -95,20 +98,17 @@ fffiles(char *name, char **buf)
     HANDLE hFind;
     WIN32_FIND_DATA find;
     TCHAR findPath[ MAX_PATH ], unicode[ MAX_PATH ];
-#ifdef HOMEDIR
     char *home;
     int	homelen;
-#endif
 
 #ifndef _WIN32_WCE
     if (name[1] == ':' && name[2] == '\0') {
 	return -1;
     }
 #endif
-#ifdef HOMEDIR
     if (name[0] == '~' && (name[1]=='/' || name[1]=='\\') &&
 	(home = getenv("HOME"))) {
-	homelen = strlen(home)-1;
+	homelen = strlen(home);
 	strncpy(pathbuf, home, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
 	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
@@ -119,10 +119,6 @@ fffiles(char *name, char **buf)
 	strncpy(pathbuf, name, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
     }
-#else
-    strncpy(pathbuf, name, sizeof(pathbuf));
-    pathbuf[NFILEN-1] = '\0';
-#endif
     dirpart = NULL;
     for (cp = pathbuf; *cp; cp ++) {
 	if (*cp == '/') {
@@ -144,11 +140,7 @@ fffiles(char *name, char **buf)
 	strcpy(pathbuf, ".\\");
 	dirpartlen = 0;
     }
-#ifdef HOMEDIR
     nampart = name + dirpartlen - homelen;
-#else
-    nampart = name + dirpartlen;
-#endif
     nampartlen = strlen(nampart);
     
     buffer = malloc(MALLOC_STEP);
@@ -206,17 +198,16 @@ fffiles(char *name, char **buf)
 		return -1;
 	    }
 	}
-#ifdef HOMEDIR
 	if (home) {
-	    strcpy(buffer+len, "~");
-	    strcat(buffer+len, tmpnam+homelen+1);
-	    l -= homelen;
+	    strcpy(buffer + len, "~");
+	    strcat(buffer + len, tmpnam + homelen);
+	    len += l - homelen + 1;
 	}
-	else
-#endif
-	strcpy(buffer + len, tmpnam);
-	len += l;
-	n ++;
+	else {
+	    strcpy(buffer + len, tmpnam);
+	    len += l;
+	}
+	n++;
     } while (FindNextFile(hFind, &find));
     
     FindClose(hFind);
@@ -355,9 +346,6 @@ adjustname(char *fn)
 	*cp++ = *fn++;
 	*cp++ = *fn++;
     }
-#endif
-#ifdef HOMEDIR
-#ifndef _WIN32_WCE
     else
 #endif
     if (fn[0]=='~' && (fn[1]=='/' || fn[1]=='\\')) {
@@ -369,25 +357,29 @@ adjustname(char *fn)
 	}
 	fn++;
     }
+#ifndef _WIN32_WCE
+    else {
+	*cp++ = wdir[0];
+	*cp++ = wdir[1];
+    }
 #endif
     switch (*fn) {
     case '/':
-	*fn = '\\';
-	/*FALLTHRU*/
     case '\\':
-	*cp++ = *fn++;
+	*cp++ = '\\';
+	fn++;
 	break;
 #ifndef _WIN32_WCE
     case '\0':
 	break;
 #endif
-	default:
+    default:
 #ifndef	NO_DIR	/* 91.01.17  NODIR -> NO_DIR. by S.Yoshida */
-	    unicode2sjis(g_szCurDir, (LPBYTE) fnb, NFILEN - 1);
-	    cp = fnb ? fnb + strlen(fnb) : fnb;
-	    break;
+	unicode2sjis(g_szCurDir, (LPBYTE) fnb, NFILEN - 1);
+	cp = fnb ? fnb + strlen(fnb) : fnb;
+	break;
 #else
-	    return fn;				/* punt */
+	return fn;				/* punt */
 #endif
     }
     if (cp != fnb && cp[-1] != '\\') {

@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.17 2001/11/25 19:52:05 amura Exp $ */
+/* $Id: fileio.c,v 1.18 2002/04/07 01:01:32 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.18  2002/04/07 01:01:32  amura
+ * HOMEDIR feature is enable always
+ *
  * Revision 1.17  2001/11/25 19:52:05  amura
  * change for compiler warnings reducing
  *
@@ -827,7 +830,7 @@ char *name, **buf;
     int homelen;
 
     if (name[0] == '~' && name[1] == '/' && (home = getenv("HOME"))) {
-	homelen = strlen(home) - 1;
+	homelen = strlen(home);
 	strncpy(pathbuf, home, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
 	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
@@ -860,7 +863,7 @@ char *name, **buf;
 #ifdef	HAVE_OPENDIR
     if ((dp = opendir(pathbuf)) == NULL)
 #else
-    if ((dp = open(pathbuf,O_RDONLY)) < 0)
+    if ((dp = open(pathbuf,O_RONLY)) < 0)
 #endif
 	return -1;
 #endif	/* NOT NEW_COMPLETE */
@@ -908,13 +911,14 @@ char *name, **buf;
 		return -1;
 	}
 	if (home) {
-	    strcpy(buffer+len, "~");
-	    strcat(buffer+len, tmpnam+homelen+1);
-	    l -= homelen;
+	    strcpy(buffer + len, "~");
+	    strcat(buffer + len, tmpnam + homelen);
+	    len += l - homelen + 1;
 	}
-	else
-	    strcpy(buffer+len, tmpnam);
-	len += l;
+	else {
+	    strcpy(buffer + len, tmpnam);
+	    len += l;
+	}
 	n++;
 nomatch:;
     }
