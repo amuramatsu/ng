@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.9 2000/11/05 01:58:39 amura Exp $ */
+/* $Id: line.c,v 1.10 2000/11/21 19:49:01 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.10  2000/11/21 19:49:01  amura
+ * fix bug in ldelete when delete 1 charactor
+ *
  * Revision 1.9  2000/11/05 01:58:39  amura
  * speed ldelete() with undo up
  *
@@ -467,6 +470,10 @@ ldelete(n, kflag) RSIZE n; {
 		if (n == 1) {
 		    char_num = 1;
 		    undo_bfree(undo);
+		    undo->u_used = 0;
+		    undo->u_doto = curwp->w_doto;
+		    undo->u_dotlno = get_lineno(curbp, curwp->w_dotp);
+		    undo->u_type = (kflag==KBACK) ? UDBS : UDDEL;
 		}
 		else if (undo_balloc(undo, n)) {
 		    char_num = 2;
