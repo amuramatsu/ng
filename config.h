@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.7 2000/11/19 18:35:24 amura Exp $ */
+/* $Id: config.h,v 1.8 2000/12/18 17:19:14 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -277,6 +277,9 @@
 #ifdef	NO_DIR
 #   ifndef  NO_STARTUP
 #	define	NO_STARTUP
+#   endif
+#   ifdef   EXTD_DIR
+#	undef EXTD_DIR
 #   endif
 #endif
 
