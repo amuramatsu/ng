@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.8 2001/11/23 11:56:34 amura Exp $ */
+/* $Id: basic.c,v 1.9 2002/01/10 20:52:01 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: basic.c,v $
+ * Revision 1.9  2002/01/10 20:52:01  amura
+ * NEXTLINE feature is enabled always
+ *
  * Revision 1.8  2001/11/23 11:56:34  amura
  * Rewrite all sources
  *
@@ -273,7 +276,7 @@ int f, n;
 
 
 #ifdef	ADDFUNC
-int line_number_mode = FALSE;
+static int line_number_mode = FALSE;
 
 int
 linenumbermode(f, n)
@@ -326,14 +329,12 @@ int f, n;
     curwp->w_flag |= WFMOVE;
     if (n > 0) /* ^N at end of buffer creates lines (like gnu) */
     {
-#ifdef	NEXTLINE	/* amura */
 	if (!flag_nextline) {
 	    dlp = lback(curbp->b_linep);
 	    curwp->w_dotp  = dlp;
 	    curwp->w_doto  = getgoal(dlp);
 	}
 	else
-#endif
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
 	    if (curbp->b_flag & BFRONLY) { /* If this buffer is read-only, */
 		warnreadonly();		   /* do only displaying warning.  */
