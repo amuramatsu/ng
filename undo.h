@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.5 2000/07/22 20:49:38 amura Exp $ */
+/* $Id: undo.h,v 1.6 2000/11/04 13:44:58 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: undo.h,v $
+ * Revision 1.6  2000/11/04 13:44:58  amura
+ * undo memory exception is more safety
+ *
  * Revision 1.5  2000/07/22 20:49:38  amura
  * more secure run insert
  *
@@ -59,8 +62,8 @@ VOID ublock_open  pro((register BUFFER *));
 VOID ublock_close pro((register BUFFER *));
 VOID ublock_clear pro((register UNDO_DATA **));
 VOID undo_clean   pro((BUFFER*));
-VOID undo_balloc pro((register UNDO_DATA*, register int));
-VOID undo_bgrow  pro((register UNDO_DATA*, register int));
+int  undo_balloc pro((register UNDO_DATA*, register int));
+int  undo_bgrow  pro((register UNDO_DATA*, register int));
 
 /* undo support functions (implemented by macro for SPEED) */
 

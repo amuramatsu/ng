@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.6 2000/09/01 19:43:10 amura Exp $ */
+/* $Id: undo.c,v 1.7 2000/11/04 13:44:58 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -7,6 +7,9 @@
 
 /*
  * $Log: undo.c,v $
+ * Revision 1.7  2000/11/04 13:44:58  amura
+ * undo memory exception is more safety
+ *
  * Revision 1.6  2000/09/01 19:43:10  amura
  * change undo buffer memory allocation strategy for speed
  *
@@ -96,6 +99,8 @@ register UNDO_DATA **upp;
 {
     register UNDO_DATA *up,*upold;
     
+    if (upp == NULL)
+	return; 
     up = *upp;
     while (up != NULL)
     {
@@ -108,7 +113,7 @@ register UNDO_DATA **upp;
     *upp = NULL;
 }
 
-VOID
+int
 undo_balloc(undo, size)
 register UNDO_DATA *undo;
 register int size;
@@ -127,16 +132,17 @@ register int size;
 	    ttwait();
 	    undo_clean(curbp);
 	    undoptr = NULL;
-	    return;
+	    return FALSE;
 	}
 	if (undo->u_size)
 	    free(undo->u_buffer);
 	undo->u_buffer = newbuffer;
 	undo->u_size = size;
     }
+    return TRUE;
 }
 
-VOID
+int
 undo_bgrow(undo, size)
 register UNDO_DATA *undo;
 {
@@ -156,7 +162,7 @@ register UNDO_DATA *undo;
 	    ttwait();
 	    undo_clean(curbp);
 	    undoptr = NULL;
-	    return;
+	    return FALSE;
 	}
 	if (undo->u_size) {
 	    bcopy(undo->u_buffer, newbuffer, undo->u_used);
@@ -165,6 +171,7 @@ register UNDO_DATA *undo;
 	undo->u_buffer = newbuffer;
 	undo->u_size = newsize;
     }
+    return TRUE;
 }
 
 int

@@ -1,10 +1,13 @@
-/* $Id: kbd.c,v 1.7 2000/10/02 16:13:06 amura Exp $ */
+/* $Id: kbd.c,v 1.8 2000/11/04 13:44:58 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
 
 /*
  * $Log: kbd.c,v $
+ * Revision 1.8  2000/11/04 13:44:58  amura
+ * undo memory exception is more safety
+ *
  * Revision 1.7  2000/10/02 16:13:06  amura
  * ignore mouse event in minibuffer editing
  *
@@ -557,7 +560,8 @@ int f, n;
 		undo->u_used = 0;
 		undo->u_code[0] = '\0';
 	    }
-	    undo_bgrow(undo, n);
+	    if (!undo_bgrow(undo, n))
+		goto noundo;
 
 	    lchange(WFEDIT);
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */

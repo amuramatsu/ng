@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.7 2000/09/01 19:44:25 amura Exp $ */
+/* $Id: line.c,v 1.8 2000/11/04 13:44:58 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.8  2000/11/04 13:44:58  amura
+ * undo memory exception is more safety
+ *
  * Revision 1.7  2000/09/01 19:44:25  amura
  * dirty hack for speed optimize of "yank"
  *
@@ -504,9 +507,10 @@ ldelete(n, kflag) RSIZE n; {
 				undo->u_code[0] = '\n';
 				undo->u_code[1] = 0;
 			    } else {
-				undo_bgrow(undo, 1);
-				undo->u_buffer[undo->u_used] = '\n';
-				undo->u_used++;
+				if (undo_bgrow(undo, 1)) {
+				    undo->u_buffer[undo->u_used] = '\n';
+				    undo->u_used++;
+				}
 			    }
 			}
 #endif
@@ -544,10 +548,11 @@ ldelete(n, kflag) RSIZE n; {
 			    undo->u_code[1] = *(cp1+1);
 			}			    
 		    } else {
-			undo_bgrow(undo, chunk);
-			bcopy(cp1, &(undo->u_buffer[undo->u_used]),
-			      (int)chunk);
-			undo->u_used += chunk;
+			if (undo_bgrow(undo, chunk)) {
+			    bcopy(cp1, &(undo->u_buffer[undo->u_used]),
+				  (int)chunk);
+			    undo->u_used += chunk;
+			}
 		    }
 		}
 #endif
@@ -722,16 +727,17 @@ int		f;			/* case hack disable		*/
 	     * In only this case, u_buffer is terminated by \0. 
 	     * Because do_undo() use this function 'lreplace',
 	     */
-	    undo_balloc(undo, plen+1);
-	    bcopy(&(curwp->w_dotp)->l_text[doto], undo->u_buffer, plen);
-	    undo->u_buffer[plen] = '\0';
-	    undo->u_dotlno = get_lineno(curbp,curwp->w_dotp);
-	    undo->u_doto = doto;
-	    undo->u_type = UDREPL;
-	    undo->u_used = rlen;
+	    if (undo_balloc(undo, plen+1)) {
+		bcopy(&(curwp->w_dotp)->l_text[doto], undo->u_buffer, plen);
+		undo->u_buffer[plen] = '\0';
+		undo->u_dotlno = get_lineno(curbp,curwp->w_dotp);
+		undo->u_doto = doto;
+		undo->u_type = UDREPL;
+		undo->u_used = rlen;
 	    
-	    undoptr_save = undoptr;
-	    undoptr = NULL;
+		undoptr_save = undoptr;
+		undoptr = NULL;
+	    }
 	}
 #endif
 	if (plen > rlen)
