@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.7 2000/10/02 16:28:46 amura Exp $ */
+/* $Id: buffer.c,v 1.7.2.1 2001/07/23 18:15:52 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.7.2.1  2001/07/23 18:15:52  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.7  2000/10/02 16:28:46  amura
  * kill without confirmation a buffer to bind nofile
  *
@@ -554,8 +557,6 @@ showbuffer(bp, wp, flags) register BUFFER *bp; register WINDOW *wp; {
 		if (--obp->b_nwnd == 0) {
 			obp->b_dotp  = wp->w_dotp;
 			obp->b_doto  = wp->w_doto;
-			obp->b_markp = wp->w_markp;
-			obp->b_marko = wp->w_marko;
 		}
 	}
 
@@ -565,8 +566,6 @@ showbuffer(bp, wp, flags) register BUFFER *bp; register WINDOW *wp; {
 	if (bp->b_nwnd++ == 0) {		/* First use.		*/
 		wp->w_dotp  = bp->b_dotp;
 		wp->w_doto  = bp->b_doto;
-		wp->w_markp = bp->b_markp;
-		wp->w_marko = bp->b_marko;
 	} else
 	/* already on screen, steal values from other window */
 #ifdef	BUGFIX	/* ? 90.12.08    Sawayanagi Yosirou */
@@ -578,8 +577,6 @@ showbuffer(bp, wp, flags) register BUFFER *bp; register WINDOW *wp; {
 #endif	/* BUGFIX */
 				wp->w_dotp  = owp->w_dotp;
 				wp->w_doto  = owp->w_doto;
-				wp->w_markp = owp->w_markp;
-				wp->w_marko = owp->w_marko;
 				break;
 			}
 	wp->w_flag |= WFMODE|flags;

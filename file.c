@@ -1,10 +1,13 @@
-/* $Id: file.c,v 1.3 2000/06/27 01:49:43 amura Exp $ */
+/* $Id: file.c,v 1.3.2.1 2001/07/23 18:15:54 amura Exp $ */
 /*
  *		File commands.
  */
 
 /*
  * $Log: file.c,v $
+ * Revision 1.3.2.1  2001/07/23 18:15:54  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.3  2000/06/27 01:49:43  amura
  * import to CVS
  *
@@ -309,8 +312,6 @@ readin(fname) char *fname; {
 			wp->w_dotp  = wp->w_linep = lforw(curbp->b_linep);
 			wp->w_lines = 0;
 			wp->w_doto  = 0;
-			wp->w_markp = NULL;
-			wp->w_marko = 0;
 		}
 	}
 #ifdef	C_MODE	/* 91.01.13  by S.Yoshida */
@@ -517,8 +518,8 @@ endoffile:
 		else		ewprintf("(Read %d lines)", nline);
 	}
 	/* Set mark at the end of the text */
-	curwp->w_dotp = curwp->w_markp = lback(curwp->w_dotp);
-	curwp->w_marko = llength(curwp->w_markp);
+	curwp->w_dotp = bp->b_markp = lback(curwp->w_dotp);
+	bp->b_marko = llength(bp->b_markp);
 	(VOID) ldelnewline();
 	curwp->w_dotp = olp;
 	curwp->w_doto = opos;
@@ -537,7 +538,7 @@ endoffile:
 	 * are also at the end of buffer.
 	 */
 	lp1 = bp->b_linep;
-	if (curwp->w_markp == lp1) {
+	if (bp->b_markp == lp1) {
 		lp2 = curwp->w_dotp;
 	} else {
 		(VOID) ldelnewline();		/* delete extranious newline */
@@ -548,7 +549,7 @@ out:		lp2 = NULL;
 			wp->w_flag |= WFMODE|WFEDIT;
 			if (wp != curwp && lp2 != NULL) {
 				if (wp->w_dotp == lp1)	wp->w_dotp  = lp2;
-				if (wp->w_markp == lp1) wp->w_markp = lp2;
+				if (bp->b_markp == lp1) bp->b_markp = lp2;
 				if (wp->w_linep == lp1) {
 					wp->w_linep = lp2;
 					wp->w_lines = 0;

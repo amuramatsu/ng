@@ -1,10 +1,13 @@
-/* $Id: complt.c,v 1.5 2000/11/04 13:43:30 amura Exp $ */
+/* $Id: complt.c,v 1.5.2.1 2001/07/23 18:15:53 amura Exp $ */
 /*
  *	Complete completion functions.
  */
 
 /*
  * $Log: complt.c,v $
+ * Revision 1.5.2.1  2001/07/23 18:15:53  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.5  2000/11/04 13:43:30  amura
  * estrlen definition is changed to K&R style
  *
@@ -336,8 +339,10 @@ complete_list_names (buf, flags)
 	    prev_bp = curwp->w_bufp;
 	    prev_window.w_dotp = curwp->w_dotp;
 	    prev_window.w_doto = curwp->w_doto;
-	    prev_window.w_markp = curwp->w_markp;
-	    prev_window.w_marko = curwp->w_marko;
+	    if (prev_window.w_bufp) {
+	      prev_window.w_bufp->b_markp = prev_bp->b_markp;
+	      prev_window.w_bufp->b_marko = prev_bp->b_marko;
+	    }
 	  }
       }
     for (wp = wheadp; wp != NULL; wp = wp->w_wndp)
@@ -560,11 +565,13 @@ complete_del_list ()
 	showbuffer (prev_bp, curwp, WFFORCE | WFHARD);
 	curwp->w_dotp = prev_window.w_dotp;
 	curwp->w_doto = prev_window.w_doto;
-	curwp->w_markp = prev_window.w_markp;
-	curwp->w_marko = prev_window.w_marko;
 	curwp->w_flag |= WFMOVE;
 	curwp = prev_wp;
 	curbp = curwp->w_bufp;
+	if (prev_window.w_bufp) {
+	  curbp->b_markp = prev_window.w_bufp->b_markp;
+	  curbp->b_marko = prev_window.w_bufp->b_marko;
+	}
       }      
     bp = NULL;
     prev_wp = NULL;

@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.4.2.2 2001/07/23 18:01:30 amura Exp $ */
+/* $Id: random.c,v 1.4.2.3 2001/07/23 18:15:56 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.4.2.3  2001/07/23 18:15:56  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.4.2.2  2001/07/23 18:01:30  amura
  * fix mark handling when make newline on the mark position
  *
@@ -684,7 +687,7 @@ yank(f, n)
 		set_lineno = get_lineno(curbp, curwp->w_dotp);
 		while ((c=kremove(i)) >= 0) {
 			if (c == '\n') {
-				if (i == 0 && curwp->w_marko == 0)
+				if (i == 0 && curbp->b_marko == 0)
 					mark_adjust = TRUE;
 				if (newline(FFRAND, 1) == FALSE) {
 					set_lineno = -1;
@@ -693,8 +696,8 @@ yank(f, n)
 				/* Mark position correction.	*/
 				if (mark_adjust) {
 					LINE *lp=lback(curwp->w_dotp);
-					curwp->w_markp  = lp;
-					curwp->w_marko  = llength(lp);
+					curbp->b_markp  = lp;
+					curbp->b_marko  = llength(lp);
 					mark_adjust = FALSE;
 				}
 				++nline; ++set_lineno;
@@ -717,15 +720,15 @@ yank(f, n)
 #endif
 		while ((c=kremove(i)) >= 0) {
 			if (c == '\n') {
-				if (i == 0 && curwp->w_marko == 0)
+				if (i == 0 && curbp->b_marko == 0)
 					mark_adjust = TRUE;
 				if (newline(FFRAND, 1) == FALSE)
 					return FALSE;
 				/* Mark position correction.	*/
 				if (mark_adjust) {
 					LINE *lp=lback(curwp->w_dotp);
-					curwp->w_markp  = lp;
-					curwp->w_marko  = llength(lp);
+					curbp->b_markp  = lp;
+					curbp->b_marko  = llength(lp);
 					mark_adjust = FALSE;
 				}
 				
@@ -932,8 +935,8 @@ regionlines(f, n)
 	register int	counting;
 
 	totallines = 0;
-	if (curwp->w_dotp == curwp->w_markp) {
-		if (curwp->w_doto != curwp->w_marko) {
+	if (curwp->w_dotp == curbp->b_markp) {
+		if (curwp->w_doto != curbp->b_marko) {
 			totallines = 1;
 		}
 	} else {
@@ -949,9 +952,9 @@ regionlines(f, n)
 				} else {	/* Start of counting. */
 					counting = TRUE;
 				}
-			} else if (lp == curwp->w_markp) {
+			} else if (lp == curbp->b_markp) {
 				if (counting) {	/* End of counting. */
-					if (curwp->w_marko > 0) {
+					if (curbp->b_marko > 0) {
 						totallines++;
 					}
 					break;

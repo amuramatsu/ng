@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.2 2000/09/18 10:19:52 amura Exp $ */
+/* $Id: cmode.c,v 1.2.2.1 2001/07/23 18:15:53 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: cmode.c,v $
+ * Revision 1.2.2.1  2001/07/23 18:15:53  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.2  2000/09/18 10:19:52  amura
  * calc_indent() is fixed
  *
@@ -323,7 +326,7 @@ static calc_indent()
 
 /*-- Label check --*/	
     c = lgetc(lp, cbo);
-    if (ISWORD(c) || c=='_')
+    if (ISWORD(c) || c == '_' || c == '-')
     {
 	for (bo = cbo+1; bo < llength(lp); bo++)
 	{
@@ -334,8 +337,8 @@ static calc_indent()
 		with_colon = TRUE;
 		break;
 	    }
-	    if (!ISWORD(c) && c!=' ' && c!='\t' && c!='\'' && c!='_'
-		&& c != '(' && c != ')')
+	    if (c == '<' || c == '>' || c == '=' ||
+		c == '[' || c == ']' || c == '\\')
 		break;
 	}
     }

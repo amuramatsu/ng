@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.2 2000/07/22 17:54:09 amura Exp $ */
+/* $Id: search.c,v 1.2.2.1 2001/07/23 18:15:56 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -12,6 +12,9 @@
 
 /*
  * $Log: search.c,v $
+ * Revision 1.2.2.1  2001/07/23 18:15:56  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.2  2000/07/22 17:54:09  amura
  * fix typo bug
  *
@@ -237,8 +240,8 @@ isearch(dir) {
 		case CCHR('M'):
 #endif /* EMACS_QUERY_KEYS */
 			srch_lastdir = dir;
-			curwp->w_markp = clp;
-			curwp->w_marko = cbo;
+			curwp->w_bufp->b_markp = clp;
+			curwp->w_bufp->b_marko = cbo;
 			ewprintf("Mark set");
 			return (TRUE);
 
@@ -355,8 +358,8 @@ isearch(dir) {
 		default:
 			if (ISCTRL(c)) {
 				ungetkey(c);
-				curwp->w_markp = clp;
-				curwp->w_marko = cbo;
+				curwp->w_bufp->b_markp = clp;
+				curwp->w_bufp->b_marko = cbo;
 				ewprintf("Mark set");
 				curwp->w_flag |= WFMOVE;
 				return	TRUE;
@@ -948,7 +951,7 @@ readpattern(prompt) char *prompt; {
 	return s;
 }
 
-/* $Id: search.c,v 1.2 2000/07/22 17:54:09 amura Exp $ */
+/* $Id: search.c,v 1.2.2.1 2001/07/23 18:15:56 amura Exp $ */
 /* Local Variables: */
 /*  c-indent-level:                   8      */
 /*  c-continued-statement-offset:     8      */

@@ -1,10 +1,13 @@
-/* $Id: main.c,v 1.6 2000/09/21 17:28:31 amura Exp $ */
+/* $Id: main.c,v 1.6.2.1 2001/07/23 18:15:55 amura Exp $ */
 /*
  *		Mainline
  */
 
 /*
  * $Log: main.c,v $
+ * Revision 1.6.2.1  2001/07/23 18:15:55  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.6  2000/09/21 17:28:31  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -49,7 +52,6 @@ static VOID	edinit();
 VOID
 Main(int argc, char**argv)
 #else	/* WIN32 */
-VOID
 main(argc, argv)
 int  argc;
 char **argv;
@@ -236,6 +238,9 @@ char **argv;
 #endif
 	    }
 	}
+#ifndef	WIN32
+	return 0;
+#endif
 }
 
 /*
@@ -259,8 +264,8 @@ edinit() {
 	wp->w_linep = wp->w_dotp = bp->b_linep;
 	wp->w_lines = 0;
 	wp->w_doto  = 0;
-	wp->w_markp = NULL;
-	wp->w_marko = 0;
+	bp->b_markp = NULL;
+	bp->b_marko = 0;
 	wp->w_toprow = 0;
 	wp->w_ntrows = nrow-2;			/* 2 = mode, echo.	*/
 	wp->w_force = 0;
