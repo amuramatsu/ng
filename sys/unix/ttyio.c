@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.13 2001/11/28 19:02:11 amura Exp $ */
+/* $Id: ttyio.c,v 1.14 2002/02/10 12:35:49 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.14  2002/02/10 12:35:49  amura
+ * cannot compile problem with Cygwin is fixed
+ *
  * Revision 1.13  2001/11/28 19:02:11  amura
  * Small fixes arount termcap library.
  *
@@ -67,6 +70,9 @@
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
 #endif
 
 #include <signal.h>		/* 90.02.13: For SIGWINCH.	*/
@@ -506,8 +512,6 @@ char *s;
 
 #ifndef NO_DPROMPT
 #ifdef	HAVE_SELECT
-#include <sys/time.h>
-
 /*
  * A program to return TRUE if we wait for 2 seconds without anything
  * happening, else return FALSE.  Cribbed from mod.sources xmodem.
