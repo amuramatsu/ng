@@ -1,4 +1,4 @@
-/* $Id: sysinit.c,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: sysinit.c,v 1.2 2000/09/29 17:25:15 amura Exp $ */
 /*
  * Name:	MG 2a
  *
@@ -11,8 +11,11 @@
 
 /*
  * $Log: sysinit.c,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2000/09/29 17:25:15  amura
+ * small patch for new iconify()
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
 
@@ -35,6 +38,13 @@
 #include	"libraries/arpbase.h"
 struct ArpBase	*ArpBase;
 #endif
+#ifdef DO_ICONIFY
+# ifdef V2
+struct Library 	*WorkbenchBase;
+# endif
+#endif
+
+
 #ifdef	KANJI
 # ifdef V2
 struct Library  *InputBase;
@@ -67,14 +77,6 @@ sysinit()
 	if (!(ArpBase = (struct ArpBase *) OpenLibrary("arp.library", 0L)))
 		panic("Compiled with USE_ARP, but arp.library not found");
 #endif
-#ifdef	KANJI
-# ifdef V2
-	if (OpenDevice("input.device", NULL,
-		(struct IORequest *)InputIO, NULL))
-		panic("Cannot open input device");
-	InputBase = (struct Library *)InputIO->io_Device;
-# endif /* V2 */
-#endif
 #ifndef NO_DIR
 	/*
 	 * The following attempt to be clever assigns the external StartLock
@@ -104,7 +106,21 @@ sysinit()
 	DiskfontBase = (struct Library *) OpenLibrary("diskfont.library", 0L);
 	if (DiskfontBase == NULL)
 		syscleanup();
-
+#ifdef DO_ICONIFY
+# ifdef V2
+	WorkbenchBase = OpenLibrary("workbench.library",0L);
+	if (WorkbenchBase == NULL)
+		syscleanup();
+# endif
+#endif
+#ifdef	KANJI
+# ifdef V2
+	if (OpenDevice("input.device", NULL,
+		       (struct IORequest *)InputIO, NULL))
+		panic("Cannot open input device");
+	InputBase = (struct Library *)InputIO->io_Device;
+# endif /* V2 */
+#endif
 #ifdef	REXX	/* Dec.20,1992 by H.Ohkubo */
 	openrexx();
 #endif
@@ -123,16 +139,21 @@ syscleanup()
 #ifdef	REXX
 	closerexx();
 #endif
-	/* from ttyio.c by H.Ohkubo Dec.20,1992 */
-#ifndef	USE_ARP	/* Add by H.Ohkubo */
-	if (DiskfontBase)	CloseLibrary(DiskfontBase);
-	if (IntuitionBase)	CloseLibrary(IntuitionBase);
-	if (GfxBase)		CloseLibrary(GfxBase);
-#endif
 #ifdef KANJI
 # ifdef V2
 	CloseDevice(InputIO);
 # endif
+#endif
+	/* from ttyio.c by H.Ohkubo Dec.20,1992 */
+#ifndef	USE_ARP	/* Add by H.Ohkubo */
+# ifdef	DO_ICONIFY
+#  ifdef V2
+	if (WorkbenchBase)	CloseLibrary(WorkbenchBase);
+#  endif
+# endif
+	if (DiskfontBase)	CloseLibrary(DiskfontBase);
+	if (IntuitionBase)	CloseLibrary(IntuitionBase);
+	if (GfxBase)		CloseLibrary(GfxBase);
 #endif
 #ifdef USE_ARP
 	if (ArpBase)

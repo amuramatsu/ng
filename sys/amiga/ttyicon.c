@@ -1,4 +1,4 @@
-/* $Id: ttyicon.c,v 1.2 2000/07/28 11:26:37 amura Exp $ */
+/* $Id: ttyicon.c,v 1.3 2000/09/29 17:25:15 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Iconify the MG window using Leo Schwab's iconify() routine.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: ttyicon.c,v $
+ * Revision 1.3  2000/09/29 17:25:15  amura
+ * small patch for new iconify()
+ *
  * Revision 1.2  2000/07/28 11:26:37  amura
  * edit icon to Ng 1.4
  *
@@ -174,8 +177,13 @@ int tticon(f, n)
 	/* hide the window, display the icon, then redisplay the window */
 	tthide(FALSE);	/* not resizing */
 
+#ifdef	ICON_WB
+	iconify(&iconX, &iconY, chipimg->Width, chipimg->Height, "Ng iconified",
+		(APTR) chipimg, (int) ICON_WB); /* iconify	*/
+#else
 	iconify(&iconX, &iconY, chipimg->Width, chipimg->Height, NULL,
 		(APTR) chipimg, (int) ICON_IMAGE); /* iconify	*/
+#endif
 	FreeMem(chipimg, (ULONG) sizeof(iconimg));
 	FreeMem(chipbitmap, (ULONG) sizeof(mg2a));
 
