@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.9 2001/01/05 14:07:00 amura Exp $ */
+/* $Id: config.h,v 1.10 2001/01/05 18:10:28 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -178,6 +178,8 @@
 #define DROPFILES	/* Drag'n Drop file open */
 			/* If defined, ADDFUNC must be also. */
 
+#define HOMEDIR		/* Home directory support */
+
 #define	EMACS_BACKUP_STYLE
 			/* Backup files like as GNU Emacs */
 			/* If you use Win9x, this shold not set */
@@ -196,6 +198,8 @@
 /*................................................*/
 
 #define FEPCTRL		/* Enable FEP auto control. */
+
+#define HOMEDIR		/* Home directory support */
 
 #define	EMACS_BACKUP_STYLE
 			/* Backup files like as GNU Emacs */
