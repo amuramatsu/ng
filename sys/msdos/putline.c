@@ -6,6 +6,9 @@
 
 /*
  * $Log: putline.c,v $
+ * Revision 1.4  2001/10/06 11:41:11  amura
+ * bug in Hojo Kanji support is fixed
+ *
  * Revision 1.3  2001/03/09 15:53:14  amura
  * enable to really work autosave feature
  *
@@ -120,7 +123,8 @@ putline(int row, int column, unsigned char *s, short color)
             pokeb(ATTR_SEG, dest, attr);
             pokeb(VRAM_SEG, dest++, TOUFU1ST - 0x20);
             pokeb(VRAM_SEG, dest++, TOUFU2ND + 0x80);
-	    s += 3;
+	    s += 2;
+	    t += 2;
 	} else
 #endif
         if( iseuc1st(*s) ) {
