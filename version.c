@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.6 2000/09/21 17:10:52 amura Exp $ */
+/* $Id: version.c,v 1.7 2000/10/02 16:29:55 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: version.c,v $
+ * Revision 1.7  2000/10/02 16:29:55  amura
+ * can display some Amiga configuration
+ *
  * Revision 1.6  2000/09/21 17:10:52  amura
  * edit to 1.4.1 release
  *
@@ -203,8 +206,8 @@ static	char *v1_msg = "\tV11\t\t(Enable AmigaDOS Ver.1.1)";
 static	char *v1_msg = "\tV1\t\t(Enable AmigaDOS Ver.1.x)";
 # endif
 #endif
-#ifdef	MENU
-static	char *menu_msg = "\tMENU\t\t(Enable menu selection)";
+#ifdef	DO_MENU
+static	char *menu_msg = "\tDO_MENU\t\t(Enable menu selection)";
 #endif
 #ifdef	BROWSER
 static	char *browser_msg = "\tBROWSER\t\t(Enable to present a menu of file)";
@@ -216,7 +219,7 @@ static	char *mouse_msg = "\tMOUSE\t\t(Enable to use mouse)";
 static	char *fkeys_msg = "\tFKEYS\t\t(Enable to use function keys)";
 #endif
 #ifdef	DO_ICONIFY
-static	char *iconify_msg = "\tICONIFY\t\t(Enable iconify)";
+static	char *iconify_msg = "\tDO_ICONIFY\t(Enable iconify)";
 #endif
 #ifdef	CHANGE_COLOR
 static	char *color_msg = "\tCOLOR\t\t(Enable to color setting)";
@@ -229,6 +232,9 @@ static	char *arp_msg = "\tARP\t\t(using ARP.Library)";
 #endif
 #ifdef	REXX
 static	char *rexx_msg = "\tREXX\t\t(Enable to use AREXX)";
+#endif
+#ifdef	ASL
+static	char *asl_msg = "\tASL\t\t(Enable to use ASL Filerequester)";
 #endif
 #endif	/* AMIGA */
 
@@ -387,7 +393,7 @@ int f, n;
 	strcpy(line, v1_msg);
 	if (addline(bp, line) == FALSE) return FALSE;
 #endif
-#ifdef	MENU
+#ifdef	DO_MENU
 	strcpy(line, menu_msg);
 	if (addline(bp, line) == FALSE) return FALSE;
 #endif
@@ -421,6 +427,10 @@ int f, n;
 #endif
 #ifdef	REXX
 	strcpy(line, rexx_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+#ifdef	ASL
+	strcpy(line, asl_msg);
 	if (addline(bp, line) == FALSE) return FALSE;
 #endif
 #endif	/* AMIGA */
@@ -555,7 +565,7 @@ printoptions()
 #ifndef	V2
 	printf("%s\n", v1_msg);
 #endif
-#ifdef	MENU
+#ifdef	DO_MENU
 	printf("%s\n", menu_msg);
 #endif
 #ifdef	BROWSER
@@ -581,6 +591,9 @@ printoptions()
 #endif
 #ifdef	REXX
 	printf("%s\n", rexx_msg);
+#endif
+#ifdef	ASL
+	printf("%s\n", asl_msg);
 #endif
 #endif	/* AMIGA */
 #endif	/* WIN32 */
