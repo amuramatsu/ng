@@ -6,12 +6,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
-/* $Id: dir.c,v 1.3 2000/03/28 02:37:46 amura Exp $ */
+/* $Id: dir.c,v 1.4 2000/06/01 05:22:25 amura Exp $ */
 
 /* $Log: dir.c,v $
-/* Revision 1.3  2000/03/28 02:37:46  amura
-/* Added startdir.
+/* Revision 1.4  2000/06/01 05:22:25  amura
+/* More robust
 /*
+ * Revision 1.3  2000/03/28  02:37:46  amura
+ * Added startdir.
+ *
  * Revision 1.2  2000/03/10  21:26:50  amura
  * Merge Ng for win32 0.4
  *
@@ -36,7 +39,11 @@ char	*fftolower();	/* 90.07.01  Add by S.Yoshida */
 char	*getcwd();
 char	*tounixfn();
 #else	/* NOT HUMAN68K */
+#ifdef	HAVE_GETCWD
+char	*getcwd();
+#else
 char	*getwd();
+#endif
 #endif	/* HUMAN68K */
 #endif	/* MSDOS */
 #endif
@@ -65,7 +72,11 @@ dirinit()
 # ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
 	if (!(wdir = tounixfn(getcwd(cwd, NFILEN - 1))))
 # else	/* NOT HUMAN68K && NOT MSDOS*/
+#  ifdef HAVE_GETCWD
+	if (!(wdir = getcwd(cwd, NFILEN-1)))
+#  else
 	if (!(wdir = getwd(cwd)))
+#  endif
 # endif	/* HUMAN68K */
 #endif	/* MSDOS */
 		panic("Can't get current directory!");
@@ -166,12 +177,11 @@ char *newdir;
 #ifdef	HUMAN68K
 	if (CHGDRV(drive) <= drive) {
 	    drive = drive - 'a';
-	    ewprintf("Can't change dir to %s", bufc);
 	    return(FALSE);
 	}
 #else
 #ifdef	__TURBOC__	/* 90.03.23  by A.Shirahashi */
-	(void) setdisk(drive - 1);
+	(VOID) setdisk(drive - 1);
 #else	/* NOT __TURBOC__ */
 	_dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
 #endif	/* __TURBOC__ */
@@ -179,12 +189,9 @@ char *newdir;
     }
     if (dir[1] == ':' && dir[2] == '\0') {
 	dirinit();
-	ewprintf("Current directory is now %s", wdir);
     } else if (dir[1]==':' && chdir(dir+2) == -1) {
-	ewprintf("Can't change dir to %s", newdir);
 	return -1;
     } else if (chdir(dir) == -1) {
-	ewprintf("Can't change dir to %s", newdir);
 	return -1;
     } else {
 	dirinit();
@@ -196,7 +203,7 @@ char *newdir;
 #endif	/* MSDOS||HUMAN68K */
 }
 
-void
+VOID
 vchdir(newdir)
 char *newdir;
 {
@@ -206,7 +213,7 @@ char *newdir;
 }
 
 VOID
-ensurecwd pro((void))
+ensurecwd pro((VOID))
 {
   if (curbp) {
     if (curbp->b_cwd[0] == '\0') {
@@ -297,7 +304,7 @@ changedir(f, n)
 		/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
 		drive = drive - 'a' + 1;
 #ifdef	__TURBOC__	/* 90.03.23  by A.Shirahashi */
-		(void) setdisk(drive - 1);
+		(VOID) setdisk(drive - 1);
 #else	/* NOT __TURBOC__ */
 		_dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
 #endif	/* __TURBOC__ */
@@ -340,7 +347,11 @@ changedir(f, n)
 #ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
 		dirinit ();
 #else	/* NOT HUMAN68K */
+#ifdef HAVE_GETCWD
+		if (!(wdir = getcwd(cwd, NFILEN-1)))
+#else
 		if (!(wdir = getwd(cwd)))
+#endif
 #endif	/* HUMAN68K */
 #endif	/* MSDOS */
 #ifndef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */

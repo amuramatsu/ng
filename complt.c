@@ -3,12 +3,15 @@
  */
 /* 90.12.10  Created by Sawayanagi Yosirou */
 
-/* $Id: complt.c,v 1.1 1999/05/21 02:05:34 amura Exp $ */
+/* $Id: complt.c,v 1.2 2000/06/01 05:24:14 amura Exp $ */
 
 /* $Log: complt.c,v $
-/* Revision 1.1  1999/05/21 02:05:34  amura
-/* Initial revision
+/* Revision 1.2  2000/06/01 05:24:14  amura
+/* More robust
 /*
+ * Revision 1.1  1999/05/21  02:05:34  amura
+ * Initial revision
+ *
 */
 
 #include    "config.h"
@@ -18,10 +21,17 @@
 #include    "complt.h"
 #define    LIST_COL    35
 
-BUFFER    *bp = NULL;
-BUFFER    *prev_bp = NULL;
-WINDOW    *prev_wp = NULL;
-WINDOW    prev_window;
+static BUFFER    *bp = NULL;
+static BUFFER    *prev_bp = NULL;
+static WINDOW    *prev_wp = NULL;
+static WINDOW    prev_window;
+
+static int complete_funcname pro((char *));
+static int complete_buffername pro((char *));
+static int complete_filename pro((char *));
+static int complete_list_funcnames pro((char *, BUFFER *));
+static int complete_list_buffernames pro((char *, BUFFER *));
+static int complete_list_filenames pro((char *, BUFFER *));
 
 /*
  * do some completion.
@@ -32,9 +42,6 @@ complete (buf, flags)
     int    flags;
 {
     int    res;
-    static int complete_funcname ();
-    static int complete_buffername ();
-    static int complete_filename ();
 
     switch (flags & (EFFUNC | EFBUF | EFFILE))
       {
@@ -48,6 +55,7 @@ complete (buf, flags)
 	res = complete_filename (buf);
 	break;
       default:
+	res = 0; /* dummy to prevent compile time warning */
         panic ("broken complete call: flags");
       }
 
@@ -88,7 +96,7 @@ complete_funcname (name)
     char    *name;
 {
     int    fnlen;
-    int    minlen;
+    int    minlen = 0;
     int    matchnum;
     int    res;
     int    i, j;
@@ -129,7 +137,8 @@ complete_funcname (name)
       }
 
     if (matchnum > 1)
-      res = (minlen == strlen (name)) ? COMPLT_NOT_UNIQUE : COMPLT_AMBIGUOUS;
+      res = (minlen == (int) strlen (name)) ?
+	     COMPLT_NOT_UNIQUE : COMPLT_AMBIGUOUS;
     else if (matchnum == 1)
       res = COMPLT_SOLE;
     else if (matchnum == 0)
@@ -145,10 +154,10 @@ complete_buffername (name)
     char    *name;
 {
     int    fnlen;
-    int    minlen;
+    int    minlen = 0;
     int    matchnum;
     int    res;
-    int    i, j;
+    int    j;
     char    *cand;
     LIST    *lh;
 
@@ -183,7 +192,8 @@ complete_buffername (name)
       }
 
     if (matchnum > 1)
-      res = (minlen == strlen (name)) ? COMPLT_NOT_UNIQUE : COMPLT_AMBIGUOUS;
+      res = (minlen == (int) strlen (name)) ?
+	    COMPLT_NOT_UNIQUE : COMPLT_AMBIGUOUS;
     else if (matchnum == 1)
       res = COMPLT_SOLE;
     else if (matchnum == 0)
@@ -200,7 +210,7 @@ complete_filename (name)
     char    *name;
 {
     int    fnlen;
-    int    minlen;
+    int    minlen = 0;
     int    matchnum;
     int    res;
     int    i, j;
@@ -264,9 +274,6 @@ complete_list_names (buf, flags)
     int    cur_row;
     int    cur_col;
     WINDOW    *wp;
-    static int complete_list_funcnames ();
-    static int complete_list_buffernames ();
-    static int complete_list_filenames ();
 
     if ((bp = bfind ("*Completions*", TRUE)) == NULL)
       return (FALSE);
@@ -398,7 +405,7 @@ complete_list_buffernames (name, bp)
     BUFFER    *bp;
 {
     int    fnlen;
-    int    i, j;
+    int    j;
     char    *cand;
     char    line[NFILEN];
     LIST    *lh;
@@ -447,7 +454,7 @@ complete_list_filenames (name, bp)
     char    *name;
     BUFFER    *bp;
 {
-    int    fnlen;
+    int    dnlen;
     int    i, j;
     int    fnnum;
     char    *cand;
@@ -456,7 +463,7 @@ complete_list_filenames (name, bp)
     int    fffiles ();
     char    *file_name_part ();
 
-    fnlen = strlen (name);
+    dnlen = file_name_part (name) - name;
 
     if ((fnnum = fffiles (name, &filenames)) == -1)
       return (FALSE);    /* error */
@@ -465,7 +472,7 @@ complete_list_filenames (name, bp)
     cand = filenames;
     for (i = 0; i < fnnum; i++)
       {
-	cand = file_name_part (cand);
+	cand += dnlen;
 	if (line[0] == '\0')
 	  {
 	    if (strlen (cand) < LIST_COL)
