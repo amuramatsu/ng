@@ -12,12 +12,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: display.c,v 1.1 1999/05/19 04:25:31 amura Exp $ */
+/* $Id: display.c,v 1.2 2000/06/01 18:29:12 amura Exp $ */
 
 /* $Log: display.c,v $
-/* Revision 1.1  1999/05/19 04:25:31  amura
-/* Initial revision
+/* Revision 1.2  2000/06/01 18:29:12  amura
+/* support VARIABLE_TAB
 /*
+ * Revision 1.1  1999/05/19  04:25:31  amura
+ * Initial revision
+ *
 */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
@@ -39,8 +42,12 @@
 #endif
 
 #ifdef	STANDOUT_GLITCH
+# ifdef TCCONIO
+#  undef STANDOUT_GLITCH
+# else
 extern int SG;				/* number of standout glitches	*/
-#endif
+# endif /* TCCONIO */
+#endif /* STANDOUT_GLITCH */
 
 /*
  * A video structure always holds
@@ -107,13 +114,13 @@ VOID	vtmove();
 VOID	vtputc();
 VOID	vtmarkyen();
 VOID	vteeol();
-int	colrow();
-short	skipline();
-int	countlines();
 VOID	update();
 VOID	ucopy();
 VOID	uline();
 VOID	modeline();
+#ifdef	ADDFUNC
+VOID	moderatio();
+#endif
 VOID	hash();
 VOID	setscores();
 VOID	traceback();
@@ -212,17 +219,28 @@ vtmove(row, col) {
 VOID
 vtputc(c) register int c; {
 	register VIDEO	*vp;
+#ifdef VARIABLE_TAB
+	int tab = curwp->w_bufp->b_tabwidth;
+#endif
 
 	vp = vscreen[vtrow];
 	if (c == '\t'
 #ifdef	NOTAB
-		&& !(curbp->b_flag & BFNOTAB)
+		&& !(curwp->w_bufp->b_flag & BFNOTAB)
 #endif
 	    ) {
+#ifdef  VARIABLE_TAB
+		if ((vtcol/tab +1)*tab <= ncol - 1 ) {
+#else
 		if ( (vtcol | 0x07) + 1 <= ncol - 1 ) {
+#endif
 			do {
 				vtputc(' ');
+#ifdef  VARIABLE_TAB
+			} while (vtcol<ncol && (vtcol%tab)!=0);
+#else
 			} while (vtcol<ncol && (vtcol&0x07)!=0);
+#endif
 		} else {
 			vteeol();
 			vp->v_text[ncol-1]='\\';
@@ -247,7 +265,7 @@ vtputc(c) register int c; {
 			vtkattr = K2ND;
 		} else if (ISKANJI(c)) {
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-		        if ( (c & 0xff) == 0x8e)
+		        if ( (c & 0xff) == SS2)
 			    vtkattr = HAN1ST;
 			else
 			    vtkattr = K1ST;
@@ -276,6 +294,29 @@ vtputc(c) register int c; {
 #endif	/* KANJI */
 	}
 }
+
+#if defined(MEMMAP)&&(!defined(PC9801))
+VOID
+putline(int row, int col, unsigned char *s, unsigned char *t)
+{
+    register int i;
+    int oldrow = vtrow;
+    int oldcol = vtcol;
+
+    vtrow = row;
+    vtcol = col;
+
+    for (i=row; i<=MAXROW; i++)
+    {
+	if (*t++ == SS2)
+	    vtkattr = HAN1ST;
+	vtputc(*s++);
+    }
+
+    vtrow = oldrow;
+    vtcol = oldcol;
+}
+#endif /* MEMMAP && !PC9801 */
 
 /* Mark '\\' end of line 
  * whether curcol is not on the top of line.
@@ -327,6 +368,9 @@ int	*lines;
 	register int	i;
 	register char	c;
 	register int	c1;
+#ifdef	VARIABLE_TAB
+	int	tab = curbp->b_tabwidth;
+#endif
 
 	c1=0;
 	*curcol = 0;
@@ -340,7 +384,7 @@ int	*lines;
 		} else c1=0;
 #endif /* KANJI */
 #ifdef HANKANA
-		if ( (c & 0xff) == 0x8e && c1 == 1 )
+		if ( (c & 0xff) == SS2 && c1 == 1 )
 		    --(*curcol); 
 #endif /* HANKANA */
 		if (c == '\t'
@@ -348,7 +392,11 @@ int	*lines;
 			&& !(curbp->b_flag & BFNOTAB)
 #endif
 			) {
-			(*curcol) |= 0x07;
+#ifdef	VARIABLE_TAB
+			*curcol = ((*curcol)/tab +1)*tab -1;
+#else
+			*curcol |= 0x07;
+#endif
 			if (*curcol >= ncol -2) {
 				*curcol = -1;
 				(*lines)++;
@@ -372,7 +420,7 @@ int	*lines;
 		c=lgetc(lp, i);
 		if (ISKANJI(c)
 #ifdef HANKANA
-		    && (c & 0xff) != 0x8e
+		    && (c & 0xff) != SS2
 #endif /* HANKANA */
 		)	{
 			++(*lines);
@@ -382,6 +430,88 @@ int	*lines;
 #endif
 #endif  /* CURSOR_POS */
 	return (short)*lines;
+}
+
+/*
+   Returns offset of specified location.  This will be mainly used to
+   respond to a mouse click on a screen.  In case the specified
+   location does not exist within the `lp', negative value will be
+   returned.  The absolute value of the negative result is the number
+   of rows left.
+
+   This will return an offset right neighbor to the position, if the
+   character at the position is a wide character ,that is, the width
+   of the character is more than or equal to a double width character,
+   and the position is at the right half of the character.
+
+   By Tillanosoft, March 21, 1999.  */
+
+int
+rowcol2offset(lp, row, col)
+LINE *lp;
+int row, col;
+{
+  register int	i;
+  register int	curcol;
+  register char	c;
+  register int width, skipbytes;
+#ifdef  VARIABLE_TAB
+  int tab = curbp->b_tabwidth;
+#endif  /* VARIABLE_TAB */
+  
+  curcol = 0;
+  for (i=0; i<llength(lp); i += skipbytes) {
+    if (row < 0) {
+      return i;
+    }
+    if (row == 0 && col < curcol) return i;
+    c = lgetc(lp, i);
+    width = 1;
+    skipbytes = 1;
+#ifdef KANJI
+    if ( ISKANJI(c) ) {
+      width = 2;
+      skipbytes = 2;
+    }
+#endif /* KANJI */
+#ifdef HANKANA
+    if ((c & 0xff) == SS2) {
+      width = 1;
+      skipbytes = 2;
+    }
+#endif /* HANKANA */
+    if (c == '\t'
+#ifdef	NOTAB
+	&& !(curbp->b_flag & BFNOTAB)
+#endif
+	) {
+#ifdef VARIABLE_TAB
+      width = (curcol/tab + 1)*tab - curcol;
+#else
+      width = (curcol | 0x07) - curcol + 1;
+#endif
+      /* I should pay more care for the above line.
+	 In case, wrapping arround occurs, where should I put the curcol
+	 in the next line?
+	 By Tillanosoft Mar 21, 1999 */
+    } else if (ISCTRL(c) != FALSE) {
+      width = 2;
+    }
+    if (row == 0 && col < curcol + (width + 1) / 2) {
+      return i;
+    }
+    curcol += width;
+    if (curcol >= ncol-1) {
+      curcol= ISCTRL(c) ? (curcol - ncol + 1) : 0;
+      --row;
+    }
+  }
+  if (row == 0) {
+    return i;
+  }
+  else {
+    return -row;
+  }
 }
 
 /* Return offset of #th lines
@@ -395,6 +525,9 @@ int	lines;
 	register int	curcol;
 	register char	c;
 	register int	c1;
+#ifdef  VARIABLE_TAB
+	int	tab = curbp->b_tabwidth;
+#endif  /* VARIABLE_TAB */
 
 	c1=0;
 	curcol = 0;
@@ -408,7 +541,7 @@ int	lines;
 		} else c1=0;
 #endif /* KANJI */
 #ifdef HANKANA
-		if ( (c & 0xff) == 0x8e && c1 == 1 )
+		if ( (c & 0xff) == SS2 && c1 == 1 )
 		    --curcol; 
 #endif /* HANKANA */
 		if (c == '\t'
@@ -416,7 +549,11 @@ int	lines;
 			&& !(curbp->b_flag & BFNOTAB)
 #endif
 			) {
+#ifdef	VARIABLE_TAB
+			curcol = (curcol/tab + 1)*tab - 1;
+#else
 			curcol |= 0x07;
+#endif
 			if (curcol >= ncol -2) {
 				curcol = -1;
 				--lines;
@@ -451,6 +588,9 @@ LINE	*lp;
 	register int	lines;
 	register char	c;
 	register int	c1;
+#ifdef  VARIABLE_TAB
+	int	tab = curbp->b_tabwidth;
+#endif  /* VARIABLE_TAB */
 
 	c1=0;
 	curcol = 0;
@@ -464,7 +604,7 @@ LINE	*lp;
 		} else c1=0;
 #endif /* KANJI */
 #ifdef HANKANA
-		if ( (c & 0xff) == 0x8e && c1 == 1 )
+		if ( (c & 0xff) == SS2 && c1 == 1 )
 		    --curcol; 
 #endif /* HANKANA */
 		if (c == '\t'
@@ -472,7 +612,11 @@ LINE	*lp;
 			&& !(curbp->b_flag & BFNOTAB)
 #endif
 			) { 
+#ifdef	VARIABLE_TAB
+			curcol = (curcol/tab + 1)*tab - 1;
+#else
 			curcol |= 0x07;
+#endif
 			if (curcol >= ncol -2) {
 				curcol = -1;
 				lines++;
@@ -502,261 +646,268 @@ LINE	*lp;
  * correct for the current window. Third, make the
  * virtual and physical screens the same.
  */
+/* Changed 98/01/23 by amura for Variable Tab handling */
 VOID
-update() {
-	register LINE	*lp;
-	register WINDOW *wp;
-	register VIDEO	*vp1;
-	VIDEO		*vp2;
-	register int	i;
-	register int	j;
-	register int	c;
-	register int	hflag;
-	register int	currow;
-	register int	curcol;
-	register int	offs;
-	register int	size;
-	int	x,y;
-	int	lines;
-	VOID traceback ();
-	VOID uline ();
+update()
+{
+    register LINE	*lp;
+    WINDOW		*old_curwp;
+    register WINDOW	*wp;
+    register VIDEO	*vp1;
+    VIDEO		*vp2;
+    register int	i;
+    register int	j;
+    register int	hflag;
+    register int	currow;
+    register int	curcol;
+    register int	offs;
+    register int	size;
+    int	x,y;
+    int	lines;
+    VOID traceback ();
+    VOID uline ();
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	extern	int	no_k2nd;	/* Defined at kbd.c */
+    extern	int	no_k2nd;	/* Defined at kbd.c */
 #endif	/* KANJI */
 
-	if (typeahead()) return;
-	if (sgarbf) {				/* must update everything */
-		wp = wheadp;
-		while(wp != NULL) {
-			wp->w_flag |= WFMODE | WFHARD;
-			wp = wp->w_wndp;
-		}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		no_k2nd = FALSE;	/* Reset KANJI input condition. */
-	} else if (no_k2nd) {		/* We don't have KANJI 2nd byte. */
-		return;
-#endif	/* KANJI */
-	}
-	hflag = FALSE;				/* Not hard.		*/
+    if (typeahead()) return;
+    if (sgarbf) {			/* must update everything */
 	wp = wheadp;
-	while (wp != NULL) {
-		if (wp == curwp && wp->w_flag == 0) {
-			lp = wp->w_linep;	/* Cursor location.	*/
-			i = -wp->w_lines;
-			while (lp != wp->w_dotp) {
-				i += countlines(lp);
-				lp = lforw(lp);
-			}
-			i += colrow(lp, wp->w_doto, &x, &y);
-			if ( i < 0 || i >= wp->w_ntrows )
-				wp->w_flag |= WFFORCE;
-		}
-		if (wp->w_flag != 0) {		/* Need update.		*/
-			if (wp->w_dotlines != countlines(wp->w_dotp))
-				wp->w_flag |= WFHARD;
-			if ((wp->w_flag&WFFORCE) == 0) {
-				lp = wp->w_linep;
-				for (i = -wp->w_lines; i < wp->w_ntrows &&
-					lp != wp->w_bufp->b_linep; ) {
-					if (lp == wp->w_dotp) {
-						i += colrow(lp, wp->w_doto,
-								&x, &y);
-						if (i>=0 && i<wp->w_ntrows)
-							goto out;
-						else	break;
-					}
-					i += countlines(lp);
-					lp = lforw(lp);
-				}
-			}
-			i = wp->w_force;	/* Reframe this one.	*/
-			if (i > 0) {
-				--i;
-				if (i >= wp->w_ntrows)
-					i = wp->w_ntrows-1;
-			} else if (i < 0) {
-				i += wp->w_ntrows;
-				if (i < 0)
-					i = 0;
-			} else
-				i = wp->w_ntrows/2;
-			lp = wp->w_dotp;
-			i -= colrow(lp, wp->w_doto, &x, &y);
-			while (i>0 && lback(lp)!=wp->w_bufp->b_linep) {
-				lp = lback(lp);
-				i -= countlines(lp);
-			}
-			if (i>0) i=0;
-			if (i<0) i = -i;
-			wp->w_linep = lp;
-			wp->w_lines = i;
-			wp->w_flag |= WFHARD;	/* Force full.		*/
-		out:
-			lp = wp->w_linep;	/* Try reduced update.	*/
-			i  = wp->w_toprow - wp->w_lines;
-			if ((wp->w_flag&~WFMODE) == WFEDIT) {
-				while (lp != wp->w_dotp) {
-					i += countlines(lp);
-					lp = lforw(lp);
-				}
-				j = i + countlines(lp);
-				if (j > wp->w_toprow + wp->w_ntrows) {
-					y = skipline(lp, wp->w_toprow + 
-						     wp->w_ntrows - i);
-					j = wp->w_toprow + wp->w_ntrows;
-				} else	y = llength(lp);
-				if (i < wp->w_toprow) {
-					x = skipline(lp, wp->w_toprow - i);
-					i = wp->w_toprow;
-				} else	x = 0;
-				for (lines=i; lines<j; lines++) {
-					vscreen[lines]->v_color = CTEXT;
-					vscreen[lines]->v_flag |= 
-							(VFCHG|VFHBAD);
-				}
-				vtmove(i, 0);
-				for (j=x; j<y; ++j)
-					vtputc(lgetc(lp, j));
-				if ( y < llength(lp) ) vtmarkyen('\\');
-				else	vteeol();
-			} else if ((wp->w_flag&(WFEDIT|WFHARD)) != 0) {
-				hflag = TRUE;
-				while (i < wp->w_toprow+wp->w_ntrows) {
-					if (lp == wp->w_bufp->b_linep) {
-						vtmove(i, 0);
-						vscreen[i]->v_color =CTEXT;
-						vscreen[i]->v_flag |= 
-							(VFCHG|VFHBAD);
-						vteeol();
-						i++;
-						continue;
-					}
-					j = i + countlines(lp);
-					if (j > wp->w_toprow + wp->w_ntrows){
-						y = skipline(lp,
-							wp->w_toprow + 
-							wp->w_ntrows - i);
-						j = wp->w_toprow+wp->w_ntrows;
-					} else	y = llength(lp);
-					if (i < wp->w_toprow) {
-						x = skipline(lp,
-							wp->w_toprow - i);
-						i = wp->w_toprow;
-					} else	x = 0;
-					for (lines=i; lines<j; lines++) {
-						vscreen[lines]->v_color =CTEXT;
-						vscreen[lines]->v_flag |= 
-								(VFCHG|VFHBAD);
-					}
-					vtmove(i, 0);
-					for (j=x; j<y; ++j)
-						vtputc(lgetc(lp, j));
-					if ( y < llength(lp) ) 
-						vtmarkyen('\\');
-					else	vteeol();
-					i = lines;
-					lp = lforw(lp);
-				}
-			}
-			if ((wp->w_flag&WFMODE) != 0)
-				modeline(wp);
-			wp->w_flag  = 0;
-			wp->w_force = 0;
-			wp->w_dotlines = countlines(wp->w_dotp);
-		}
-		wp = wp->w_wndp;
-	}
-	lp = curwp->w_linep;			/* Cursor location.	*/
-	currow = curwp->w_toprow - curwp->w_lines;
-	while (lp != curwp->w_dotp) {
-		currow += countlines(lp);
-		lp = lforw(lp);
-	}
-	currow += colrow(lp, curwp->w_doto, &x, &y);
-	curcol = x;
-	/* make sure no lines need to be de-extended because the cursor is
-	no longer on them */
-
-	wp = wheadp;
-
-	while (wp != NULL) {
-	    /* if garbaged then fix up mode lines */
-	    if (sgarbf != FALSE) vscreen[wp->w_toprow+wp->w_ntrows]->v_flag
-							|= VFCHG;
-	    /* and onward to the next window */
+	while(wp != NULL) {
+	    wp->w_flag |= WFMODE | WFHARD;
 	    wp = wp->w_wndp;
 	}
+#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
+	no_k2nd = FALSE;		/* Reset KANJI input condition. */
+    } else if (no_k2nd) {		/* We don't have KANJI 2nd byte. */
+	return;
+#endif	/* KANJI */
+    }
 
-	if (sgarbf != FALSE) {			/* Screen is garbage.	*/
-		sgarbf = FALSE;			/* Erase-page clears	*/
-		epresf = FALSE;			/* the message area.	*/
-		tttop  = HUGE;			/* Forget where you set */
-		ttbot  = HUGE;			/* scroll region.	*/
-		tthue  = CNONE;			/* Color unknown.	*/
-		ttmove(0, 0);
-		tteeop();
-		for (i=0; i<nrow-1; ++i) {
-			uline(i, vscreen[i], &blanks);
-			ucopy(vscreen[i], pscreen[i]);
-		}
-		ttmove(currow, curcol);
-		ttflush();
-		return;
+    old_curwp = curwp;
+    hflag = FALSE;			/* Not hard.		*/
+    wp = wheadp;
+    while (wp != NULL) {
+	if (wp == curwp && wp->w_flag == 0) {
+	    lp = wp->w_linep;		/* Cursor location.	*/
+	    i = -wp->w_lines;
+	    while (lp != wp->w_dotp) {
+		i += countlines(lp);
+		lp = lforw(lp);
+	    }
+	    i += colrow(lp, wp->w_doto, &x, &y);
+	    if ( i < 0 || i >= wp->w_ntrows )
+		wp->w_flag |= WFFORCE;
 	}
-#ifdef	GOSLING
-	if (hflag != FALSE) {			/* Hard update?		*/
-		for (i=0; i<nrow-1; ++i) {	/* Compute hash data.	*/
-			hash(vscreen[i]);
-			hash(pscreen[i]);
+	if (wp->w_flag != 0) {		/* Need update.		*/
+	    if (wp->w_dotlines != countlines(wp->w_dotp))
+		wp->w_flag |= WFHARD;
+	    if ((wp->w_flag&WFFORCE) == 0) {
+		lp = wp->w_linep;
+		for (i = -wp->w_lines; i < wp->w_ntrows &&
+			lp != wp->w_bufp->b_linep; ) {
+		    if (lp == wp->w_dotp) {
+			i += colrow(lp, wp->w_doto, &x, &y);
+			if (i>=0 && i<wp->w_ntrows)
+			    goto out;
+			else	break;
+		    }
+		    i += countlines(lp);
+		    lp = lforw(lp);
 		}
-		offs = 0;			/* Get top match.	*/
-		while (offs != nrow-1) {
-			vp1 = vscreen[offs];
-			vp2 = pscreen[offs];
-			if (vp1->v_color != vp2->v_color
-			||  vp1->v_hash	 != vp2->v_hash)
-				break;
-			uline(offs, vp1, vp2);
-			ucopy(vp1, vp2);
-			++offs;
+	    }
+	    i = wp->w_force;		/* Reframe this one.	*/
+	    if (i > 0) {
+		--i;
+		if (i >= wp->w_ntrows)
+		    i = wp->w_ntrows-1;
+	    } else if (i < 0) {
+		i += wp->w_ntrows;
+		if (i < 0)
+		    i = 0;
+	    } else
+		i = wp->w_ntrows/2;
+	    lp = wp->w_dotp;
+	    i -= colrow(lp, wp->w_doto, &x, &y);
+	    while (i>0 && lback(lp)!=wp->w_bufp->b_linep) {
+		lp = lback(lp);
+		i -= countlines(lp);
+	    }
+	    if (i>0) i=0;
+	    if (i<0) i = -i;
+	    wp->w_linep = lp;
+	    wp->w_lines = i;
+	    wp->w_flag |= WFHARD;	/* Force full.		*/
+out:
+	    lp = wp->w_linep;		/* Try reduced update.	*/
+	    i  = wp->w_toprow - wp->w_lines;
+	    if ((wp->w_flag&~WFMODE) == WFEDIT) {
+		while (lp != wp->w_dotp) {
+		    i += countlines(lp);
+		    lp = lforw(lp);
 		}
-		if (offs == nrow-1) {		/* Might get it all.	*/
-			ttmove(currow, curcol);
-			ttflush();
-			return;
+		j = i + countlines(lp);
+		if (j > wp->w_toprow + wp->w_ntrows) {
+		    y = skipline(lp, wp->w_toprow + wp->w_ntrows - i);
+		    j = wp->w_toprow + wp->w_ntrows;
+		} else	y = llength(lp);
+		if (i < wp->w_toprow) {
+		    x = skipline(lp, wp->w_toprow - i);
+		    i = wp->w_toprow;
+		} else	x = 0;
+		for (lines=i; lines<j; lines++) {
+		    vscreen[lines]->v_color = CTEXT;
+		    vscreen[lines]->v_flag |= (VFCHG|VFHBAD);
 		}
-		size = nrow-1;			/* Get bottom match.	*/
-		while (size != offs) {
-			vp1 = vscreen[size-1];
-			vp2 = pscreen[size-1];
-			if (vp1->v_color != vp2->v_color
-			||  vp1->v_hash	 != vp2->v_hash)
-				break;
-			uline(size-1, vp1, vp2);
-			ucopy(vp1, vp2);
-			--size;
+		vtmove(i, 0);
+		for (j=x; j<y; ++j)
+		    vtputc(lgetc(lp, j));
+		if ( y < llength(lp) ) vtmarkyen('\\');
+		else	vteeol();
+	    } else if ((wp->w_flag&(WFEDIT|WFHARD)) != 0) {
+		hflag = TRUE;
+		while (i < wp->w_toprow + wp->w_ntrows) {
+		    if (lp == wp->w_bufp->b_linep) {
+			vtmove(i, 0);
+			vscreen[i]->v_color =CTEXT;
+			vscreen[i]->v_flag |= (VFCHG|VFHBAD);
+			vteeol();
+			i++;
+			continue;
+		    }
+		    j = i + countlines(lp);
+		    if (j > wp->w_toprow + wp->w_ntrows){
+			y = skipline(lp, wp->w_toprow + wp->w_ntrows - i);
+			j = wp->w_toprow + wp->w_ntrows;
+		    } else	y = llength(lp);
+		    if (i < wp->w_toprow) {
+			x = skipline(lp, wp->w_toprow - i);
+			i = wp->w_toprow;
+		    } else	x = 0;
+		    for (lines=i; lines<j; lines++) {
+			vscreen[lines]->v_color =CTEXT;
+			vscreen[lines]->v_flag |= (VFCHG|VFHBAD);
+		    }
+		    vtmove(i, 0);
+		    curwp = wp;		/* for variable tab */
+		    for (j=x; j<y; ++j)
+			vtputc(lgetc(lp, j));
+		    curwp = old_curwp;
+		    if ( y < llength(lp) ) 
+			vtmarkyen('\\');
+		    else	vteeol();
+		    i = lines;
+		    lp = lforw(lp);
 		}
-		if ((size -= offs) == 0)	/* Get screen size.	*/
-			panic("Illegal screen size in update");
-		setscores(offs, size);		/* Do hard update.	*/
-		traceback(offs, size, size, size);
-		for (i=0; i<size; ++i)
-			ucopy(vscreen[offs+i], pscreen[offs+i]);
-		ttmove(currow, curcol);
-		ttflush();
-		return;
-	}
+	    }
+	    if ((wp->w_flag&WFMODE) != 0)
+		modeline(wp);
+#ifdef ADDFUNC
+	    else if ((wp->w_flag & WFHARD) != 0)
+		/* to display the ratio in mode line */
+		moderatio(wp);
 #endif
-	for (i=0; i<nrow-1; ++i) {		/* Easy update.		*/
-		vp1 = vscreen[i];
-		vp2 = pscreen[i];
-		if ((vp1->v_flag&VFCHG) != 0) {
-			uline(i, vp1, vp2);
-			ucopy(vp1, vp2);
-		}
+	    wp->w_flag  = 0;
+	    wp->w_force = 0;
+	    wp->w_dotlines = countlines(wp->w_dotp);
+	    }
+	wp = wp->w_wndp;
+    }
+    lp = curwp->w_linep;			/* Cursor location.	*/
+    currow = curwp->w_toprow - curwp->w_lines;
+    while (lp != curwp->w_dotp) {
+	currow += countlines(lp);
+	lp = lforw(lp);
+    }
+    currow += colrow(lp, curwp->w_doto, &x, &y);
+    curcol = x;
+    /* make sure no lines need to be de-extended because the cursor is
+	no longer on them */
+
+    wp = wheadp;
+
+    while (wp != NULL) {
+        /* if garbaged then fix up mode lines */
+	if (sgarbf != FALSE)
+	    vscreen[wp->w_toprow+wp->w_ntrows]->v_flag
+							|= VFCHG;
+	/* and onward to the next window */
+	wp = wp->w_wndp;
+    }
+
+    if (sgarbf != FALSE) {		/* Screen is garbage.	*/
+	sgarbf = FALSE;			/* Erase-page clears	*/
+	epresf = FALSE;			/* the message area.	*/
+	tttop  = HUGE;			/* Forget where you set */
+	ttbot  = HUGE;			/* scroll region.	*/
+	tthue  = CNONE;			/* Color unknown.	*/
+	ttmove(0, 0);
+	tteeop();
+	for (i=0; i<nrow-1; ++i) {
+	    uline(i, vscreen[i], &blanks);
+	    ucopy(vscreen[i], pscreen[i]);
 	}
 	ttmove(currow, curcol);
 	ttflush();
+#ifdef XKEYS  /* 92.03.16 by Gen KUROKI */
+	ttykeypadstart();
+#endif /* XKEYS */
+	return;
+    }
+#ifdef	GOSLING
+    if (hflag != FALSE) {		/* Hard update?		*/
+	for (i=0; i<nrow-1; ++i) {	/* Compute hash data.	*/
+	    hash(vscreen[i]);
+	    hash(pscreen[i]);
+	}
+	offs = 0;			/* Get top match.	*/
+	while (offs != nrow-1) {
+	    vp1 = vscreen[offs];
+	    vp2 = pscreen[offs];
+	    if (vp1->v_color != vp2->v_color
+		    ||  vp1->v_hash != vp2->v_hash)
+		break;
+	    uline(offs, vp1, vp2);
+	    ucopy(vp1, vp2);
+	    ++offs;
+	}
+	if (offs == nrow-1) {		/* Might get it all.	*/
+	    ttmove(currow, curcol);
+	    ttflush();
+	    return;
+	}
+	size = nrow-1;			/* Get bottom match.	*/
+	while (size != offs) {
+	    vp1 = vscreen[size-1];
+	    vp2 = pscreen[size-1];
+	    if (vp1->v_color != vp2->v_color
+		||  vp1->v_hash	 != vp2->v_hash)
+		break;
+	    uline(size-1, vp1, vp2);
+	    ucopy(vp1, vp2);
+	    --size;
+	}
+	if ((size -= offs) == 0)	/* Get screen size.	*/
+	    panic("Illegal screen size in update");
+	setscores(offs, size);		/* Do hard update.	*/
+	traceback(offs, size, size, size);
+	for (i=0; i<size; ++i)
+	    ucopy(vscreen[offs+i], pscreen[offs+i]);
+	ttmove(currow, curcol);
+	ttflush();
+	return;
+    }
+#endif
+    for (i=0; i<nrow-1; ++i) {		/* Easy update.		*/
+	vp1 = vscreen[i];
+	vp2 = pscreen[i];
+	if ((vp1->v_flag&VFCHG) != 0) {
+	    uline(i, vp1, vp2);
+	    ucopy(vp1, vp2);
+	}
+    }
+    ttmove(currow, curcol);
+    ttflush();
 }
 
 /*
@@ -791,6 +942,13 @@ ucopy(vvp, pvp) register VIDEO *vvp; register VIDEO *pvp; {
  * reverse video works on most terminals.
  */
 VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
+#ifdef	_WIN32
+#ifdef	HANKANA
+	putline( row, 0, &vvp->v_text[0], &vvp->v_sub[0], vvp->v_color ) ;
+#else
+	putline( row, 0, &vvp->v_text[0], vvp->v_color ) ;
+#endif
+#else	/* _WIN32 */
 #ifdef	MEMMAP
 	ttflush();	/* 90.06.09  by A.Shirahashi */
 #ifdef	PC9801	/* 90.03.24  by A.Shirahashi */
@@ -847,7 +1005,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
 			kttputc(*cp1);
-			if ( (*cp1++ & 0xff) == 0x8e && *ccp1 != 0)
+			if ( (*cp1++ & 0xff) == SS2 && *ccp1 != 0)
 			    kttputc(*ccp1);
 			++ccp1;
 #else  /* not HANKANA */
@@ -883,7 +1041,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 			++ccp2;
 #endif  /* HANKANA */
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-		} else if ( (cp1[0] & 0xff) == 0x8e && ccp1[0] != 0) {
+		} else if ( (cp1[0] & 0xff) == SS2 && ccp1[0] != 0) {
 		    if ( ccp1[0]==ccp2[0]) {
 			++cp1;
 			++ccp1;
@@ -921,7 +1079,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 			--cp4;
 			kselect = FALSE;
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-		} else if ( (cp3[-1] & 0xff) == 0x8e && ccp3[-1] != 0) {
+		} else if ( (cp3[-1] & 0xff) == SS2 && ccp3[-1] != 0) {
 		    if (ccp3[-1] == ccp4[-1]) {
 			cp3--;
 			ccp3--;
@@ -975,7 +1133,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 #ifdef HANKANA /* 92.11.21  by S.Sasaki */
 		kttputc(*cp1);
-		if ((*cp1 & 0xff) == 0x8e && *ccp1 != 0)
+		if ((*cp1 & 0xff) == SS2 && *ccp1 != 0)
 		    kttputc(*ccp1);
 		++cp1;
 		++ccp1;
@@ -997,6 +1155,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 #endif
         ttflush(); /* 90.06.09  by A.Shirahashi */
 #endif  /* MEMMAP */
+#endif	/* _WIN32 */
 }
 
 /*
@@ -1015,12 +1174,23 @@ modeline(wp) register WINDOW *wp; {
 	register int	n;
 	register BUFFER *bp;
 	int	mode;
+#ifdef CANNA
+	extern char currentMode[];
+	extern char origMode[];
+#endif
 
 	n = wp->w_toprow+wp->w_ntrows;		/* Location.		*/
 	vscreen[n]->v_color = CMODE;		/* Mode line color.	*/
 	vscreen[n]->v_flag |= (VFCHG|VFHBAD);	/* Recompute, display.	*/
 	vtmove(n, 0);				/* Seek to right line.	*/
 	bp = wp->w_bufp;
+#ifdef CANNA
+	if(bp->b_flag & BFCANNA){
+		if(bp == curbp) n += vtputs(currentMode);
+		else n += vtputs(origMode);
+	}
+	else n += vtputs("[ -- ]");
+#endif
 	vtputc('-'); vtputc('-');
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
 	if ((bp->b_flag&BFRONLY) != 0) {	/* "%" if read-only.	*/
@@ -1059,8 +1229,107 @@ modeline(wp) register WINDOW *wp; {
 	}
 	vtputc(')');
 	++n;
+#ifdef ADDFUNC
+	{
+	  extern int windowpos pro((WINDOW *));
+	  int ratio = windowpos(wp);
+
+	  vtputc('-'); vtputc('-');
+	  n += 2;
+	  switch (ratio) {
+	  case MG_RATIO_ALL:
+	    vtputs("All");
+	    break;
+
+	  case MG_RATIO_TOP:
+	    vtputs("Top");
+	    break;
+	    
+	  case MG_RATIO_BOT:
+	    vtputs("Bot");
+	    break;
+
+	  default:
+	    if ((ratio / 10) == 0) {
+	      vtputc(' ');
+	    }
+	    else {
+	      vtputc('0' + (ratio / 10));
+	    }
+	    vtputc('0' + (ratio % 10));
+	    vtputc('%');
+	  }
+	  n += 3;
+	}
+#endif
 	vtmarkyen('-');				/* Pad out.		*/
 }
+
+#ifdef	ADDFUNC
+/*
+ * Redisplay the mode line  "raito" ONLY for
+ * the window pointed to by the "wp".
+ * This is the only routine that has any idea
+ * of how the modeline is formatted. You can
+ * change the modeline format by hacking at
+ * this routine. Called by "update" any time
+ * there is a dirty window.
+ * Note that if STANDOUT_GLITCH is defined, first and last SG characters
+ * may never be seen.
+ */
+VOID
+moderatio(wp) register WINDOW *wp; {
+	register int	n;
+	register BUFFER *bp;
+	int	mode, l;
+	extern int windowpos pro((WINDOW *));
+	int ratio = windowpos(wp);
+
+	l = wp->w_toprow+wp->w_ntrows;		/* Location.		*/
+	vscreen[l]->v_color = CMODE;		/* Mode line color.	*/
+	vscreen[l]->v_flag |= (VFCHG|VFHBAD);	/* Recompute, display.	*/
+	bp = wp->w_bufp;
+#ifdef	CANNA
+	n  = 46 + 6;
+#else
+	n  = 46;
+#endif
+#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
+	/* 90.12.28  Move to here like as Nemacs 3.3. by S.Yoshida */
+	n += 4;					/* Show KANJI code.	*/
+#endif	/* KANJI */	
+	for(mode=0;;) {
+	    n += strlen(bp->b_modes[mode]->p_name);
+	    if(++mode > bp->b_nmodes) break;
+	    ++n;
+	}
+	vtmove(l, n);				/* Seek to right line.	*/
+	switch (ratio) {
+	  case MG_RATIO_ALL:
+	    vtputs("All");
+	    break;
+
+	  case MG_RATIO_TOP:
+	    vtputs("Top");
+	    break;
+	    
+	  case MG_RATIO_BOT:
+	    vtputs("Bot");
+	    break;
+
+	  default:
+	    if ((ratio / 10) == 0) {
+	      vtputc(' ');
+	    }
+	    else {
+	      vtputc('0' + (ratio / 10));
+	    }
+	    vtputc('0' + (ratio % 10));
+	    vtputc('%');
+	}
+}
+#endif
+
 /*
  * output a string to the mode line, report how long it was.
  */
