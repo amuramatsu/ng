@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.17 2001/08/29 00:04:53 amura Exp $ */
+/* $Id: def.h,v 1.18 2001/09/27 18:56:49 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.18  2001/09/27 18:56:49  amura
+ * Small changes for support EPOC32
+ *
  * Revision 1.17  2001/08/29 00:04:53  amura
  * change macro UNICODE to USE_UNICODE and
  * some unicode support routine for win32 are implemented
@@ -343,10 +346,10 @@ typedef struct	BUFFER {
 #define	UCS2	5			/* KANJI code is Unicode(BE)	*/
 #define	UCS2LE	6			/* KANJI code is Unicode(LE)	*/
 #define	NIL	7			/* Not decided.			*/
-#define	T	8			/* Guess.			*/
+#define	_T_	8			/* Guess.			*/
 #else	/* !USE_UNICODE */
 #define	NIL	4			/* Not decided.			*/
-#define	T	5			/* Guess.			*/
+#define	_T_	5			/* Guess.			*/
 #endif	/* USE_UNICODE */
 #endif	/* KANJI */
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
@@ -380,6 +383,9 @@ typedef struct	{
 /*
  * Externals.
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern	int	thisflag;
 extern	int	lastflag;
 extern	int	curgoal;
@@ -611,4 +617,8 @@ extern VOIDptr realloc();
 #ifdef	CANNA
 VOID canna_init();
 VOID canna_end();
+#endif
+
+#ifdef __cplusplus
+}
 #endif

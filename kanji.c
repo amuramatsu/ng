@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.14 2001/08/29 00:04:54 amura Exp $ */
+/* $Id: kanji.c,v 1.15 2001/09/27 18:56:49 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.15  2001/09/27 18:56:49  amura
+ * Small changes for support EPOC32
+ *
  * Revision 1.14  2001/08/29 00:04:54  amura
  * change macro UNICODE to USE_UNICODE and
  * some unicode support routine for win32 are implemented
@@ -1414,7 +1417,7 @@ VOID
 ksetfincode(bp)
 register BUFFER	*bp;
 {
-	if ((local_kfin = global_kexpect) == T) {
+	if ((local_kfin = global_kexpect) == _T_) {
 		local_kfin = NIL;
 	} else if (local_kfin == NIL) {
 		if (bp != NULL) {

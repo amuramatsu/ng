@@ -1,4 +1,4 @@
-/* $Id: kinit.h,v 1.3 2001/01/20 15:49:36 amura Exp $ */
+/* $Id: kinit.h,v 1.4 2001/09/27 18:56:50 amura Exp $ */
 /*
  *	Initial KANJI code setting. (Like site-init.el in Nemacs)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: kinit.h,v $
+ * Revision 1.4  2001/09/27 18:56:50  amura
+ * Small changes for support EPOC32
+ *
  * Revision 1.3  2001/01/20 15:49:36  amura
  * move TOUFU charactor to kinit.h
  *
@@ -24,27 +27,27 @@
 /*	JIS	KANJI code is JIS.		*/
 /*	EUC	KANJI code is EUC.		*/
 /*	NIL	Not decided.			*/
-/*	T	Guess.				*/
+/*	_T_	Guess.				*/
 #ifdef	MSDOS	/* 90.02.11  by S.Yoshida */
 #define	KFIO		SJIS		/* default-kanji-fileio-code	*/
-#define	KEXPECT		T		/* kanji-expected-code		*/
+#define	KEXPECT		_T_		/* kanji-expected-code		*/
 #define	KINPUT		SJIS		/* kanji-input-code		*/
 #define	KDISPLAY	SJIS		/* kanji-display-code		*/
 #else	/* NOT MSDOS */
 #ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
 #define	KFIO		SJIS		/* default-kanji-fileio-code	*/
-#define	KEXPECT		T		/* kanji-expected-code		*/
+#define	KEXPECT		_T_		/* kanji-expected-code		*/
 #define	KINPUT		SJIS		/* kanji-input-code		*/
 #define	KDISPLAY	SJIS		/* kanji-display-code		*/
 #else	/* NOT HUMAN68K */
 #ifdef	WIN32
 #define	KFIO		SJIS	/* default-kanji-fileio-code	*/
-#define	KEXPECT		T		/* kanji-expected-code		*/
+#define	KEXPECT		_T_		/* kanji-expected-code		*/
 #define	KINPUT		SJIS	/* kanji-input-code		*/
 #define	KDISPLAY	SJIS	/* kanji-display-code		*/
 #else	/* WIN32 */
 #define	KFIO		NIL		/* default-kanji-fileio-code	*/
-#define	KEXPECT		T		/* kanji-expected-code		*/
+#define	KEXPECT		_T_		/* kanji-expected-code		*/
 #define	KINPUT		EUC		/* kanji-input-code		*/
 #define	KDISPLAY	EUC		/* kanji-display-code		*/
 #endif	/* WIN32 */

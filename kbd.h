@@ -1,12 +1,15 @@
-/* $Id: kbd.h,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: kbd.h,v 1.2 2001/09/27 18:58:52 amura Exp $ */
 /*
  * kbd.h: type definitions for symbol.c and kbd.c for mg experimental
  */
 
 /*
  * $Log: kbd.h,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2001/09/27 18:58:52  amura
+ * Small changes for support EPOC32
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 
@@ -60,12 +63,17 @@ typedef struct {
 extern	FUNCTNAMES	functnames[];
 extern	int	nfunct;
 
-extern	PF	doscan();
-extern	PF	name_function();
-extern	char	*function_name();
-extern	int	complete_function();
-extern	KEYMAP	*name_map();
-extern	char	*map_name();
-extern	MAPS	*name_mode();
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern	PF	doscan pro((KEYMAP *, int));
+extern	PF	name_function pro((char *));
+extern	char	*function_name pro((PF));
+extern	int	complete_function pro((char *, int));
+extern	KEYMAP	*name_map pro((char *));
+extern	char	*map_name pro((KEYMAP *));
+extern	MAPS	*name_mode pro((char *));
+#ifdef __cplusplus
+}
+#endif
 extern	MAP_ELEMENT *ele;

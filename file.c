@@ -1,10 +1,13 @@
-/* $Id: file.c,v 1.10 2001/08/29 00:04:53 amura Exp $ */
+/* $Id: file.c,v 1.11 2001/09/27 18:56:49 amura Exp $ */
 /*
  *		File commands.
  */
 
 /*
  * $Log: file.c,v $
+ * Revision 1.11  2001/09/27 18:56:49  amura
+ * Small changes for support EPOC32
+ *
  * Revision 1.10  2001/08/29 00:04:53  amura
  * change macro UNICODE to USE_UNICODE and
  * some unicode support routine for win32 are implemented
@@ -117,7 +120,7 @@ char *prompt;
 		if (n < 0) {
 			global_kexpect = NIL;
 		} else if (n == 4) {
-			global_kexpect = T;
+			global_kexpect = _T_;
 		} else if (n >= 0 && n <= 3) {
 			global_kexpect = n;
 		} else {
