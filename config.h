@@ -1,14 +1,9 @@
-/* $Id: config.h,v 1.6 2000/11/16 14:22:08 amura Exp $ */
+/* $Id: config.h,v 1.7 2000/11/19 18:35:24 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
 /* 90.12.20	Created by S.Yoshida */
 
-/*................................................*/
-#if defined(_WIN32)&&!defined(__CYGWIN__)&&!defined(WIN32)
-#define	WIN32		/* Do not edit this line. */
-#endif			/* Do not edit this line. */
-/*................................................*/
 /*----------------------------------------------------------------------*/
 /*	Features removeable to save space.				*/
 /*----------------------------------------------------------------------*/
@@ -112,6 +107,12 @@
 /*	SystemV / BSD machine dependent features.			*/
 /*----------------------------------------------------------------------*/
 /*................................................*/
+#ifdef HAVE_CONFIG_H	/* Do not edit this line. */
+#include "sysconfig.h"	/* Do not edit this line. */
+#endif			/* Do not edit this line. */
+#if defined(_WIN32)&&!defined(__CYGWIN__)&&!defined(WIN32)
+#define	WIN32		/* Do not edit this line. */
+#endif			/* Do not edit this line. */
 #ifndef	MSDOS		/* Do not edit this line. */
 #ifndef	HUMAN68K	/* Do not edit this line. */
 #ifndef	AMIGA		/* Do not edit this line. */
