@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.7 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: sysdef.h,v 1.8 2003/02/23 13:37:43 amura Exp $ */
 /*
  *	unix based systems (for configure)
  */
@@ -54,11 +54,6 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
  * if defined). BDC2 and BDC3 are mainly for VMS.
  */
 #define	BDC1	'/'			/* Buffer names.		*/
-
-#ifdef CANNA
-#define	SYSINIT canna_init()
-#define SYSCLEANUP canna_end()
-#endif
 
 #define MALLOCROUND(m)	(m+=7,m&=~7)	/* round up to 8 byte boundry	*/
 

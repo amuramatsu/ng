@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.15 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: ttyio.c,v 1.16 2003/02/23 13:37:43 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -117,6 +117,9 @@ ttopen()
 
 #ifdef	SIGWINCH	/* 90.02.13  by S.Yoshida */
     signal(SIGWINCH, ttwinch);
+#endif
+#ifdef	CANNA
+    canna_init();
 #endif
 }
 
@@ -242,6 +245,9 @@ ttraw()
 VOID
 ttclose()
 {
+#ifdef	CANNA
+    canna_end();
+#endif
     if (ttcooked() == FALSE)
 	panic("");		/* ttcooked() already printf'd */
 }
