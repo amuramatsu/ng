@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.2 2000/12/01 09:50:24 amura Exp $ */
+/* $Id: fileio.c,v 1.3 2000/12/14 18:17:38 amura Exp $ */
 /*
  *		sys V fileio.c
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.3  2000/12/14 18:17:38  amura
+ * filename length become flexible and small bugfix
+ *
  * Revision 1.2  2000/12/01 09:50:24  amura
  * fix problems open "/" and sybolic link directory
  *
@@ -155,18 +158,15 @@ register int	*nbytes;
 fbackupfile(fn) char *fn; {
 	register char	*nname;
 
-	if ((nname=malloc((unsigned)(strlen(fn)+1+1))) == NULL) {
+	if ((nname=alloca((unsigned)(strlen(fn)+1+1))) == NULL) {
 		ewprintf("Can't get %d bytes", strlen(fn) + 1);
 		return (ABORT);
 	}
 	(void) strcpy(nname, fn);
 	(void) strcat(nname, "~");
 	(void) unlink(nname);			/* Ignore errors.	*/
-	if (rename(fn, nname) < 0) {
-		free(nname);
+	if (rename(fn, nname) < 0)
 		return (FALSE);
-	}
-	free(nname);
 	return (TRUE);
 }
 
@@ -281,7 +281,7 @@ register char *fn;
 		}
 	    }
 	default:
-#ifndef	NODIR
+#ifndef	NO_DIR
 	    strcpy(fnb, wdir);
 	    cp = fnb + strlen(fnb);
 	    break;
@@ -462,7 +462,10 @@ char *dirname;
     }
     if(bclear(bp) != TRUE) return FALSE;
 #ifdef	EXTD_DIR
-    strncpy(bp->b_cwd, dirname, NFILEN);
+    if (bp->b_cwd)
+	free(bp->b_cwd);
+    if ((bp->b_cwd=malloc(strlen(dirname)+1)) != NULL)
+	strcpy(bp->b_cwd, dirname);
     ensurecwd();
 #endif
 #ifdef	BUGFIX	/* 91.02.04  by M.Oki */
@@ -486,7 +489,10 @@ char *dirname;
 	return NULL;
     }
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    (VOID) strncpy(bp->b_fname, dirname, NFILEN);
+    if (bp->b_fname)
+	free(bp->b_fname);
+    if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
+	(VOID) strcpy(bp->b_fname, dirname);
     if((bp->b_modes[0] = name_mode("dired")) == NULL) {
 	bp->b_modes[0] = &map_table[0];
 	ewprintf("Could not find mode dired");
@@ -528,7 +534,7 @@ register char **fn;
       while (l > 2 && lgetc(lp, l)==' ')
         l--;
       while (l > 2 && (c=lgetc(lp, l))!=' ') {
-        if (c!=':' && (c<'0'&&c>'9')) {
+        if (c!=':' && (c<'0'||c>'9')) {
           break;
         }
         l--;
