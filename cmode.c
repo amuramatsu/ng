@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.5 2001/11/23 11:56:34 amura Exp $ */
+/* $Id: cmode.c,v 1.6 2001/11/25 19:52:02 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: cmode.c,v $
+ * Revision 1.6  2001/11/25 19:52:02  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.5  2001/11/23 11:56:34  amura
  * Rewrite all sources
  *
@@ -304,7 +307,7 @@ calc_indent()
     LINE *tlp;
     int	tbo, cbo;
     int	s;
-    int	depth;
+    int	depth = 0;
     int	in_paren = FALSE;
     int	in_comment = FALSE;
     int	null_line = TRUE;

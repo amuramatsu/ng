@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.3 2001/11/23 11:56:42 amura Exp $ */
+/* $Id: shell.c,v 1.4 2001/11/25 19:52:04 amura Exp $ */
 /*
  *		Shell commands.
  * The file contains the command
@@ -8,6 +8,9 @@
 
 /*
  * $Log: shell.c,v $
+ * Revision 1.4  2001/11/25 19:52:04  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.3  2001/11/23 11:56:42  amura
  * Rewrite all sources
  *
@@ -33,8 +36,8 @@ int f, n;
     extern char *call_process _PRO((char *, char *));
     extern int isetmark _PRO((void)), gotobob _PRO((int, int));
     int s;
-    BUFFER *bp, *obp;
-    WINDOW *wp, *owp;
+    BUFFER *bp = NULL, *obp = NULL;
+    WINDOW *wp = NULL, *owp = NULL;
     WINDOW *popbuf _PRO((BUFFER *));
     
     s = ereply("Shell command: ", buf, sizeof buf);
@@ -56,7 +59,7 @@ int f, n;
     isetmark();
     ewprintf(result);
     s = insertfile(result, (char *)NULL);
-    if((f & FFARG) == 0) {
+    if ((f & FFARG) == 0) {
 	(VOID) gotobob(0, 1);
 	bp->b_dotp = wp->w_dotp;
 	bp->b_doto = wp->w_doto;

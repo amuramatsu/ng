@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.16 2001/11/23 11:56:51 amura Exp $ */
+/* $Id: fileio.c,v 1.17 2001/11/25 19:52:05 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.17  2001/11/25 19:52:05  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.16  2001/11/23 11:56:51  amura
  * Rewrite all sources
  *
@@ -561,7 +564,6 @@ copy(frname, toname)
 char *frname, *toname;
 {
     int pid;
-    char *eargv[3];
     int status; 	/* change for Digital UNIX */
 
     if ((pid = vfork()) == 0) {

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.17 2001/11/23 11:56:35 amura Exp $ */
+/* $Id: display.c,v 1.18 2001/11/25 19:52:02 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.18  2001/11/25 19:52:02  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.17  2001/11/23 11:56:35  amura
  * Rewrite all sources
  *
@@ -908,8 +911,10 @@ update()
     register int hflag;
     register int currow;
     register int curcol;
+#ifdef GOSLING
     register int offs;
     register int size;
+#endif
     int	x,y;
     int	lines;
     VOID traceback _PRO((void));

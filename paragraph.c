@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.9 2001/11/23 11:56:40 amura Exp $ */
+/* $Id: paragraph.c,v 1.10 2001/11/25 19:52:03 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: paragraph.c,v $
+ * Revision 1.10  2001/11/25 19:52:03  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.9  2001/11/23 11:56:40  amura
  * Rewrite all sources
  *
@@ -265,7 +268,8 @@ int f, n;
 #endif /* KANJI */
     while (!eopflag) {
 	/* get the next character in the paragraph */
-	if (eolflag=(curwp->w_doto == llength(curwp->w_dotp))) {
+	eolflag = (curwp->w_doto == llength(curwp->w_dotp));
+	if (eolflag) {
 	    c = ' ';
 	    if (lforw(curwp->w_dotp) == eopline)
 		eopflag = TRUE;
@@ -277,7 +281,8 @@ int f, n;
 	c2 = '\0';	/* 91.01.15  NULL -> '\0' */
 	ksepflag = FALSE;
 	if (ISKANJI(c)) {
-	    if (eolflag=((curwp->w_doto + 1) == llength(curwp->w_dotp))) {
+	    eolflag = ((curwp->w_doto + 1) == llength(curwp->w_dotp));
+	    if (eolflag) {
 		c = ' ';
 		if (lforw(curwp->w_dotp) == eopline)
 		    eopflag = TRUE;
@@ -565,7 +570,6 @@ int f, n;
     register int col, i, nce;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
     register int kanji2nd = FALSE;	/* Now we are on a KANJI 2nd byte. */
-    int kinserted = FALSE;		/* KANJI 2nd byte has inserted. */
     extern int inkfill;			/* Fill with KANJI 2nd byte.	*/
 					/* This flag is defined at kbd.c. */
 #endif	/* KANJI */

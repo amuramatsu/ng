@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.7 2001/11/23 11:56:37 amura Exp $ */
+/* $Id: jump.c,v 1.8 2001/11/25 19:52:03 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: jump.c,v $
+ * Revision 1.8  2001/11/25 19:52:03  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.7  2001/11/23 11:56:37  amura
  * Rewrite all sources
  *
@@ -169,7 +172,6 @@ int f, n;
 {
     int lineno;
     char buf[BUFLEN+1];
-    char *p=buf;
     int col;
     LINE *dlp;
     extern int gotoline _PRO((int, int));
@@ -181,7 +183,7 @@ int f, n;
 	col = 0;
 	while (col < llength(dlp) &&
 	       parse_error_message(dlp, col, buf, &lineno, &col ) ) {
-	    if (0 == access( buf, R_OK )){
+	    if (access( buf, R_OK ) == 0){
 		/* ewprintf( "file:`%s' line %d", buf, lineno ); */
 		/*
 		 * All the hairly works to give filename to filevisit()
@@ -274,8 +276,9 @@ int f, n;
     register WINDOW *wp, *owp;
     register int s;
     char  buf[NLINE],*result;
-    extern char *call_process _PRO(());
-    extern int gotobob _PRO((int, int));
+    char *call_process _PRO((char *, char *));
+    int gotobob _PRO((int, int));
+    VOID isetmark _PRO((void));
 
     if (compile_command[0] == '\0')
 	s = eread("compile: ", buf, NLINE, EFNEW);

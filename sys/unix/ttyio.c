@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.11 2001/11/23 11:56:51 amura Exp $ */
+/* $Id: ttyio.c,v 1.12 2001/11/25 19:52:05 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.12  2001/11/25 19:52:05  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.11  2001/11/23 11:56:51  amura
  * Rewrite all sources
  *
@@ -59,8 +62,11 @@
 #else
 #error "What tty do you use?"
 #endif
-#ifdef	HAVE_FCNTL_H
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_TERM_H
+#include <term.h>
 #endif
 
 #include <signal.h>		/* 90.02.13: For SIGWINCH.	*/
@@ -71,6 +77,12 @@
 char	obuf[NOBUF];			/* Output buffer.		*/
 int	nobuf;
 VOID setttysize _PRO((void));
+int ttraw _PRO((void));
+int ttcooked _PRO((void));
+int refresh _PRO((int, int));
+#ifdef CANNA
+VOID canna_width _PRO((void));
+#endif
 
 #if defined(HAVE_TERMIO_H)||defined(HAVE_TERMIOS_H)
 static int ttyactivep = FALSE;		/* terminal in editor mode?	*/

@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.4 2001/11/23 11:56:41 amura Exp $ */
+/* $Id: re_search.c,v 1.5 2001/11/25 19:52:04 amura Exp $ */
 /*
  *		regular expression search commands for
  *			   MicroGnuEmacs
@@ -71,6 +71,9 @@ what you give them.   Help stamp out software-hoarding!
 
 /*
  * $Log: re_search.c,v $
+ * Revision 1.5  2001/11/25 19:52:04  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.4  2001/11/23 11:56:41  amura
  * Rewrite all sources
  *
@@ -355,8 +358,7 @@ register RSIZE plen;		     /* length to remove	     */
 char *st;			     /* replacement string	     */
 int f;				     /* case hack disable	     */
 {
-    int s;
-    int num, k;
+    int k, num = 0;
     register int j;
     int more, state;
     LINE *clp;
@@ -449,8 +451,7 @@ re_forwsrch()
 {
     register LINE *clp;
     register int tbo;
-    int ntries;
-    int i, plen;
+    int ntries, i;
     
     clp = curwp->w_dotp;
     tbo = curwp->w_doto;
@@ -500,9 +501,7 @@ re_backsrch()
 {
     register LINE *clp;
     register int tbo;
-    int ntries;
-    int i, startpos;
-    char m[1];
+    int ntries, i;
     
     clp = curwp->w_dotp;
     tbo = curwp->w_doto;
@@ -717,7 +716,7 @@ int
 countmatches(cond)
 int cond;
 {
-    int s, i;
+    int i;
     int count = 0;
     LINE *clp;
     

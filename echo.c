@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.10 2001/11/23 11:56:36 amura Exp $ */
+/* $Id: echo.c,v 1.11 2001/11/25 19:52:03 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -14,6 +14,9 @@
 
 /*
  * $Log: echo.c,v $
+ * Revision 1.11  2001/11/25 19:52:03  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.10  2001/11/23 11:56:36  amura
  * Rewrite all sources
  *
@@ -1066,7 +1069,7 @@ char *s;
     return mb_point();
 }
 
-static _mb_cmpl_msg_len   = 0;
+static int _mb_cmpl_msg_len   = 0;
 
 static VOID
 mb_insertcmplmsg(s)
@@ -1998,7 +2001,6 @@ mb_henkan(c)
 int c;
 {
     int ilen;
-    int i;
     static char kakutei[CANBUF];
     static int oldlength, oldrevPos;
     int col, pt;

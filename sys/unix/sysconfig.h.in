@@ -152,6 +152,9 @@
 /* Define if you have the <sys/time.h> header file.  */
 #undef HAVE_SYS_TIME_H
 
+/* Define if you have the <term.h> header file.  */
+#undef HAVE_TERM_H
+
 /* Define if you have the <termio.h> header file.  */
 #undef HAVE_TERMIO_H
 

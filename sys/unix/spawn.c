@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.6 2001/11/23 11:56:51 amura Exp $ */
+/* $Id: spawn.c,v 1.7 2001/11/25 19:52:05 amura Exp $ */
 /*
  *	Spawn. (for configure)
  * This interracts with the job control stuff
@@ -10,6 +10,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.7  2001/11/25 19:52:05  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.6  2001/11/23 11:56:51  amura
  * Rewrite all sources
  *
@@ -87,6 +90,8 @@ int f, n;
     register RETSIGTYPE	(*owsig)();
 #endif	/* SIGWINCH */
     int status;
+    int ttcooked _PRO((void)), ttraw _PRO((void));
+    int refresh _PRO((int, int));
 
 #ifdef XKEYS  /* 92.03.16 by Gen KUROKI */
     ttykeymaptidy();
@@ -179,6 +184,9 @@ int f, n;
 }
 
 #ifndef NO_SHELL	/* 91.01.10  by K.Maeda */
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifndef S_IRUSR		/* for old system compat? */

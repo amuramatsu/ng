@@ -1,4 +1,4 @@
-/* $Id: skg.c,v 1.10 2001/11/23 11:56:42 amura Exp $ */
+/* $Id: skg.c,v 1.11 2001/11/25 19:52:04 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
@@ -7,6 +7,9 @@
 
 /*
  * $Log: skg.c,v $
+ * Revision 1.11  2001/11/25 19:52:04  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.10  2001/11/23 11:56:42  amura
  * Rewrite all sources
  *
@@ -190,7 +193,8 @@ make_dicindex(fp)
 FILE *fp;
 {
     int i;
-    int k1, k2, old_k1, old_k2;
+    int k1, k2 = '\0';
+    int old_k1, old_k2;
     long diff, pos;
 
     diff = get_size(fp) / DIC_INDEX_SIZE;

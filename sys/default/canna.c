@@ -1,4 +1,4 @@
-/* $Id: canna.c,v 1.3 2001/11/23 11:56:46 amura Exp $ */
+/* $Id: canna.c,v 1.4 2001/11/25 19:52:04 amura Exp $ */
 /*
  * Canna Kana-Kanji Henkan server support routine.
  *       original code written by ENDO Yasuhiro 
@@ -6,6 +6,9 @@
 
 /*
  * $Log: canna.c,v $
+ * Revision 1.4  2001/11/25 19:52:04  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.3  2001/11/23 11:56:46  amura
  * Rewrite all sources
  *
@@ -56,7 +59,8 @@ canna_toggle()
     return TRUE;
 }
 
-int henkan(c)
+int
+henkan(c)
 int c;
 {
     int ilen;
@@ -134,13 +138,13 @@ int c;
 	    
 	    for (i=0; i<ks.gline.revPos;i++)
 		*kb++ = *gl++;
-	    if ( ks.gline.revLen )
+	    if (ks.gline.revLen)
 		*kb++ = '[';
-	    for( i=0; i<ks.gline.revLen; i++)
+	    for (i=0; i<ks.gline.revLen; i++)
 		*kb++ = *gl++;
 	    if (ks.gline.revLen)
 		*kb++ = ']';
-	    while(*kb++ = *gl++)
+	    while ((*kb++ = *gl++) != NULL)
 		;
 	    ewprintf("%s", kouhobuf);
 	}

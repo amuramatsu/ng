@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.5 2001/11/23 11:56:37 amura Exp $ */
+/* $Id: extend.c,v 1.6 2001/11/25 19:52:03 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: extend.c,v $
+ * Revision 1.6  2001/11/25 19:52:03  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.5  2001/11/23 11:56:37  amura
  * Rewrite all sources
  *
@@ -466,6 +469,7 @@ int f, n;
  * This function modifies the current mode's keyboard map.
  */
 /*ARGSUSED*/
+int
 localbind(f, n)
 int f, n;
 {

@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.5 2001/11/23 11:56:42 amura Exp $ */
+/* $Id: search.c,v 1.6 2001/11/25 19:52:04 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -12,6 +12,9 @@
 
 /*
  * $Log: search.c,v $
+ * Revision 1.6  2001/11/25 19:52:04  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.5  2001/11/23 11:56:42  amura
  * Rewrite all sources
  *
@@ -623,8 +626,8 @@ static int
 is_fail(code)
 int code;
 {
-    return code == SRCH_ACCM || code <= SRCH_CHUNK_BASE &&
-	SRCH_CHUNK_FAIL(code);
+    return code == SRCH_ACCM ||
+	(code <= SRCH_CHUNK_BASE && SRCH_CHUNK_FAIL(code));
 }	
 #endif
 

@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.18 2001/11/23 11:56:34 amura Exp $ */
+/* $Id: buffer.c,v 1.19 2001/11/25 19:52:02 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.19  2001/11/25 19:52:02  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.18  2001/11/23 11:56:34  amura
  * Rewrite all sources
  *
@@ -338,17 +341,10 @@ int f, n;
 static BUFFER *
 makelist() {
     register char *cp1;
-    register char *cp2;
-    register int c;
     register BUFFER *bp;
-    LINE *lp;
     BUFFER *blp;
-    char b[6+1];
     char line[4+NBUFN+7+NFILEN+4];
-#ifdef HANKANA
-    int nhankana;
-#endif
-
+    
     if ((blp = bfind("*Buffer List*", TRUE)) == NULL)
 	return NULL;
     if (bclear(blp) != TRUE)

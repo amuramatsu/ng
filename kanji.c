@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.17 2001/11/23 11:56:38 amura Exp $ */
+/* $Id: kanji.c,v 1.18 2001/11/25 19:52:03 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.18  2001/11/25 19:52:03  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.17  2001/11/23 11:56:38  amura
  * Rewrite all sources
  *
@@ -512,7 +515,7 @@ int f, n;
     strcpy(line, "Buffer local variable:");
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tkanji-fileio-code : %s", symbol_s[curbp->b_kfio]);
+    sprintf(line, "\tkanji-fileio-code : %s", symbol_s[(int)curbp->b_kfio]);
     if (addline(bp, line) == FALSE)
 	return FALSE;
 
@@ -546,7 +549,7 @@ int f, n;
 	    symbol_c[global_kfio],
 	    symbol_c[global_kinput],
 	    symbol_c[global_kdisplay],
-	    symbol_c[curbp->b_kfio],
+	    symbol_c[(int)curbp->b_kfio],
 	    symbol_c[global_kexpect]);
     if (curbp->b_kfio == JIS ||
 	global_kfio == JIS || global_kdisplay == JIS) {
@@ -860,7 +863,7 @@ register BUFFER	*bp;
     register int n = 0;
     
     /* 90.12.28  Change display style like as Nemacs 3.3. by S.Yoshida */
-    vtputc(symbol_c[bp->b_kfio]);	n++;
+    vtputc(symbol_c[(int)bp->b_kfio]);	n++;
     vtputc(symbol_c[global_kinput]);	n++;
     vtputc(symbol_c[global_kdisplay]);	n++;
     vtputc(':');			n++;
@@ -1943,7 +1946,7 @@ bufjtoe_c(j, len)
 char *j;				/* JIS code text.	*/
 int len;
 {
-    register int c1, c2;
+    register int c1;
     register int leng;
     register char *endj = j + len;
     register int kselected = SELROMA;

@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.3 2001/11/23 11:56:47 amura Exp $ */
+/* $Id: tty.c,v 1.4 2001/11/25 19:52:04 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,6 +28,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.4  2001/11/25 19:52:04  amura
+ * change for compiler warnings reducing
+ *
  * Revision 1.3  2001/11/23 11:56:47  amura
  * Rewrite all sources
  *
@@ -54,11 +57,15 @@ int tceeol;			/* Costs are set later */
 int tcinsl;
 int tcdell;
 
+int tgetent _PRO((char *, char *));
+int tgetnum _PRO((char *));
 char *tgetstr _PRO((char *, char **));
 char *tgoto _PRO((char *, int, int));
 static int charcost _PRO((char *));
 #ifdef NO_RESIZE
 static VOID setttysize _PRO((void));
+#else
+VOID setttysize _PRO((void));
 #endif
 
 static int insdel;		/* Do we have both insert & delete line? */
