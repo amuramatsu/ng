@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.6 2000/07/20 12:45:17 amura Exp $ */
+/* $Id: buffer.c,v 1.7 2000/10/02 16:28:46 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.7  2000/10/02 16:28:46  amura
+ * kill without confirmation a buffer to bind nofile
+ *
  * Revision 1.6  2000/07/20 12:45:17  amura
  * support undo with auto-fill mode
  *
@@ -143,6 +146,12 @@ killbuffer(f, n)
 			if ((bp1 = bfind("*scratch*",TRUE)) == NULL)
 				return FALSE;
 		}
+	}
+	if (bp->b_fname[0] == '\0') {
+	  /* Do not ask for saving
+	     if the buffer is not associated with a file.
+	     by Tillanosoft */
+	  bp->b_flag  &= ~BFCHG;
 	}
 	if (bclear(bp) != TRUE) return FALSE;
 	for (wp = wheadp; bp->b_nwnd > 0; wp = wp->w_wndp) {
