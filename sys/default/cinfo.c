@@ -1,4 +1,4 @@
-/* $Id: cinfo.c,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: cinfo.c,v 1.2 2001/09/27 18:47:28 amura Exp $ */
 /*
  *		Character class tables.
  * Do it yourself character classification
@@ -9,8 +9,12 @@
 
 /*
  * $Log: cinfo.c,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.2  2001/09/27 18:47:28  amura
+ * Rename all _[A-Z] constant (in chrdef.h) to _NGC_[A-Z],
+ * because _L was used by EPOC32 library.
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 /* 90.01.29	Modified for Ng 1.0  by S.Yoshida */
@@ -26,108 +30,114 @@
  * standard "ctype" macros cannot ask.
  */
 char	cinfo[256] = {
-	_C,		_C,		_C,		_C,	/* 0x0X */
-	_C,		_C,		_C,		_C,
-	_C,		_C,		_C,		_C,
-	_C,		_C,		_C,		_C,
-	_C,		_C,		_C,		_C,	/* 0x1X */
-	_C,		_C,		_C,		_C,
-	_C,		_C,		_C,		_C,
-	_C,		_C,		_C,		_C,
-	0,		_P,		0,		0,	/* 0x2X */
-	_W,		_W,		0,		_W,
-	0,		0,		0,		0,
-	0,		0,		_P,		0,
-	_D|_W,		_D|_W,		_D|_W,		_D|_W,	/* 0x3X */
-	_D|_W,		_D|_W,		_D|_W,		_D|_W,
-	_D|_W,		_D|_W,		0,		0,
-	0,		0,		0,		_P,
-	0,		_U|_W,		_U|_W,		_U|_W,	/* 0x4X */
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,	/* 0x5X */
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,
-	_U|_W,		_U|_W,		_U|_W,		0,
-	0,		0,		0,		0,
-	0,		_L|_W,		_L|_W,		_L|_W,	/* 0x6X */
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,	/* 0x7X */
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,
-	_L|_W,		_L|_W,		_L|_W,		0,
-	0,		0,		0,		_C,
+_NGC_C,		_NGC_C,		_NGC_C,		_NGC_C,		/* 0x0X */
+_NGC_C,		_NGC_C,		_NGC_C,		_NGC_C,
+_NGC_C,		_NGC_C,		_NGC_C,		_NGC_C,
+_NGC_C,		_NGC_C,		_NGC_C,		_NGC_C,
+_NGC_C,		_NGC_C,		_NGC_C,		_NGC_C,		/* 0x1X */
+_NGC_C,		_NGC_C,		_NGC_C,		_NGC_C,
+_NGC_C,		_NGC_C,		_NGC_C,		_NGC_C,
+_NGC_C,		_NGC_C,		_NGC_C,		_NGC_C,
+0,		_NGC_P,		0,		0,		/* 0x2X */
+_NGC_W,		_NGC_W,		0,		_NGC_W,
+0,		0,		0,		0,
+0,		0,		_NGC_P,		0,
+_NGC_D|_NGC_W,	_NGC_D|_NGC_W,	_NGC_D|_NGC_W,	_NGC_D|_NGC_W,	/* 0x3X */
+_NGC_D|_NGC_W,	_NGC_D|_NGC_W,	_NGC_D|_NGC_W,	_NGC_D|_NGC_W,
+_NGC_D|_NGC_W,	_NGC_D|_NGC_W,	0,		0,
+0,		0,		0,		_NGC_P,
+0,		_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	/* 0x4X */
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	/* 0x5X */
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	0,
+0,		0,		0,		0,
+0,		_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	/* 0x6X */
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	/* 0x7X */
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	0,
+0,		0,		0,		_NGC_C,
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	0,		0,		0,		0,	/* 0x8X */
-	0,		0,		0,		0,
-	0,		0,		0,		0,
+0,		0,		0,		0,		/* 0x8X */
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		0,
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
-	0,		0,		_K,		0,
-#else  /* not HANKANA */
-	0,		0,		0,		0,
-#endif  /* HANKANA */
-	0,		0,		0,		0,	/* 0x9X */
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	0,		_K,		_K,		_K,	/* 0xAX */
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,	/* 0xBX */
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,	/* 0xCX */
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,	/* 0xDX */
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,	/* 0xEX */
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,	/* 0xFX */
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		_K,
-	_K,		_K,		_K,		0
+				_NGC_K,
+#else
+				0,
+#endif
+#ifdef  HOJO_KANJI
+						_NGC_K,
+#else
+						0,
+#endif
+0,		0,		0,		0,		/* 0x9X */
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xAX */
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xBX */
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xCX */
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xDX */
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xEX */
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xFX */
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
+_NGC_K,		_NGC_K,		_NGC_K,		0
 #else	/* NOT KANJI (ORIGINAL) */
-	0,		0,		0,		0,	/* 0x8X */
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	0,		0,		0,		0,	/* 0x9X */
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	0,		0,		0,		0,	/* 0xAX */
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	0,		0,		0,		0,	/* 0xBX */
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	0,		0,		0,		0,
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,	/* 0xCX */
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,
-	0,		_U|_W,		_U|_W,		_U|_W,	/* 0xDX */
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,
-	_U|_W,		_U|_W,		_U|_W,		_U|_W,
-	_U|_W,		_U|_W,		0,		_W,
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,	/* 0xEX */
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,
-	0,		_L|_W,		_L|_W,		_L|_W,	/* 0xFX */
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,
-	_L|_W,		_L|_W,		_L|_W,		_L|_W,
-	_L|_W,		_L|_W,		0,		0
+0,		0,		0,		0,		/* 0x8X */
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		0,		0,		0,		/* 0x9X */
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		0,		0,		0,		/* 0xAX */
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		0,		0,		0,		/* 0xBX */
+0,		0,		0,		0,
+0,		0,		0,		0,
+0,		0,		0,		0,
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	/* 0xCX */
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,
+0,		_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	/* 0xDX */
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	_NGC_U|_NGC_W,
+_NGC_U|_NGC_W,	_NGC_U|_NGC_W,	0,		_NGC_W,
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	/* 0xEX */
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
+0,		_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	/* 0xFX */
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
+_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	0,		0
 #endif	/* KANJI */
 };
 

@@ -1,4 +1,4 @@
-/* $Id: chrdef.h,v 1.2 2001/01/05 14:07:07 amura Exp $ */
+/* $Id: chrdef.h,v 1.3 2001/09/27 18:47:28 amura Exp $ */
 /*
  * sys/default/chardef.h: character set specific #defines for mg 2a
  * Warning: System specific ones exist
@@ -6,6 +6,10 @@
 
 /*
  * $Log: chrdef.h,v $
+ * Revision 1.3  2001/09/27 18:47:28  amura
+ * Rename all _[A-Z] constant (in chrdef.h) to _NGC_[A-Z],
+ * because _L was used by EPOC32 library.
+ *
  * Revision 1.2  2001/01/05 14:07:07  amura
  * first implementation of Hojo Kanji support
  *
@@ -30,24 +34,24 @@
  * understand the DEC multinational set, and let me ask
  * a slightly different set of questions.
  */
-#define _W	0x01			/* Word.			*/
-#define _U	0x02			/* Upper case letter.		*/
-#define _L	0x04			/* Lower case letter.		*/
-#define _C	0x08			/* Control.			*/
-#define _P	0x10			/* end of sentence punctuation	*/
-#define	_D	0x20			/* is decimal digit		*/
+#define _NGC_W	0x01			/* Word.			*/
+#define _NGC_U	0x02			/* Upper case letter.		*/
+#define _NGC_L	0x04			/* Lower case letter.		*/
+#define _NGC_C	0x08			/* Control.			*/
+#define _NGC_P	0x10			/* end of sentence punctuation	*/
+#define	_NGC_D	0x20			/* is decimal digit		*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#define	_K	0x40			/* Kanji 1st/2nd byte. (EUC)	*/
+#define	_NGC_K	0x40			/* Kanji 1st/2nd byte. (EUC)	*/
 #endif	/* KANJI */
 
-#define ISWORD(c)	((cinfo[CHARMASK(c)]&_W)!=0)
-#define ISCTRL(c)	((cinfo[CHARMASK(c)]&_C)!=0)
-#define ISUPPER(c)	((cinfo[CHARMASK(c)]&_U)!=0)
-#define ISLOWER(c)	((cinfo[CHARMASK(c)]&_L)!=0)
-#define ISEOSP(c)	((cinfo[CHARMASK(c)]&_P)!=0)
-#define	ISDIGIT(c)	((cinfo[CHARMASK(c)]&_D)!=0)
+#define ISWORD(c)	((cinfo[CHARMASK(c)]&_NGC_W)!=0)
+#define ISCTRL(c)	((cinfo[CHARMASK(c)]&_NGC_C)!=0)
+#define ISUPPER(c)	((cinfo[CHARMASK(c)]&_NGC_U)!=0)
+#define ISLOWER(c)	((cinfo[CHARMASK(c)]&_NGC_L)!=0)
+#define ISEOSP(c)	((cinfo[CHARMASK(c)]&_NGC_P)!=0)
+#define	ISDIGIT(c)	((cinfo[CHARMASK(c)]&_NGC_D)!=0)
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#define	ISKANJI(c)	((cinfo[CHARMASK(c)]&_K)!=0)
+#define	ISKANJI(c)	((cinfo[CHARMASK(c)]&_NGC_K)!=0)
 #endif	/* KANJI */
 #define TOUPPER(c)	((c)-0x20)
 #define TOLOWER(c)	((c)+0x20)

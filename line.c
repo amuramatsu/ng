@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.17 2001/07/23 17:12:02 amura Exp $ */
+/* $Id: line.c,v 1.18 2001/09/27 18:47:20 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,10 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.18  2001/09/27 18:47:20  amura
+ * Rename all _[A-Z] constant (in chrdef.h) to _NGC_[A-Z],
+ * because _L was used by EPOC32 library.
+ *
  * Revision 1.17  2001/07/23 17:12:02  amura
  * fix mark handling when make newline on the mark position
  *
@@ -720,14 +724,14 @@ int		f;			/* case hack disable		*/
 	 */
 	/*NOSTRICT*/
 	(VOID) backchar(FFARG | FFRAND, (int) plen);
-	rtype = _L;
+	rtype = _NGC_L;
 	c = lgetc(curwp->w_dotp, curwp->w_doto);
 	if (ISUPPER(c)!=FALSE  &&  f==FALSE) {
-		rtype = _U|_L;
+		rtype = _NGC_U|_NGC_L;
 		if (curwp->w_doto+1 < llength(curwp->w_dotp)) {
 			c = lgetc(curwp->w_dotp, curwp->w_doto+1);
 			if (ISUPPER(c) != FALSE) {
-				rtype = _U;
+				rtype = _NGC_U;
 			}
 		}
 	}
@@ -774,10 +778,10 @@ int		f;			/* case hack disable		*/
 	 * If inserting upper, check replacement for case.
 	 */
 	while ((c = CHARMASK(*st++)) != '\0') {
-		if ((rtype&_U)!=0  &&  ISLOWER(c)!=0)
+		if ((rtype&_NGC_U)!=0  &&  ISLOWER(c)!=0)
 			c = TOUPPER(c);
-		if (rtype == (_U|_L))
-			rtype = _L;
+		if (rtype == (_NGC_U|_NGC_L))
+			rtype = _NGC_L;
 		if (c == CCHR('J')) {
 			if (curwp->w_doto == llength(curwp->w_dotp))
 				(VOID) forwchar(FFRAND, 1);
