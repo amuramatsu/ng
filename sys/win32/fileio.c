@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.9 2001/01/05 13:55:28 amura Exp $ */
+/* $Id: fileio.c,v 1.10 2001/01/05 14:07:08 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.10  2001/01/05 14:07:08  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.9  2001/01/05 13:55:28  amura
  * filename completion fixed
  *
@@ -62,8 +65,7 @@ void	bufetos( char *p, int len ) ;
 int		bufstoe_c( char *p, int len ) ;
 int		bufstoe( char *p, int len ) ;
 #endif
-void	kputc( char c, int kfio ) ;
-extern	int Fputc(int);
+void	kputc( char c, FILE* fp, int kfio ) ;
 void	kfselectcode( int next_is_k ) ;
 #if 0
 char*	fftolower( char *name ) ;
@@ -488,9 +490,9 @@ ffputbuf( BUFFER *bp )
 		cpend = &cp[llength(lp)] ;	/* end of line		*/
 		while ( cp != cpend ) {
 #ifdef KANJI
-			kputc( *cp, kfio ) ;
+			kputc( *cp, NULL, kfio ) ;
 #else
-			Fputc(*cp);
+			putc(*cp, NULL);
 #endif
 			cp ++ ;		/* putc may evalualte arguments more than once */
 		}
@@ -503,7 +505,7 @@ ffputbuf( BUFFER *bp )
 		if ( lp == lpend ) {
 			break ;		/* no implied newline on last line */
 		}
-		Fputc( '\n' ) ;
+		putc( '\n', NULL) ;
 	} while( !Ferror() ) ;
 	if ( Ferror() ) {
 		ewprintf( "Write I/O error" ) ;

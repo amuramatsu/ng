@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.3 2000/12/14 18:10:48 amura Exp $ */
+/* $Id: sysdef.h,v 1.4 2001/01/05 14:07:09 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.4  2001/01/05 14:07:09  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.3  2000/12/14 18:10:48  amura
  * filename length become flexible
  *
@@ -73,4 +76,11 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
 char *getenv();
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
-#define alloca(n)		_alloca(n)
+#define alloca(n)	_alloca(n)
+
+#ifdef	putc
+#undef	putc
+#endif
+#define	putc(c,fp)	Fputc(c)
+extern	int Fputc(int c);
+

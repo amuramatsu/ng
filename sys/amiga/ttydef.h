@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: ttydef.h,v 1.2 2001/01/05 14:07:06 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Amiga console device virtual terminal header file
@@ -9,8 +9,11 @@
 
 /*
  * $Log: ttydef.h,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2001/01/05 14:07:06  amura
+ * first implementation of Hojo Kanji support
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
 
@@ -41,6 +44,10 @@
 
 #ifndef	INIT_COLS
 #define	INIT_COLS 80			/* Desired initial window width	  */
+#endif
+
+#ifdef	DO_METAKEY
+#define	METABIT	0x200
 #endif
 
 /*

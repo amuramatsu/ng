@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.4 2000/09/04 20:46:10 amura Exp $ */
+/* $Id: random.c,v 1.5 2001/01/05 14:07:04 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.5  2001/01/05 14:07:04  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.4  2000/09/04 20:46:10  amura
  * fix yank() bug appeared from rev 1.3
  *
@@ -86,9 +89,9 @@ showcpos(f, n)
 
 getcolpos() {
 	register int	col, i, c;
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	int kan2nd;
-#endif  /* HANKANA */
+#ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
+	int kan2nd = 0;
+#endif  /* SS_SUPPORT */
 #ifdef  VARIABLE_TAB
 	int	tab = curbp->b_tabwidth;
 #endif  /* VARIABLE_TAB */
@@ -97,9 +100,6 @@ getcolpos() {
 #else	/* NOT BUGFIX */
 	col = 1;				/* Determine column.	*/
 #endif	/* BUGFIX */
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	kan2nd = 0;
-#endif  /* HANKANA */
 
 	for (i=0; i<curwp->w_doto; ++i) {
 		c = lgetc(curwp->w_dotp, i);
@@ -119,13 +119,24 @@ getcolpos() {
 		} else if (ISCTRL(c) != FALSE)
 			++col;
 		++col;
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-		if (ISKANJI(c)) 
-		    if (kan2nd==0) kan2nd=1;
-			else kan2nd=1;
-		if ( (c & 0xff) == SS2 && kan2nd == 1 )
-		    col--;
-#endif  /* HANKANA */
+#ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
+		if (ISKANJI(c)) {
+#ifdef	HOJO_KANJI
+		    if (ISHOJO(c) && kan2nd==0) {
+			kan2nd = 3;
+			col--;
+		    }
+#endif
+#ifdef	HANKANA
+		    if (ISHANKANA(c) && kan2nd==0)
+			col--;
+#endif
+		    if (kan2nd == 0)
+			kan2nd = 1;
+		    else
+			kan2nd--;
+		}
+#endif  /* SS_SUPPORT */
 	}
 #ifdef	BUGFIX  /* 90.04.10  by m.tei (Nikkei MIX) */
 	col++;
@@ -779,6 +790,17 @@ zaptochar(f,n)
 #else
 	if( !ISKANJI(c) )
 		pat[1] = '\0';
+#ifdef	HOJO_KANJI
+	else if( ISHOJO(c) ) {
+		c = getkey(FALSE);
+		if( !ISKANJI(c) )	return FALSE;
+		pat[1] = c;
+		c = getkey(FALSE);
+		if( !ISKANJI(c) )	return FALSE;
+		pat[2] = c;
+		pat[3] = '\0';
+	}
+#endif
 	else {
 		c = getkey(FALSE);
 		if( !ISKANJI(c) )

@@ -1,4 +1,4 @@
-/* $Id: chrdef.h,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: chrdef.h,v 1.2 2001/01/05 14:07:07 amura Exp $ */
 /*
  * sys/default/chardef.h: character set specific #defines for mg 2a
  * Warning: System specific ones exist
@@ -6,8 +6,11 @@
 
 /*
  * $Log: chrdef.h,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.2  2001/01/05 14:07:07  amura
+ * first implementation of Hojo Kanji support
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
@@ -48,6 +51,15 @@
 #endif	/* KANJI */
 #define TOUPPER(c)	((c)-0x20)
 #define TOLOWER(c)	((c)+0x20)
+
+#define SS2 0x8e
+#define SS3 0x8f
+#ifdef	HANKANA
+#define	ISHANKANA(c)	(CHARMASK(c) == SS2)
+#endif
+#ifdef	HOJO_KANJI
+#define	ISHOJO(c)	(CHARMASK(c) == SS3)
+#endif
 
 /*
  * generally useful thing for chars

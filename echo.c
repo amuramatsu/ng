@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.7 2000/11/19 18:15:11 amura Exp $ */
+/* $Id: echo.c,v 1.8 2001/01/05 14:07:01 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -14,6 +14,9 @@
 
 /*
  * $Log: echo.c,v $
+ * Revision 1.8  2001/01/05 14:07:01  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.7  2000/11/19 18:15:11  amura
  * rename sput?() functions because HP-UX have sputl() function
  * in its library
@@ -802,10 +805,14 @@ mb_get_buffer(buf, nbuf)
   for (i = _mb_prompt; i < _mb_point;){
     if (j >= nbuf-1){
 #ifdef	KANJI
-      if (ISKANJI(_mb_buf[i]))
-	buf[j-1] = '\0';
-      else
+      if (ISKANJI(_mb_buf[i])) {
+#ifdef	HOJO_KANJI
+	if (i>=1 && ISHOJO(_mb_buf[i-1])) buf[j-2] = '\0';
+	else
 #endif
+	buf[j-1] = '\0';
+      } else
+#endif	/* KANJI */
 	buf[j] = '\0';
       return 0;
     }
@@ -814,9 +821,13 @@ mb_get_buffer(buf, nbuf)
   for (i = _mb_gapend; i < _mb_size;){
     if (j >= nbuf-1){
 #ifdef	KANJI
-      if (ISKANJI(_mb_buf[i]))
+	if (ISKANJI(_mb_buf[i])) {
+#ifdef	HOJO_KANJI
+	if (i>=1 && ISHOJO(_mb_buf[i-1])) buf[j-2] = '\0';
+	else
+#endif
 	buf[j-1] = '\0';
-      else
+    } else
 #endif
 	buf[j] = '\0';
       return 0;
@@ -905,6 +916,9 @@ mb_insert(n, c)
   int  col, pt, ocol, opt;
 #ifdef	KANJI
   static int  k1 = 0, nnn;
+#ifdef	HOJO_KANJI
+  static int  k2 = 0;
+#endif
 #endif
   struct _Line *lp;
 
@@ -932,17 +946,37 @@ mb_insert(n, c)
       mb_fixlines(ocol, lp, opt, &col, &pt);
       mb_refresh(col, pt);
     }
+#ifdef	HOJO_KANJI
+  } else if (ISHOJO(k1) && k2 == 0) {
+    if (ISKANJI(c)) {
+      k2 = c;
+      nnn = n;
+    } else {
+      ocol = _mb_ccol;
+      opt  = _mb_point;
+      lp   = CLine;
+      mb2_insert(n, c);
+      mb_fixlines(ocol, lp, opt, &col, &pt);
+      mb_refresh(col, pt);
+    }
+#endif	/* HOJO_KANJI */
   } else {
     ocol = _mb_ccol;
     opt  = _mb_point;
     lp   = CLine;
     while (nnn-- > 0){
       mb2_insert(1, k1);
+#ifdef	HOJO_KANJI
+      if (k2 != 0) mb2_insert(1, k2);
+#endif
       mb2_insert(1, c);
     }
     mb_fixlines(ocol, lp, opt, &col, &pt);
     mb_refresh(col, pt);
     k1 = 0;
+#ifdef	HOJO_KANJI
+    k2 = 0;
+#endif
   }
 #endif /* NOT KANJI */
   return 0;
@@ -2064,7 +2098,7 @@ s_put_c(p, idx, n, c)
 	if (c1==0) c1=1;
 	else c1=0;
       } else c1=0;
-      if (((c & 0xff) == SS2) && (c1 == 1))
+      if (ISHANKANA(c) && (c1 == 1))
 	idx--;
     }
 #endif  /* HANKANA */
@@ -2086,16 +2120,19 @@ chsize(s, visu, mem)
     *mem  = 1;
 #ifdef	KANJI
   } else if (ISKANJI(*s)){
-#ifdef HANKANA
     *mem  = 2;
-    if ((*s & 0xff) == SS2)
+#ifdef	HOJO_KANJI
+    if (ISHOJO(*s)) {
+      *mem = 3;
+      *visu = 2;
+    } else
+#endif	/* HOJO_KANJI */
+#ifdef	HANKANA
+    if (ISHANKANA(*s))
       *visu = 1;
     else 
-      *visu = 2;
-#else   /* HANKANA */
-    *visu = 2;
-    *mem  = 2;
 #endif  /* HANKANA */
+    *visu = 2;
 #endif	/* KANJI */
   } else {
     *visu = 1;
@@ -2113,16 +2150,19 @@ chsize2(s, visu, mem)
     *mem  = 1;
 #ifdef	KANJI
   } else if (ISKANJI(*s)){
-#ifdef HANKANA
     *mem  = 2;
-    if ((*(s-1) & 0xff) == SS2)
+#ifdef	HOJO_KANJI
+    if (ISHOJO(*(s-2)) && ISKANJI(*(s-1))) {
+      *mem = 3;
+      *visu = 2;
+    } else
+#endif	/* HOJO_KANJI */
+#ifdef	HANKANA
+    if (ISHANKANA(*(s-1)))
       *visu = 1;
     else 
-      *visu = 2;
-#else   /* HANKANA */
-    *visu = 2;
-    *mem  = 2;
 #endif  /* HANKANA */
+    *visu = 2;
 #endif	/* KANJI */
   } else {
     *visu = 1;
@@ -2330,7 +2370,7 @@ veread_del_char (buf, cpos)
     else if (ISKANJI(buf[cpos]))
       {
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	if ( (buf[--cpos] & 0xff) != SS2 ) {
+	if (!ISHANKANA(buf[--cpos])) {
 	    ttputc('\b');
 	    ttputc(' ');
 	    ttputc('\b');
@@ -2523,7 +2563,7 @@ static veread(fp, buf, nbuf, flag, ap) char *fp; char *buf; va_list *ap; {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 				else if (ISKANJI(buf[cpos])) {
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki  */
-					if ( (buf[--cpos] & 0xff) != SS2 ) {
+					if (!ISHANKANA(buf[--cpos])) {
 					ttputc('\b');
 					ttputc(' ');
 					ttputc('\b');
@@ -2559,7 +2599,7 @@ static veread(fp, buf, nbuf, flag, ap) char *fp; char *buf; va_list *ap; {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 				else if (ISKANJI(buf[cpos])) {
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki  */
-					if ( (buf[--cpos] & 0xff) != SS2 ) {
+					if (!ISHANKANA(buf[--cpos])) {
 					    ttputc('\b');
 					    ttputc(' ');
 					    ttputc('\b');
@@ -2616,7 +2656,7 @@ static veread(fp, buf, nbuf, flag, ap) char *fp; char *buf; va_list *ap; {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 				else if (ISKANJI(buf[cpos])) {
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki  */
-					if ( (buf[--cpos] & 0xff) == SS2 ) {
+					if (ISHANKANA(buf[--cpos])) {
 					    ttputc('\b');
 					    ttputc(' ');
 					    ttputc('\b');
@@ -2994,18 +3034,26 @@ register char c;
 			c = CCHR(c);
 		}
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
+#ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
 		{
 		    static int c1=0;
 
 		    if (ISKANJI(c)) {
+#ifdef	HOJO_KANJI
+			if (ISHOJO(c)) {
+			    c1 = 2;
+			    ttcol--;
+			} else
+#endif
 			if (c1==0) c1=1;
-			else c1=0;
+			else c1--;
 		    } else c1=0;
-		    if ( (c & 0xff) == SS2 && c1 == 1)
+#ifdef	HANKANA
+		    if (ISHANKANA(c) && c1 == 1)
 		        ttcol--;
+#endif
 		}
-#endif  /* HANKANA */
+#endif  /* SS_SUPPORT */
 		kttputc(c);
 #else	/* NOT KANJI */
 		ttputc(c);

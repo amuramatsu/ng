@@ -1,10 +1,13 @@
-/* $Id: ttyio.c,v 1.2 2000/07/20 12:41:56 amura Exp $ */
+/* $Id: ttyio.c,v 1.3 2001/01/05 14:07:07 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.3  2001/01/05 14:07:07  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.2  2000/07/20 12:41:56  amura
  * enable to use XF1/2 key as META
  *
@@ -254,24 +257,6 @@ ttgetc() {
 	register int shifts;
 #ifdef DO_METAKEY
 	extern int use_metakey;		/* set in the generic kbd.c */
-/*
- * Following #ifdefs for METABIT was copied from kbd.c
- *
- * Yick!  Why METABIT isn't in chrdef.h or ttydef.h?
- * If you want kbd.c stay generic, kbd.h is the place to
- * #define METABIT, not in kbd.c!
- * In the case ttyio.c just want to #include kbd.h.
- *
- *	91.01.15  by K.Maeda
- */
-# ifndef METABIT
-#  ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#   define METABIT 0x100
-#  else	/* NOT KANJI */
-#   define METABIT 0x80
-#  endif	/* KANJI */
-# endif	/* METABIT */
-#endif /* DO_MATAKEY */
 
 #ifndef CTRL
 #  define SHIFT		(0x01)

@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.10 2000/11/21 19:49:01 amura Exp $ */
+/* $Id: line.c,v 1.11 2001/01/05 14:07:04 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.11  2001/01/05 14:07:04  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.10  2000/11/21 19:49:01  amura
  * fix bug in ldelete when delete 1 charactor
  *
@@ -532,18 +535,22 @@ ldelete(n, kflag) RSIZE n; {
 		cp1 = &dotp->l_text[doto];	/* Scrunch text.	*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 		cp2 = cp1;
-		kanji2nd = FALSE;
+		kanji2nd = 0;
 		for (i = 0; i < chunk; i++, cp2++) {
 			if (kanji2nd) {
-				kanji2nd = FALSE;
+				kanji2nd--;
+#ifdef	HOJO_KANJI
+			} else if (ISHOJO(*cp2)) {
+				kanji2nd = 2;
+#endif
 			} else if (ISKANJI(*cp2)) {
-				kanji2nd = TRUE;
+				kanji2nd = 1;
 			}
 		}
 		if (kanji2nd) {
-			cp2++;
-			chunk++;
-			n++;
+			cp2	+= kanji2nd;
+			chunk	+= kanji2nd;
+			n	+= kanji2nd;
 		}
 #else	/* NOT KANJI */
 		cp2 = cp1 + chunk;

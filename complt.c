@@ -1,10 +1,13 @@
-/* $Id: complt.c,v 1.5 2000/11/04 13:43:30 amura Exp $ */
+/* $Id: complt.c,v 1.6 2001/01/05 14:07:00 amura Exp $ */
 /*
  *	Complete completion functions.
  */
 
 /*
  * $Log: complt.c,v $
+ * Revision 1.6  2001/01/05 14:07:00  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.5  2000/11/04 13:43:30  amura
  * estrlen definition is changed to K&R style
  *
@@ -41,7 +44,7 @@ static int complete_filename pro((char *));
 static int complete_list_funcnames pro((char *, BUFFER *));
 static int complete_list_buffernames pro((char *, BUFFER *));
 static int complete_list_filenames pro((char *, BUFFER *));
-#ifdef	HANKANA
+#ifdef	SS_SUPPORT
 static int estrlen pro((char *));
 #endif
 
@@ -433,7 +436,7 @@ complete_list_buffernames (name, bp)
 
 	if (line[0] == '\0')
 	  {
-#ifdef	HANKANA
+#ifdef	SS_SUPPORT
 	    if (estrlen (cand) < LIST_COL)
 #else
 	    if (strlen (cand) < LIST_COL)
@@ -444,7 +447,7 @@ complete_list_buffernames (name, bp)
 	  }
 	else
 	  {
-#ifdef	HANKANA
+#ifdef	SS_SUPPORT
 	    if (estrlen (cand) < LIST_COL)
 	      {
 		int k = estrlen(line);
@@ -498,7 +501,7 @@ complete_list_filenames (name, bp)
 	cand += dnlen;
 	if (line[0] == '\0')
 	  {
-#ifdef	HANKANA
+#ifdef	SS_SUPPORT
 	    if (estrlen (cand) < LIST_COL)
 #else
 	    if (strlen (cand) < LIST_COL)
@@ -509,7 +512,7 @@ complete_list_filenames (name, bp)
 	  }
 	else
 	  {
-#ifdef	HANKANA
+#ifdef	SS_SUPPORT
 	    if (estrlen (cand) < LIST_COL)
 	      {
 		int k = estrlen(line);
@@ -610,7 +613,7 @@ complete_scroll_down ()
     return (TRUE);
 }
 
-#ifdef	HANKANA
+#ifdef	SS_SUPPORT
 static int
 estrlen(str)
 char *str;
@@ -618,11 +621,20 @@ char *str;
     int i = 0;
     while (*str)
     {
-	if ((unsigned char)*str != SS2)
+#ifdef	HANKANA
+	if (ISHANKANA(*str))
+	    ;
+	else
+#endif
+#ifdef	HOJO_KANJI
+	if (ISHOJO(*str))
+	    ;
+	else
+#endif
 	    i++;
 	str++;
     }
     return i;
 }
-#endif	/* HANKANA */
+#endif	/* SS_SUPPORT */
 #endif	/* NEW_COMPLETE */

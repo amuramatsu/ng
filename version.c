@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.8 2000/11/16 14:27:00 amura Exp $ */
+/* $Id: version.c,v 1.9 2001/01/05 14:07:05 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: version.c,v $
+ * Revision 1.9  2001/01/05 14:07:05  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.8  2000/11/16 14:27:00  amura
  * edit to 1.4.2 release
  *
@@ -41,47 +44,47 @@
 #define TRUE	1	/* include "def.h" when things get more complicated */
 #endif	/* ADDFUNC */
 
-#ifdef KANJI			/* 90.01.29  by S.Yoshida */
-# ifdef	MSDOS			/* 90.02.11  by S.Yoshida */
+#define	VERSION		"1.5alpha0"
+
+#ifdef	KANJI
+# define PROGNAME	"Ng"
+# define FORMERLY	"[Nihongo Mg]"
+#else
+# define PROGNAME	"Mg++"
+# define FORMERLY	"(formerly MicroGnuEmacs Adv.)"
+#endif
+
+#if defined(MSDOS)
+# if defined(IBMPC)
 #  ifdef TCCONIO
-#   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4.2 for IBM PC/TCCONIO [Nihongo Mg 2a] ";
-#   else /* NOT IBMPC */
-#    ifdef PC9801		/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4.2 for PC-9801/TCCONIO [Nihongo Mg 2a] ";
-#    else /* NOT PC9801 */
-char version[] = "Ng 1.4.2 for MS-DOS/TCCONIO [Nihongo Mg 2a] ";
-#    endif /* PC9801 */
-#   endif /* IBMPC */
-#  else /* NOT TCCONIO */
-#   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4.2 for IBM PC [Nihongo Mg 2a] ";
-#   else /* NOT IBMPC */
-#    ifdef PC9801		/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4.2 for PC-9801 [Nihongo Mg 2a] ";
-#    else /* NOT PC9801 */
-char version[] = "Ng 1.4.2 for MS-DOS [Nihongo Mg 2a] ";
-#    endif /* PC9801 */
-#   endif /* IBMPC */
-#  endif /* TCCONIO */
-# else /* NOT MSDOS */
-#  ifdef AMIGA			/* by H.Ohkubo / H.Konishi */
-char version[] = "Ng 1.4.2 / KANgee ver 4.3 [Nihongo Mg 2a] ";
-#  else /* NOT AMIGA */
-#   ifdef WIN32
-char version[] = "Ng 1.4.2 / Win32 v0.5.24 [Nihongo Mg 2a] ";
-#   else
-char version[] = "Ng 1.4.2 [Nihongo Mg 2a] ";
-#   endif /* WIN32 */
-#  endif /* AMIGA */
-# endif /* MSDOS */
-#else /* NOT KANJI */
-# ifdef WIN32
-char version[] = "Mg for Win32 v0.5.24 [Mg 2a (formerly MicroGnuEmacs)]";
+#   define TARGET	"for IBM PC/TCCONIO"
+#  else
+#   define TARGET	"for IBM PC"
+#  endif
+# elif defined(PC9801)
+#  ifdef TCCONIO
+#   define TARGET	"for PC-9801/TCCONIO"
+#  else
+#   define TARGET	"for PC-9801"
+#  endif
 # else
-char version[] = "Mg 2a (formerly MicroGnuEmacs) ";
-# endif /* WIN32 */
-#endif /* KANJI */
+#  define TARGET	"for MS-DOS"
+# endif
+#elif defined(AMIGA)
+# ifdef	V2
+#  define TARGET	"for AmigaDOS 2+"
+# else
+#  define TARGET	"for AmigaDOS 1+"
+# endif
+#elif defined(WIN)
+# define TARGET		"for Win32 Ver.0.5.24"
+#endif
+
+#ifdef	TARGET
+char version[] = PROGNAME " " VERSION " " TARGET " " FORMERLY ;
+#else
+char version[] = PROGNAME " " VERSION " " FORMERLY ;
+#endif
 
 /*
  * Display the version. All this does
@@ -199,6 +202,9 @@ static	char *undo_msg = "\tUNDO\t\t(Enable undo)";
 #ifdef	DROPFILES
 static	char *dropfiles_msg = "\tDROPFILES\t(Enable Drag&Drop)";
 #endif
+#ifdef	HOJO_KANJI
+static	char *hojokan_msg = "\tHOJO_KANJI\t(Enable Hojo KANJI handling)";
+#endif
 
 /* Dec.20,1992 Add by H.Ohkubo */
 #ifdef	AMIGA
@@ -252,7 +258,7 @@ int f, n;
 	register WINDOW	*wp;
 	char	 line[80];
 
-	if ((bp = bfind("*Ng Version*", TRUE)) == NULL) return FALSE;
+	if ((bp = bfind("*" PROGNAME " Version*", TRUE)) == NULL) return FALSE;
 	if (bclear(bp) != TRUE) return FALSE;
 	bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
 #ifdef READONLY
@@ -260,7 +266,7 @@ int f, n;
 #endif
 	if (bclear(bp) != TRUE) return FALSE;
 
-	strcpy(line, "Ng version:");
+	strcpy(line, PROGNAME " version:");
 	if (addline(bp, line) == FALSE) return FALSE;
 	sprintf(line, "\t%s", version);
 	if (addline(bp, line) == FALSE) return FALSE;
@@ -455,12 +461,12 @@ printversion()
 	char	buf[ 128 ], *ptr = buf ;
 	extern	void	MessageOut( const char * ) ;
 
-	sprintf(ptr, "Ng version:\n");
+	sprintf(ptr, PROGNAME " version:\n");
 	ptr += strlen( ptr ) ;
 	sprintf(ptr, "\t%s\n", version);
 	MessageOut( buf ) ;
 #else	/* WIN32 */
-	printf("Ng version:\n");
+	printf(PROGNAME " version:\n");
 	printf("\t%s\n", version);
 #endif	/* WIN32 */
 	return TRUE;

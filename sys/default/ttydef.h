@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: ttydef.h,v 1.2 2001/01/05 14:07:07 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
@@ -6,8 +6,11 @@
 
 /*
  * $Log: ttydef.h,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.2  2001/01/05 14:07:07  amura
+ * first implementation of Hojo Kanji support
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
@@ -36,6 +39,16 @@
 /* #define	MOVE_STANDOUT		/* don't move in standout mode	*/
 #define STANDOUT_GLITCH			/* possible standout glitch	*/
 #define TERMCAP				/* for possible use in ttyio.c	*/
+
+#ifdef	DO_METAKEY
+#ifndef METABIT
+#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
+#define METABIT 0x100
+#else	/* NOT KANJI */
+#define METABIT 0x80
+#endif	/* KANJI */
+#endif	/* METABIT */
+#endif	/* DO_METAKEY */
 
 #define getkbd()	(ttgetc())
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */

@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.8 2000/12/18 17:19:14 amura Exp $ */
+/* $Id: config.h,v 1.9 2001/01/05 14:07:00 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -82,6 +82,8 @@
 #define	KANJI		/* Create KANJI handling version.	*/
 
 #define	HANKANA		/* Create Hankaku KANA  handling version. */
+
+#define HOJO_KANJI	/* Create Hojo KANJI handling version. */
 
 #define CURSOR_POS	/* Cursor locates on next CHR after POINT */
 
@@ -254,11 +256,24 @@
 # ifdef NO_KANJI /* in order to use same source for Ng and MG, Tillanosoft */
 #  undef KANJI
 # endif
+#else /* not KANJI */
+# ifdef HANKANA
+#  undef HANKANA
+# endif
+# ifdef HOJO_KANJI
+#  undef HOJO_KANJI
+# endif
 #endif
 
 #ifdef HANKANA
-#  ifndef KANJI
-#    undef HANKANA
+#  ifndef SS_SUPPORT
+#    define SS_SUPPORT
+#  endif
+#endif
+
+#ifdef HOJO_KANJI
+#  ifndef SS_SUPPORT
+#    define SS_SUPPORT
 #  endif
 #endif
 

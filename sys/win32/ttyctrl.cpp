@@ -1,4 +1,4 @@
-/* $Id: ttyctrl.cpp,v 1.7 2000/11/16 14:21:31 amura Exp $ */
+/* $Id: ttyctrl.cpp,v 1.8 2001/01/05 14:07:09 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: ttyctrl.cpp,v $
+ * Revision 1.8  2001/01/05 14:07:09  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.7  2000/11/16 14:21:31  amura
  * merge Ng for win32 0.5
  *
@@ -581,16 +584,6 @@ TtyView::Command(WPARAM wparam, LPARAM lparam)
 		break;
 	}
 }
-
-#ifdef	DO_METAKEY
-#ifndef METABIT
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#define METABIT 0x100
-#else	/* if !KANJI */
-#define METABIT 0x80
-#endif	/* !KANJI */
-#endif	/* !METABIT */
-#endif  /* DO_METAKEY */
 
 void
 TtyView::AddMetaChar( TCHAR c )

@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.2 2000/12/14 18:06:23 amura Exp $ */
+/* $Id: basic.c,v 1.3 2001/01/05 14:06:59 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: basic.c,v $
+ * Revision 1.3  2001/01/05 14:06:59  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.2  2000/12/14 18:06:23  amura
  * filename length become flexible
  *
@@ -52,7 +55,7 @@ register int n;
 {
 	register LINE	*lp;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	register int	kanji2nd = FALSE;	/* Now on a KANJI 2nd byte. */
+	register int	kanji2nd = 0;	/* Now on a KANJI 2nd byte. */
 #endif	/* KANJI */
 
 	if (n < 0) return forwchar(f, -n);
@@ -69,10 +72,16 @@ register int n;
 		} else {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 			if (kanji2nd) {
-				kanji2nd = FALSE;
+				kanji2nd--;
 			} else if (ISKANJI(lgetc(curwp->w_dotp,
 						 curwp->w_doto - 1))) {
-				kanji2nd = TRUE;
+#ifdef	HOJO_KANJI
+				if (ISHOJO(lgetc(curwp->w_dotp,
+						 curwp->w_doto - 2)))
+					kanji2nd = 2;
+				else
+#endif	/* HOJO_KANJI */
+				kanji2nd = 1;
 			}
 #endif	/* KANJI */
 			curwp->w_doto--;
@@ -80,7 +89,11 @@ register int n;
 	}
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	if (kanji2nd) {			/* When stop at KANJI 2nd byte. */
-		if (curwp->w_doto == 0) { /* This is illegal, but... */
+		if (
+#ifdef	HOJO_KANJI
+		    (kanji2nd==2 && curwp->w_doto == 1) ||
+#endif
+		    curwp->w_doto == 0) { /* This is illegal, but... */
 			if ((lp=lback(curwp->w_dotp)) == curbp->b_linep) {
 				if (!(f & FFRAND))
 					ewprintf("Beginning of buffer");
@@ -90,7 +103,7 @@ register int n;
 			curwp->w_doto  = llength(lp);
 			curwp->w_flag |= WFMOVE;
 		} else {		/* Go back KANJI 1st byte.	*/
-			curwp->w_doto--;
+			curwp->w_doto -= kanji2nd;
 		}
 	}
 #endif	/* KANJI */
@@ -124,7 +137,7 @@ forwchar(f, n)
 register int n;
 {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	register int	kanji2nd = FALSE;	/* Now on a KANJI 2nd byte. */
+	register int	kanji2nd = 0;		/* Now on a KANJI 2nd byte. */
 	register int	oldn = n;
 #endif	/* KANJI */
 	if (n < 0) return backchar(f, -n);
@@ -142,10 +155,15 @@ register int n;
 		} else {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 			if (kanji2nd) {
-				kanji2nd = FALSE;
+				kanji2nd--;
+#ifdef	HOJO_KANJI
+			} else if (ISHOJO(lgetc(curwp->w_dotp,
+						curwp->w_doto))) {
+				kanji2nd = 2;
+#endif	/* HOJO_KANJI */
 			} else if (ISKANJI(lgetc(curwp->w_dotp,
 						 curwp->w_doto))) {
-				kanji2nd = TRUE;
+				kanji2nd = 1;
 			}
 #endif	/* KANJI */
 			curwp->w_doto++;
@@ -154,9 +172,13 @@ register int n;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	if (kanji2nd) {			/* When stop at KANJI 2nd byte.	*/
 		if (oldn == 1) {	/* Special case. Go to next char. */
-			curwp->w_doto++;
+			curwp->w_doto += kanji2nd;
 		} else {		/* Go back KANJI 1st byte.	*/
 			curwp->w_doto--;
+#ifdef	HOJO_KANJI
+			if (ISHOJO(lgetc(curwp->w_dotp, curwp->w_doto)))
+				curwp->w_doto--;
+#endif
 		}
 	}
 #endif	/* KANJI */
@@ -364,6 +386,12 @@ getgoal(dlp) register LINE *dlp; {
 	while (dbo != llength(dlp)) {
 		c = lgetc(dlp, dbo);
 		newcol = col;
+#ifdef	HOJO_KANJI
+		if (ISHOJO(c) && !kanji2nd) {
+			dbo++;
+			continue;
+		}
+#endif	/* HOJO_KANJI */
 		if (c == '\t'
 #ifdef	NOTAB
 				&& !(curbp->b_flag & BFNOTAB)
@@ -377,8 +405,8 @@ getgoal(dlp) register LINE *dlp; {
 		else if (ISCTRL(c) != FALSE)
 			++newcol;
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-		else if ( (c & 0xff) == SS2 && !kanji2nd )
-			--newcol; 
+		else if (ISHANKANA(c) && !kanji2nd)
+			--newcol;
 #endif  /* HANKANA */
 		++newcol;
 		if (newcol > curgoal)

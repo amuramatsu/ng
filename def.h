@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.9 2000/12/27 16:56:00 amura Exp $ */
+/* $Id: def.h,v 1.10 2001/01/05 14:07:00 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.10  2001/01/05 14:07:00  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.9  2000/12/27 16:56:00  amura
  * change d_makename() params for conservative reason, and bugfix in dires_()
  *
@@ -352,10 +355,6 @@ typedef struct	BUFFER {
 #define MG_RATIO_ALL -1 /* used at dotpos() to return value */
 #define MG_RATIO_TOP -2 /* used at dotpos() to return value */
 #define MG_RATIO_BOT -3 /* used at dotpos() to return value */
-#endif
-
-#ifdef HANKANA
-#define SS2 0x8e
 #endif
 
 /*

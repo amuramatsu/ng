@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.2 2000/12/14 18:10:47 amura Exp $ */
+/* $Id: sysdef.h,v 1.3 2001/01/05 14:07:08 amura Exp $ */
 /*
  *		MS-DOS based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.3  2001/01/05 14:07:08  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.2  2000/12/14 18:10:47  amura
  * filename length become flexible
  *
@@ -32,16 +35,6 @@
 #ifdef	__TURBOC__	/* 90.03.23  by A.Shirahashi */
 #define	LOCAL_VARARGS
 #endif	/* __TURBOC__ */
-
-#ifdef	DO_METAKEY
-#ifndef METABIT
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#define METABIT 0x100
-#else	/* NOT KANJI */
-#define METABIT 0x80
-#endif	/* KANJI */
-#endif	/* METABIT */
-#endif	/* DO_METAKEY */
 
 typedef long	RSIZE;			/* Type for file/region sizes	*/
 typedef short	KCHAR;			/* Type for internal keystrokes	*/

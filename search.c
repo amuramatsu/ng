@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.2 2000/07/22 17:54:09 amura Exp $ */
+/* $Id: search.c,v 1.3 2001/01/05 14:07:05 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -12,6 +12,9 @@
 
 /*
  * $Log: search.c,v $
+ * Revision 1.3  2001/01/05 14:07:05  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.2  2000/07/22 17:54:09  amura
  * fix typo bug
  *
@@ -72,16 +75,6 @@ static int	eq();
 static	int	is_fail();
 static  int	is_addword();
 #endif
-
-#ifdef	DO_METAKEY	/* imported from kbd.c */
-# ifndef METABIT
-#  ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#   define METABIT 0x100
-#  else	/* NOT KANJI */
-#   define METABIT 0x80
-#  endif	/* KANJI */
-# endif	/* METABIT */
-#endif /* DO_METAKEY */
 
 #ifdef	IS_ENHANCE
 /* casefoldsearch: Does search ignore case ? */
@@ -205,7 +198,7 @@ isearch(dir) {
 	char		opat[NPAT];
 	VOID		ungetkey();
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	register int	kanji1st = FALSE;	/* It is only KANJI 1st byte. */
+	register int	kanji1st = 0;	/* It is only KANJI 1st byte. */
 #endif	/* KANJI */
 
 #ifndef NO_MACRO
@@ -376,14 +369,18 @@ isearch(dir) {
 			}
 			pat[pptr] = '\0';
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			if (kanji1st) {
+			if (kanji1st != 0) {
 				/* If the KANJI 1st byte exists,	*/
 				/* we believe 'c' is KANJI 2nd byte.	*/
-				kanji1st = FALSE;
+				kanji1st--;
 			} else if (ISKANJI(c)) {
 				/* When there is only KANJI 1st		*/
 				/* byte, we don't search a patern.	*/
-				kanji1st = TRUE;	
+#ifdef	HOJO_KANJI
+				if (ISHOJO(c))	kanji1st = 2;
+				else
+#endif				
+				kanji1st = 1;	
 				break;
 			}
 #endif	/* KANJI */
@@ -501,6 +498,9 @@ is_find(dir) register int dir; {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	for (i = 0, clen = 0; i < plen; i++, clen++) {
 		if (ISKANJI(pat[i])) {
+#ifdef	HOJO_KANJI
+			if (ISHOJO(pat[i]))	i++;
+#endif
 			i++;
 		}
 	}
@@ -615,6 +615,17 @@ is_addword(pptr,dir)
 
 				c =lgetc(curwp->w_dotp,curwp->w_doto);
 #ifdef	KANJI
+#ifdef	HOJO_KANJI
+				if( ISHOJO(c) ) {
+				    if ( c != CHARMASK(pat[i]) ||
+					lgetc(curwp->w_dotp, curwp->w_doto+1)
+					!= CHARMASK(pat[i+1]) ||
+					lgetc(curwp->w_dotp, curwp->w_doto+2)
+					!= CHARMASK(pat[i+2]) )
+					break;
+				    i += 2;
+				} else
+#endif
 				if( ISKANJI(c) ){
 					if( c != CHARMASK(pat[i]) ||
 					   lgetc(curwp->w_dotp, curwp->w_doto+1)
@@ -789,7 +800,7 @@ forwsrch() {
 	char		*pp;
 	register int	c;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	register int	kanji2nd = FALSE; /* Now on a KANJI 2nd byte. */
+	register int	kanji2nd = 0; /* Now on a KANJI 2nd byte. */
 #endif	/* KANJI */
 
 	clp = curwp->w_dotp;
@@ -802,11 +813,15 @@ forwsrch() {
 		} else
 			c = lgetc(clp, cbo++);
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		if (kanji2nd) {		/* We believe 'c' is KANJI 2nd byte. */
-			kanji2nd = FALSE;
+		if (kanji2nd != 0) {	/* We believe 'c' is KANJI 2nd byte. */
+			kanji2nd--;
 			continue;	/* Don't check with KANJI 2nd byte. */
 		} else if (ISKANJI(c)) { /* 'c' is KANJI 1st byte.	*/
-			kanji2nd = TRUE; /* Next byte is KANJI 2nd.	*/
+#ifdef	HOJO_KANJI
+			if (ISHOJO(c))	kanji2nd = 2;
+			else
+#endif
+			kanji2nd = 1; /* Next byte is KANJI 2nd.	*/
 		}
 #endif	/* KANJI */
 		if (eq(c, pat[0]) != FALSE) {
@@ -851,7 +866,7 @@ backsrch() {
 	register char	*epp;
 	register char	*pp;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	register int	kanji1st = FALSE; /* Now on a KANJI 1st byte. */
+	register int	kanji1st = 0; /* Now on a KANJI 1st byte. */
 #endif	/* KANJI */
 
 	for (epp = &pat[0]; epp[1] != 0; ++epp)
@@ -870,11 +885,15 @@ backsrch() {
 		else
 			c = lgetc(clp,cbo);
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		if (kanji1st) {		/* We believe 'c' is KANJI 1st byte. */
-			kanji1st = FALSE;
+		if (kanji1st != 0) {	/* We believe 'c' is KANJI 1st byte. */
+			kanji1st--;
 			continue;	/* Don't check with KANJI 1st byte. */
 		} else if (ISKANJI(c)) { /* 'c' is KANJI 2nd byte.	*/
-			kanji1st = TRUE; /* Next byte is KANJI 1st.	*/
+#ifdef	HOJO_KANJI
+			if (ISHOJO(c))	kanji1st = 2;
+			else
+#endif
+			kanji1st = 1; /* Next byte is KANJI 1st.	*/
 		}
 #endif	/* KANJI */
 		if (eq(c, *epp) != FALSE) {
@@ -947,13 +966,3 @@ readpattern(prompt) char *prompt; {
 		s = TRUE;
 	return s;
 }
-
-/* $Id: search.c,v 1.2 2000/07/22 17:54:09 amura Exp $ */
-/* Local Variables: */
-/*  c-indent-level:                   8      */
-/*  c-continued-statement-offset:     8      */
-/*  c-brace-offset:                  -8      */
-/*  c-argdecl-indent:                 8      */
-/*  c-label-offset:                  -8      */
-/* End: */
- 

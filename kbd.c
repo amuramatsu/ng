@@ -1,10 +1,13 @@
-/* $Id: kbd.c,v 1.8 2000/11/04 13:44:58 amura Exp $ */
+/* $Id: kbd.c,v 1.9 2001/01/05 14:07:04 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
 
 /*
  * $Log: kbd.c,v $
+ * Revision 1.9  2001/01/05 14:07:04  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.8  2000/11/04 13:44:58  amura
  * undo memory exception is more safety
  *
@@ -46,26 +49,18 @@
 #include "macro.h"
 #endif
 
-#ifdef	DO_METAKEY
-#ifndef METABIT
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#define METABIT 0x100
-#else	/* NOT KANJI */
-#define METABIT 0x80
-#endif	/* KANJI */
-#endif	/* METABIT */
-
 #ifdef CANNA
 #include    <canna/jrkanji.h>
 extern jrKanjiStatus ks;
 int henkan( );
 #endif
 
-int use_metakey = TRUE;
 #ifdef MOUSE
 int allow_mouse_event = FALSE; /* allow mouse event */
 #endif
 
+#ifdef	DO_METAKEY
+int use_metakey = TRUE;
 /*
  * Toggle the value of use_metakey
  */
@@ -424,7 +419,7 @@ int f, n;
  * all inserted characters.
  */
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-int	no_k2nd = FALSE;		/* We have no KANJI 2nd byte	*/
+int	no_k2nd = 0;			/* We have no KANJI 2nd byte	*/
 int	inkfill = FALSE;		/* Now we are in a fillword().	*/
 #endif	/* KANJI */
 
@@ -458,7 +453,7 @@ int f, n;
     /* a fillmap. But there are too many KANJI chars, so we use this	*/
     /* easy way.							*/
     if(curbp->b_flag & BFAUTOFILL && 		/* Autofill mode and	*/
-       !inkfill && no_k2nd) {			/* KANJI 2nd byte.	*/
+       !inkfill && no_k2nd!=0) {		/* KANJI 2nd byte.	*/
 	    int	s;
 #ifdef	UNDO
 	    if (isundo()) {
@@ -480,13 +475,17 @@ int f, n;
 	    inkfill = FALSE;
 	    return (s);
     }					/* End of autofill mode add routine. */
-    if (no_k2nd) {			/* If there is only KANJI 1st byte, */
-	    no_k2nd = FALSE;		/* we believe 'c' is KANJI 2nd byte.*/
+    if (no_k2nd != 0) {			/* If there is only KANJI 1st byte, */
+	    no_k2nd--;			/* we believe 'c' is KANJI 2nd byte.*/
     } else if (ISKANJI(c)) {
 	    if ((n % 2) == 0) {		/* This is easy bug fix. */
 		    n |= 0x01;
 	    }
-	    no_k2nd = TRUE;		/* When there is no KANJI 2nd	*/
+#ifdef	HOJO_KANJI
+	    if (ISHOJO(c))	no_k2nd = 2;
+	    else
+#endif	    
+	    no_k2nd = 1;		/* When there is no KANJI 2nd	*/
 					/* byte, we don't do update().	*/
     }
 #endif	/* KANJI */
@@ -567,19 +566,23 @@ int f, n;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	    if (undo->u_code[0]) {
 		lputc(curwp->w_dotp, curwp->w_doto, undo->u_code[0]);
-		lkanji2nd = TRUE;
+		lkanji2nd = 1;
 	    } else
-		lkanji2nd = FALSE;
+		lkanji2nd = 0;
 #endif	/* KANJI */
 	    count = undo->u_used;
 	    while(curwp->w_doto < llength(curwp->w_dotp) && n--) {
 		undo->u_buffer[count] =
 		    lgetc(curwp->w_dotp, curwp->w_doto);
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		if (lkanji2nd) {
-		    lkanji2nd = FALSE;
+		if (lkanji2nd != 0) {
+		    lkanji2nd--;
 		} else if (ISKANJI(undo->u_buffer[count])){
-		    lkanji2nd = TRUE;
+#ifdef	HOJO_KANJI
+		    if (ISHOJO(undo->u_buffer[count])) lkanji2nd = 2;
+		    else
+#endif
+		    lkanji2nd = 1;
 		}
 #endif	/* KANJI */
 		lputc(curwp->w_dotp, curwp->w_doto++, c);
@@ -587,7 +590,7 @@ int f, n;
 	    }
 	    undo->u_used = count;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	    if (lkanji2nd && curwp->w_doto < llength(curwp->w_dotp)) {
+	    if (lkanji2nd!=0 && curwp->w_doto < llength(curwp->w_dotp)) {
 		undo->u_code[0] = lgetc(curwp->w_dotp, curwp->w_doto);
 		lputc(curwp->w_dotp, curwp->w_doto, ' ');
 	    } else
@@ -624,20 +627,25 @@ int f, n;
     if(curbp->b_flag & BFOVERWRITE) {		/* Overwrite mode	*/
 	lchange(WFEDIT);
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	lkanji2nd = FALSE;
+	lkanji2nd = 0;
 #endif	/* KANJI */
 	while(curwp->w_doto < llength(curwp->w_dotp) && n--) {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	    if (lkanji2nd) {
-		lkanji2nd = FALSE;
+	    if (lkanji2nd != 0) {
+		lkanji2nd--;
 	    } else if (ISKANJI(lgetc(curwp->w_dotp, curwp->w_doto))) {
-		lkanji2nd = TRUE;
+#ifdef	HOJO_KANJI
+		if (ISHOJO(lgetc(curwp->w_dotp, curwp->w_doto)))
+		    lkanji2nd = 2;
+		else
+#endif
+		lkanji2nd = 1;
 	    }
 #endif	/* KANJI */
 	    lputc(curwp->w_dotp, curwp->w_doto++, c);
 	}
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	if (lkanji2nd && curwp->w_doto < llength(curwp->w_dotp)) {
+	if (lkanji2nd!=0 && curwp->w_doto < llength(curwp->w_dotp)) {
 	    lputc(curwp->w_dotp, curwp->w_doto, ' ');
 	}
 #endif	/* KANJI */

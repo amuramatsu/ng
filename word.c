@@ -1,4 +1,4 @@
-/* $Id: word.c,v 1.2 2000/06/27 01:49:45 amura Exp $ */
+/* $Id: word.c,v 1.3 2001/01/05 14:07:06 amura Exp $ */
 /*
  *		Word mode commands.
  * The routines in this file
@@ -9,6 +9,9 @@
 
 /*
  * $Log: word.c,v $
+ * Revision 1.3  2001/01/05 14:07:06  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.2  2000/06/27 01:49:45  amura
  * import to CVS
  *
@@ -22,6 +25,12 @@
 #include	"def.h"
 #ifdef	UNDO
 #include	"undo.h"
+#endif
+
+#ifdef	HOJO_KANJI
+#define	CHAR_LENGTH()	(ishojo() ? 3 : (iskanji() ? 2 : 1))
+#else
+#define	CHAR_LENGTH()	(iskanji() ? 2 : 1)
 #endif
 
 /*
@@ -265,7 +274,7 @@ delfword(f, n)
 	while (n--) {
 		while (inword() == FALSE) {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			s = iskanji() ? 2 : 1;	/* If KANJI, delete 2 byte. */
+			s = CHAR_LENGTH();
 #endif	/* KANJI */
 			if (forwchar(FFRAND, 1) == FALSE)
 				goto out;	/* Hit end of buffer.	*/
@@ -280,7 +289,7 @@ delfword(f, n)
 #else	/* KANJI */
 		initcategory(1);	/* Set category of start char. */
 		while (inword() != FALSE && incategory()) {
-			s = iskanji() ? 2 : 1;	/* If KANJI, delete 2 byte. */
+			s = CHAR_LENGTH();
 #endif	/* KANJI */
 			if (forwchar(FFRAND, 1) == FALSE)
 				goto out;	/* Hit end of buffer.	*/
@@ -329,7 +338,7 @@ delbword(f, n)
 	if (backchar(FFRAND, 1) == FALSE)
 		return (TRUE);			/* Hit buffer start.	*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	size = iskanji() ? 2 : 1;		/* If KANJI, delete 2 byte. */
+	size = CHAR_LENGTH();
 #else	/* NOT KANJI */	
 	size = 1;				/* One deleted.		*/
 #endif	/* KANJI */
@@ -338,7 +347,7 @@ delbword(f, n)
 			if (backchar(FFRAND, 1) == FALSE)
 				goto out;	/* Hit buffer start.	*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			size += iskanji() ? 2 : 1;
+			size += CHAR_LENGTH();
 #else	/* NOT KANJI */	
 			++size;
 #endif	/* KANJI */
@@ -352,14 +361,14 @@ delbword(f, n)
 			if (backchar(FFRAND, 1) == FALSE)
 				goto out;	/* Hit buffer start.	*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			size += iskanji() ? 2 : 1;
+			size += CHAR_LENGTH();
 #else	/* NOT KANJI */	
 			++size;
 #endif	/* KANJI */
 		}
 	}
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	size -= iskanji() ? 1 : 0;
+	size -= CHAR_LENGTH();
 #endif	/* KANJI */
 	if (forwchar(FFRAND, 1) == FALSE)
 		return FALSE;
@@ -384,7 +393,14 @@ inword() {
 	}
 	c = lgetc(curwp->w_dotp, curwp->w_doto);
 	if (ISKANJI(c)) {
+#ifdef	HOJO_KANJI
+		if (ISHOJO(c)) {
+			curwp->w_doto++;
+			c = lgetc(curwp->w_dotp, curwp->w_doto);
+		}
+#endif
 		return(iskword(c, lgetc(curwp->w_dotp, curwp->w_doto + 1)));
+
 	} else {
 		return (ISWORD(c));
 	}
@@ -393,4 +409,3 @@ inword() {
 		ISWORD(curwp->w_dotp->l_text[curwp->w_doto]);
 #endif	/* KANJI */
 }
-

@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.2 2000/12/14 18:07:52 amura Exp $ */
+/* $Id: sysdef.h,v 1.3 2001/01/05 14:07:06 amura Exp $ */
 /*
  * Name:	MicroEMACS
  * Version:	MG 2a
@@ -7,6 +7,9 @@
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.3  2001/01/05 14:07:06  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.2  2000/12/14 18:07:52  amura
  * filename length become flexible
  *
@@ -129,10 +132,6 @@ typedef	struct	{
 #endif	/* KANJI */
 
 #define	chdir	Chdir	/* Dec.18,1992 Add by H.Ohkubo */
-
-#ifdef	DO_METAKEY
-#define	METABIT	0x200
-#endif
 
 #ifdef	NEW_COMPLETE	/* Jan.5,1992 Add by H.Ohkubo */
 #define	file_name_part	BaseName

@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.9 2000/12/22 19:54:34 amura Exp $ */
+/* $Id: buffer.c,v 1.10 2001/01/05 14:06:59 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.10  2001/01/05 14:06:59  amura
+ * first implementation of Hojo Kanji support
+ *
  * Revision 1.9  2000/12/22 19:54:34  amura
  * fix some bug in filename handling
  *
@@ -297,7 +300,7 @@ makelist() {
 		while ((c = *cp2++) != 0) {
 			*cp1++ = c;
 #ifdef HANKANA
-			if ((c & 0xff) == SS2) {
+			if (ISHANKANA(c)) {
 			  nhankana++;
 			}
 #endif
