@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.6 2001/01/23 08:43:50 amura Exp $ */
+/* $Id: ttyio.c,v 1.7 2001/02/14 09:22:30 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.7  2001/02/14 09:22:30  amura
+ * always use select() even if ioctl() does NOT support FIONREAD
+ *
  * Revision 1.6  2001/01/23 08:43:50  amura
  * reset terminal polling mode in ttwait()
  *
@@ -94,13 +97,7 @@ RETSIGTYPE ttwinch();
 #endif	/* SIGWINCH */
 #endif	/* ADDFUNC */
 
-#ifdef	HAVE_SELECT
-#ifdef	FIONREAD
-#define	USE_SELECT
-#endif
-#endif
-
-#ifndef USE_SELECT
+#ifndef HAVE_SELECT
 /* These are used to implement typeahead on System V */
 int kbdflgs;			/* saved keyboard fd flags	*/
 int kbdpoll;			/* in O_NONBLOCK mode		*/
@@ -109,7 +106,7 @@ char kbdq;			/* char we've already read	*/
 #ifndef	O_NONBLOCK	/* for old system compat? */
 #define O_NONBLOCK	O_NDELAY
 #endif
-#endif
+#endif	/* HAVE_SELECT */
 
 /*
  * This function gets called once, to set up
@@ -182,12 +179,12 @@ ttraw() {
 #ifdef	IEXTEN
 	nt.c_lflag &= ~IEXTEN;
 #endif
-#ifndef USE_SELECT
+#ifndef HAVE_SELECT
 	kbdpoll = (((kbdflgs = fcntl(0, F_GETFL, 0)) & O_NONBLOCK) != 0);
 #endif
 	ttysavedp = TRUE;
     }
-#ifndef	USE_SELECT
+#ifndef	HAVE_SELECT
     else
 	kbdpoll = ((fcntl(0, F_GETFL, 0) & O_NONBLOCK) != 0);
 #endif
@@ -288,7 +285,7 @@ ttcooked() {
 #else
     if (ioctl(0, TCSETAF, &ot) < 0 
 #endif
-#ifndef	USE_SELECT
+#ifndef	HAVE_SELECT
 	|| fcntl( 0, F_SETFL, kbdflgs ) < 0
 #endif
 	) {
@@ -349,7 +346,7 @@ static	int	keybuf[4];		/* Ungetc charactors.		*/
  * a multi-national terminal.
  */
 ttgetc() {
-#ifdef	USE_SELECT
+#ifdef	HAVE_SELECT
     char buf[1];
 #endif
 
@@ -359,11 +356,11 @@ ttgetc() {
 	}
 #endif	/* KANJI */
 
-#ifdef	USE_SELECT
+#ifdef	HAVE_SELECT
     while (read(0, &buf[0], 1) != 1)
 	;
     return (buf[0] & 0xFF);
-#else	/* not USE_SELECT */
+#else	/* not HAVE_SELECT */
     if( kbdqp )
 	kbdqp = FALSE;
     else
@@ -375,7 +372,7 @@ ttgetc() {
 	    ;
     }
     return ( kbdq & 0xff );
-#endif	/* USE_SELECT */
+#endif	/* HAVE_SELECT */
 }
 
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
@@ -429,17 +426,30 @@ ttwinch()
  * in.
  */
 typeahead() {
-#ifdef	USE_SELECT
-    int	x;
-#endif
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
 	return (TRUE);
     }
 #endif	/* KANJI */
-#ifdef	USE_SELECT
-    return((ioctl(0, FIONREAD, (char *) &x) < 0) ? 0 : x);
-#else
+#ifdef	HAVE_SELECT
+#ifdef	FIONREAD
+    {
+	int	x;
+	return ((ioctl(0, FIONREAD, (char *) &x) < 0) ? FALSE : x);
+    }
+#else	/* not FIONREAD */
+    {
+	struct timeval tmout;
+	fd_set readfd;
+	tmout.tv_sec = 0;
+	tmout.tv_usec = 0;
+	FD_ZERO(&readfd);
+	FD_SET(0, &readfd);
+	return ((select(1, &readfd, (fd_set *)0, (fd_set *)0, &tmout) == 0) ?
+		FALSE : TRUE);
+    }
+#endif	/* FIONREAD */
+#else	/* not HAVE_SELECT */
     if( !kbdqp )
     {
 	if( !kbdpoll && fcntl( 0, F_SETFL, kbdflgs | O_NONBLOCK) < 0 )
@@ -448,7 +458,7 @@ typeahead() {
 	kbdqp = (1 == read( 0, &kbdq, 1 ));
     }
     return ( kbdqp );
-#endif	/* USE_SELECT */
+#endif	/* HAVE_SELECT */
 }
 
 /*
@@ -463,7 +473,7 @@ panic(s) char *s; {
 }
 
 #ifndef NO_DPROMPT
-#ifdef	USE_SELECT
+#ifdef	HAVE_SELECT
 #include <sys/time.h>
 
 /*
@@ -493,7 +503,7 @@ int ttwait() {
     return(FALSE);
 }
 
-#else	/* not USE_SELECT */
+#else	/* not HAVE_SELECT */
 
 #include <signal.h>
 #include <setjmp.h>
@@ -533,5 +543,5 @@ ttwait()
     alarm(0);
     return FALSE;		/* successful read if here	*/
 }
-#endif	/* USE_SELECT */
+#endif	/* HAVE_SELECT */
 #endif	/* NO_DPROMPT */
