@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.11 2001/01/17 18:33:14 amura Exp $ */
+/* $Id: def.h,v 1.12 2001/02/01 16:30:39 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.12  2001/02/01 16:30:39  amura
+ * add vtsetsize() definition and change NFILEN size for amiga
+ *
  * Revision 1.11  2001/01/17 18:33:14  amura
  * add prototype of ishojo() and some change for WIN32
  *
@@ -91,15 +94,15 @@ typedef int (*PF) pro((int, int)); /* generaly useful type */
 /*
  * Table sizes, etc.
  */
-#ifdef	MSDOS
+#if defined(MSDOS)
 #define NFILEN	80			/* Length, file name.		*/
-#else	/* Not MSDOS */
-#ifdef	HUMAN68K
+#elif defined(HUMAN68K)
 #define NFILEN	128			/* Length, file name.		*/
-#else	/* Not MSDOS && Not HUMAN68K */
+#elif defined(AMIGA)
+#define NFILEN	256			/* Length, file name.		*/
+#else /* Maybe Win32 or UN*X */
 #define NFILEN	1024			/* Length, file name.		*/
-#endif	/* HUMAN68K */
-#endif	/* MSODS */
+#endif
 #define NBUFN	24			/* Length, buffer name.		*/
 #define NLINE	256			/* Length, line.		*/
 #define NINPUT	32			/* Length, small minibuf input	*/
@@ -578,6 +581,7 @@ extern int readpattern pro((char *));
 extern int forwsrch pro((void));
 extern int backsrch pro((void));
 extern int isearch pro((int));
+extern VOID vtsetsize pro((int, int));
 extern int ttresize pro((void));
 extern int shrinkwind pro((int, int));
 extern int forwword pro((int, int));
