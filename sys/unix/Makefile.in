@@ -1,7 +1,10 @@
-# $Id: Makefile.in,v 1.2 2000/12/01 10:06:16 amura Exp $
+# $Id: Makefile.in,v 1.3 2000/12/21 16:58:28 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # $Log: Makefile.in,v $
+# Revision 1.3  2000/12/21 16:58:28  amura
+# add confclean target
+#
 # Revision 1.2  2000/12/01 10:06:16  amura
 # add configure rule and fix strip rule
 #
@@ -166,3 +169,6 @@ alloca.c:	sys/default/alloca.c
 	ln sys/default/alloca.c .
 
 clean:;	rm -f $(OBJ) $(OSRCS) $(OINCS) $(PROG)
+
+confclean:	clean
+	rm -f config.log config.cache config.status sysconfig.h Makefile
