@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.16 2001/06/19 15:23:19 amura Exp $ */
+/* $Id: line.c,v 1.17 2001/07/23 17:12:02 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.17  2001/07/23 17:12:02  amura
+ * fix mark handling when make newline on the mark position
+ *
  * Revision 1.16  2001/06/19 15:23:19  amura
  * to make uniform all indent
  *
@@ -47,12 +50,6 @@
  *
  * Revision 1.8  2000/11/04 13:44:58  amura
  * undo memory exception is more safety
- *
- * Revision 1.7  2000/09/01 19:44:25  amura
- * dirty hack for speed optimize of "yank"
- *
- * Revision 1.6  2000/07/16 15:44:41  amura
- * undo bug on autofill fixed
  *
  * -- snip --
  *
@@ -438,7 +435,7 @@ lnewline()
 			wp->w_doto -= doto;
 		}
 	}
-	if (curbp->b_markp == lp1 && curbp->b_marko >= doto) {
+	if (curbp->b_markp == lp1 && curbp->b_marko > doto) {
 		curbp->b_markp = lp2;
 		curbp->b_marko -= doto;
 	}

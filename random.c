@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.9 2001/07/22 20:46:58 amura Exp $ */
+/* $Id: random.c,v 1.10 2001/07/23 17:12:02 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.10  2001/07/23 17:12:02  amura
+ * fix mark handling when make newline on the mark position
+ *
  * Revision 1.9  2001/07/22 20:46:58  amura
  * before checkin has bug. now mark handling is fixed
  *
@@ -24,14 +27,7 @@
  * Revision 1.5  2001/01/05 14:07:04  amura
  * first implementation of Hojo Kanji support
  *
- * Revision 1.4  2000/09/04 20:46:10  amura
- * fix yank() bug appeared from rev 1.3
- *
- * Revision 1.3  2000/09/01 19:44:25  amura
- * dirty hack for speed optimize of "yank"
- *
- * Revision 1.2  2000/06/27 01:49:45  amura
- * import to CVS
+ * -- snip -- 
  *
  * Revision 1.1  2000/06/01  05:35:32  amura
  * Initial revision
@@ -697,6 +693,7 @@ yank(f, n)
 	register LINE	*lp;
 	register int	nline;
 	VOID	 isetmark();
+	int mark_adjust = FALSE;
 #ifdef	UNDO
 	int run_insert = FALSE;
 #endif
@@ -725,15 +722,18 @@ yank(f, n)
 			set_lineno = get_lineno(curbp, curwp->w_dotp);
 			while ((c=kremove(i)) >= 0) {
 				if (c == '\n') {
+					if (i == 0 && curbp->b_marko == 0)
+						mark_adjust = TRUE;
 					if (newline(FFRAND, 1) == FALSE) {
 						set_lineno = -1;
 						return FALSE;
 					}
 					/* Mark position correction.	*/
-					if (i == 0) {
+					if (mark_adjust) {
 						LINE *lp=lback(curwp->w_dotp);
 						curbp->b_markp  = lp;
 						curbp->b_marko  = llength(lp);
+						mark_adjust = FALSE;
 					}
 					++nline; set_lineno++;
 					run_insert = FALSE;
@@ -755,13 +755,16 @@ yank(f, n)
 #endif
 		while ((c=kremove(i)) >= 0) {
 			if (c == '\n') {
+				if (i == 0 && curbp->b_marko == 0)
+					mark_adjust = TRUE;
 				if (newline(FFRAND, 1) == FALSE)
 					return FALSE;
 				/* Mark position correction.	*/
-				if (i == 0) {
+				if (mark_adjust) {
 					LINE *lp=lback(curwp->w_dotp);
 					curbp->b_markp  = lp;
 					curbp->b_marko  = llength(lp);
+					mark_adjust = FALSE;
 				}
 
 				++nline;
