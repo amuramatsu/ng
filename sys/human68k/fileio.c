@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.2 2000/07/18 12:44:03 amura Exp $ */
+/* $Id: fileio.c,v 1.3 2000/07/25 15:06:52 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.3  2000/07/25 15:06:52  amura
+ * handle Kanji filename of initfile
+ *
  * Revision 1.2  2000/07/18 12:44:03  amura
  * fix to emacs style backup
  *
@@ -536,16 +539,29 @@ char *suffix;
 	}
 	if (strlen(file)+7 >= NFILEN - 1) goto notfound;
 	(VOID) strcpy(home, file);
+
 #ifdef	ADDOPT
 	if (!ngrcfile)
 		ngrcfile = getenv("NGRC");
 	if (ngrcfile)
 	{
-		if (access(ngrcfile, 0) == 0) return ngrcfile;
+		if (access(ngrcfile, 0) == 0) {
+			strncpy(home, ngrcfile, NFILEN);
+			home[NFILEN-1] = '\0';
+#ifdef	KANJI
+			bufstoe(home, strlen(home)+1);
+#endif
+			return home;
+		}
 	/*
 		strcat(home, "\\");
 		strcat(home, ngrcfile);
-		if (access(home, 0) == 0) return home;
+		if (access(home, 0) == 0) {
+#ifdef	KANJI
+			bufstoe(home, strlen(home)+1);
+#endif
+			return home;
+		
 		(VOID)strcpy(home, file);
 	*/
 	}
@@ -559,18 +575,26 @@ char *suffix;
 		(VOID) strcat(home, "-");
 		(VOID) strcat(home, suffix);
 	}
-	if (access(home, 0) == 0) return home;
+	if (access(home, 0) == 0) {
+#ifdef	KANJI
+		bufstoe(home, strlen(home)+1);
+#endif
+		return home;
+	}
 
 notfound:
 #ifdef	STARTUPFILE
-	file = STARTUPFILE;
+	(VOID) strcpy(home, STARTUPFILE);
 	if (suffix != NULL) {
-		(VOID) strcpy(home, file);
 		(VOID) strcat(home, "-");
 		(VOID) strcat(home, suffix);
-		file = home;
 	}
-	if (access(file, 0) == 0) return file;
+	if (access(home, 0) == 0) {
+#ifdef	KANJI
+		bufstoe(home, strlen(home)+1);
+#endif
+		return file;
+	}
 #endif
 
 	return NULL;

@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.1 2000/06/27 01:47:58 amura Exp $ */
+/* $Id: fileio.c,v 1.2 2000/07/25 15:06:52 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,8 +7,11 @@
 
 /*
  * $Log: fileio.c,v $
- * Revision 1.1  2000/06/27 01:47:58  amura
- * Initial revision
+ * Revision 1.2  2000/07/25 15:06:52  amura
+ * handle Kanji filename of initfile
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:58  amura
+ * import to CVS
  *
  */
 /* 90.02.11	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
@@ -485,11 +488,23 @@ char *suffix;
 		ngrcfile = getenv("NGRC");
 	if (ngrcfile)
 	{
-		if (access(ngrcfile, 0) == 0) return ngrcfile;
+		if (access(ngrcfile, 0) == 0) {
+			strncpy(home, ngrcfile, NFILEN);
+			home[NFILEN-1] = '\0';
+#ifdef	KANJI
+			bufstoe(home, strlen(home)+1);
+#endif
+			return home;
+		}
 	/*
 		strcat(home, "\\");
 		strcat(home, ngrcfile);
-		if (access(home, 0) == 0) return home;
+		if (access(home, 0) == 0) {
+#ifdef	KANJI
+			bufstoe(home, strlen(home)+1);
+#endif
+			return home;
+		}
 		(VOID)strcpy(home, file);
 	*/
 	}
@@ -504,18 +519,26 @@ char *suffix;
 		(VOID) strcat(home, "-");
 		(VOID) strcat(home, suffix);
 	}
-	if (access(home, 0) == 0) return home;
+	if (access(home, 0) == 0) {
+#ifdef	KANJI
+		bufstoe(home, strlen(home)+1);
+#endif
+		return home;
+	}
 
 notfound:
 #ifdef	STARTUPFILE
-	file = STARTUPFILE;
+	strcpy(home, STARTUPFILE);
 	if (suffix != NULL) {
-		(VOID) strcpy(home, file);
 		(VOID) strcat(home, "-");
 		(VOID) strcat(home, suffix);
-		file = home;
 	}
-	if (access(file, 0) == 0) return file;
+	if (access(home, 0) == 0) {
+#ifdef	KANJI
+		bufstoe(home, strlen(home)+1);
+#endif
+		return home;
+	}
 #endif
 
 	return NULL;
