@@ -1,32 +1,41 @@
-/* $Id: iconify.h,v 1.1 2000/06/27 01:48:00 amura Exp $ */
-/*  :ts=8 bk=0
- *
- * iconify.h:	Should be used by all programs intending to use iconify.c.
- *
- * Copyright 1987 by Leo L. Schwab.
- * Permission is hereby granted for use in any and all programs, both
- * Public Domain and commercial in nature, provided this Copyright notice
- * is left intact.  Purveyors of programs, at their option, may wish observe
- * the following conditions (in the spirit of hackerdom):
- *	1: You send me a free, registered copy of the program that uses the
- *	   iconify feature,
- *	2: If you're feeling really nice, a mention in the program's
- *	   documentation of my name would be neat.
- *
- *			 		8712.10		(415) 456-3960
- */
-
+/* $Id: iconify.h,v 2.1 2000/09/29 17:24:09 amura Exp $ */
 /*
- * $Log: iconify.h,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * iconify.h
+ *    Leo Schwab's iconify() compatible iconify routine header.
  *
+ * Copyright (C) 2000, MURAMATSU Atsushi  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY "MURAMATSU Atsushi" AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.  
  */
 
 #define	ICON_IMAGE	0
-#define	ICON_BORDER	1
+/* this version support only ICON_IMAGE and ICON_WB */
+/*
+#define	ICON_BOADER	1
 #define	ICON_FUNCTION	2
+*/
+#define	ICON_WB		3	/* extended from original */
 
-/*  Suggested icon size for a standard (640 x 200) WorkBench screen.  */
-#define	ICONWIDTH	((UWORD) 50)
-#define	ICONHEIGHT	((UWORD) 25)
+int iconify(UWORD *x, UWORD *y, UWORD width, UWORD height,
+	    APTR etcptr, APTR ptr, int type);
+

@@ -1,221 +1,198 @@
-/* $Id: iconify.c,v 1.1 2000/06/27 01:48:00 amura Exp $ */
-/*  :ts=8 bk=0
+/* $Id: iconify.c,v 2.1 2000/09/29 17:24:09 amura Exp $ */
+/*
+ * iconify.c
+ *   Leo Schwab's iconify() compatible iconify routine.
  *
- * iconify.c:	You asked for it, you got it.
+ * Copyright (C) 2000, MURAMATSU Atsushi  All rights reserved.
  *
- * Copyright 1987 by Leo L. Schwab.
- * Permission is hereby granted for use in any and all programs, both
- * Public Domain and commercial in nature, provided this Copyright notice
- * is left intact.  Purveyors of programs, at their option, may wish observe
- * the following conditions (in the spirit of hackerdom):
- *	1: You send me a free, registered copy of the program that uses the
- *	   iconify feature,
- *	2: If you're feeling really nice, a mention in the program's
- *	   documentation of my name would be neat.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  *
- *			 		8712.10		(415) 456-3960
+ * THIS SOFTWARE IS PROVIDED BY "MURAMATSU Atsushi" AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.  
  */
 
 /*
  * $Log: iconify.c,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 2.1  2000/09/29 17:24:09  amura
+ * rewrite from scratch
  *
  */
 
-#include	"config.h"	/* Dec.19,1992 Add by H.Ohkubo */
+#include "config.h"
+#ifdef DO_ICONIFY
+#include "def.h"
+
 #include <exec/types.h>
-#include <devices/timer.h>
-#include <intuition/intuition.h>
+#include <exec/memory.h>
 #include "iconify.h"
 
-/*
- * It is recommended that the tick rate not be made too rapid to avoid
- * bogging down the system.
- */
-#define	TICKS_PER_SECOND	10
+#ifdef	V2
 
-/*
- * Some programmers may not wish to have the added functionality of the
- * ICON_FUNCTION feature.  If you're such a programmer, you may comment out
- * the following #define, which will eliminate the code to handle function
- * calls, and make iconify() even smaller.
- */
-#define	USE_FUNCTIONS
+#include <dos/dosextens.h>
+#include <workbench/workbench.h>
+#include <workbench/startup.h>
+#include <clib/wb_protos.h>
 
-/*
- * Jim Mackraz suggested making icons easily identifiable by outside
- * programs, so this constant gets stuffed into the UserData field.
- */
-#define	ICON	0x49434f4eL		/*  'ICON'  */
+extern struct Library *WorkbenchBase;
 
+static struct DiskObject icondef = {
+    WB_DISKMAGIC,WB_DISKVERSION,
+    {NULL, 0, 0, 0/*width*/, 0/*height*/, GFLG_GADGIMAGE|GFLG_GADGHCOMP,
+	GACT_IMMEDIATE, GTYP_BOOLGADGET, NULL/*image*/, NULL, NULL,
+	0, NULL, 0, NULL},
+    0, NULL, NULL, NO_ICON_POSITION, NO_ICON_POSITION,
+    NULL, NULL, 0 };
 
-extern void	*OpenWindow(), *GetMsg(), *CreatePort(), *CreateExtIO(),
-		*CheckIO();
-extern long	OpenDevice(), DoubleClick();
+int
+iconify(x, y, width, height, etcptr, ptr, type)
+UWORD *x, *y, width, height;
+APTR ptr;
+APTR etcptr;
+{
+    struct AppIcon *icon;
+    struct MsgPort *myport;
+    struct AppMessage *msg;
+    int done;
 
+    icondef.do_Gadget.Width  = width;
+    icondef.do_Gadget.Height = height;
+    icondef.do_Gadget.GadgetRender = ptr;
+    icondef.do_CurrentX = NO_ICON_POSITION;
+    icondef.do_CurrentY = NO_ICON_POSITION;
+
+    if ((myport=(struct MsgPort *)CreateMsgPort()) == NULL)
+	return FALSE;
+    if (type == ICON_WB)
+	icon = AddAppIconA(0, 0, etcptr, myport,
+			   NULL, &icondef, NULL);
+    else
+	icon = AddAppIconA(0, 0, NULL, myport,
+			   NULL, &icondef, NULL);
+
+    if (icon == NULL)
+    {
+	while (msg=(struct AppMessage *)GetMsg(myport))
+	    ReplyMsg((struct Message *)msg);
+	DeleteMsgPort(myport);
+	return FALSE;
+    }
+    
+    done = FALSE;
+    while (!done)
+    {
+	WaitPort(myport);
+	while (msg = (struct AppMessage *)GetMsg(myport))
+	{
+	    if (msg->am_NumArgs == 0L)
+		done = TRUE;
+	    ReplyMsg((struct Message *)msg);
+	}
+    }
+    
+    RemoveAppIcon(icon);
+    while (msg=(struct AppMessage *)GetMsg(myport))
+	ReplyMsg((struct Message *)msg);
+    DeleteMsgPort(myport);
+
+    return TRUE;
+}
+
+#else	/* not V2 */
+
+#include <graphics/gfxbase.h>
+#include <intuition/intuition.h>
+#include <intuition/intuitionbase.h>
+#include <clib/intuition_protos.h>
 
 static struct Gadget gadget = {
-	NULL,
-	0, 0, 0, 0,
-	NULL,				/*  Set later  */
-	GADGIMMEDIATE,
-	WDRAGGING,			/*  Observe the Magic!  */
-	NULL,				/*  Set later  */
-	NULL, NULL, NULL, NULL,
-	0, 0
+    NULL, 0, 0, 0/*width*/, 0/*height*/, GFLG_GADGIMAGE|GFLG_GADGHCOMP,
+    GACT_IMMEDIATE, WDRAGGING, NULL/*image*/, NULL, NULL,
+    0, NULL, 0, NULL};
+
+static struct NewWindow icondef = {
+	0,	0,		/* start position       	*/
+	0,	0,		/* width, height		*/
+	0,	1,	     	/* detail pen, block pen	*/
+	GADGETDOWN, 		/* mouse is used		*/
+	BORDERLESS|SMART_REFRESH|NOCAREREFRESH,
+				/* window flags			*/
+	&gadget,		/* pointer to first user gadget */
+	NULL,			/* pointer to user checkmark	*/ 
+	NULL,			/* title (filled in later)	*/
+	NULL,			/* pointer to screen (none)	*/
+	NULL,			/* pointer to superbitmap	*/
+	0, 0,			/* minimum size	(small!)	*/
+	0, 0,			/* maximum size (set by ttopen)	*/
+	WBENCHSCREEN		/* screen in which to open	*/ 
 };
 
-static struct NewWindow windef = {
-	0, 0, 0, 0,			/*  Set later  */
-	-1, -1,
-	GADGETDOWN,
-	BORDERLESS | SMART_REFRESH | NOCAREREFRESH,
-	&gadget,
-	NULL, NULL, NULL, NULL,		/*  Lotsa these  */
-	0, 0, 0, 0,
-	WBENCHSCREEN
-};
-
-static struct Window		*win;
-
-#ifdef USE_FUNCTIONS
-static struct timerequest	*tr;
-static struct MsgPort		*reply;
-#endif
-
-
-iconify (left, top, width, height, screen, ptr, type)
-UWORD *left, *top, width, height;
-struct Screen *screen;
+int
+iconify(x, y, width, height, etcptr, ptr, type)
+UWORD *x, *y, width, height;
+APTR etcptr;
 APTR ptr;
-int type;
 {
-	register struct IntuiMessage	*msg;
-	long				secs = 0, mics = 0,
-					cs, cm,
-					class,
-					sigmask;
+    int done;
+    unsigned long secs,secs1,micros,micros1;
+    struct IntuiMessage *msg;
+    struct Window *icon;
 
-	windef.LeftEdge		= *left;
-	windef.TopEdge		= *top;
-	windef.Width		= width;
-	windef.Height		= height;
-	windef.Type = (windef.Screen = screen) ? CUSTOMSCREEN : WBENCHSCREEN;
+    icondef.Width  = width;
+    icondef.Height = height;
+    icondef.LeftEdge = *x;
+    icondef.TopEdge  = *y;
 
-	gadget.Flags		= GADGHCOMP | GRELWIDTH | GRELHEIGHT;
-
-	switch (type & 3) {
-	case ICON_IMAGE:
-		gadget.Flags		|= GADGIMAGE;
-	case ICON_BORDER:
-		gadget.GadgetRender	= ptr;
-		break;
-
-	case ICON_FUNCTION:
-#ifdef USE_FUNCTIONS
-		gadget.GadgetRender	= NULL;
-#else
-		return (0);
-#endif
-		break;
-
-	default:
-		return (0);
+    if (type==ICON_WB || etcptr==NULL)
+	icondef.Screen = (struct Screen *)WBENCHSCREEN;
+    else
+	icondef.Screen = (struct Screen *)etcptr;
+    
+    gadget.Width  = width;
+    gadget.Height = height;
+    gadget.GadgetRender = ptr;
+	
+    if ((icon=OpenWindow(&icondef)) == NULL)
+	return FALSE;
+	
+    micros1 = secs1 = 0;
+    done = FALSE;
+    while (!done)
+    {
+	Wait((long)(1L << icon->UserPort->mp_SigBit));
+	while (msg = (struct IntuiMessage *)GetMsg(icon->UserPort))
+	{
+	    if (msg->Class == IDCMP_GADGETDOWN)
+	    {
+		CurrentTime(&secs, &micros);
+		if (DoubleClick(secs1, micros1, secs, micros))
+		    done = TRUE;
+		secs1   = secs;
+		micros1 = micros;
+	    }
+	    ReplyMsg((struct Message *)msg);
 	}
-
-	if (!openstuff ())
-		return (0);
-	sigmask = 1L << win -> UserPort -> mp_SigBit;
-
-#ifdef USE_FUNCTIONS
-	if (type == ICON_FUNCTION) {
-		sigmask |= 1L << reply -> mp_SigBit;
-		tr -> tr_node.io_Command= TR_ADDREQUEST;
-		tr -> tr_time.tv_secs	= 0;
-		tr -> tr_time.tv_micro	= (1000000L / TICKS_PER_SECOND);
-		SendIO (tr);
-		/*
-		 * Make initialization call to user's function.
-		 * Isn't typecasting wonderful?  :-|
-		 */
-		(* ((void (*)()) ptr)) (win, (WORD) 1);
-	}
-#endif
-
-	while (1) {
-		Wait (sigmask);
-
-#ifdef USE_FUNCTIONS
-		if (GetMsg (reply)) {
-			/*
-			 * Call user's function to do something to the icon.
-			 */
-			(* ((void (*)()) ptr)) (win, (WORD) 0);
-			tr -> tr_time.tv_secs	= 0;
-			tr -> tr_time.tv_micro	=
-			 (1000000L / TICKS_PER_SECOND);
-			SendIO (tr);
-		}
-#endif
-
-		if (msg = GetMsg (win -> UserPort)) {
-			class = msg -> Class;
-			cs = msg -> Seconds;
-			cm = msg -> Micros;
-			ReplyMsg (msg);
-
-			if (class == GADGETDOWN) {
-				if (DoubleClick (secs, mics, cs, cm))
-					break;
-				secs = cs;  mics = cm;
-			}
-		}
-	}
-
-#ifdef USE_FUNCTIONS
-	if (type == ICON_FUNCTION) {
-		AbortIO (tr);
-		WaitIO (tr);
-	}
-#endif
-
-	*left = win -> LeftEdge;
-	*top = win -> TopEdge;
-	closestuff ();
-	return (1);
+    }
+	
+    CloseWindow(icon);
+    return TRUE;
 }
+#endif	/* V2 */
 
-static
-openstuff ()
-{
-	if (!(win = OpenWindow (&windef)))
-		return (0);
-	win -> UserData = (BYTE *) ICON;
-		
-#ifdef USE_FUNCTIONS
-	if (!(reply = CreatePort (NULL, NULL)) ||
-	    !(tr = CreateExtIO (reply, (long) sizeof (*tr))) ||
-	    OpenDevice (TIMERNAME, UNIT_VBLANK, tr, 0L)) {
-		closestuff ();
-		return (0);
-	}
-#endif
-
-	return (1);
-}
-
-static
-closestuff ()
-{
-#ifdef USE_FUNCTIONS
-	if (tr) {
-		if (tr -> tr_node.io_Device)
-			CloseDevice (tr);
-		DeleteExtIO (tr, (long) sizeof (*tr));
-	}
-	if (reply)		DeletePort (reply);
-#endif
-
-	if (win)		CloseWindow (win);
-}
+#endif	/* DO_ICONIFY */
