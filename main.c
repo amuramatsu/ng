@@ -1,10 +1,13 @@
-/* $Id: main.c,v 1.3 2000/07/18 12:51:25 amura Exp $ */
+/* $Id: main.c,v 1.4 2000/07/25 15:06:18 amura Exp $ */
 /*
  *		Mainline
  */
 
 /*
  * $Log: main.c,v $
+ * Revision 1.4  2000/07/25 15:06:18  amura
+ * handle Kanji filename for win32
+ *
  * Revision 1.3  2000/07/18 12:51:25  amura
  * cleaning code
  *
@@ -148,7 +151,7 @@ char **argv;
 			continue;
 		}
 #endif	/* ADDOPT */
-#if defined(MSDOS)||defined(HUMAN68K)
+#if defined(MSDOS)||defined(HUMAN68K)||defined(_WIN32)
 		{
 			char argve[NFILEN];
 
