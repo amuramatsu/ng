@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.4 2001/09/27 19:36:36 amura Exp $ */
+/* $Id: ttydef.h,v 1.5 2001/10/06 14:34:40 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: ttydef.h,v $
+ * Revision 1.5  2001/10/06 14:34:40  amura
+ * implement putline() in EPOC32 port
+ *
  * Revision 1.4  2001/09/27 19:36:36  amura
  * Small changes for support EPOC32
  *
@@ -22,9 +25,9 @@
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /* 90.02.05	Modified for Ng 1.0 by S.Yoshida */
 
-#if defined(PC9801)||defined(WIN32)	/* 90.03.24  by A.Shirahashi */
+#if defined(PC9801)||defined(WIN32)||defined(EPOC32)
 #define	MEMMAP			/* Not memory mapped video.	*/
-#else	/* not !PC9801 && !WIN32 */
+#else	/* not !PC9801 && !WIN32 && !EPOC32 */
 #define GOSLING			/* Compile in fancy display.	*/
 #endif	/* PC9801 */
 

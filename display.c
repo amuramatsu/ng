@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.15 2001/09/30 13:58:38 amura Exp $ */
+/* $Id: display.c,v 1.16 2001/10/06 14:34:39 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.16  2001/10/06 14:34:39  amura
+ * implement putline() in EPOC32 port
+ *
  * Revision 1.15  2001/09/30 13:58:38  amura
  * Define and rename macros support for EPOC32
  *
@@ -393,7 +396,7 @@ vtputc(c) register int c; {
 	}
 }
 
-#if defined(MEMMAP)&&(!defined(PC9801))&&(!defined(WIN32))
+#if defined(MEMMAP)&&(!defined(PC9801))&&(!defined(WIN32))&&(!defined(EPOC32))
 static VOID
 #ifdef	SS_SUPPORT
 putline(row, col, s, t, color)
@@ -443,7 +446,7 @@ short color;	/* this is dummy */
     vtrow = oldrow;
     vtcol = oldcol;
 }
-#endif /* MEMMAP && !PC9801 && !WIN32 */
+#endif /* MEMMAP && !PC9801 && !WIN32 && !EPOC32 */
 
 /* Mark '\\' end of line 
  * whether curcol is not on the top of line.
