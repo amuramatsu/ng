@@ -1,4 +1,4 @@
-/* $Id: skg.c,v 1.6 2001/04/30 14:59:49 amura Exp $ */
+/* $Id: skg.c,v 1.7 2001/05/04 17:52:02 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
@@ -7,6 +7,9 @@
 
 /*
  * $Log: skg.c,v $
+ * Revision 1.7  2001/05/04 17:52:02  amura
+ * Make skg_init() and skg_finish(), and rewrite some routine for secure issue
+ *
  * Revision 1.6  2001/04/30 14:59:49  amura
  * rewrite to speed up and bugfix
  *
@@ -61,13 +64,18 @@ typedef struct {
 } DICKEYSTR;
 static DICKEYSTR dickeystr[KEY_BUFFER_SIZE];
 
+/* Roman -> Kana convertion table */
 typedef struct {
     unsigned char roman[ROMAN_MAXLEN];
     unsigned char kana[KANA_MAXLEN];
     char _dummy[8 - (ROMAN_MAXLEN+KANA_MAXLEN)%8];	/* for dword align */
 } ROMANTBL;
 static ROMANTBL *romantbl;
+static ROMANTBL *romantbl_end;
 int romantbl_size;
+
+/* Dictionary file (opening while SKG active for speed reason) */
+static FILE *dicfile;
 
 typedef unsigned char WORDLIST[DIC_BUFFER_SIZE];
 
@@ -78,6 +86,8 @@ typedef unsigned char WORDLIST[DIC_BUFFER_SIZE];
 #define SKG_NOCONV	1
 #define SKG_QUIT	2
 
+#define SKG_INSERT	0	/* Must not same value with SKG_QUIT */
+
 #define	DEFAULT_ROMANNAME	"SKG-ROMAN"
 #define DEFAULT_DICNAME		"SKG-JISYO"
 
@@ -85,7 +95,8 @@ char *romanname = NULL;
 char *dicname   = NULL;
 
 extern int isetmark();
-static int skg_check_exist_file();
+static int skg_init();
+static VOID skg_finish();
 static int skg_input_string();
 static VOID skg_text_insert();
 static int skg_convert_string();
@@ -107,21 +118,17 @@ static int compare_keystring();
 
 /* Clear Key Buffer String */
 #define clear_string(str)	(str[0] = '\0')
-
 /* Clear Dictinary Buffer String */
 #define clear_list(str)		(str[0] = '\0')
 
 /* Comparing Two Strings */
 static int
 compare_string(s1, s2)
-    char *s1, *s2;
+    register char *s1, *s2;
 {
     while (*s2)
-    {
-	if (*s1 != *s2)
+	if (*s1++ != *s2++)
 	    return FALSE;
-	s1++;s2++;
-    }
     return TRUE;
 }
 
@@ -146,12 +153,11 @@ strcat_c(s, c)
 /*  is complete. return EOF).                                 */ 
 /*  k1,k2 is First Character in Key String. In not matching,  */
 /*  skip entry.ZENKAKU-Code consists of 2 bytes.              */
-
 static int
 get_scanf(k1, k2, f, key, kanji)
-   int k1, k2;
-   FILE *f;
-   char *key, *kanji;
+    int k1, k2;
+    FILE *f;
+    register char *key, *kanji;
 {
     register int rbuf;
     register char *p;
@@ -230,11 +236,8 @@ skginput(f, n)
     char istr[KEY_BUFFER_SIZE];
     char dstr[KEY_BUFFER_SIZE];
     int mode = H_MODE;
-    int s, c, i;
+    int s;
     static int in_skg = FALSE;
-    FILE *rfile;
-    ROMANTBL *romanptr;
-    char bufstr[KANA_MAXLEN],bufkey[ROMAN_MAXLEN];
 
 #ifdef	READONLY			/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
@@ -243,41 +246,12 @@ skginput(f, n)
     }
 #endif	/* READONLY */
 
-    /* If Not Exist files what need, Quit. */  
-    if (skg_check_exist_file() == FALSE)
-	return FALSE; 
     if (in_skg)
 	return FALSE;
+    /* If Not Exist files what need, Quit. */  
+    if (skg_init() == FALSE)
+	return FALSE; 
     in_skg = TRUE;
-
-    /* Loading Roman->Kana table */
-    ewprintf("Roman table loading");
-    rfile = fopen((romanname!=NULL) ? romanname : DEFAULT_ROMANNAME, "r");
-    i = 0;
-    while ((c=fgetc(rfile)) != EOF)
-	if (c == '\n')
-	    i++;
-    romanptr = romantbl = (ROMANTBL*)malloc(sizeof(ROMANTBL)*i);
-    rewind(rfile);
-    ewprintf("Roman table loading .. start");
-    romantbl_size = 0;
-    while (romanptr<(romantbl+i) &&
-	   fscanf(rfile, "%s %s", bufkey, bufstr) != EOF)
-    {
-	if (bufkey[0]=='\0' || bufstr[0]=='\0')
-	    continue;
-	strncpy(romanptr->roman, bufkey, ROMAN_MAXLEN);
-	romanptr->roman[ROMAN_MAXLEN-1] = '\0';
-	strncpy(romanptr->kana,  bufstr, KANA_MAXLEN);
-	romanptr->kana[KANA_MAXLEN-1]   = '\0';
-	romanptr++;
-	romantbl_size++;
-	clear_string(bufkey);
-	clear_string(bufstr);
-    }
-    fclose(rfile);
-    ewprintf("Roman table loading .. end (size:%d)", romantbl_size);
-    ttwait();
 
 #ifdef	UNDO
     undoptr = NULL;
@@ -303,8 +277,7 @@ skginput(f, n)
 	}
 	else                       /* Insert with Kanji Converting */
 	{
-	    /* This Value 0 means Not Quit */
-	    if (skg_convert_string(mode, istr, dstr) == 0)
+	    if (skg_convert_string(mode, istr, dstr) == SKG_INSERT)
 	    {          /* A_MODE means without KANA-Converting */  
 		skg_text_insert(dstr, A_MODE);
 		ewprintf("Insert....");        
@@ -312,11 +285,11 @@ skginput(f, n)
 	    }
 	    clear_string(dstr);
 	}
-    }  
-    /* Skg Loop */
+    } /* Skg Loop END */
 
     ewprintf("Quit..."); 
-    free(romantbl);
+    skg_finish();
+    
     in_skg = FALSE;
     return TRUE;
 }
@@ -325,36 +298,36 @@ static int
 convert_to_hiragana(dstr, keystr, size)
     char *dstr, *keystr;
 {
-    ROMANTBL *romanptr;
-    int cpnt, i;
+    register char *ptr = keystr;
     clear_string(dstr);
 
-    cpnt = 0;
-    while (cpnt < strlen(keystr))
+    while (*ptr)
     {
-	for (i=0,romanptr=romantbl; i<romantbl_size; i++,romanptr++)
+	register ROMANTBL *romanptr = romantbl;
+	while (romanptr < romantbl_end)
 	{
-	    if (compare_string(&keystr[cpnt], romanptr->roman))
+	    if (compare_string(ptr, romanptr->roman))
 	    {
 		strcat(dstr, romanptr->kana);
-		cpnt  += strlen(romanptr->roman);
+		ptr += strlen(romanptr->roman);
 		break;
 	    }
+	    romanptr++;
 	}
 	
-	if (i==romantbl_size && cpnt<strlen(keystr))
+	if (romanptr == romantbl_end && *ptr)
 	{
-	    if (keystr[cpnt+1] == keystr[cpnt])	/* for SOKUON */
+	    if (*ptr == *(ptr+1))	/* for SOKUON */
 	    {
-		if (ISUPPER(keystr[cpnt]))
+		if (ISUPPER(*ptr))
 		    strcat(dstr, "ッ");
 		else
 		    strcat(dstr, "っ");
-		cpnt++;
+		ptr++;
 	    }
 	    else			/* cannot convert to KANA */
 	    {
-		strcat(dstr, &keystr[cpnt]);
+		strcat(dstr, ptr);
 		return FALSE;
 	    }
 	}
@@ -363,29 +336,67 @@ convert_to_hiragana(dstr, keystr, size)
 }
 
 static int
-skg_check_exist_file()
+skg_init()
 {
-    FILE *romanfile, *dicfile;
+    int i,c;
+    FILE *romanfile;
+    ROMANTBL *romanptr;
+    char bufstr[KANA_MAXLEN], bufkey[ROMAN_MAXLEN];
 
+    /* Open dictionary file */
     dicfile = fopen((dicname!=NULL) ? dicname : DEFAULT_DICNAME , "r");
-    
     if (dicfile == NULL) 
     { 
 	ewprintf("Can't Open Dictionary File...");
 	return FALSE;
     }
-    fclose(dicfile);
-  
+
+    /* Loading Roman->Kana table */
     romanfile = fopen((romanname!=NULL) ? romanname : DEFAULT_ROMANNAME,
 		      "r");
     if (romanfile == NULL) 
     { 
+	fclose(dicfile);
 	ewprintf("Can't Open Roman Table File...");
 	return FALSE;
     }
+    
+    /* counting entrys */
+    i = 0;
+    while ((c=fgetc(romanfile)) != EOF)
+	if (c == '\n')
+	    i++;
+
+    /* make Roman->Kana table */
+    romanptr = romantbl = (ROMANTBL*)malloc(sizeof(ROMANTBL)*i);
+    rewind(romanfile);
+    romantbl_size = 0;
+    while (romanptr<(romantbl+i) &&
+	   fscanf(romanfile, "%s %s", bufkey, bufstr) != EOF)
+    {
+	if (bufkey[0]=='\0' || bufstr[0]=='\0')
+	    continue;
+	strncpy(romanptr->roman, bufkey, ROMAN_MAXLEN);
+	romanptr->roman[ROMAN_MAXLEN-1] = '\0';
+	strncpy(romanptr->kana,  bufstr, KANA_MAXLEN);
+	romanptr->kana[KANA_MAXLEN-1]   = '\0';
+	romanptr++;
+	romantbl_size++;
+	clear_string(bufkey);
+	clear_string(bufstr);
+    }
+    romantbl_end = romantbl + romantbl_size;
     fclose(romanfile);
     
     return TRUE;
+}
+
+static VOID
+skg_finish()
+{
+    fclose(dicfile);
+    free(romantbl);
+    romantbl_size = 0;
 }
 
 static VOID
@@ -393,9 +404,9 @@ skg_text_insert(insert_str, mode)
     char *insert_str;
     int mode;
 {
-    int c;
+    register int c;
     static char bufstr[KEY_BUFFER_SIZE]; 
-    char *p = bufstr;
+    register char *p = bufstr;
     clear_string(bufstr);
 
     isetmark();
@@ -428,8 +439,8 @@ skg_text_insert(insert_str, mode)
 
 static int
 skg_input_string(mode, istr)
- int  *mode; 
- char *istr;
+    int  *mode; 
+    register char *istr;
 {
     register int c;
  
@@ -456,11 +467,11 @@ skg_input_string(mode, istr)
 	  case CCHR('G'):
 	    if (strlen(istr) == 0)
 	    {
-		clear_string( istr );
+		clear_string(istr);
 		return SKG_QUIT;
 	    }            /* Else Clear istr. */
 	    else
-		clear_string( istr );
+		clear_string(istr);
 	    break;
 
 	  case ' ':
@@ -520,28 +531,27 @@ skg_input_string(mode, istr)
 
 static char *
 next_target(dictionary_list, target, dstr)
-   WORDLIST dictionary_list;
-   char *target, *dstr;
+    WORDLIST dictionary_list;
+    register char *target, *dstr;
 {
-    int i;
-    
-    target++;
-    if (*target=='\0' || *target == '\n')
+    if (target == NULL)
 	target = dictionary_list + 1;
-    for (i=0 ; *target!='/' ; target++,i++)
-	dstr[i] = *target;
-    dstr[i] = '\0';
-    
+    else {
+	target++;
+	if (*target=='\0' || *target == '\n')
+	    target = dictionary_list + 1;
+    }
+    while (*target != '/')
+	*dstr++ = *target++;
+    *dstr = '\0';
     return target;
 }
 
 static char *
 prev_target(dictionary_list, target, dstr)
     WORDLIST dictionary_list;
-    char *target, *dstr;
+    register char *target, *dstr;
 {
-    int i;
-    
     if (target == (char *)dictionary_list) 
 	target = dictionary_list + strlen(dictionary_list) - 1;
     for (target-- ; *target != '/' ; target--);
@@ -549,11 +559,11 @@ prev_target(dictionary_list, target, dstr)
     if (target == (char *)dictionary_list) 
 	target = dictionary_list + strlen(dictionary_list) - 1;
     for (target-- ; *target != '/' ; target--);
-
     target++;
-    for (i=0 ; *target!='/' ; target++,i++ )
-	dstr[i]= *target;
-    dstr[i]='\0';
+
+    while (*target != '/')
+	*dstr++ = *target++;
+    *dstr = '\0';
 
     return target;
 }
@@ -565,14 +575,12 @@ skg_convert_string(mode, istr, dstr)
 {
     WORDLIST dictionary_list;
     static char rstr[KEY_BUFFER_SIZE];
-    char *target;
+    register char *target;
     int c;
  
     search_dictionary(mode, istr, dictionary_list, rstr);
-
     clear_string(dstr); 
-
-    target = next_target(dictionary_list, "\0", dstr);
+    target = next_target(dictionary_list, NULL, dstr);
     target_display(dstr, rstr);
     
     for (;;)
@@ -582,15 +590,15 @@ skg_convert_string(mode, istr, dstr)
 	  case  CCHR('G'):
 	  case  CCHR('H'):
 	  case  CCHR('?'):
-	    (VOID )ctrlg(FFRAND, 0);
-	    return 1; 
+	    (VOID)ctrlg(FFRAND, 0);
+	    return SKG_QUIT; 
 
 	  case  CCHR('M'):
 	    strcat(dstr , rstr);
-	    return 0;
+	    return SKG_INSERT;
 
  	  case  CCHR('N'):
-	  case        ' ':
+	  case  ' ':
 	    target = next_target(dictionary_list, target, dstr);
 	    target_display(dstr, rstr);
 	    break;
@@ -609,7 +617,7 @@ skg_convert_string(mode, istr, dstr)
 	    if (!ISCTRL(c)) {
 		ungetkey(c);
 		strcat(dstr, rstr);
-		return 0;
+		return SKG_INSERT;
 	    }
 	    ttbeep();
 	    ewprintf("Help: RET=Insert, SPC ^N = Next, "
@@ -618,27 +626,25 @@ skg_convert_string(mode, istr, dstr)
 	    break;
 	}
     }
-    return 1;
+    return SKG_QUIT;
 }
 
 static VOID
 target_display(dstr, rstr)
-   char *dstr,*rstr;
+    char *dstr,*rstr;
 {
     ewprintf("Skg[--]?|%s|%s", dstr, rstr);
 }
 
 static VOID
 skg_display_prompt(istr, mode)
-  char *istr; 
-  int mode;
+    char *istr; 
+    int mode;
 {
     static char bufstr[KEY_BUFFER_SIZE];
     
     if (mode == A_MODE)
-    {
 	ewprintf("Skg[*a]:%s", istr);
-    }      
     else
     {
 	convert_to_hiragana(bufstr, istr, sizeof(bufstr));
@@ -648,8 +654,8 @@ skg_display_prompt(istr, mode)
 
 static char *
 dic_next_target(target, dstr)
-     char *target;
-     char *dstr;
+    char *target;
+    char *dstr;
 {
     target++;
     if (*target == '\0' || *target == '\n')
@@ -661,13 +667,14 @@ dic_next_target(target, dstr)
     return target;
 }
 
+/*XXX*/
 static char *
 makedic(tlist, trest, rlength, result)
     char *tlist, *trest;
     int rlength;
     char *result;
 {
-    char *p;
+    register char *p;
     static char tmpstr[KEY_BUFFER_SIZE];
 
     clear_string(tmpstr);
@@ -718,16 +725,10 @@ search_dictionary(mode, istr, dlist, rstr)
     static char tmplist[DIC_BUFFER_SIZE];
 
     int first_key, second_key;
+    register int match_strings = 0, target_number = 0;
     
-    FILE *dicfile;
-
-    int match_strings = 0,
-	target_number = 0,
-	flg = 0;
-
-    dicfile = fopen((dicname!=NULL) ? dicname : DEFAULT_DICNAME , "rb");
-
     ewprintf("Now Scanning Dictionary..."); 
+    rewind(dicfile);
 
     clear_list(dlist);
     clear_string(rstr);
@@ -737,8 +738,7 @@ search_dictionary(mode, istr, dlist, rstr)
     first_key  = dickeystr[0].hiragana[0]; 
     second_key = dickeystr[0].hiragana[1]; 
 
-    while (get_scanf(first_key, second_key, dicfile,
-		     tmpstr, tmplist))
+    while (get_scanf(first_key, second_key, dicfile, tmpstr, tmplist))
     {	
 	if (compare_keystring(istr, tmpstr, tmprstr, mode))
 	{
@@ -775,7 +775,6 @@ search_dictionary(mode, istr, dlist, rstr)
 	if (target_number > 1)
 	{
 	    int i;
-	    
 	    if (target_number < match_strings)
 		i = MAX_TARGET - 1;
 	    else
@@ -793,75 +792,71 @@ search_dictionary(mode, istr, dlist, rstr)
 	    }
 	}
     }
-    
-    fclose(dicfile);
     return;
 }
 
 static VOID
 setup_keystring(mode, keystr)
-  int mode;
-  char *keystr;
+    int mode;
+    register char *keystr;
 {
-    DICKEYSTR *dickeyptr;
-    int cpnt, i;
-    ROMANTBL *romanptr;
-
-    dickeyptr = dickeystr;
+    register DICKEYSTR *dickeyptr = dickeystr;
+    
     if (mode == A_MODE)
     {
-	for (; *keystr; dickeyptr++)
+	while (*keystr)
 	{
 	    dickeyptr->hiragana[0] = *keystr++;
 	    dickeyptr->hiragana[1] = '\0';
 	    dickeyptr->length = 1;
-	    dickeystr->flg = TRUE;
+	    dickeyptr->flg = TRUE;
+	    dickeyptr++;
 	}
     }
     else
     {
-	cpnt = 0;
-	while (cpnt < strlen(keystr))
+	char *keystr_end = keystr+strlen(keystr);
+	register char *ptr = keystr;
+	
+	while (ptr < keystr_end)
 	{
-	    romanptr = romantbl;
-	    
-	    for (i=0; i<romantbl_size; i++,romanptr++) {
-		if (compare_string(&keystr[cpnt], romanptr->roman))
+	    register ROMANTBL *romanptr = romantbl;
+	    while (romanptr < romantbl_end)
+	    {
+		if (compare_string(ptr, romanptr->roman))
 		{
 		    int len = strlen(romanptr->roman);
 		    strcpy(dickeyptr->hiragana, romanptr->kana);
 		    dickeyptr->length = len;
 		    dickeyptr->flg    = TRUE;
 		    dickeyptr++; 
-		    cpnt  += len;
+		    ptr += len;
 		    break;
 		}
+		romanptr++;
 	    }
 	    
-	    if (i == romantbl_size)
+	    if (romanptr == romantbl_end)
 	    {
-		if (cpnt < strlen(keystr))
+		if (ptr < keystr_end)
 		{
-		    if (keystr[cpnt+1] == keystr[cpnt])
-		    {
-			if (ISUPPER(keystr[cpnt]))
-			    strcpy(dickeyptr->hiragana , "ッ");
-			else
-			    strcpy(dickeyptr->hiragana , "っ");
-			dickeyptr->length = 1;
-			dickeyptr->flg = TRUE;
-			dickeyptr++;
-			cpnt++;
-		    }
-		    else
+		    if (*ptr != *(ptr+1))
 			break;
+
+		    if (ISUPPER(*ptr))
+			strcpy(dickeyptr->hiragana , "ッ");
+		    else
+			strcpy(dickeyptr->hiragana , "っ");
+		    dickeyptr->length = 1;
+		    dickeyptr->flg = TRUE;
+		    dickeyptr++;
+		    ptr++;
 		}
 	    }
 	}    
-	
-	for (; cpnt<strlen(keystr); cpnt++)
+	while (ptr < keystr_end)
 	{
-	    dickeyptr->hiragana[0] = keystr[cpnt];
+	    dickeyptr->hiragana[0] = *ptr++;
 	    dickeyptr->hiragana[1] = '\0';
 	    dickeyptr->length = 1;
 	    dickeyptr->flg = FALSE;
@@ -869,17 +864,21 @@ setup_keystring(mode, keystr)
 	}
     }
     
+    /* end mark */
     dickeyptr->hiragana[0] = '\0';
     dickeyptr->length = 0;
+    dickeyptr->flg = FALSE;
 }
 
 static char *
 convert_to_n_hiragana(dstr, keystr, length)
-    char *dstr,*keystr;
+    char *dstr;
+    register char *keystr;
     int length;
 {
-    int cpnt,clen,cmode,klen;
-    DICKEYSTR *dickeyptr;
+    register int cpnt,clen,klen;
+    int cmode;
+    register DICKEYSTR *dickeyptr;
 
     clear_string(dstr);	    
 
@@ -914,8 +913,8 @@ convert_to_n_hiragana(dstr, keystr, length)
 
 static int
 compare_keystring(istr, tmpstr, tmprstr, mode)
-  char *istr, *tmpstr, *tmprstr; 
-  int mode;
+    char *istr, *tmpstr, *tmprstr; 
+    int mode;
 {
     char cstr[KEY_BUFFER_SIZE];
     clear_string(tmprstr);
