@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: re_search.c,v 1.2 2000/10/02 16:11:46 amura Exp $ */
 /*
  *		regular expression search commands for
  *			   MicroGnuEmacs
@@ -71,8 +71,11 @@ what you give them.   Help stamp out software-hoarding!
 
 /*
  * $Log: re_search.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2000/10/02 16:11:46  amura
+ * small fix in re_searchagain()
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 
@@ -205,6 +208,7 @@ re_searchagain(f, n) {
     }
     return (TRUE);
   }
+  return (FALSE);
 }
 
 #ifdef REGEX_JAPANESE
