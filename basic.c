@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.9 2002/01/10 20:52:01 amura Exp $ */
+/* $Id: basic.c,v 1.10 2002/04/06 22:56:42 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: basic.c,v $
+ * Revision 1.10  2002/04/06 22:56:42  amura
+ * cannot compiled problem is fixed
+ *
  * Revision 1.9  2002/01/10 20:52:01  amura
  * NEXTLINE feature is enabled always
  *
@@ -276,7 +279,7 @@ int f, n;
 
 
 #ifdef	ADDFUNC
-static int line_number_mode = FALSE;
+int line_number_mode = FALSE;
 
 int
 linenumbermode(f, n)
