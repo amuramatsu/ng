@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.4 2001/01/20 15:48:47 amura Exp $ */
+/* $Id: ttyio.c,v 1.5 2001/05/25 15:59:08 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -24,6 +24,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.5  2001/05/25 15:59:08  amura
+ * WIN32 version support AUTOSAVE feature
+ *
  * Revision 1.4  2001/01/20 15:48:47  amura
  * very big terminal supported
  *
@@ -127,6 +130,10 @@ ttgetc()
 		bLastChar = FALSE ;
 		return chLastChar ;
 	}
+#ifdef	AUTOSAVE
+	while (!KbhitSleep(1))
+		autosave_handler();
+#endif
 	return GetChar() ;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ttyctrl.cpp,v 1.8 2001/01/05 14:07:09 amura Exp $ */
+/* $Id: ttyctrl.cpp,v 1.9 2001/05/25 15:59:07 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: ttyctrl.cpp,v $
+ * Revision 1.9  2001/05/25 15:59:07  amura
+ * WIN32 version support AUTOSAVE feature
+ *
  * Revision 1.8  2001/01/05 14:07:09  amura
  * first implementation of Hojo Kanji support
  *
@@ -163,7 +166,7 @@ protected:
 	DWORD   m_keyboardlocale;		/* Keyboard locale */
 
 #ifdef	DROPFILES	/* 00.07.07  by sahf */
-	int	GetDropFiles( HLOCAL *lphMemory ) ;
+	int		GetDropFiles( HLOCAL *lphMemory ) ;
 #endif	/* DROPFILES */
 	void	SetupEvent( HANDLE hEvent ) ;
 	void	ClearScreen() ;
@@ -175,7 +178,7 @@ protected:
 	void	PutLine( WORD y, WORD color, LPCSTR sjis ) ;
 	void	Flush() ;
 	BOOL	Kbhit() const ;
-	int	GetChar() ;
+	int		GetChar() ;
 	DWORD	GetWH() const ;
 	void	AddMetaChar( TCHAR c ) ;
 	void	AddChar( TCHAR c ) ;
@@ -185,12 +188,12 @@ protected:
 	void	ShowCursor(void);
 	void	HideCursor(void);
 	void	ResetContent() ;
-	int GetWindowEvent(void);
-	void AddWindowEvent(int);
+	int		GetWindowEvent(void);
+	void	AddWindowEvent(int);
 #ifndef USE_KCTRL
-	void SetFontValues(LOGFONT *, HDC);
+	void	SetFontValues(LOGFONT *, HDC);
 #endif
-	void AdjustScreen(HWND, HDC);
+	void	AdjustScreen(HWND, HDC);
 
 public:
 	TtyView() ;
@@ -211,9 +214,9 @@ public:
 	void	WMMouseDown( WPARAM wParam, LPARAM lParam ) ;
 	void	WMSize( DWORD fwSize, WORD nWidth, WORD nHeight ) ;
 	BOOL	WMCopy(void) ;
-	void WMLButtonDown(int x, int y);
-	void WMSetFocus(void);
-	void WMKillFocus(void);
+	void	WMLButtonDown(int x, int y);
+	void	WMSetFocus(void);
+	void	WMKillFocus(void);
 
 	void	SetTab( DWORD wParam, BOOL bUpdate ) ;
 	void	SetHMargin( DWORD wParam, BOOL bUpdate ) ;
@@ -1170,7 +1173,6 @@ TtyView::WMKillFocus(void)
 	DestroyCaret();
 }
 
-
 #if 0
 /*
  * Set TAB size
@@ -1338,10 +1340,10 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 		return  pWindow->GetDropFiles( (LPHANDLE) lParam ) ;
 #endif	/* DROPFILES */
 	case TTYM_GETWH:		return pWindow->GetWH() ;
-        case TTYM_COMMAND:
+	case TTYM_COMMAND:
 		pWindow->Command(wParam, lParam);
 		break;
-        case TTYM_SETKEYBOARDLOCALE:
+	case TTYM_SETKEYBOARDLOCALE:
 		pWindow->SetKeyboardLocale((DWORD)wParam);
 		break;
 

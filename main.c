@@ -1,10 +1,13 @@
-/* $Id: main.c,v 1.8 2001/05/25 15:36:53 amura Exp $ */
+/* $Id: main.c,v 1.9 2001/05/25 15:59:06 amura Exp $ */
 /*
  *		Mainline
  */
 
 /*
  * $Log: main.c,v $
+ * Revision 1.9  2001/05/25 15:59:06  amura
+ * WIN32 version support AUTOSAVE feature
+ *
  * Revision 1.8  2001/05/25 15:36:53  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -244,7 +247,9 @@ char **argv;
 #endif
 	    }
 	}
+#ifndef	WIN32
 	return 0;
+#endif
 }
 
 /*

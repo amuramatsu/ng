@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.7 2001/02/18 19:29:05 amura Exp $ */
+/* $Id: sysdef.h,v 1.8 2001/05/25 15:59:07 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.8  2001/05/25 15:59:07  amura
+ * WIN32 version support AUTOSAVE feature
+ *
  * Revision 1.7  2001/02/18 19:29:05  amura
  * split dir.c to port depend/independ
  *
@@ -101,7 +104,8 @@ extern "C" {
 void	strcat_num(char *str, int num);
 void	strcat_char(char *str, int c);
 int	stricmp(const char *src, const char *dst);
-int	chdir(const char *dir );
+int	chdir(const char *dir);
+int	rchdir(char *dir);
 int	Fputc(int c);
 int	Sprintf(char *buf, const char *fmt, ... );
 #ifdef	__cplusplus
