@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.3 2001/02/14 09:19:45 amura Exp $ */
+/* $Id: ttydef.h,v 1.4 2001/09/27 19:36:36 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: ttydef.h,v $
+ * Revision 1.4  2001/09/27 19:36:36  amura
+ * Small changes for support EPOC32
+ *
  * Revision 1.3  2001/02/14 09:19:45  amura
  * code cleanup around putline() and NCOL/NROW
  *
@@ -37,7 +40,7 @@
 #define NCOL	132			/* (default) Columns.		*/
 #endif	/* MSDOS or HUMAN68K */
 #endif	/* NROW && NCOL */
-/* #define	MOVE_STANDOUT		/* don't move in standout mode	*/
+/* #define	MOVE_STANDOUT*/		/* don't move in standout mode	*/
 #define STANDOUT_GLITCH			/* possible standout glitch	*/
 #define TERMCAP				/* for possible use in ttyio.c	*/
 

@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.13 2001/08/17 19:15:06 amura Exp $ */
+/* $Id: config.h,v 1.14 2001/09/27 19:36:36 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -129,7 +129,7 @@
 
 #define XKEYS		/* use numelic keypad (by Gen.KUROKI) */
 
-/*#define CANNA		/* use CANNA kana-kanji server (by Endo) */
+/*#define CANNA*/	/* use CANNA kana-kanji server (by Endo) */
 
 /*................................................*/
 #endif			/* Do not edit this line. */
@@ -146,12 +146,12 @@
 #ifdef	MSDOS		/* Do not edit this line. */
 /*................................................*/
 
-/*#undef TCCONIO	/* Use Turbo C console IO  (by amura) */
+/*#undef TCCONIO*/	/* Use Turbo C console IO  (by amura) */
 
-/*#undef IBMPC		/* Create Ng for IBM PC compatible	*/
+/*#undef IBMPC*/	/* Create Ng for IBM PC compatible	*/
 			/* (include Toshiba J-3100)		*/
 
-/*#undef PC9801		/* Create Ng for NEC PC-9801 series. */
+/*#undef PC9801*/	/* Create Ng for NEC PC-9801 series. */
 
 #define BACKSLASH	/* Display backslash instead of \ (PC-9801 only) */
 
