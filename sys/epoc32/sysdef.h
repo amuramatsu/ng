@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.1 2001/09/30 15:59:12 amura Exp $ */
+/* $Id: sysdef.h,v 1.2 2001/11/28 19:02:10 amura Exp $ */
 /*
  *		Epoc32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.2  2001/11/28 19:02:10  amura
+ * Small fixes arount termcap library.
+ *
  * Revision 1.1  2001/09/30 15:59:12  amura
  * Initial EPOC32 commit.
  *
@@ -26,6 +29,7 @@
 #define	BSMAP	TRUE			/* Bs map feature can use.	*/
 					/* (default mode is bsmap on)	*/
 #define	MAKEBACKUP	TRUE		/* Making backup file is off.	*/
+#define WITHOUT_TERMCAP	TRUE		/* This port unused termcap lib */
 
 typedef int	RSIZE;			/* Type for file/region sizes	*/
 typedef short	KCHAR;			/* Type for internal keystrokes	*/

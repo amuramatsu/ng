@@ -1,4 +1,4 @@
-/* $Id: termcap.c,v 1.2 2001/11/23 11:56:47 amura Exp $ */
+/* $Id: termcap.c,v 1.3 2001/11/28 19:02:10 amura Exp $ */
 /*
  * termcap.c - termcap library routines for MS-DOS and OS/2
  *
@@ -12,6 +12,9 @@
 
 /*
  * $Log: termcap.c,v $
+ * Revision 1.3  2001/11/28 19:02:10  amura
+ * Small fixes arount termcap library.
+ *
  * Revision 1.2  2001/11/23 11:56:47  amura
  * Rewrite all sources
  *
@@ -340,16 +343,17 @@ int col, row;
 /*
  * tputs
  */
-VOID
+int
 tputs(p, lines, outc)
 register char *p;
 int lines;
-int (*outc)();
+VOID (*outc)(int);
 {
     while (*p == '.' || *p == '*' || *p >= '0' && *p <= '9')
 	p++;
     while (*p)
 	(*outc)(*p++);
+    return 0;
 }
 
 #endif /* WITHOUT_TERMCAP */

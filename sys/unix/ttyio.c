@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.12 2001/11/25 19:52:05 amura Exp $ */
+/* $Id: ttyio.c,v 1.13 2001/11/28 19:02:11 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.13  2001/11/28 19:02:11  amura
+ * Small fixes arount termcap library.
+ *
  * Revision 1.12  2001/11/25 19:52:05  amura
  * change for compiler warnings reducing
  *
@@ -64,9 +67,6 @@
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifdef HAVE_TERM_H
-#include <term.h>
 #endif
 
 #include <signal.h>		/* 90.02.13: For SIGWINCH.	*/

@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.5 2001/10/06 14:34:40 amura Exp $ */
+/* $Id: ttydef.h,v 1.6 2001/11/28 19:02:10 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: ttydef.h,v $
+ * Revision 1.6  2001/11/28 19:02:10  amura
+ * Small fixes arount termcap library.
+ *
  * Revision 1.5  2001/10/06 14:34:40  amura
  * implement putline() in EPOC32 port
  *
@@ -70,8 +73,30 @@
 # endif
 #endif
 
-extern	int tputs();
+#ifndef WITHOUT_TERMCAP
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef SUPPORT_ANSI
+int tgetent(char *, char *);
+int tgetflag(char *);
+int tgetnum(char *);
+char *tgetstr(char *, char **);
+char *tgoto(char *, int, int);
+int tputs(char *, int, void (*)(int));
+#else
+int tgetent();
+int tgetflag();
+int tgetnum();
+char *tgetstr();
+char *tgoto();
+int tputs();
+#endif
+#ifdef __cplusplus
+}
+#endif
 #define	putpad(str, num)	tputs(str, num, ttputc)
+#endif
 
 #define	KFIRST	K00
 #define	KLAST	K00

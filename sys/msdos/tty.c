@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.5 2001/11/24 08:24:29 amura Exp $ */
+/* $Id: tty.c,v 1.6 2001/11/28 19:02:11 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,6 +28,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.6  2001/11/28 19:02:11  amura
+ * Small fixes arount termcap library.
+ *
  * Revision 1.5  2001/11/24 08:24:29  amura
  * Rewrite all sources (for msdos port)
  *
@@ -69,8 +72,6 @@ static VOID setttysize _PRO((void));
 
 VOID ttputc _PRO((int));
 #ifndef TCCONIO
-char *tgetstr _PRO((char *));
-char *tgoto _PRO((char *, int, int));
 static int charcost _PRO((char *))
 
 static int insdel;		/* Do we have both insert & delete line? */

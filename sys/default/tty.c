@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.4 2001/11/25 19:52:04 amura Exp $ */
+/* $Id: tty.c,v 1.5 2001/11/28 19:02:10 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,6 +28,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.5  2001/11/28 19:02:10  amura
+ * Small fixes arount termcap library.
+ *
  * Revision 1.4  2001/11/25 19:52:04  amura
  * change for compiler warnings reducing
  *
@@ -57,10 +60,6 @@ int tceeol;			/* Costs are set later */
 int tcinsl;
 int tcdell;
 
-int tgetent _PRO((char *, char *));
-int tgetnum _PRO((char *));
-char *tgetstr _PRO((char *, char **));
-char *tgoto _PRO((char *, int, int));
 static int charcost _PRO((char *));
 #ifdef NO_RESIZE
 static VOID setttysize _PRO((void));

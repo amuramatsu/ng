@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.7 2001/11/28 17:51:48 amura Exp $ */
+/* $Id: sysdef.h,v 1.8 2001/11/28 19:02:10 amura Exp $ */
 /*
  * Name:	MicroEMACS
  * Version:	MG 2a
@@ -7,6 +7,9 @@
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.8  2001/11/28 19:02:10  amura
+ * Small fixes arount termcap library.
+ *
  * Revision 1.7  2001/11/28 17:51:48  amura
  * little modifies for support VBCC. (but not work yet)
  *
@@ -78,6 +81,8 @@ void *alloca(int);
 #define	CMDLINELENGTH	NFILEN		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	BSMAP		FALSE		/* Dec.18,1992 Add by H.Ohkubo */
+#define WITHOUT_TERMCAP	TRUE		/* This port unused termcap lib */
+
 /*
  * Macros used by the buffer name making code.
  * Start at the end of the file name, scan to the left

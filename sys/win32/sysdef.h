@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.9 2001/11/23 11:56:56 amura Exp $ */
+/* $Id: sysdef.h,v 1.10 2001/11/28 19:02:11 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.10  2001/11/28 19:02:11  amura
+ * Small fixes arount termcap library.
+ *
  * Revision 1.9  2001/11/23 11:56:56  amura
  * Rewrite all sources
  *
@@ -68,6 +71,7 @@
 #endif
 #endif
 #define	MAKEBACKUP	FALSE		/* Making backup file is off.	*/
+#define WITHOUT_TERMCAP	TRUE		/* This port unused termcap lib */
 
 typedef long	RSIZE;			/* Type for file/region sizes	*/
 typedef short	KCHAR;			/* Type for internal keystrokes	*/
