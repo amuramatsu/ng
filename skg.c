@@ -1,4 +1,4 @@
-/* $Id: skg.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: skg.c,v 1.2 2000/06/27 01:59:42 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
@@ -7,8 +7,11 @@
 
 /*
  * $Log: skg.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2000/06/27 01:59:42  amura
+ * small bugfix
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 
@@ -237,7 +240,7 @@ skginput(f , n)
 
     /* If Not Exist files what need, Quit. */  
     if (skg_check_exist_file()==FALSE) return FALSE; 
-    if (in_skg) goto end;
+    if (in_skg) return FALSE;
 
 #ifdef	UNDO
     undoptr = NULL;
@@ -278,7 +281,6 @@ skginput(f , n)
     }  
     /* Skg Loop */
 
-  end:
     ewprintf("Quit..."); 
     in_skg = FALSE;
     return TRUE;

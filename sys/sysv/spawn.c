@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.1 2000/06/27 01:47:59 amura Exp $ */
+/* $Id: spawn.c,v 1.2 2000/06/27 01:59:43 amura Exp $ */
 /*
  * Name:	MicroGnuEmacs
  *		Spawn CLI for System V.
@@ -8,8 +8,11 @@
 
 /*
  * $Log: spawn.c,v $
- * Revision 1.1  2000/06/27 01:47:59  amura
- * Initial revision
+ * Revision 1.2  2000/06/27 01:59:43  amura
+ * small bugfix
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:59  amura
+ * import to CVS
  *
  */
 
@@ -97,7 +100,7 @@ spawncli(f, n)
 # ifdef HAVE_GETSID
 	if (job_control) {
 # else
-	if (strcmp(o_shell, "/bin/sh")!=0 ||
+	if (strcmp(shellp, "/bin/sh")!=0 ||
 	    getenv("BASH_VERSION") || getenv("BASH"))	{
 		/* C shell, ksh	or bash	*/
 # endif

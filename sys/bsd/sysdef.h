@@ -1,12 +1,15 @@
-/* $Id: sysdef.h,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: sysdef.h,v 1.2 2000/06/27 01:59:42 amura Exp $ */
 /*
  *		BSD unix based systems (sunos, ultrix)
  */
 
 /*
  * $Log: sysdef.h,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.2  2000/06/27 01:59:42  amura
+ * small bugfix
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 
@@ -63,7 +66,9 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 
 #ifdef NO_SIG_TYPE
 #  undef SIG_T
-   typedef VOID (*SIG_T)();
+   typedef void (*SIG_T)();
+/* If your compiler doesn't have void, rewrite this "int (*SIG_T)()"
+   Cannot use VOID because it's defined later...  */
 #else
 #ifndef SIG_T
 #  define SIG_T sig_t
