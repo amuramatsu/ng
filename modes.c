@@ -1,4 +1,4 @@
-/* $Id: modes.c,v 1.2 2000/06/27 01:49:44 amura Exp $ */
+/* $Id: modes.c,v 1.3 2000/12/14 18:12:14 amura Exp $ */
 /*
  * Commands to toggle modes. Without an argument, toggle mode.
  * Negitive or zero argument, mode off.	 Positive argument, mode on.
@@ -7,6 +7,9 @@
 
 /*
  * $Log: modes.c,v $
+ * Revision 1.3  2000/12/14 18:12:14  amura
+ * use alloca() and more memory secure
+ *
  * Revision 1.2  2000/06/27 01:49:44  amura
  * import to CVS
  *
@@ -131,9 +134,9 @@ int f, n;
 {
     register int i;
     register MAPS *m;
-    char mode[32];
+    char mode[NINPUT];
 
-    if(eread("Set Default Mode: ", mode, 32, EFNEW) != TRUE)
+    if(eread("Set Default Mode: ", mode, sizeof(mode), EFNEW) != TRUE)
     	return ABORT;
     if((m = name_mode(mode)) == NULL) {
     	ewprintf("can't find mode %s", mode);

@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.4 2000/11/16 14:31:12 amura Exp $ */
+/* $Id: kanji.c,v 1.5 2000/12/14 18:12:14 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.5  2000/12/14 18:12:14  amura
+ * use alloca() and more memory secure
+ *
  * Revision 1.4  2000/11/16 14:31:12  amura
  * fix some typos which cause compile error when using
  * strict ANSI-C compiler (ex ACK, gcc-1.x)
@@ -592,10 +595,10 @@ int	num;
 	register int	s;
 	register int	i;
 	register int	n;
-	char	kcode[NFILEN];
+	char	kcode[NINPUT];
 
 	for (n = 0; n < 2; n++) {
-		if ((s = ereply("Kanji Code System : ", kcode, NFILEN)) != TRUE) {
+		if ((s = ereply("Kanji Code System : ", kcode, sizeof(kcode))) != TRUE) {
 			return (s);
 		}
 		if (ISDIGIT(kcode[0])) {
@@ -628,10 +631,10 @@ int	*lastch;
 	register int	i;
 	register char	*p = "KANA Select Char [78I] : ";
 	register int	n;
-	char	lchar[NFILEN];
+	char	lchar[];
 
 	for (n = 0; n < 2; n++) {
-		if ((s = ereply(p, lchar, NFILEN)) != TRUE) {
+		if ((s = ereply(p, lchar, sizeof(lchar))) != TRUE) {
 			return (s);
 		}
 		if (ISDIGIT(lchar[0])) {
@@ -664,10 +667,10 @@ int	kselect;
 	register char	*p = kselect ? "KANJI Select Char [@B] : " :
 		                       "ASCII Select Char [BHJ] : ";
 	register int	n;
-	char	lchar[NFILEN];
+	char	lchar[NINPUT];
 
 	for (n = 0; n < 2; n++) {
-		if ((s = ereply(p, lchar, NFILEN)) != TRUE) {
+		if ((s = ereply(p, lchar, sizeof(lchar))) != TRUE) {
 			return (s);
 		}
 		if (ISDIGIT(lchar[0])) {
@@ -1428,7 +1431,7 @@ int	len;
 
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 	if ( len == 0 ) return(0);
-	if((cp = malloc((unsigned)(len))) == NULL) {
+	if((cp = alloca((unsigned)(len))) == NULL) {
 	    ewprintf("Could not allocate %d bytes", len);
 	    return(-1);
 	}
@@ -1489,7 +1492,6 @@ int	len;
 		}
 	}
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
-	free(cp);
 	return (e - eorg);
 #else  /* not HANKANA */
 	return (len + e - j);
@@ -1509,7 +1511,7 @@ int	len;
 	register char	*porg, *tmpstr, *cp, *endcp;
 
 	if ( len == 0 ) return(0);
-	if((tmpstr = malloc((unsigned)(len))) == NULL) {
+	if((tmpstr = alloca((unsigned)(len))) == NULL) {
 	    ewprintf("Could not allocate %d bytes", len);
 	    return(-1);
 	}
@@ -1532,7 +1534,6 @@ int	len;
 			*p++ = (char)c1;
 		}
 	}
-	free(tmpstr);
 	return(p - porg);
 }
 #else  /* not HANKANA */

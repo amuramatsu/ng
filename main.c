@@ -1,10 +1,13 @@
-/* $Id: main.c,v 1.6 2000/09/21 17:28:31 amura Exp $ */
+/* $Id: main.c,v 1.7 2000/12/14 18:12:14 amura Exp $ */
 /*
  *		Mainline
  */
 
 /*
  * $Log: main.c,v $
+ * Revision 1.7  2000/12/14 18:12:14  amura
+ * use alloca() and more memory secure
+ *
  * Revision 1.6  2000/09/21 17:28:31  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -49,7 +52,6 @@ static VOID	edinit();
 VOID
 Main(int argc, char**argv)
 #else	/* WIN32 */
-VOID
 main(argc, argv)
 int  argc;
 char **argv;
@@ -214,6 +216,9 @@ char **argv;
 	}
 #endif /* ADDOPT */
 	for(;;) {
+#ifdef	C_ALLOCA
+	    (void)alloca(0);	/* for garbage correction */
+#endif
 #ifndef NO_DPROMPT
 	    *(promptp = prompt) = '\0';
 	    if(epresf == KPROMPT) eerase();
@@ -236,6 +241,7 @@ char **argv;
 #endif
 	    }
 	}
+	return 0;
 }
 
 /*

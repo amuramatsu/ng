@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.8 2000/11/16 14:21:31 amura Exp $ */
+/* $Id: tools.c,v 1.9 2000/12/14 18:12:14 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -31,6 +31,9 @@
 
 /*
  * $Log: tools.c,v $
+ * Revision 1.9  2000/12/14 18:12:14  amura
+ * use alloca() and more memory secure
+ *
  * Revision 1.8  2000/11/16 14:21:31  amura
  * merge Ng for win32 0.5
  *
@@ -821,24 +824,20 @@ send_clipboard_(const char *euc, int len)
 #endif
 
   size = euc2sjis_crlf(NULL, euc, len);
-  sjis = malloc(size+1);
+  sjis = alloca(size+1);
   if (sjis == NULL)
     return FALSE;
   (void)euc2sjis_crlf(sjis, euc, len);
   sjis[size] = '\0';
   size = sjis2unicode((LPBYTE) sjis, NULL, 0 ) ;
-  if (size == 0) {
-    free(sjis);
+  if (size == 0)
     return TRUE ;
-  }
 
   /* Open clipboard */
   if ( !OpenClipboard( 0 ) ) {
-    free(sjis);
     return FALSE;
   } else if ( !EmptyClipboard() ) {
     CloseClipboard() ;
-    free(sjis);
     return FALSE;
   }
   /* allocate memory for some amount needed */
@@ -862,7 +861,6 @@ send_clipboard_(const char *euc, int len)
 #endif
   /* Close clipboard */
   CloseClipboard() ;
-  free(sjis);
   return TRUE;
 }
 
@@ -991,22 +989,20 @@ WinExecute(char *fname)
   sei.nShow = SW_SHOW;
 
   sz = strlen(fname) + 1;
-  sei.lpFile =(LPTSTR)malloc(sz * (sizeof(TCHAR) + 1));
-  if (sei.lpFile) {
-    sjis = (char *)(sei.lpFile + sz);
-    strcpy(sjis, fname);
-#ifdef KANJI
-    bufetos(sjis, sz);
-#endif
-    sjis2unicode(sjis, (LPTSTR)sei.lpFile, sizeof(TCHAR) * sz);
-    res = ShellExecuteEx(&sei);
-    if (!res) {
-      DWORD err = GetLastError();
-    }
-    free((char *)sei.lpFile);
-  }
-  else {
+  sei.lpFile =(LPTSTR)alloca(sz * (sizeof(TCHAR) + 1));
+  if (sei.lpFile == NULL) {
     ewprintf("Memory exhausted!");
+    return;
+  }
+  sjis = (char *)(sei.lpFile + sz);
+  strcpy(sjis, fname);
+#ifdef KANJI
+  bufetos(sjis, sz);
+#endif
+  sjis2unicode(sjis, (LPTSTR)sei.lpFile, sizeof(TCHAR) * sz);
+  res = ShellExecuteEx(&sei);
+  if (!res) {
+      DWORD err = GetLastError();
   }
 }
 #endif

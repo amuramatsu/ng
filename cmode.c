@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.2 2000/09/18 10:19:52 amura Exp $ */
+/* $Id: cmode.c,v 1.3 2000/12/14 18:12:13 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: cmode.c,v $
+ * Revision 1.3  2000/12/14 18:12:13  amura
+ * use alloca() and more memory secure
+ *
  * Revision 1.2  2000/09/18 10:19:52  amura
  * calc_indent() is fixed
  *
@@ -87,10 +90,10 @@ int	flag_use_c_mode	= TRUE;
 cm_use_c_mode(f, n)
 {
     register int	s;
-    char	buf[NFILEN];
+    char	buf[NINPUT];
 
     if ((f & FFARG) == 0) {
-	if ((s = ereply("use-c-mode : ", buf, NFILEN)) != TRUE)
+	if ((s = ereply("use-c-mode : ", buf, sizeof(buf))) != TRUE)
 	    return (s);
 	if (ISDIGIT(buf[0]) || buf[0] == '-')
 	    n = (atoi(buf) > 0);
@@ -829,10 +832,10 @@ cm_set_cbrace(f, n)
 cm_set_newl(f, n)
 {
 	register int	s;
-	char	buf[NFILEN];
+	char	buf[NINPUT];
 
 	if ((f & FFARG) == 0) {
-		if ((s = ereply("c-auto-newline : ", buf, NFILEN)) != TRUE)
+		if ((s = ereply("c-auto-newline : ", buf, sizeof(buf))) != TRUE)
 			return (s);
 		if (ISDIGIT(buf[0]) || buf[0] == '-')
 			n = (atoi(buf) > 0);
@@ -855,10 +858,10 @@ cm_set_newl(f, n)
 cm_set_tab(f, n)
 {
 	register int	s;
-	char	buf[NFILEN];
+	char	buf[NINPUT];
 
 	if ((f & FFARG) == 0) {
-		if ((s = ereply("c-tab-always-indent : ", buf, NFILEN)) != TRUE)
+		if ((s = ereply("c-tab-always-indent : ", buf, sizeof(buf))) != TRUE)
 			return (s);
 		if (ISDIGIT(buf[0]) || buf[0] == '-')
 			n = (atoi(buf) > 0);

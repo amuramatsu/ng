@@ -1,8 +1,8 @@
-/* $Id: help.c,v 1.1 2000/06/27 01:47:55 amura Exp $ */
+/* $Id: help.c,v 1.2 2000/12/14 18:12:14 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 /*
- * $Id: help.c,v 1.1 2000/06/27 01:47:55 amura Exp $
+ * $Id: help.c,v 1.2 2000/12/14 18:12:14 amura Exp $
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -209,7 +209,7 @@ apropos_command(f, n)
 int f, n;
 {
     register char *cp1, *cp2;
-    char string[32];
+    char string[NINPUT];
     FUNCTNAMES *fnp;
     BUFFER *bp;
 

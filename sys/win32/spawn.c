@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.3 2000/11/16 14:21:31 amura Exp $ */
+/* $Id: spawn.c,v 1.4 2000/12/14 18:12:14 amura Exp $ */
 /*
  *		Spawn CLI for Win32.
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.4  2000/12/14 18:12:14  amura
+ * use alloca() and more memory secure
+ *
  * Revision 1.3  2000/11/16 14:21:31  amura
  * merge Ng for win32 0.5
  *
@@ -121,7 +124,7 @@ char *input;
     if ((shell=getenv("COMSPEC")) != NULL) {
 	int shlen;
 	cmdlen = strlen(command) + strlen(shell) + 5;
-	if ((sbuf=malloc(cmdlen)) == NULL)
+	if ((sbuf=alloca(cmdlen)) == NULL)
 	    return NULL;
 	strcpy(sbuf, shell);
 	strcat(sbuf, " /c ");
@@ -143,12 +146,9 @@ char *input;
 #endif
     }
     cmdlen = sjis2unicode((LPBYTE)sbuf, NULL, 0);
-    if ((buf=malloc(cmdlen)) == NULL) {
-	free(sbuf);
+    if ((buf=alloca(cmdlen)) == NULL)
 	return NULL;
-    }
     sjis2unicode(sbuf, buf, cmdlen);
-    free(sbuf);
 
     temp_path = getenv("TMP");
     if (temp_path == NULL)
@@ -198,7 +198,6 @@ char *input;
     WaitForSingleObject(pi.hProcess, INFINITE);
     CloseHandle(pi.hThread); CloseHandle(pi.hProcess);
     CloseHandle(hRead); CloseHandle(hWrite);
-    free(buf);
     if (!bSuccess) {
 	unlink(tmp);
 	return NULL;

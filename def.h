@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.7 2000/09/21 17:28:29 amura Exp $ */
+/* $Id: def.h,v 1.8 2000/12/14 18:12:13 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.8  2000/12/14 18:12:13  amura
+ * use alloca() and more memory secure
+ *
  * Revision 1.7  2000/09/21 17:28:29  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -90,6 +93,7 @@ typedef int (*PF) pro((int, int)); /* generaly useful type */
 #endif	/* MSODS */
 #define NBUFN	24			/* Length, buffer name.		*/
 #define NLINE	256			/* Length, line.		*/
+#define NINPUT	32			/* Length, small minibuf input	*/
 #define PBMODES 4			/* modes per buffer		*/
 #define NKBDM	256			/* Length, keyboard macro.	*/
 #define NPAT	80			/* Length, pattern.		*/
@@ -295,9 +299,9 @@ typedef struct	BUFFER {
 	short	b_nmodes;		/* number of non-fundamental modes */
 	char	b_nwnd;			/* Count of windows on buffer	*/
 	char	b_flag;			/* Flags			*/
-	char	b_fname[NFILEN];	/* File name			*/
+	char	*b_fname;		/* File name			*/
 #ifdef	EXTD_DIR
-	char	b_cwd[NFILEN];		/* Current working directory for
+	char	*b_cwd;			/* Current working directory for
 					   this buffer.  By Tillanosoft */
 #endif
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
