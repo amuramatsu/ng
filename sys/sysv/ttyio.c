@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.2.2.1 2000/12/01 10:04:12 amura Exp $ */
+/* $Id: ttyio.c,v 1.2.2.2 2001/01/17 18:36:45 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		System V terminal I/O.
@@ -19,6 +19,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.2.2.2  2001/01/17 18:36:45  amura
+ * fix typo POSIXTTY to POSIX_TTY
+ *
  * Revision 1.2.2.1  2000/12/01 10:04:12  amura
  * fix ttraw() with termios
  * unset IEXTEN flag on c_lflag
@@ -56,6 +59,9 @@ int	nobuf;				/* buffer count			*/
 #ifdef POSIXTTY			/* by S.Okamoto 93/03/16 */
 static struct termios	ot;		/* entry state of the terminal	*/
 static struct termios	nt;		/* editor's terminal state	*/
+#ifndef _POSIX_VDISABLE
+#define _POSIX_VDISABLE	0		/* HP-UX and Linux and ...	*/
+#endif
 #else
 static struct termio	ot;		/* entry state of the terminal	*/
 static struct termio	nt;		/* editor's terminal state	*/
@@ -120,7 +126,7 @@ ttopen()
 		nt.c_cflag |= CS8;	/* allow 8th bit on input	*/
 		nt.c_cflag &= ~PARENB;	/* Don't check parity		*/
 		nt.c_lflag &= ~( ECHO | ICANON | ISIG );
-#ifdef	POSIX_TTY
+#ifdef	POSIXTTY
 		nt.c_lflag &= ~IEXTEN;
 #endif
 		kbdpoll = (((kbdflgs = fcntl(0, F_GETFL, 0)) & O_NDELAY) != 0);
