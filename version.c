@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.5 2000/09/05 14:12:26 amura Exp $ */
+/* $Id: version.c,v 1.6 2000/09/21 17:10:52 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: version.c,v $
+ * Revision 1.6  2000/09/21 17:10:52  amura
+ * edit to 1.4.1 release
+ *
  * Revision 1.5  2000/09/05 14:12:26  amura
  * edit to 1.4 release
  *
@@ -36,42 +39,42 @@
 # ifdef	MSDOS			/* 90.02.11  by S.Yoshida */
 #  ifdef TCCONIO
 #   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4 for IBM PC/TCCONIO [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4.1 for IBM PC/TCCONIO [Nihongo Mg 2a] ";
 #   else /* NOT IBMPC */
 #    ifdef PC9801		/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4 for PC-9801/TCCONIO [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4.1 for PC-9801/TCCONIO [Nihongo Mg 2a] ";
 #    else /* NOT PC9801 */
-char version[] = "Ng 1.4 for MS-DOS/TCCONIO [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4.1 for MS-DOS/TCCONIO [Nihongo Mg 2a] ";
 #    endif /* PC9801 */
 #   endif /* IBMPC */
 #  else /* NOT TCCONIO */
 #   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4 for IBM PC [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4.1 for IBM PC [Nihongo Mg 2a] ";
 #   else /* NOT IBMPC */
 #    ifdef PC9801		/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4 for PC-9801 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4.1 for PC-9801 [Nihongo Mg 2a] ";
 #    else /* NOT PC9801 */
-char version[] = "Ng 1.4 for MS-DOS [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4.1 for MS-DOS [Nihongo Mg 2a] ";
 #    endif /* PC9801 */
 #   endif /* IBMPC */
 #  endif /* TCCONIO */
 # else /* NOT MSDOS */
 #  ifdef AMIGA			/* by H.Ohkubo / H.Konishi */
-char version[] = "Ng 1.4 / KANgee ver 4.3 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4.1 / KANgee ver 4.3 [Nihongo Mg 2a] ";
 #  else /* NOT AMIGA */
-#   ifdef _WIN32
-char version[] = "Ng 1.4 / Win32 v0.4.7 [Nihongo Mg 2a] ";
+#   ifdef WIN32
+char version[] = "Ng 1.4.1 / Win32 v0.4.7 [Nihongo Mg 2a] ";
 #   else
-char version[] = "Ng 1.4 [Nihongo Mg 2a] ";
-#   endif /* _WIN32 */
+char version[] = "Ng 1.4.1 [Nihongo Mg 2a] ";
+#   endif /* WIN32 */
 #  endif /* AMIGA */
 # endif /* MSDOS */
 #else /* NOT KANJI */
-# ifdef _WIN32
+# ifdef WIN32
 char version[] = "Mg for Win32 v0.4.7 [Mg 2a (formerly MicroGnuEmacs)]";
 # else
 char version[] = "Mg 2a (formerly MicroGnuEmacs) ";
-# endif /* _WIN32 */
+# endif /* WIN32 */
 #endif /* KANJI */
 
 /*
@@ -435,7 +438,7 @@ int f, n;
  */
 printversion()
 {
-#ifdef	_WIN32
+#ifdef	WIN32
 	char	buf[ 128 ], *ptr = buf ;
 	extern	void	MessageOut( const char * ) ;
 
@@ -443,10 +446,10 @@ printversion()
 	ptr += strlen( ptr ) ;
 	sprintf(ptr, "\t%s\n", version);
 	MessageOut( buf ) ;
-#else	/* _WIN32 */
+#else	/* WIN32 */
 	printf("Ng version:\n");
 	printf("\t%s\n", version);
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 	return TRUE;
 }
 
@@ -455,7 +458,7 @@ printversion()
  */
 printoptions()
 {
-#ifndef	_WIN32
+#ifndef	WIN32
 	printf("Compile time options:\n");
 #ifndef	NO_BACKUP
 	printf("%s\n", backup_msg);
@@ -580,7 +583,7 @@ printoptions()
 	printf("%s\n", rexx_msg);
 #endif
 #endif	/* AMIGA */
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 
 	return TRUE;
 }
