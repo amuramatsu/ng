@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.6 2000/07/18 12:38:56 amura Exp $ */
+/* $Id: echo.c,v 1.7 2000/11/19 18:15:11 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -14,6 +14,10 @@
 
 /*
  * $Log: echo.c,v $
+ * Revision 1.7  2000/11/19 18:15:11  amura
+ * rename sput?() functions because HP-UX have sputl() function
+ * in its library
+ *
  * Revision 1.6  2000/07/18 12:38:56  amura
  * remove some compile warning
  *
@@ -320,10 +324,10 @@ static VOID mb_redisplay();
 static VOID mb_refresh();
 static VOID mb_flush();
 static char* sformat();
-static int  sputi();
-static int  sputl();
-static int  sputs();
-static int  sputc();
+static int  s_put_i();
+static int  s_put_l();
+static int  s_put_s();
+static int  s_put_c();
 static VOID chsize();
 static VOID chsize2();
 
@@ -1944,13 +1948,13 @@ sformat(fp, ap)
   idx = 0;
   while ((c = *fp++) != '\0'){
     if (c != '%')
-      idx = sputc(s, idx, n, c);
+      idx = s_put_c(s, idx, n, c);
     else {
       c = *fp++;
       switch (c){
       case 'c':
 	(VOID) keyname(kname, va_arg(*ap, int));
-	idx = sputs(s, idx, n, kname);
+	idx = s_put_s(s, idx, n, kname);
 	break;
       case 'k':
 	cp = kname;
@@ -1959,30 +1963,30 @@ sformat(fp, ap)
 	  *cp++ = ' ';
 	}
 	*--cp = '\0';
-	idx = sputs(s, idx, n, kname);
+	idx = s_put_s(s, idx, n, kname);
 	break;
       case 'd':
-	idx = sputi(s, idx, n, va_arg(*ap, int), 10);
+	idx = s_put_i(s, idx, n, va_arg(*ap, int), 10);
 	break;
       case 'o':
-	idx = sputi(s, idx, n, va_arg(*ap, int), 8);
+	idx = s_put_i(s, idx, n, va_arg(*ap, int), 8);
 	break;
       case 's':
-	idx = sputs(s, idx, n, va_arg(*ap, char *));
+	idx = s_put_s(s, idx, n, va_arg(*ap, char *));
 	break;
       case 'l':/* explicit longword */
 	c = *fp++;
 	switch(c) {
 	case 'd':
-	  idx = sputl(s, idx, n, (long)va_arg(*ap, long), 10);
+	  idx = s_put_l(s, idx, n, (long)va_arg(*ap, long), 10);
 	  break;
 	default:
-	  idx = sputc(s, idx, n, c);
+	  idx = s_put_c(s, idx, n, c);
 	  break;
 	}
 	break;
       default:
-	idx = sputc(s, idx, n, c);
+	idx = s_put_c(s, idx, n, c);
       }
     }
   }
@@ -1991,7 +1995,7 @@ sformat(fp, ap)
 }
 
 static int
-sputi(p, idx, n, i, r)
+s_put_i(p, idx, n, i, r)
   register char *p;
   register int idx, n;
   register int i;
@@ -2000,16 +2004,16 @@ sputi(p, idx, n, i, r)
   register int	q;
   
   if(i<0) {
-    idx = sputc(p, idx, n, '-');
+    idx = s_put_c(p, idx, n, '-');
     i = -i;
   }
   if ((q=i/r) != 0)
-    idx = sputi(p, idx, n, q, r);
-  return sputc(p, idx, n, i%r+'0');
+    idx = s_put_i(p, idx, n, q, r);
+  return s_put_c(p, idx, n, i%r+'0');
 }
 
 static int
-sputl(p, idx, n, l, r)
+s_put_l(p, idx, n, l, r)
   register char *p;
   register int  idx, n;
   register long l;
@@ -2018,28 +2022,28 @@ sputl(p, idx, n, l, r)
   register long	q;
   
   if(l < 0) {
-    idx = sputc(p, idx, n, '-');
+    idx = s_put_c(p, idx, n, '-');
     l = -l;
   }
   if ((q=l/r) != 0)
-    idx = sputl(p, idx, n, q, r);
-  return sputc(p, idx, n, (int)(l%r)+'0');
+    idx = s_put_l(p, idx, n, q, r);
+  return s_put_c(p, idx, n, (int)(l%r)+'0');
 }
 
 static int
-sputs(p, idx, n,  s)
+s_put_s(p, idx, n,  s)
   register char *p, *s;
   register int idx, n;
 {
   register int	c;
 
   while ((c = *s++) != '\0')
-    idx = sputc(p, idx, n, c);
+    idx = s_put_c(p, idx, n, c);
   return idx;
 }
 
 static int
-sputc(p, idx, n, c)
+s_put_c(p, idx, n, c)
   register char *p;
   register int  idx, n;
   register char c;
@@ -2048,7 +2052,7 @@ sputc(p, idx, n, c)
 
   if (idx < n) {
     if (ISCTRL(c)) {
-      idx = sputc(p, idx, n, '^');
+      idx = s_put_c(p, idx, n, '^');
       c = CCHR(c);
     }
 #ifdef	KANJI
