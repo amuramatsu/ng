@@ -1,10 +1,13 @@
-/* $Id: main.c,v 1.2 2000/06/27 01:49:44 amura Exp $ */
+/* $Id: main.c,v 1.3 2000/07/18 12:51:25 amura Exp $ */
 /*
  *		Mainline
  */
 
 /*
  * $Log: main.c,v $
+ * Revision 1.3  2000/07/18 12:51:25  amura
+ * cleaning code
+ *
  * Revision 1.2  2000/06/27 01:49:44  amura
  * import to CVS
  *
@@ -205,15 +208,6 @@ char **argv;
 #ifndef NO_DPROMPT
 	    *(promptp = prompt) = '\0';
 	    if(epresf == KPROMPT) eerase();
-#endif
-#if 0
-	    if (epresf) {
-	      epresf = KPROMPT; /* erase the echo line in the next turn */
-	      /* Maybe not so good to do the above here.
-		 This modification was made by Tillanosoft on Mar 19, 1999.
-		 In case, you think this is not appropriate, remove the
-		 whole `if' statement. */
-	    }
 #endif
 	    update();
 	    lastflag = thisflag;
