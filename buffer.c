@@ -3,12 +3,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: buffer.c,v 1.2 1999/05/21 01:57:23 amura Exp $ */
+/* $Id: buffer.c,v 1.3 2000/01/11 20:19:01 amura Exp $ */
 
 /* $Log: buffer.c,v $
-/* Revision 1.2  1999/05/21 01:57:23  amura
-/* some change for variable tab, expect-file-kcode
+/* Revision 1.3  2000/01/11 20:19:01  amura
+/* merge NG32 rev 04
 /*
+ * Revision 1.2  1999/05/21  01:57:23  amura
+ * some change for variable tab, expect-file-kcode
+ *
  * Revision 1.1  1999/05/19  03:47:59  amura
  * Initial revision
  *
@@ -128,11 +131,11 @@ killbuffer(f, n)
 				return FALSE;
 		}
 	}
-	if (bclear(bp) != TRUE) return TRUE;
+	if (bclear(bp) != TRUE) return FALSE;
 	for (wp = wheadp; bp->b_nwnd > 0; wp = wp->w_wndp) {
 	    if (wp->w_bufp == bp) {
 		bp2 = bp1->b_altb;		/* save alternate buffer */
-		if(showbuffer(bp1, wp, WFMODE|WFFORCE|WFHARD) != NULL)
+		if(showbuffer(bp1, wp, WFMODE|WFFORCE|WFHARD) != FALSE)
 			bp1->b_altb = bp2;
 		else	bp1 = bp2;
 	    }
@@ -191,6 +194,16 @@ listbuffers(f, n)
 		return FALSE;
 	wp->w_dotp = bp->b_dotp;	/* fix up if window already on screen */
 	wp->w_doto = bp->b_doto;
+#ifdef BUFFER_MODE
+	bp->b_modes[0] = name_mode("Buffer Menu");
+	if (bp->b_modes[0] == NULL) {
+	  bp->b_modes[0] = &map_table[0];
+	  ewprintf("Could not find \"Buffer Menu\" mode");
+	}
+	else {
+	  bp->b_nmodes = 0;
+	}
+#endif
 	return TRUE;
 }
 
@@ -211,6 +224,9 @@ makelist() {
 	BUFFER		*blp;
 	char		b[6+1];
 	char		line[128];
+#ifdef HANKANA
+	int nhankana;
+#endif
 
 	if ((blp = bfind("*Buffer List*", TRUE)) == NULL) return NULL;
 	if (bclear(blp) != TRUE) return NULL;
@@ -238,10 +254,24 @@ makelist() {
 #endif	/* READONLY */
 		*cp1++ = ' ';
 		cp2 = &bp->b_bname[0];		/* Buffer name		*/
-		while ((c = *cp2++) != 0)
+#ifdef HANKANA
+		nhankana = 0;
+#endif
+		while ((c = *cp2++) != 0) {
 			*cp1++ = c;
+#ifdef HANKANA
+			if ((c & 0xff) == SS2) {
+			  nhankana++;
+			}
+#endif
+		}
 		while (cp1 < &line[4+NBUFN+1])
 			*cp1++ = ' ';
+#ifdef HANKANA
+		while (nhankana-- > 0) {
+		  *cp1++ = ' ';
+		}
+#endif
 		nbytes = 0;			/* Count bytes in buf.	*/
 		if (bp != blp) {
 			lp = lforw(bp->b_linep);
@@ -270,6 +300,9 @@ makelist() {
 	}
 	blp->b_dotp = lforw(blp->b_linep);	/* put dot at beginning of buffer */
 	blp->b_doto = 0;
+#ifdef	READONLY	/* 91.02.06  by N.Kamei */
+	blp->b_flag |= BFRONLY;
+#endif	/* READONLY */
 	return blp;				/* All done		*/
 }
 
@@ -366,6 +399,7 @@ anycb(f) {
 BUFFER	*
 bfind(bname, cflag) register char *bname; {
 	register BUFFER *bp;
+#ifdef NEED_MALLOC_DECLARATION
 #ifdef	MSDOS	/* 90.03.27  by A.Shirahashi */
 	void		*malloc();
 #else	/* NOT MSDOS */
@@ -375,6 +409,7 @@ bfind(bname, cflag) register char *bname; {
 	char		*malloc();
 #endif	/* HUMAN68K */
 #endif	/* MSDOS */
+#endif
 	register LINE	*lp;
 	int i;
 	extern int defb_nmodes;
@@ -425,6 +460,17 @@ bfind(bname, cflag) register char *bname; {
 	    bp->b_modes[i] = defb_modes[i];
 	} while(i++ < defb_nmodes);
 	bp->b_fname[0] = '\0';
+#ifdef	EXTD_DIR
+	bp->b_cwd[0] = '\0';
+	if (curbp) {
+	  if (curbp->b_cwd[0] == '\0' && curbp->b_fname[0]) {
+	    extern void storecwd pro((BUFFER *bp));
+
+	    storecwd(curbp);
+	  }
+	  strcpy(bp->b_cwd, curbp->b_cwd);
+	}
+#endif
 	(VOID) strcpy(bp->b_bname, bname);
 	lp->l_fp = lp;
 	lp->l_bp = lp;
@@ -643,9 +689,11 @@ togglereadonly(f, n)
 /*
  * Display warning message.
  */
+VOID
 warnreadonly()
 {
 	ewprintf("Buffer is read-only: #<buffer %s>", curbp->b_bname);
+	ttbeep();	/* 91.02.06  Add beep. by S.Yoshida */
 }
 #endif	/* READONLY */
 
@@ -731,3 +779,115 @@ int f, n;
     return (TRUE);
 }
 #endif  /* VARIABLE_TAB */
+
+#ifdef BUFFER_MODE
+
+#define BUFNAME_START_COL 4
+
+static int
+b_makename(LINE *lp, char *buf, int len)
+{
+  if (BUFNAME_START_COL < llength(lp)) {
+    char *p = lp->l_text + BUFNAME_START_COL, *q = buf, *ep = p + NBUFN;
+
+    while (*ep == ' ') {
+      ep--;
+    }
+    ep++;
+    while (p < ep) {
+      *q++ = *p++;
+    }
+    *q = '\0';
+    return TRUE;
+  }
+  return FALSE;
+}
+  
+/*ARGSUSED*/
+b_thiswin(f, n)
+int f, n;
+{
+  char bufname[NBUFN];
+  register BUFFER *bp;
+  LINE *lp = curwp->w_dotp;
+  int s;
+
+  s = b_makename(lp, bufname, NBUFN);
+  if (s) {
+    bp = bfind(bufname, FALSE);
+    if (bp != NULL) {
+      /* put it in current window */
+	curbp = bp;
+	return showbuffer(bp, curwp, WFFORCE|WFHARD);
+      }
+    else {
+      ewprintf("No buffer named \"%s\"", bufname);
+    }
+  }
+  return FALSE;
+}
+  
+/*ARGSUSED*/
+static
+b_delundel(ch)
+int ch;
+{
+  LINE *lp = curwp->w_dotp;
+
+  if (lback(lp) != curbp->b_linep &&
+      lback(lback(lp)) != curbp->b_linep) {
+    if (llength(lp) > 0) {
+      lputc(lp, 0, ch);
+    }
+    if (lforw(lp) != curbp->b_linep) {
+      curwp->w_dotp = lforw(lp);
+    }
+    curwp->w_flag |= WFEDIT | WFMOVE;
+    curwp->w_doto = 0;
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/*ARGSUSED*/
+b_del(f, n)
+int f, n;
+{
+  return b_delundel((int)'D');
+}
+
+/*ARGSUSED*/
+b_undel(f, n)
+int f, n;
+{
+  return b_delundel((int)' ');
+}
+
+/*ARGSUSED*/
+b_expunge(f, n)
+int f, n;
+{
+  char bufname[NBUFN];
+  register LINE *lp, *nlp;
+  VOID lfree();
+
+  for (lp = lforw(curbp->b_linep) ; lp != curbp->b_linep ; lp = nlp) {
+    nlp = lforw(lp);
+    if (0 < llength(lp) && lgetc(lp, 0) == 'D') {
+      switch (b_makename(lp, bufname, NBUFN)) {
+      case FALSE:
+	break;
+
+      case TRUE:
+	eargset(bufname);
+	if (killbuffer(f, n)) {
+	  lfree(lp);
+	  curwp->w_flag |= WFHARD;
+	}
+	break;
+      }
+    }
+  }
+  return TRUE;
+}
+#endif /* BUFFER_MODE */
