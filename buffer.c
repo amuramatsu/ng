@@ -3,12 +3,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: buffer.c,v 1.3 2000/01/11 20:19:01 amura Exp $ */
+/* $Id: buffer.c,v 1.4 2000/03/10 21:31:53 amura Exp $ */
 
 /* $Log: buffer.c,v $
-/* Revision 1.3  2000/01/11 20:19:01  amura
-/* merge NG32 rev 04
+/* Revision 1.4  2000/03/10 21:31:53  amura
+/* merge Ng for win32 0.4
 /*
+ * Revision 1.3  2000/01/11  20:19:01  amura
+ * merge NG32 rev 04
+ *
  * Revision 1.2  1999/05/21  01:57:23  amura
  * some change for variable tab, expect-file-kcode
  *
@@ -23,6 +26,7 @@
 
 #ifdef  VARIABLE_TAB
 int defb_tab = 8;
+int cmode_tab = 0;
 #endif  /* VARIABLE_TAB */
 static RSIZE	itor();
 #define	GETNUMLEN	6
@@ -778,6 +782,20 @@ int f, n;
 	    refresh(0, 0);
     return (TRUE);
 }
+
+set_cmode_tabwidth(f, n)
+int f, n;
+{
+    if ((f & FFARG) == 0)
+	{
+	if (getnum("c-tab-width", &n) == FALSE)
+	    return (FALSE);
+	}
+    if (n>64 || n<=2)
+    	return (FALSE);
+    cmode_tab = n;
+    return (TRUE);
+}
 #endif  /* VARIABLE_TAB */
 
 #ifdef BUFFER_MODE
@@ -785,7 +803,10 @@ int f, n;
 #define BUFNAME_START_COL 4
 
 static int
-b_makename(LINE *lp, char *buf, int len)
+b_makename(lp, buf, len)
+LINE *lp;
+char *buf;
+int len;
 {
   if (BUFNAME_START_COL < llength(lp)) {
     char *p = lp->l_text + BUFNAME_START_COL, *q = buf, *ep = p + NBUFN;
