@@ -7,18 +7,18 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "newres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Japanese resources
+// English (U.S.) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
-LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
-#pragma code_page(932)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 #endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
@@ -34,7 +34,7 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
-    "#include ""afxres.h""\r\n"
+    "#include ""newres.h""\r\n"
     "\0"
 END
 
@@ -64,86 +64,79 @@ IDI_APPICON             ICON    DISCARDABLE     "appicon.ico"
 IDD_STARTUPFILE DIALOG DISCARDABLE  0, 0, 222, 67
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "パス"
-FONT 9, "ＭＳ Ｐゴシック"
+CAPTION "Path"
 BEGIN
     EDITTEXT        IDC_STARTUPFILE,6,41,189,14,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_FILEOPENDLG,199,41,15,14
-    GROUPBOX        "初期化ファイルの指定",IDC_STATIC,2,24,217,43
-    LTEXT           "初期化ファイルとして以下に指定したファイルを用います。指定を変更した場合、Ng for Win32 の次の起動時から新しいファイルが使われます。",
+    GROUPBOX        "Specify the ini file",IDC_STATIC,2,24,217,43
+    LTEXT           "You can specify an arbitrary file as an mg.ini file.  The change will be valid from the next execution time of Mg for Win32",
                     IDC_STATIC,4,4,214,17
 END
 
 IDD_KEY DIALOG DISCARDABLE  0, 0, 222, 67
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "キー"
-FONT 9, "ＭＳ Ｐゴシック"
+CAPTION "Key"
 BEGIN
-    LTEXT           "Ng for Win32 で用いるキーの設定を行います。",IDC_STATIC,
-                    4,4,214,17
-    CONTROL         "日本語キー配列を利用中",IDC_KEYBOARDLOCALE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,37,90,10
-    CONTROL         "英数キーをコントロールキーとして用いる",IDC_CONTROLMAP,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,49,134,10
-    GROUPBOX        "キーの設定",IDC_STATIC,2,24,217,43
+    LTEXT           "Keyboard configuration can be done here.",IDC_STATIC,4,
+                    4,214,17
+    CONTROL         "Use Tab key as a Control key",IDC_CONTROLMAP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,42,134,10
+    GROUPBOX        "Key mapping",IDC_STATIC,2,24,217,43
 END
 
 IDD_VIEW DIALOG DISCARDABLE  0, 0, 222, 67
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "表示"
-FONT 9, "ＭＳ Ｐゴシック"
+CAPTION "View"
 BEGIN
-    LTEXT           "ウィンドウの表示に関する設定を行います。",IDC_STATIC,4,
+    LTEXT           "Configure the view of application window.",IDC_STATIC,4,
                     4,214,10
-    CONTROL         "メニューバーを表示する",IDC_SHOWMENUBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,28,90,10
-    LTEXT           "メニューバーが表示されていない状態で、この設定画面を出すには M-x configure を実行します。",
+    CONTROL         "Show menubar",IDC_SHOWMENUBAR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,28,90,10
+    LTEXT           "Execute M-x configure to expose this dialog box when the menubar is not shown.",
                     IDC_STATIC,10,41,200,20
-    GROUPBOX        "表示の設定",IDC_STATIC,2,18,217,49
+    GROUPBOX        "Configure the view",IDC_STATIC,2,18,217,49
 END
 
 IDD_BEEP DIALOG DISCARDABLE  0, 0, 222, 67
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "ビープ"
-FONT 9, "ＭＳ Ｐゴシック"
+CAPTION "Beep"
 BEGIN
-    CONTROL         "ビープ音を鳴らす",IDC_BEEP,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "Use beep sound",IDC_BEEP,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,15,67,10
     PUSHBUTTON      "Play",IDC_PLAY,84,14,21,11
-    CONTROL         "規定のサウンドから選択",IDC_MESSAGEBEEP,"Button",
+    CONTROL         "System defined",IDC_MESSAGEBEEP,"Button",
                     BS_AUTORADIOBUTTON,11,34,86,10
     COMBOBOX        IDC_MESSAGECOMBO,106,31,96,61,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    CONTROL         "任意のwaveファイルを指定",IDC_PLAYSOUND,"Button",
-                    BS_AUTORADIOBUTTON,11,50,94,10
+    CONTROL         "Wave file",IDC_PLAYSOUND,"Button",BS_AUTORADIOBUTTON,11,
+                    50,94,10
     EDITTEXT        IDC_SOUNDFILE,106,48,96,14,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_SOUNDBUTTON,204,48,10,14
-    GROUPBOX        "ビープ音の設定",IDC_STATIC,2,2,217,65
+    GROUPBOX        "Beep sound configuration",IDC_STATIC,2,2,217,65
 END
 
 IDD_FONT DIALOG DISCARDABLE  0, 0, 222, 67
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "フォント"
-FONT 9, "ＭＳ Ｐゴシック"
+CAPTION "Font"
 BEGIN
-    CONTROL         "Ng for Win32 のデフォルトフォントを利用する (&D)",
-                    IDC_NOSPECIFY,"Button",BS_AUTORADIOBUTTON,10,14,158,10
-    CONTROL         "下記のフォント/行間を用いる (&S)",IDC_SPECIFY,"Button",
+    CONTROL         "Use &default for Mg for Win32",IDC_NOSPECIFY,"Button",
+                    BS_AUTORADIOBUTTON,10,14,158,10
+    CONTROL         "&Specify font and line spacing",IDC_SPECIFY,"Button",
                     BS_AUTORADIOBUTTON,10,27,111,10
-    LTEXT           "フォント(&F)：",IDC_STATIC,15,46,35,8
-    COMBOBOX        IDC_FONTNAME,51,44,70,64,CBS_DROPDOWN | WS_VSCROLL | 
+    LTEXT           "&Font:",IDC_STATIC,15,46,20,8
+    COMBOBOX        IDC_FONTNAME,41,44,65,64,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
-    COMBOBOX        IDC_POINT,125,44,28,86,CBS_DROPDOWN | WS_VSCROLL | 
+    COMBOBOX        IDC_POINT,109,44,28,86,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "行間(&L)：",IDC_STATIC,158,47,26,8
-    EDITTEXT        IDC_LINESPACE,186,44,18,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "&Line spacing:",IDC_STATIC,144,47,42,8
+    EDITTEXT        IDC_LINESPACE,190,44,14,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",IDC_SPIN,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_AUTOBUDDY | UDS_ARROWKEYS,203,44,9,14
-    GROUPBOX        "テキストフォントの設定",IDC_STATIC,2,2,217,65
+    GROUPBOX        "Configuration for Font",IDC_STATIC,2,2,217,65
 END
 
 
@@ -170,15 +163,40 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Data
+//
+
+IDR_PPCMENU SHMENUBAR DISCARDABLE 
+BEGIN
+    IDR_PPCMENU, 4,
+    I_IMAGENONE, IDM_MENUITEM1, TBSTATE_ENABLED, 
+    TBSTYLE_DROPDOWN | TBSTYLE_AUTOSIZE, IDS_FILE, 0, 0,
+    0, IDC_MARK, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE, 0, 0, 1,
+    2, IDC_PRIOR, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE, 0, 0, 1,
+    1, IDC_NEXT, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE, 0, 0, 1,
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Menu
 //
 
 IDR_MAINMENU MENU DISCARDABLE 
 BEGIN
-    POPUP "ファイル"
+    POPUP "File"
     BEGIN
-        MENUITEM "オプション(&O)...",           IDC_OPTION
-        MENUITEM "終了(&X)",                    IDC_CLOSE
+        MENUITEM "&Option...",                  IDC_OPTION
+        MENUITEM "E&xit",                       IDC_CLOSE
+    END
+END
+
+IDR_PPCMENU MENU DISCARDABLE 
+BEGIN
+    POPUP "File"
+    BEGIN
+        MENUITEM "Option...",                   IDC_OPTION
+        MENUITEM "Exit",                        IDC_CLOSE
     END
 END
 
@@ -190,21 +208,22 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_CONFIGNAME          "Ng for Win32の設定"
-    IDS_OK                  "確認"
-    IDS_ICONASTERISK        "情報"
-    IDS_ICONEXCLAMATION     "警告"
-    IDS_ICONHAND            "エラー"
-    IDS_ICONQUESTION        "問い合わせ"
-    IDS_CUT                 "切り取り(C-w)"
-    IDS_COPY                "コピー(M-w)"
-    IDS_PASTE               "貼り付け(C-y)"
-    IDS_MARK                "マーク(C-@)"
-    IDS_NEXT                "スクロールアップ(C-v)"
-    IDS_PRIOR               "スクロールダウン(M-v)"
+    IDS_FILE                "File"
+    IDS_CONFIGNAME          "Mg for Win32 properties"
+    IDS_OK                  "OK"
+    IDS_ICONASTERISK        "Information"
+    IDS_ICONEXCLAMATION     "Caution"
+    IDS_ICONHAND            "Error"
+    IDS_ICONQUESTION        "Question"
+    IDS_CUT                 "Cut(C-w)"
+    IDS_COPY                "Copy(M-w)"
+    IDS_PASTE               "Paste(C-y)"
+    IDS_MARK                "Mark(C-@)"
+    IDS_NEXT                "Scroll up(C-v)"
+    IDS_PRIOR               "Scroll down(M-v)"
 END
 
-#endif    // Japanese resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

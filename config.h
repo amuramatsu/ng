@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.5 2000/10/23 13:21:25 amura Exp $ */
+/* $Id: config.h,v 1.6 2000/11/16 14:22:08 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -178,6 +178,9 @@
 #define	EMACS_BACKUP_STYLE
 			/* Backup files like as GNU Emacs */
 			/* If you use Win9x, this shold not set */
+
+#undef COMMANDBANDS	/* COMMANDBAND for WinCE */
+
 /*................................................*/
 #endif			/* Do not edit this line. */
 /*................................................*/

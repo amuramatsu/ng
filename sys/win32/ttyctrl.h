@@ -1,4 +1,4 @@
-/* $Id: ttyctrl.h,v 1.3 2000/10/23 16:52:51 amura Exp $ */
+/* $Id: ttyctrl.h,v 1.4 2000/11/16 14:21:32 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: ttyctrl.h,v $
+ * Revision 1.4  2000/11/16 14:21:32  amura
+ * merge Ng for win32 0.5
+ *
  * Revision 1.3  2000/10/23 16:52:51  amura
  * add GPL copyright to header
  *
@@ -171,6 +174,8 @@ typedef struct {
 #ifdef	DROPFILES	/* 00.07.07  by sahf */
 #define		TTYM_DROPFILES		(WM_USER+0x10F)
 #endif	/* DROPFILES */
+#define		TTYM_COMMAND		(WM_USER+0x110)
+#define		TTYM_SETKEYBOARDLOCALE	(WM_USER+0x111)
 
 #define		IDM_FEPOK			(41260)
 #define		IDM_FEPACTIVE		(41261)

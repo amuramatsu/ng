@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.4 2000/10/23 16:52:51 amura Exp $ */
+/* $Id: fileio.c,v 1.5 2000/11/16 14:21:28 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.5  2000/11/16 14:21:28  amura
+ * merge Ng for win32 0.5
+ *
  * Revision 1.4  2000/10/23 16:52:51  amura
  * add GPL copyright to header
  *
@@ -716,7 +719,7 @@ d_makename( LINE *lp, char **fn )
 	}
 }
 
-static int
+static int __cdecl
 #ifdef __BORLANDC__
 filelinecmp(const void *x, const void *y)
 #else

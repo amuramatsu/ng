@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.7 2000/10/23 16:52:51 amura Exp $ */
+/* $Id: tools.c,v 1.8 2000/11/16 14:21:31 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -31,6 +31,9 @@
 
 /*
  * $Log: tools.c,v $
+ * Revision 1.8  2000/11/16 14:21:31  amura
+ * merge Ng for win32 0.5
+ *
  * Revision 1.7  2000/10/23 16:52:51  amura
  * add GPL copyright to header
  *
@@ -521,6 +524,7 @@ Sprintf( char *buf, const char *fmt, ... )
 #define CETOOLS_MAX_FILE_NAME 160 /* c.f. NFILEN at mg/def.h is 80 */
 
 #ifdef KANJI
+#ifndef USE_KCTRL
 int
 unicode2sjis(const char *src, unsigned char *dst, int max)
 {
@@ -596,7 +600,7 @@ sjis2unicode_char(WORD c)
 #endif
   return unic[0];
 }
-
+#endif  /* USE_KCTRL */
 #else	/* !KANJI */
 int
 unicode2sjis(const char *src, unsigned char *dst, int max)

@@ -1,4 +1,4 @@
-/* $Id: winmain.c,v 1.5 2000/10/23 16:52:52 amura Exp $ */
+/* $Id: winmain.c,v 1.6 2000/11/16 14:21:32 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -27,6 +27,9 @@
 
 /*
  * $Log: winmain.c,v $
+ * Revision 1.6  2000/11/16 14:21:32  amura
+ * merge Ng for win32 0.5
+ *
  * Revision 1.5  2000/10/23 16:52:52  amura
  * add GPL copyright to header
  *
@@ -46,17 +49,52 @@
 
 #include	<windows.h>
 #include	<windowsx.h>
-#include <commdlg.h>
-#include <commctrl.h>
-#ifdef KANJI
-#include <imm.h>
-#endif
+#include	<commdlg.h>
+#include	<commctrl.h>
 #include "config.h"
 #include "def.h"
 #include	"ttyctrl.h"
 #include	"resource.h"
 #include	"winmain.h"
 #include	"tools.h"
+
+#ifdef KANJI
+#ifdef USE_KCTRL
+#include "kctrl.h"
+#include "cefep.h"
+#define VALID_KCTRL_VERSION 13
+#else /* not USE_KCTRL */
+#include	<imm.h>
+#endif /* USE_KCTRL */
+#endif /* KANJI */
+
+#if defined(WIN32_PLATFORM_PSPC) && 300 <= _WIN32_WCE
+#define USE_SHMENU /* Define a macro to indicate using PocketPC menu */
+#define POCKETPC_MENU_HEIGHT 26 /* Height of Menubar */
+#else
+#define POCKETPC_MENU_HEIGHT 0
+#endif
+
+/* #define MG_FOR_PPC
+   This should be defined in the Makefile or dsp file */
+
+#if defined(MG_FOR_PPC) || defined(__PsPC__) || 300 <= _WIN32_WCE
+#include <aygshell.h>
+#endif
+
+#ifdef COMMANDBANDS
+#if 200 <= _WIN32_WCE
+#define USE_COMMANDBANDS
+/* #define USE_BEGINTHREAD */
+/* instead of CreateThread.  Though I do not care... */
+#endif
+#endif
+
+#if !defined(MG_FOR_PPC) && !defined(_WIN32_WCE_EMULATION)
+#ifndef USE_KCTRL
+#define MG_IME_CONTROL
+#endif /* USE_KCTRL */
+#endif /* !defined(MG_FOR_PPC) && !defined(_WIN32_WCE_EMULATION) */
 
 #define		EXCEPTION_QUIT			(1)
 #define		IDM_START				(1001)
@@ -67,7 +105,7 @@
 #define MGTITLE TEXT("Ng")
 #define MGCLASS TEXT("NG")
 #else
-#define MGTITLE TEXT("MG")
+#define MGTITLE TEXT("Mg")
 #define MGCLASS TEXT("MG")
 #endif
 
@@ -82,14 +120,44 @@ TCHAR		g_szClassName[] = MGCLASS;
 DWORD		g_dwAppVersion = 12 ;
 TCHAR		MessageBuf[ MAX_PATH ] = TEXT("") ;
 CHAR		g_szArgBuf[ 256 ] ;
-int			g_dwArgc ;
+int		g_dwArgc ;
 LPSTR		g_szArgv[ 128 ] ;
-DWORD g_ctrlmap, g_beepsound;
-TCHAR g_beepfile[128];
-#ifndef _WIN32_WCE
-BOOL g_maximized;
-RECT g_rect;
+#if defined(COMMANDBANDS) && defined(USE_COMMANDBANDS)
+HIMAGELIST	g_himlrebar; /* Image list for rebar bands */
 #endif
+#ifdef CTRLMAP
+DWORD g_ctrlmap;
+#endif
+DWORD g_beepsound, g_keyboardlocale;
+TCHAR g_beepfile[128];
+#if defined(KANJI) && defined(USE_KCTRL)
+DWORD		g_dwDllVersion = 0 ;
+#endif
+
+#if (defined(COMMANDBANDS) && !defined(USE_SHMENU)) || !defined(_WIN32_WCE)
+#define USE_REGINFO
+#endif
+
+#ifdef USE_REGINFO
+/* Settings stored in registry */
+struct reginfo {
+#if defined(COMMANDBANDS) && !defined(USE_SHMENU)
+  BOOL showbands;
+#endif /* COMMANDBANDS */
+#ifndef _WIN32_WCE
+  BOOL maximized;
+  RECT rect; /* rect for the window */
+#else /* if _WIN32_WCE */
+#if defined(COMMANDBANDS) && defined(USE_COMMANDBANDS) \
+    && !defined(USE_SHMENU)
+  COMMANDBANDSRESTOREINFO cbinfo[2]; /* Info for Bands */
+#endif
+#endif /* _WIN32_WCE */
+  BOOL valid; /* tell if stored info is valid */
+};
+
+static struct reginfo g_reginfo;
+#endif /* USE_REGINFO */
 
 static	BOOL	init_application( void ) ;
 static	BOOL	init_instance( int nCmdShow ) ;
@@ -153,6 +221,27 @@ WinMain( HINSTANCE hThisInst, HINSTANCE hPrevInst,
 	MSG			msg ;
 
 	g_hInst = hThisInst ;
+#if defined(KANJI) && defined(USE_KCTRL)
+	g_dwDllVersion = GetKVersion() ;
+	if ( g_dwDllVersion < VALID_KCTRL_VERSION ) {
+		wsprintf( MessageBuf,
+				  TEXT("Obsolete KCTRL.DLL used\r\nPlease use Ver%d.%02d or later"),
+				  VALID_KCTRL_VERSION / 100, VALID_KCTRL_VERSION % 100 ) ;
+		MessageBox( NULL, MessageBuf, g_szTitleName, MB_OK|MB_ICONASTERISK ) ;
+		return FALSE ;
+	}
+	if ( !InitFep() ) {
+		MessageBox( NULL, TEXT("Can't initialize FEP."), g_szTitleName, MB_OK|MB_ICONASTERISK ) ;
+		return FALSE ;
+	}
+	if ( !InitKanjiControls() ) {
+		wsprintf( MessageBuf,
+				  TEXT("KCTRL.DLL Initialize error\r\nError=%x"),
+				  GetLastError() ) ;
+		MessageBox( NULL, MessageBuf, g_szTitleName, MB_OK|MB_ICONASTERISK ) ;
+		return FALSE ;
+	}
+#endif
 	/* define a TTY Window */
 	if ( !TtyViewRegisterClass( g_hInst ) ) {
 		goto ExitMain ;
@@ -170,15 +259,28 @@ WinMain( HINSTANCE hThisInst, HINSTANCE hPrevInst,
 	if ( !init_instance( nWinMode ) ) {
 		goto ExitMain ;
 	}
-	InitCommonControls();
 
 	{
 	  DWORD foo;
 	/* read configuration for Ng for Win32 */
+#ifdef CTRLMAP
 	  g_ctrlmap = RegQueryDWord(HKEY_CURRENT_USER, NGREGKEY, 
 				    NGCTRLKEYMAPVAL) ? TRUE : FALSE;
+#endif
 	  g_beepsound = RegQueryDWord(HKEY_CURRENT_USER, NGREGKEY,
 				      NGBEEPSOUNDVAL);
+	  g_keyboardlocale = RegQueryDWord(HKEY_CURRENT_USER, NGREGKEY, 
+					   NGKEYBOARDLOCALEVAL);
+	  if (g_keyboardlocale == 0) {
+#ifndef JAPANESE_KEYBOARD
+	    g_keyboardlocale = NGKEYBOARD_US;
+#else
+	    g_keyboardlocale = NGKEYBOARD_JP;
+#endif
+	  }
+	  SendMessage(g_hwndTty, TTYM_SETKEYBOARDLOCALE,
+		      (WPARAM)g_keyboardlocale, 0);
+
 	  foo = sizeof(g_beepfile);
 	  RegQueryString(HKEY_CURRENT_USER, NGREGKEY, NGBEEPFILEVAL,
 			 g_beepfile, &foo);
@@ -211,6 +313,9 @@ ExitMain:
 		/* close the event for keyboard input notification */
 		CloseHandle( g_hevtGetChar ) ;
 	}
+#if defined(KANJI) && defined(USE_KCTRL)
+	ReleaseKanjiControls() ;
+#endif
 	return TRUE ;
 }
 
@@ -221,7 +326,6 @@ static	BOOL
 init_application( void )
 {
 	WNDCLASS	wcl ;
-
 	wcl.style         = 0 ;
 	wcl.lpfnWndProc   = MainWndProc ;
 	wcl.cbClsExtra    = 0 ;
@@ -241,10 +345,27 @@ init_application( void )
 	if ( !RegisterClass( &wcl ) ) {
 		return FALSE ;
 	}
+
+	/* initialize common controls */
+#if 200 <= _WIN32_WCE
+	{
+	  INITCOMMONCONTROLSEX icex;
+
+	  icex.dwSize = sizeof(icex);
+	  icex.dwICC = ICC_BAR_CLASSES | ICC_COOL_CLASSES;
+	  InitCommonControlsEx(&icex);
+	}
+#else
+	InitCommonControls();
+#endif
 	return TRUE ;
 }
 
 #define RegQueryBinary(r, k, v, d, s) RegQueryString(r, k, v, (LPTSTR)d, s)
+
+#ifdef COMMANDBANDS
+static HWND g_hwndCB;
+#endif
 
 /*
  * create a main window
@@ -253,44 +374,119 @@ static	BOOL
 init_instance( int nCmdShow )
 {
 	RECT	rect ;
+        HMENU hMenu = NULL;
+	int x, y, cx, cy;
+#ifdef USE_REGINFO
+	DWORD foo;
+#endif
 
 #ifndef _WIN32_WCE
-	DWORD foo;
+	hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_MAINMENU));
+#endif /* _WIN32_WCE */
 
-        /* get window position from registry */
-	foo = sizeof(g_rect);
+#ifdef USE_REGINFO /* get window position from registry */
+	foo = sizeof(g_reginfo);
         if (RegQueryBinary(HKEY_CURRENT_USER, NGREGKEY, NGPREVPOSVAL,
-			   &g_rect, &foo) != ERROR_SUCCESS) {
-	  g_rect.top = 0;
-	  g_rect.bottom = 296;
-	  g_rect.left = 0;
-	  g_rect.right = 500;
+			   &g_reginfo, &foo) == ERROR_SUCCESS) {
+#ifndef _WIN32_WCE
+#define MG_MIN_HEIGHT 120
+#define MG_MIN_WIDTH 160
+	  if (g_reginfo.rect.bottom - g_reginfo.rect.top < MG_MIN_HEIGHT) {
+	    g_reginfo.rect.bottom = g_reginfo.rect.top + MG_MIN_HEIGHT;
+	  }
+	  if (g_reginfo.rect.right - g_reginfo.rect.left < MG_MIN_WIDTH) {
+	    g_reginfo.rect.right = g_reginfo.rect.left + MG_MIN_WIDTH;
+	  }
+#endif /* _WIN32_WCE */
 	}
+	else {
+	  g_reginfo.valid = FALSE;
+#ifndef _WIN32_WCE
+	  g_reginfo.rect.top = 0;
+	  g_reginfo.rect.bottom = 296;
+	  g_reginfo.rect.left = 0;
+	  g_reginfo.rect.right = 500;
+#endif /* _WIN32_WCE */
+	}
+
+#if defined(COMMANDBANDS) && !defined(USE_SHMENU)
+	if (!g_reginfo.valid) {
+	  g_reginfo.showbands = TRUE;
+	}
+#endif /* defined(COMMANDBANDS) && !defined(USE_SHMENU) */
+#endif /* USE_REGINFO */
+
+	x = y = cx = cy = CW_USEDEFAULT;
+#if defined(WIN32_PLATFORM_PSPC) && 300 <= _WIN32_WCE
+	{
+	  SIPINFO si;
+
+	  memset(&si, 0, sizeof(SIPINFO));
+	  si.cbSize = sizeof(si);
+	  if (SHSipInfo(SPI_GETSIPINFO, 0, &si, 0)) {
+	    if (si.fdwFlags & SIPF_ON) {
+	      x = si.rcVisibleDesktop.left;
+	      y = si.rcVisibleDesktop.top;
+	      cx = si.rcVisibleDesktop.right - si.rcVisibleDesktop.left;
+	      cy = si.rcVisibleDesktop.bottom - si.rcVisibleDesktop.top
+		+ POCKETPC_MENU_HEIGHT;
+	    }
+	  } 
+  	}
 #endif
 
 	/* create a main window */
 	g_hwndMain = CreateWindowEx( 0, g_szClassName,
 					g_szTitleName,
 #ifdef	_WIN32_WCE
-					WS_VISIBLE,
-					0, 0, CW_USEDEFAULT, CW_USEDEFAULT,
+				        x, y, cx, cy,
 #else	/* _WIN32_WCE */
                                         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-					g_rect.left, g_rect.top,
-				        g_rect.right - g_rect.left,
-				        g_rect.bottom - g_rect.top,
+				        g_reginfo.rect.left, 
+				        g_reginfo.rect.top,
+				        g_reginfo.rect.right -
+				          g_reginfo.rect.left,
+				        g_reginfo.rect.bottom -
+				          g_reginfo.rect.top,
 #endif	/* _WIN32_WCE */
-					NULL, NULL, g_hInst, NULL ) ;
+					NULL, hMenu, g_hInst, NULL ) ;
 	if ( !g_hwndMain ) {
 		return FALSE;
 	}
 	GetClientRect( g_hwndMain, &rect ) ;
 
+#ifdef COMMANDBANDS
+	{
+	  int nCommandHeight = 0;
+
+#ifdef _WIN32_WCE
+#ifndef USE_SHMENU
+#ifdef USE_COMMANDBANDS
+	  CommandBands_Show(g_hwndCB, g_reginfo.showbands);
+	  if (g_reginfo.showbands) {
+	    nCommandHeight = CommandBands_Height(g_hwndCB);
+	  }
+#else
+	  CommandBar_Show(g_hwndCB, g_reginfo.showbands); 
+	  if (g_reginfo.showbands) {
+	    nCommandHeight = CommandBar_Height(g_hwndCB);
+	  }
+#endif /* USE_COMMANDBANDS */
+#else /* if USE_SHMENU */
+	  nCommandHeight = 0;
+#endif /* USE_SHMENU */
+#endif /* _WIN32_WCE */
+	  rect.top += nCommandHeight;
+	}
+#endif /* COMMANDBANDS */
+
 	/* create a TTY window */
 	g_hwndTty = CreateWindowEx( 0, CTRL_TTYVIEW,
 					TEXT(""),
 					WS_VISIBLE|WS_CHILD,
-					0, 0, rect.right, rect.bottom,
+					rect.left, rect.top,
+				        rect.right - rect.left,
+				        rect.bottom - rect.top,
 					g_hwndMain, (HMENU) IDC_TTY, g_hInst, NULL ) ;
 	if ( !g_hwndTty ) {
 		return FALSE;
@@ -308,6 +504,157 @@ init_instance( int nCmdShow )
 	return TRUE ;
 }
 
+#ifdef COMMANDBANDS
+
+#if defined(USE_COMMANDBANDS) && !defined(USE_SHMENU)
+#define RB_ICON_CX 11
+#define RB_ICON_CY 15
+
+/* Initialize the images for rebar bands */
+static HIMAGELIST
+InitRebarImageLists(HWND hwnd)
+{
+  HBITMAP hbmp;
+  HIMAGELIST res;
+
+  /* Create the image list for the item pictures */
+  res = ImageList_Create(RB_ICON_CX, RB_ICON_CY, ILC_COLOR | ILC_MASK, 2, 0);
+    /* Create two.  No more will be added.  */
+
+  if (res) {
+    /* Add the bitmaps to the list */
+    hbmp = LoadBitmap(g_hInst, MAKEINTRESOURCE(IDB_REBAR));
+    if (hbmp) {
+      if (ImageList_AddMasked(res, hbmp, RGB(255, 0, 0)) != -1) {
+	/* Fail if not all the images were added */
+	if (3 <= ImageList_GetImageCount(res)) {
+	  /* All is fine.  But this specific condition does not check
+	     anything. */
+	}
+      }
+      /* Clean up the GDI objects */
+      DeleteObject(hbmp);
+    }
+    else {
+      ImageList_Destroy(res);
+      res = (HIMAGELIST)NULL;
+    }
+  }
+  return res;
+}
+#endif /* defined(USE_COMMANDBANDS) && !defined(USE_SHMENU) */
+
+#ifndef USE_SHMENU
+/* It is very strange for me to define this by myself... */
+#define NUM_STD_BITMAPS   15
+
+#define TBSTATE_DISABLED 0
+
+#define BTNID(x) ((x) - IDBN_MARK + NUM_STD_BITMAPS)
+
+/* Tool buttons */
+static TBBUTTON MGButton[] = {
+#ifndef USE_COMMANDBANDS
+  /* For a space */
+  {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0,  0},
+#endif
+  {BTNID(IDBN_MARK), IDC_MARK, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0, -1},
+  {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0,  0},
+  {STD_CUT, IDC_CUT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0, -1},
+  {STD_COPY, IDC_COPY, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0, -1},
+  {STD_PASTE, IDC_PASTE, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0, -1},
+  {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0,  0},
+  {BTNID(IDBN_PRIOR), IDC_PRIOR, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0, -1},
+  {BTNID(IDBN_NEXT), IDC_NEXT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0, -1},
+};
+
+/* Tool tips */
+static int MGTips[] = {
+  IDS_MARK,
+  IDS_CUT,
+  IDS_COPY,
+  IDS_PASTE,
+  IDS_PRIOR,
+  IDS_NEXT,
+};
+
+#define NUM_TIPS (sizeof(MGTips) / sizeof(int))
+
+#define MAX_TIP_STRING 32 /* Max string length for tool tips */
+
+static LPTSTR *g_tooltips;
+
+/* Create resource from Tool tip strings */
+static LPTSTR *
+LoadToolTips(int *tips)
+{
+  int *p, *ep;
+  LPTSTR *res, *ps;
+  TCHAR buf[MAX_TIP_STRING];
+
+  res = LocalAlloc(LPTR, sizeof(LPTSTR) * NUM_TIPS);
+  if (res) {
+    for (p = MGTips, ep = p + NUM_TIPS, ps = res ; p < ep ; p++, ps++) {
+      LoadString(g_hInst, *p, buf, MAX_TIP_STRING);
+      *ps = LocalAlloc(LPTR, sizeof(TCHAR) * (lstrlen(buf) + 1));
+      if (*ps) {
+	lstrcpy(*ps, buf);
+      }
+      else {
+	LPTSTR *q;
+
+	for (q = res ; q < ps ; q++) {
+	  LocalFree(*q);
+	}
+	LocalFree(res);
+	return NULL;
+      }
+    }
+  }
+  g_tooltips = res;
+  return res;
+}
+
+/* Destroy Tool tip strings  */
+static void
+FreeToolTips(void)
+{
+  if (g_tooltips) {
+    LPTSTR *p, *ep;
+
+    for (p = g_tooltips, ep = p + NUM_TIPS ; p < ep ; p++) {
+      LocalFree(*p);
+    }
+    LocalFree(g_tooltips);
+    g_tooltips = NULL;
+  }
+}
+
+/* Create tool buttons */
+static void
+CreateToolButtons(HWND hwnd)
+{
+#ifdef _WIN32_WCE
+  /* Are there any macro for "16"? */
+  CommandBar_AddBitmap(hwnd, HINST_COMMCTRL, IDB_STD_SMALL_COLOR,
+		       NUM_STD_BITMAPS, 16, 16);
+  CommandBar_AddBitmap(hwnd, g_hInst, IDB_BUTTONS, 3, 16, 16);
+  CommandBar_AddButtons(hwnd, sizeof(MGButton)/sizeof(TBBUTTON), MGButton);
+
+  if (LoadToolTips(MGTips)) {
+    CommandBar_AddToolTips(hwnd, NUM_TIPS, g_tooltips);
+  }
+#endif /* _WIN32_WCE */
+}
+
+#endif /* !USE_SHMENU */
+
+#define IDD_REBAR    901 /* ID used at message processing */
+#define SF_RBMENU    902
+#define SF_RBBUTTON  903
+
+#endif /* COMMANDBANDS */
+
 void
 MainWMCreate( HWND hWnd )
 {
@@ -318,7 +665,191 @@ MainWMCreate( HWND hWnd )
 	if ( hIcon ) {
 		SendMessage( hWnd, WM_SETICON, FALSE, (LPARAM)hIcon ) ;
 	}
+
+#ifdef _WIN32_WCE
+#ifdef COMMANDBANDS
+#ifndef USE_SHMENU
+#ifndef USE_COMMANDBANDS
+  g_hwndCB = CommandBar_Create(g_hInst, hWnd, 1);
+  CommandBar_InsertMenubar(g_hwndCB, g_hInst, IDR_MAINMENU, 0);
+  CreateToolButtons(g_hwndCB);
+#ifndef MG_FOR_PPC
+    /* add [X] Button */
+  CommandBar_AddAdornments(g_hwndCB, 0, 0);
+#endif
+#else /* if USE_COMMANDBANDS */
+  {
+    HWND hwnd2;
+    REBARBANDINFO arbbi[2];
+
+    /* Initialize images for Rebar bands */
+    g_himlrebar = InitRebarImageLists(hWnd);
+
+    g_hwndCB = CommandBands_Create(g_hInst, hWnd, IDD_REBAR,
+				 RBS_VARHEIGHT | RBS_BANDBORDERS |
+				 RBS_SMARTLABELS, g_himlrebar);
+    
+    arbbi[0].cbSize = sizeof(REBARBANDINFO);
+    arbbi[0].fMask = RBBIM_STYLE | RBBIM_SIZE | RBBIM_IMAGE | RBBIM_ID;
+    arbbi[0].wID = SF_RBMENU;
+    arbbi[0].iImage = 0;
+    arbbi[0].fStyle = RBBS_NOGRIPPER;
+    arbbi[0].cx = 62;
+    
+    arbbi[1].cbSize = sizeof(REBARBANDINFO);
+    arbbi[1].fMask = RBBIM_STYLE | RBBIM_SIZE | RBBIM_IMAGE | RBBIM_ID;
+    arbbi[1].wID = SF_RBBUTTON;
+    arbbi[1].iImage = 1;
+    arbbi[1].fStyle = 0;
+    arbbi[1].cx = 300;
+
+    if (g_reginfo.valid) { /* if valid info stored in registry */
+      arbbi[0].fStyle = g_reginfo.cbinfo[0].fStyle;
+      arbbi[1].fStyle = g_reginfo.cbinfo[1].fStyle;
+      arbbi[0].cx = g_reginfo.cbinfo[0].cxRestored;
+      arbbi[1].cx = g_reginfo.cbinfo[1].cxRestored;
+    }
+    
+    CommandBands_AddBands(g_hwndCB, g_hInst, 2, arbbi);
+
+    /* Add Menu */
+    hwnd2 = CommandBands_GetCommandBar(g_hwndCB, 0);
+    CommandBar_InsertMenubar(hwnd2, g_hInst, IDR_MAINMENU, 0);
+
+    /* Add Buttons */
+    hwnd2 = CommandBands_GetCommandBar(g_hwndCB, 1);
+    CreateToolButtons(hwnd2);
+
+#ifndef MG_FOR_PPC
+    /* add [X] Button */
+    CommandBands_AddAdornments(g_hwndCB, g_hInst, 0, 0);
+#endif
+
+    if (g_reginfo.valid) { /* if valid info stored in registry */
+      if (g_reginfo.cbinfo[0].fMaximized) {
+	SendMessage(g_hwndCB, RB_MAXIMIZEBAND, (WPARAM)0, (LPARAM)0);
+      }
+      if (g_reginfo.cbinfo[1].fMaximized) {
+	SendMessage(g_hwndCB, RB_MAXIMIZEBAND, (WPARAM)1, (LPARAM)0);
+      }
+    }
+  }
+#endif /* USE_COMMANDBANDS */
+#else /* USE_SHMENU */
+  {
+    SHMENUBARINFO mbi;
+    RECT rc;
+
+    memset(&mbi, 0, sizeof(SHMENUBARINFO));
+    mbi.cbSize = sizeof(SHMENUBARINFO);
+    mbi.hwndParent = hWnd;
+    mbi.dwFlags = 0;
+    mbi.nToolBarId = IDR_PPCMENU;
+    mbi.hInstRes = g_hInst;
+    mbi.nBmpId = IDB_BUTTONS;
+    mbi.cBmpImages = 3;
+
+    if (SHCreateMenuBar(&mbi)) {
+      g_hwndCB = mbi.hwndMB;
+    }
+    else {
+      g_hwndCB = (HWND)NULL;
+    }
+
+    GetWindowRect(hWnd, &rc);
+    rc.bottom -= POCKETPC_MENU_HEIGHT;
+    if (g_hwndCB) {
+      MoveWindow(hWnd, rc.left, rc.top,
+		 rc.right - rc.left, rc.bottom - rc.top, FALSE);
+    }
+  }
+#endif /* USE_SHMENU */
+#endif /* COMMANDBANDS */
+#endif /* _WIN32_WCE */
 }
+
+#ifdef SPI_GETSIPINFO
+static void
+AdjustAgainstSIP(HWND hWnd, UINT param)
+{
+  SIPINFO sipinf;
+  BOOL sipres;
+
+  sipinf.cbSize = sizeof(sipinf);
+  sipinf.dwImDataSize = 0;
+  sipinf.pvImData = NULL;
+
+#if _WIN32_WCE >= 210
+  sipres = SipGetInfo(&sipinf);
+#else
+  sipres = SHSipInfo(SPI_GETSIPINFO, param, &sipinf, 0);
+#endif
+
+  if (sipres) {
+    RECT winrect;
+
+    GetWindowRect(hWnd, &winrect);
+    if (!EqualRect(&winrect, &sipinf.rcVisibleDesktop)) {
+      int shmenuheight = 0;
+
+#ifdef USE_SHMENU
+      if (!(sipinf.fdwFlags & SIPF_ON)) {
+	shmenuheight = POCKETPC_MENU_HEIGHT;
+      }
+#endif /* USE_SHMENU */
+
+      MoveWindow(hWnd,
+		 sipinf.rcVisibleDesktop.left,
+		 sipinf.rcVisibleDesktop.top,
+		 sipinf.rcVisibleDesktop.right - 
+		 sipinf.rcVisibleDesktop.left,
+		 sipinf.rcVisibleDesktop.bottom -
+		 sipinf.rcVisibleDesktop.top - shmenuheight, FALSE);
+    }
+  }
+}
+#endif /* SPI_GETSIPINFO */
+
+static void
+AdjustPane(HWND hwnd)
+{
+  RECT rect;
+#ifdef _WIN32_WCE
+#ifdef COMMANDBANDS
+  int nCommandHeight;
+#endif /* COMMANDBANDS */
+#endif /* _WIN32_WCE */
+
+  GetClientRect(g_hwndMain, &rect);
+
+#ifdef _WIN32_WCE
+#ifdef COMMANDBANDS
+#ifndef USE_SHMENU
+#ifndef USE_COMMANDBANDS
+  if (CommandBar_IsVisible(g_hwndCB)) {
+    nCommandHeight = CommandBar_Height(g_hwndCB);
+  }
+#else /* if USE_COMMANDBANDS */
+  if (CommandBands_IsVisible(g_hwndCB)) {
+    nCommandHeight = CommandBands_Height(g_hwndCB);
+  }
+  else {
+    nCommandHeight = 0;
+  }
+#endif /* USE_COMMANDBANDS */
+#else /* if USE_SHMENU */
+  nCommandHeight = 0;
+#endif /* USE_SHMENU */
+  rect.top += nCommandHeight;
+#endif /* COMMANDBANDS */
+#endif /* _WIN32_WCE */
+
+  MoveWindow(g_hwndTty, rect.left, rect.top,
+	     rect.right - rect.left,
+	     rect.bottom - rect.top, TRUE);
+}
+
+int ConfigStartupFilePath(int, int);
 
 /*
  * WinProc for main window
@@ -326,6 +857,9 @@ MainWMCreate( HWND hWnd )
 LRESULT CALLBACK
 MainWndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
+#ifdef SPI_GETSIPINFO
+	static BOOL SIPChanged = FALSE;
+#endif
 	DWORD	threadID ;
 
 	switch ( message ) {
@@ -333,24 +867,60 @@ MainWndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 		MainWMCreate( hWnd ) ;
 		break ;
 	case WM_CLOSE:
-		DestroyWindow( hWnd ) ;
+		SendMessage(g_hwndTty, TTYM_COMMAND,
+			    (WPARAM)IDC_CLOSE, (LPARAM)NULL);
 		break ;
 	case WM_DESTROY:
-#ifndef _WIN32_WCE
-		if (!g_maximized) {
-		  GetWindowRect(g_hwndMain, &g_rect);
-		  RegSetBinary(HKEY_CURRENT_USER, NGREGKEY, NGPREVPOSVAL,
-			       (LPBYTE)&g_rect, sizeof(g_rect));
+#ifdef CTRLMAP
+		if (g_ctrlmap) {
+		  /* send ctrl key `up' event in order to prevent
+		     ctrl key to be kept in a state of `depressed' */
+		  keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
 		}
 #endif
+#if defined(COMMANDBANDS) && !defined(USE_SHMENU)
+#ifdef _WIN32_WCE
+#ifdef USE_COMMANDBANDS
+		g_reginfo.cbinfo[0].cbSize = sizeof(COMMANDBANDSRESTOREINFO);
+		CommandBands_GetRestoreInformation(g_hwndCB,
+	     SendMessage(g_hwndCB, RB_IDTOINDEX, (WPARAM)SF_RBMENU, (LPARAM)0),
+			g_reginfo.cbinfo);
+		CommandBands_GetRestoreInformation(g_hwndCB,
+	     SendMessage(g_hwndCB, RB_IDTOINDEX, (WPARAM)SF_RBBUTTON,
+			(LPARAM)0), g_reginfo.cbinfo + 1);
+		/* Is "Destroy" necessary?
+		   No.  Because there are no CommandBands_Destroy()!? */
+#else /* if !USE_COMMANDBANDS */
+		   CommandBar_Destroy(g_hwndCB);
+#endif /* !USE_COMMANDBANDS */
+#endif /* _WIN32_WCE */
+		/* Free Tool Tip strings */
+		FreeToolTips();
+#endif /* COMMANDBANDS && !USE_SHMENU */
 
-#ifdef CTRLMAP
-		{
-		  if (g_ctrlmap) {
-		    /* send ctrl key `up' event in order to prevent
-		       ctrl key to be kept in a state of `depressed' */
-		    keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
-		  }
+#ifndef _WIN32_WCE
+		if (!g_reginfo.maximized)
+			GetWindowRect(g_hwndMain, &g_reginfo.rect);
+#endif /* _WIN32_WCE */
+#ifdef USE_REGINFO
+		/* Store settings to registry db */
+		g_reginfo.valid = TRUE;
+		RegSetBinary(HKEY_CURRENT_USER, NGREGKEY, NGPREVPOSVAL,
+			     (LPBYTE)&g_reginfo, sizeof(g_reginfo));
+#endif
+
+#ifdef _WIN32_WCE
+#if defined(COMMANDBANDS) && defined(USE_COMMANDBANDS) \
+		&& !defined(USE_SHMENU)
+		if (g_himlrebar) { /* Destroy Image List */
+			ImageList_Destroy(g_himlrebar);
+			g_himlrebar = NULL;
+		}
+#endif
+#else /* not _WIN32_WCE */
+		/* Destroy Menu */
+		if (GetMenu(hWnd)) {
+			DestroyMenu(GetMenu(hWnd));
 		}
 #endif
 		g_bExit = TRUE ;
@@ -358,23 +928,23 @@ MainWndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 		PostQuitMessage( 0 ) ;
 		break ;
 	case WM_SETFOCUS:
+#ifdef SPI_GETSIPINFO		
+		AdjustAgainstSIP(hWnd, 0);
+		SIPChanged = FALSE;
+#endif
 		SetFocus( g_hwndTty ) ;
 		break ;
 
 #if !defined(_WIN32_WCE) || 200 <= _WIN32_WCE
 	case WM_SIZE:
 		switch (wParam) {
-		  RECT rect;
-
 		case SIZE_MAXIMIZED:
 		case SIZE_RESTORED:
-		  GetClientRect(g_hwndMain, &rect);
-		  MoveWindow(g_hwndTty, rect.left, rect.top,
-			     rect.right, rect.bottom, TRUE);
+		  AdjustPane(g_hwndMain);
 #ifndef _WIN32_WCE
 		  /* the following processing is intended to save the
                      previous window position */
-		  g_maximized = (wParam == SIZE_MAXIMIZED);
+		  g_reginfo.maximized = (wParam == SIZE_MAXIMIZED);
 #endif
 		  break;
 
@@ -394,10 +964,41 @@ MainWndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 			}
 			//
 		case IDM_EXIT:
-			SendMessage( hWnd, WM_CLOSE, 0, 0 ) ;
+			DestroyWindow(hWnd);
 			break ;
-		}
+
+		case IDC_OPTION:
+			ConfigStartupFilePath(0, 0);
+			break;
+
+	        default:
+			SendMessage(g_hwndTty, TTYM_COMMAND, wParam, lParam);
+			break;
+  		}
 		break ;
+
+#ifdef SPI_GETSIPINFO
+	case WM_SETTINGCHANGE:
+		switch (wParam) {
+		case SPI_SETSIPINFO:
+		case SPI_SETCURRENTIM:
+			if (GetActiveWindow())
+				AdjustAgainstSIP(hWnd, (UINT)lParam);
+			else
+				SIPChanged = TRUE;
+	 		break;
+#endif
+
+	case WM_NOTIFY:
+		switch(((LPNMHDR)lParam)->code) {
+#ifdef RBN_HEIGHTCHANGE
+		/* The height of Rebar has changed */
+		case RBN_HEIGHTCHANGE:
+			AdjustPane(hWnd);
+			break;
+#endif
+		}
+		break;
 	default:
 		return DefWindowProc( hWnd, message, wParam, lParam ) ;
 	}
@@ -597,20 +1198,6 @@ ThreadMain( void )
 	ExitThread( 0 ) ;
 }
 
-#if 0
-BOOL
-Fep_WM_CHAR( HWND hWnd, TCHAR chCharCode, LONG lKeyData )
-{
-  return FALSE;
-}
-
-BOOL
-Fep_WM_SYSCHAR( HWND hWnd, TCHAR chCharCode, LONG lKeyData )
-{
-  return FALSE;
-}
-#endif
-
 #ifdef FEPCTRL
 #define fep_init() /* nothing to do */
 #define fep_term() /* nothing to do */
@@ -622,15 +1209,17 @@ static BOOL g_ime_prevopened;
 
 fepmode_on()
 {
-  if (fepctrl && !fepmode) {
-    HIMC hIMC = ImmGetContext(g_hwndTty);
-    if (hIMC) {
-      ImmSetOpenStatus(hIMC, g_ime_prevopened);
-      ImmReleaseContext(g_hwndTty, hIMC);
-    }
-    fepmode = TRUE;
-  }
-  return 0;
+#ifndef USE_KCTRL
+	if (fepctrl && !fepmode) {
+		HIMC hIMC = ImmGetContext(g_hwndTty);
+		if (hIMC) {
+			ImmSetOpenStatus(hIMC, g_ime_prevopened);
+			ImmReleaseContext(g_hwndTty, hIMC);
+		}
+		fepmode = TRUE;
+	}
+#endif
+	return 0;
 }
 
 /* The following fepmode_off() provides a doubled fepmode_off()
@@ -642,79 +1231,84 @@ fepmode_on()
    before the first call of fepmode_off().
    
    By Tillanosoft, Mar 21, 1999 */
-
 fepmode_off()
 {
-  if (fepctrl) {
-    if (fepmode) {
-      HIMC hIMC = ImmGetContext(g_hwndTty);
-      if (hIMC) {
-	g_ime_prevopened = ImmGetOpenStatus(hIMC);
-	if (g_ime_prevopened) {
-	  ImmSetOpenStatus(hIMC, FALSE);
+#ifndef USE_KCTRL
+	if (fepctrl) {
+		if (fepmode) {
+			HIMC hIMC = ImmGetContext(g_hwndTty);
+			if (hIMC) {
+				g_ime_prevopened = ImmGetOpenStatus(hIMC);
+				if (g_ime_prevopened)
+					ImmSetOpenStatus(hIMC, FALSE);
+				ImmReleaseContext(g_hwndTty, hIMC);
+			}
+			fepmode = FALSE;
+		}
+		else {
+		    g_ime_prevopened = FALSE;
+		}
 	}
-	ImmReleaseContext(g_hwndTty, hIMC);
-      }
-      fepmode = FALSE;
-    }
-    else {
-      g_ime_prevopened = FALSE;
-    }
-  }
-  return 0;
+#endif
+	return 0;
 }
 
 fepmode_set(f, n)
 {
-  register int s;
-  char buf[NFILEN];
-  /* extern int ereply(); *//* declared in def.h */
-
-  if (f & FFARG) {
-    n = (n > 0);
-  }
-  else {
-    if ((s = ereply("FEP Control: ", buf, NFILEN)) != TRUE)
-      return (s);
-    if (ISDIGIT(buf[0]) || buf[0] == '-')
-      n = (atoi(buf) > 0);
-    else if (buf[0] == 't' || buf[0] == 'T')
-      n = TRUE;
-    else /* if (buf[0] == 'n' || buf[0] == 'N') */
-      n = FALSE;
-  }
-  
-  if (!fepctrl && n) {
-    fepmode = TRUE;
-  }
-  else if (fepctrl && !n) {
-    /* nothing to do */
-  }
-  fepctrl = n;
-  
-  return TRUE;
+	register int s;
+	char buf[NFILEN];
+	/* extern int ereply(); *//* declared in def.h */
+	
+	if (f & FFARG) {
+		n = (n > 0);
+	}
+	else {
+		if ((s = ereply("FEP Control: ", buf, NFILEN)) != TRUE)
+			return (s);
+		if (ISDIGIT(buf[0]) || buf[0] == '-')
+			n = (atoi(buf) > 0);
+		else if (buf[0] == 't' || buf[0] == 'T')
+			n = TRUE;
+		else /* if (buf[0] == 'n' || buf[0] == 'N') */
+			n = FALSE;
+	}
+	
+	if (!fepctrl && n) {
+		fepmode = TRUE;
+	}
+	else if (fepctrl && !n) {
+		/* nothing to do */
+	}
+	fepctrl = n;
+	
+	return TRUE;
 }
 
 fepmode_chg(f, n)
 {
-  fepctrl = !fepctrl;
-  if (fepctrl) {
-    fepmode = TRUE;
-  }
-  return TRUE;
+	fepctrl = !fepctrl;
+	if (fepctrl) {
+		fepmode = TRUE;
+	}
+	return TRUE;
 }
 
 int
 fepmode_toggle( int f, int n )
 {
-  HIMC hIMC = ImmGetContext(g_hwndTty);
-  if (hIMC) {
-    BOOL ime_open = ImmGetOpenStatus(hIMC);
-    g_ime_prevopened = !ime_open;
-    ImmSetOpenStatus(hIMC, !ime_open);
-    ImmReleaseContext(g_hwndTty, hIMC);
-  }
-  return TRUE;
+#ifdef USE_KCTRL
+	Fep_Execute( g_hwndMain ) ;
+	return TRUE ;
+#else /* if !USE_KCTRL */
+	HIMC hIMC = ImmGetContext(g_hwndTty);
+	if (hIMC) {
+		BOOL ime_open = ImmGetOpenStatus(hIMC);
+		g_ime_prevopened = !ime_open;
+		ImmSetOpenStatus(hIMC, !ime_open);
+		ImmReleaseContext(g_hwndTty, hIMC);
+	}
+	return TRUE;
+#endif
 }
 #endif /* FEPCTRL */
 
@@ -785,6 +1379,63 @@ putline(int row, int column, unsigned char *s, short color)
 	*dst = 0 ;
 	PutLine(row, sjis, (short)(color == CMODE ? 1 : 0));
 }
+
+#if defined(COMMANDBANDS) && !defined(USE_SHMENU)
+static BOOL CALLBACK
+ViewProc(HWND hDlg, UINT message, UINT wParam, LONG lParam)
+{
+  switch (message) {
+  case WM_INITDIALOG:
+    Button_SetCheck(GetDlgItem(hDlg, IDC_SHOWMENUBAR), g_reginfo.showbands);
+    return 1;
+
+  case WM_COMMAND:
+#if 0
+    switch (LOWORD(wParam)) {
+    case IDC_SHOWMENUBAR:
+      break;
+    }
+#endif
+    return 0;
+
+  case WM_NOTIFY:
+    switch (((LPNMHDR)lParam)->code) {
+    case PSN_SETACTIVE: /* Visit this page */
+      SetWindowLong(hDlg, DWL_MSGRESULT, 0);
+      return TRUE;
+
+    case PSN_APPLY:
+      {
+	BOOL newvalue;
+	newvalue = Button_GetCheck(GetDlgItem(hDlg, IDC_SHOWMENUBAR));
+	if (g_reginfo.showbands != newvalue) {
+	  g_reginfo.showbands = newvalue;
+#ifdef _WIN32_WCE
+#ifdef USE_COMMANDBANDS
+	  CommandBands_Show(g_hwndCB, newvalue);
+#else
+	  CommandBar_Show(g_hwndCB, newvalue);
+#endif
+	  AdjustPane(g_hwndMain);
+#endif
+	}
+      }
+      SetWindowLong(hDlg, DWL_MSGRESULT, PSNRET_NOERROR);
+      return TRUE;
+
+    case PSN_KILLACTIVE: /* Go away from this page */
+      SetWindowLong(hDlg, DWL_MSGRESULT, FALSE);
+      return(TRUE);
+
+    case PSN_RESET: /* CANCEL Button */
+      return TRUE;
+    }
+
+  default:
+    return 0;
+  }
+}
+#endif /* defined(COMMANDBANDS) && !defined(USE_SHMENU) */
 
 #ifndef NO_STARTUP
 /* Dialog Proc to change the startup file path */
@@ -868,7 +1519,7 @@ StartFileProc(HWND hDlg, UINT message, UINT wParam, LONG lParam)
 }
 #endif
 
-#ifdef CTRLMAP
+#if defined(CTRLMAP) || defined(JAPANESE_KEYBOARD)
 static BOOL CALLBACK
 KeyMapProc(HWND hDlg, UINT message, UINT wParam, LONG lParam)
 {
@@ -876,19 +1527,54 @@ KeyMapProc(HWND hDlg, UINT message, UINT wParam, LONG lParam)
 
   switch (message) {
   case WM_INITDIALOG:
+#ifdef CTRLMAP
     val = RegQueryDWord(HKEY_CURRENT_USER, NGREGKEY, 
 			NGCTRLKEYMAPVAL) ? TRUE : FALSE;
     Button_SetCheck(GetDlgItem(hDlg, IDC_CONTROLMAP), val);
+#else /* if !CTRLMAP */
+    EnableWindow(GetDlgItem(hDlg, IDC_CONTROLMAP), FALSE);
+#endif /* !CTRLMAP */
+
+#ifdef JAPANESE_KEYBOARD
+    val = RegQueryDWord(HKEY_CURRENT_USER, NGREGKEY, NGKEYBOARDLOCALEVAL);
+    switch (val) {
+    case NGKEYBOARD_US:
+      val = BST_UNCHECKED;
+      break;
+    case NGKEYBOARD_JP:
+      val = BST_CHECKED;
+      break;
+    default:
+    case 0:
+      val = BST_CHECKED;
+      break;
+    }
+    Button_SetCheck(GetDlgItem(hDlg, IDC_KEYBOARDLOCALE), val);
+#else /* if !JAPANESE_KEYBOARD */
+    EnableWindow(GetDlgItem(hDlg, IDC_KEYBOARDLOCALE), FALSE);
+#endif /* !JAPANESE_KEYBOARD */
     return 1;
 
   case WM_COMMAND:
-#ifndef _WIN32_WCE
     switch (LOWORD(wParam)) {
+#if 0 /* Did not work as I supposed. */
+    case IDC_ALT:
+      alt = !alt;
+      Button_SetState(GetDlgItem(hDlg, IDC_ALT), alt);
+      if (alt) {
+	keybd_event(VK_MENU, 0, 0, 0);
+      }
+      else {
+	keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
+      }
+      break;
+#endif
+#if defined(CTRLMAP) && !defined(_WIN32_WCE)
     case IDC_CONTROLMAP:
       SendMessage(GetParent(hDlg), PSM_CHANGED, (WPARAM)(HWND)hDlg, 0L);
       break;
-    }
 #endif
+    }
     return 0;
 
   case WM_NOTIFY:
@@ -898,9 +1584,18 @@ KeyMapProc(HWND hDlg, UINT message, UINT wParam, LONG lParam)
       return TRUE;
 
     case PSN_APPLY:
+#ifdef CTRLMAP
       val = Button_GetCheck(GetDlgItem(hDlg, IDC_CONTROLMAP));
       RegSetDWord(HKEY_CURRENT_USER, NGREGKEY, NGCTRLKEYMAPVAL, val);
       g_ctrlmap = val;
+#endif
+#ifdef JAPANESE_KEYBOARD
+      val = Button_GetCheck(GetDlgItem(hDlg, IDC_KEYBOARDLOCALE)) ?
+	NGKEYBOARD_JP : NGKEYBOARD_US;
+      RegSetDWord(HKEY_CURRENT_USER, NGREGKEY, NGKEYBOARDLOCALEVAL, val);
+      g_keyboardlocale = val;
+      SendMessage(g_hwndTty, TTYM_SETKEYBOARDLOCALE, (WPARAM)val, 0);
+#endif
       SetWindowLong(hDlg, DWL_MSGRESULT, PSNRET_NOERROR);
       return TRUE;
 
@@ -1137,7 +1832,11 @@ BeepProc(HWND hDlg, UINT message, UINT wParam, LONG lParam)
   }
 }
 
-#ifndef _WIN32_WCE /* font configuration is not made functional for CE */
+#ifndef USE_KCTRL /* font configuration is not made functional for KCTRL */
+#define CONFIG_FONT
+#endif
+
+#ifdef CONFIG_FONT
 
 #ifdef KANJI
 #define REQUIRED_CHARSET SHIFTJIS_CHARSET
@@ -1254,6 +1953,9 @@ ApplyFontEntries(HWND hDlg)
     RegRemoveValue(HKEY_CURRENT_USER, NGREGKEY, NGLINESPACEVAL);
   }
 
+  /* To force the screen to be refreshed. */
+  nrow = 4; /* This number (4) of rows may not be used... */
+  
   /* Then, notify the change to TTYCTRL */
   SendMessage(g_hwndTty, TTYM_FONTCHANGED, (WPARAM)0, (LPARAM)0);
 }
@@ -1306,7 +2008,7 @@ FontProc(HWND hDlg, UINT message, UINT wParam, LONG lParam)
   }
 }
 
-#endif /* _WIN32_WCE */
+#endif /* CONFIG_FONT */
 
 #define MAX_PAGES 5
 
@@ -1372,14 +2074,18 @@ CreatePropertySheet(HINSTANCE hInstance, HWND hwnd)
   psh.phpage = rPages;
 #endif
   psh.pfnCallback = NULL;
+
+#if defined(_WIN32_WCE) && defined(COMMANDBANDS) && !defined(USE_SHMENU)
+  AddPage(&psh, IDD_VIEW, ViewProc);
+#endif
 #ifndef NO_STARTUP  
   AddPage(&psh, IDD_STARTUPFILE, StartFileProc);
 #endif
-#ifdef CTRLMAP
+#if defined(CTRLMAP) || defined(JAPANESE_KEYBOARD)
   AddPage(&psh, IDD_KEY, KeyMapProc);
 #endif
   AddPage(&psh, IDD_BEEP, BeepProc);
-#ifndef _WIN32_WCE
+#ifdef CONFIG_FONT
   AddPage(&psh, IDD_FONT, FontProc);
 #endif
 

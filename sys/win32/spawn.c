@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.2 2000/10/23 13:19:52 amura Exp $ */
+/* $Id: spawn.c,v 1.3 2000/11/16 14:21:31 amura Exp $ */
 /*
  *		Spawn CLI for Win32.
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.3  2000/11/16 14:21:31  amura
+ * merge Ng for win32 0.5
+ *
  * Revision 1.2  2000/10/23 13:19:52  amura
  * now impliment call_process() and spawncli()
  *
@@ -68,13 +71,17 @@ tticon( int f, int n )
     }
     else {
 	SetWindowPos(g_hwndMain, HWND_BOTTOM, 0, 0, 0, 0,
-		     SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE |
-		     SWP_NOSENDCHANGING);
+		     SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE
+#ifdef SWP_NOSENDCHANGING
+		     | SWP_NOSENDCHANGING);
+#endif
     }
 #else	/* Always activate */
     SetWindowPos(g_hwndMain, HWND_BOTTOM, 0, 0, 0, 0,
-		 SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE |
-		 SWP_NOSENDCHANGING);
+		 SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE
+#ifdef SWP_NOSENDCHANGING
+		 | SWP_NOSENDCHANGING);
+#endif
 #endif	/* 1 */
 #else	/* not _WIN32_WCE */
 	CloseWindow(g_hwndMain);

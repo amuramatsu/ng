@@ -1,4 +1,4 @@
-/* $Id: ttyctrl.cpp,v 1.6 2000/10/23 16:52:51 amura Exp $ */
+/* $Id: ttyctrl.cpp,v 1.7 2000/11/16 14:21:31 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: ttyctrl.cpp,v $
+ * Revision 1.7  2000/11/16 14:21:31  amura
+ * merge Ng for win32 0.5
+ *
  * Revision 1.6  2000/10/23 16:52:51  amura
  * add GPL copyright to header
  *
@@ -48,14 +51,43 @@
 #include "def.h"
 #include	"ttyctrl.h"
 #include	"tools.h"
+#include "resource.h"
+#if defined(KANJI) && defined(USE_KCTRL)
+#include "kctrl.h"
+#include "cefep.h"
+#endif
+#ifndef USE_KCTRL
+#define CONFIG_FONT
+#endif
 
-#define		is_kanji(x)		(((x)>=0x81 && (x)<=0x9F)||((x)>=0xE0 && (x)<=0xFC))
-#define		MAX_KEYBUF		256
-#define MAX_WINEVENTBUF 32
+#ifdef KANJI
+#ifndef SHIFTJIS_CHARSET
+#define SHIFTJIS_CHARSET        128
+#endif
+#endif
+
+#define	is_kanji(x)	(((x)>=0x81 && (x)<=0x9F)||((x)>=0xE0 && (x)<=0xFC))
+#define	MAX_KEYBUF		256
+#define	MAX_WINEVENTBUF		32
 #ifdef	DROPFILES	/* 00.07.07  by sahf */
-#define		MAX_DROPBUF		32
+#define	MAX_DROPBUF		32
 #endif	/* DROPFILES */
 
+#ifdef KANJI
+#ifndef USE_KCTRL
+#define DEFAULT_HMARGIN		2
+#define PUTLINE_ADJUSTMENT	0
+#else /* if USE_KCTRL */
+#define DEFAULT_HMARGIN		1
+#define PUTLINE_ADJUSTMENT	1
+#endif /* USE_KCTRL */
+#else /* if !KANJI */
+#define DEFAULT_POINT		9
+#define DEFAULT_HMARGIN		0
+#define PUTLINE_ADJUSTMENT	1
+#endif /* !KANJI */
+
+#ifndef USE_KCTRL
 static LOGFONT lfont = {
 #ifdef KANJI
 #if 0
@@ -63,68 +95,73 @@ static LOGFONT lfont = {
   CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, FF_MODERN | FIXED_PITCH,
 //  {0xFF2D, 0xFF33, 0x0020, 0x30B4, 0x30B7, 0x30C3, 0x30AF, 0x0000}
   TEXT("")
-#else
+#else /* if !0 */
   12, 6, 0, 0, 0x0, 0x00, 0x00, 0x00, SHIFTJIS_CHARSET, OUT_DEFAULT_PRECIS,
   CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, FF_MODERN | FIXED_PITCH,
 //  {0xFF2D, 0xFF33, 0x0020, 0x30B4, 0x30B7, 0x30C3, 0x30AF, 0x0000}
   TEXT("")
-#endif
-#else
+#endif /* !0 */
+#else /* if !KANJI */
   12, 6, 0, 0, 0x0, 0x00, 0x00, 0x00, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
   CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, FF_MODERN | FIXED_PITCH,
 #ifdef _WIN32_WCE
   TEXT("Courier New")
-#else
+#else /* if !_WIN32_WCE */
   TEXT("")
-#endif
-#endif
+#endif /* !_WIN32_WCE */
+#endif /* !KANJI */
 };
+#endif /* !USE_KCTRL */
 
+#if !defined(KANJI) || !defined(USE_KCTRL)
 #define GetFontH() (lfont.lfHeight + 1)
 #define GetFontHW() (lfont.lfWidth)
-#define KDrawText(hdc, str, len, rect, f) do { HFONT hOldFont;				\
-  hOldFont = (HFONT)SelectObject(hdc, m_hFont);								\
-  DrawText(hdc, str, len, rect, (DT_NOPREFIX | DT_LEFT | DT_EXPANDTABS));	\
-  SelectObject(hdc, hOldFont); } while (/*CONSTCOND*/0)
+#define KDrawText(hdc, str, len, rect, f) do { HFONT hOldFont; \
+  hOldFont = (HFONT)SelectObject(hdc, m_hFont); \
+  DrawText(hdc, str, len, rect, (DT_NOPREFIX | DT_LEFT | DT_EXPANDTABS)); \
+  SelectObject(hdc, hOldFont); } while (0/*CONSTCOND*/)
+#endif
 
 class TtyView {
 protected:
-	HWND	m_hwnd ;			/* コントロールのウィンドウハンドル */
-	HWND	m_hwndParent ;		/* コントロールの親ウィンドウ */
-	WORD	m_idCtrl ;			/* コントロールの識別番号 */
-	DWORD	m_dwCols ;			/* 表示できる半角文字数 */
-	DWORD	m_dwLines ;			/* 表示できる行数 */
-	DWORD	m_dwHMargin ;		/* 縦方向のマージン */
-	DWORD	m_dwFontW ;			/* 1文字の幅 */
-	DWORD	m_dwFontH ;			/* 1行の高さ */
-	DWORD	m_dwTabSize ;		/* TABのサイズ */
+	HWND	m_hwnd ;		/* Window handle of this control */
+	HWND	m_hwndParent ;		/* Parent window of the control */
+	WORD	m_idCtrl ;		/* Id of the control */
+	DWORD	m_dwCols ;		/* Number of columns in a line */
+	DWORD	m_dwLines ;		/* Number of lines in a screen */
+	DWORD	m_dwHMargin ;		/* Virtical margin */
+	DWORD	m_dwFontW ;		/* Font width */
+	DWORD	m_dwFontH ;		/* Font height */
+	DWORD	m_dwTabSize ;		/* TAB size */
 
-	HBITMAP	m_bmpScreen ;		/* 画面イメージ */
-	RECT	m_rcInvalidate ;	/* PutCharで描画されたRECT */
-	DWORD	m_dwCurCol ;		/* カーソル桁位置 */
-	DWORD	m_dwCurLine ;		/* カーソル行位置 */
-	DWORD	m_dwCurH ;			/* カーソルの高さ */
-	BOOL	m_bShowCursor ;		/* カーソル表示 */
+	HBITMAP	m_bmpScreen ;		/* Screen image */
+	RECT	m_rcInvalidate ;	/* RECT drawn by PutChar */
+	DWORD	m_dwCurCol ;		/* cursor column */
+	DWORD	m_dwCurLine ;		/* cursor row */
+	DWORD	m_dwCurH ;		/* Height of cursor */
+	DWORD	m_dwLastCurWidth ;	/* Width of cursor */
+	DWORD	m_dwLastCurX ;		/* Cursor horizontal position */
+	DWORD	m_dwLastCurY ;		/* Cursor virtical position */
 
-	HANDLE	m_hevtKey ;			/* キー入力通知用イベント */
-	WORD	m_szKeyBuf[ MAX_KEYBUF ] ;	/* キー入力バッファ */
-	DWORD	m_dwKeyIn ;			/* キー受け付け位置 */
-	DWORD	m_dwKeyOut ;		/* キー取り出し位置 */
-	int m_szWinEventBuf[MAX_WINEVENTBUF]; /* Window Event buffer */
+	HANDLE	m_hevtKey ;			/* Key input event */
+	WORD	m_szKeyBuf[ MAX_KEYBUF ] ;	/* Key input buffer */
+	DWORD	m_dwKeyIn ;			/* Key input point */
+	DWORD	m_dwKeyOut ;			/* Key output point */
+	int m_szWinEventBuf[MAX_WINEVENTBUF];	/* Window Event buffer */
 	DWORD m_dwWinEventOut; /* Window Event output pointer */
 	DWORD m_dwWinEventIn;  /* Window Event input pointer */
 #ifdef	DROPFILES	/* 00.07.07  by sahf */
-	HLOCAL	m_szDropBuf[ MAX_DROPBUF ] ;	/* Drag And Drop 情報バッファ */
+	HLOCAL	m_szDropBuf[ MAX_DROPBUF ] ;	/* Drag And Drop Infos */
 	int m_iDropLine[ MAX_DROPBUF ] ;	/* Drag and Drop point saver */
 	DWORD	m_dwDropIn ;
 	DWORD	m_dwDropOut ;
 #endif	/* DROPFILES */
+	HFONT	m_hFont;			/* handle for font */
+	DWORD   m_keyboardlocale;		/* Keyboard locale */
 
-	HFONT	m_hFont; /* handle for font */
 #ifdef	DROPFILES	/* 00.07.07  by sahf */
-	int		GetDropFiles( HLOCAL *lphMemory ) ;
+	int	GetDropFiles( HLOCAL *lphMemory ) ;
 #endif	/* DROPFILES */
-
 	void	SetupEvent( HANDLE hEvent ) ;
 	void	ClearScreen() ;
 	void	PutChar( BYTE c ) ;
@@ -135,17 +172,21 @@ protected:
 	void	PutLine( WORD y, WORD color, LPCSTR sjis ) ;
 	void	Flush() ;
 	BOOL	Kbhit() const ;
-	int 	GetChar() ;
+	int	GetChar() ;
 	DWORD	GetWH() const ;
 	void	AddMetaChar( TCHAR c ) ;
 	void	AddChar( TCHAR c ) ;
+	void	Command(WPARAM, LPARAM);
+	void	SetKeyboardLocale(DWORD val);
 
-	void	ShowCursor(void) ;
-	void	HideCursor(void) ;
+	void	ShowCursor(void);
+	void	HideCursor(void);
 	void	ResetContent() ;
-	int  GetWindowEvent(void);
+	int GetWindowEvent(void);
 	void AddWindowEvent(int);
+#ifndef USE_KCTRL
 	void SetFontValues(LOGFONT *, HDC);
+#endif
 	void AdjustScreen(HWND, HDC);
 
 public:
@@ -153,10 +194,10 @@ public:
 	~TtyView() ;
 
 	BOOL	Create() { return FALSE ; }
+
 #ifdef	DROPFILES	/* 00.07.07  by sahf */
 	void	WMDropFiles( HDROP hDrop ) ;
 #endif	/* DROPFILES */
-
 	void	WMCreate( HWND hWnd, LPCREATESTRUCT lpcs ) ;
 	void	WMPaint() ;
 	LRESULT	WMCommand( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp ) ;
@@ -166,16 +207,19 @@ public:
 	BOOL	WMKeyDown( int nVirtKey, LONG lKeyData ) ;
 	void	WMMouseDown( WPARAM wParam, LPARAM lParam ) ;
 	void	WMSize( DWORD fwSize, WORD nWidth, WORD nHeight ) ;
-	BOOL	WMCopy() ;
-	void	WMLButtonDown(int x, int y);
+	BOOL	WMCopy(void) ;
+	void WMLButtonDown(int x, int y);
+	void WMSetFocus(void);
+	void WMKillFocus(void);
 
 	void	SetTab( DWORD wParam, BOOL bUpdate ) ;
 	void	SetHMargin( DWORD wParam, BOOL bUpdate ) ;
-#ifndef _WIN32_WCE
+#ifdef CONFIG_FONT
 	void	FontChanged(void);
 #endif
 
-	friend	LRESULT CALLBACK	TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam ) ;
+	friend	LRESULT CALLBACK
+	TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam ) ;
 } ;
 typedef	TtyView	*PTtyView ;
 
@@ -183,7 +227,7 @@ TtyView::TtyView()
 {
 	m_dwCols = 0 ;
 	m_dwLines = 0 ;
-	m_dwHMargin = 2;
+	m_dwHMargin = DEFAULT_HMARGIN;
 	m_dwFontW = GetFontHW() ;
 	m_dwFontH = GetFontH() + m_dwHMargin ;
 	m_dwTabSize = 8 ;
@@ -193,7 +237,9 @@ TtyView::TtyView()
 	m_dwCurCol = 0 ;
 	m_dwCurLine = 0 ;
 	m_dwCurH = GetFontH() ;
-	m_bShowCursor = FALSE;
+	m_dwLastCurWidth = 0 ;
+	m_dwLastCurX = 0 ;
+	m_dwLastCurY = 0 ;
 
 	m_hevtKey = 0 ;
 	m_dwKeyIn = 0 ;
@@ -219,27 +265,26 @@ TtyView::~TtyView()
 }
 
 /*
- * 画面バッファの内容をクリアする
+ * Clear screen buffer
  */
 void
 TtyView::ClearScreen()
 {
 	RECT	rect ;
 	HGDIOBJ	hOldObj ;
-	HDC		hDC, hdcBmp ;
+	HDC	hDC, hdcBmp ;
 
+	HideCursor();
 	GetClientRect( m_hwnd, &rect ) ;
 	hDC = GetDC( m_hwnd ) ;
-	CreateCaret(m_hwnd, NULL, 2, m_dwFontH);
-	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 	FillRect( hdcBmp, &rect, (HBRUSH) GetStockObject( WHITE_BRUSH ) ) ;
 	FillRect( hDC,    &rect, (HBRUSH) GetStockObject( WHITE_BRUSH ) ) ;
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
+	ShowCursor();
 }
 
 void
@@ -253,13 +298,12 @@ TtyView::PutChar( BYTE c )
 {
 	RECT	rect ;
 	HGDIOBJ	hOldObj ;
-	HDC		hDC, hdcBmp ;
+	HDC	hDC, hdcBmp ;
 	TCHAR	unicode[ 2 ] ;
 
 	if ( c == '\b' ) {
-		if ( m_dwCurCol ) {
+		if ( m_dwCurCol )
 			GotoXY( (WORD) (m_dwCurCol - 1), (WORD) m_dwCurLine ) ;
-		}
 		return ;
 	}
 	rect.left = m_dwCurCol * m_dwFontW ;
@@ -269,8 +313,8 @@ TtyView::PutChar( BYTE c )
 	unicode[0] = sjis2unicode_char( c ) ;
 	unicode[1] = 0 ;
 
+	HideCursor();
 	hDC = GetDC( m_hwnd ) ;
-	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -299,79 +343,72 @@ TtyView::PutChar( BYTE c )
 			m_dwCurLine = 0 ;
 		}
 	}
-
-	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
+	ShowCursor();
 }
 
 void
 TtyView::PutKChar(BYTE c1, BYTE c2)
 {
-  RECT rect;
-  HGDIOBJ hOldObj;
-  HDC hDC, hdcBmp;
-  TCHAR	unicode[2];
-  BYTE foo[3];
-  
-  rect.left = m_dwCurCol * m_dwFontW;
-  rect.top = m_dwCurLine * m_dwFontH;
-  rect.right = rect.left + (m_dwFontW * 2) - 1;
-  rect.bottom = rect.top + m_dwFontH - 1;
+	RECT	rect;
+	HGDIOBJ	hOldObj;
+	HDC	hDC, hdcBmp;
+	TCHAR	unicode[2];
+	BYTE	foo[3];
 
-  foo[0] = c1;
-  foo[1] = c2;
-  foo[2] = (BYTE)0;
-  sjis2unicode(foo, unicode, sizeof(unicode));
+	rect.left = m_dwCurCol * m_dwFontW;
+	rect.top = m_dwCurLine * m_dwFontH;
+	rect.right = rect.left + (m_dwFontW * 2) - 1;
+	rect.bottom = rect.top + m_dwFontH - 1;
 
-  hDC = GetDC(m_hwnd);
-  HideCursor();
-  hdcBmp = CreateCompatibleDC(hDC);
-  hOldObj = SelectObject(hdcBmp, m_bmpScreen);
+	foo[0] = c1;
+	foo[1] = c2;
+	foo[2] = (BYTE)0;
+	sjis2unicode(foo, unicode, sizeof(unicode));
 
-  KDrawText(hdcBmp, unicode, -1, &rect, 0);
+	HideCursor();
+	hDC = GetDC(m_hwnd);
+	hdcBmp = CreateCompatibleDC(hDC);
+	hOldObj = SelectObject(hdcBmp, m_bmpScreen);
 
-  UnionRect(&m_rcInvalidate, &m_rcInvalidate, &rect);
+	KDrawText(hdcBmp, unicode, -1, &rect, 0);
 
-  SelectObject(hdcBmp, hOldObj);
-  DeleteDC(hdcBmp);
+	UnionRect(&m_rcInvalidate, &m_rcInvalidate, &rect);
 
-  m_dwCurCol += 2;
-  if (m_dwCurCol >= m_dwCols) {
-    m_dwCurCol = 0;
-    m_dwCurLine++;
-    if (m_dwCurLine >= m_dwLines) {
-      m_dwCurLine = 0;
-    }
-  }
+	SelectObject(hdcBmp, hOldObj);
+	DeleteDC(hdcBmp);
 
-  ShowCursor();
-  ReleaseDC(m_hwnd, hDC);
+	m_dwCurCol += 2;
+	if (m_dwCurCol >= m_dwCols) {
+		m_dwCurCol = 0;
+		m_dwCurLine++;
+		if (m_dwCurLine >= m_dwLines)
+			m_dwCurLine = 0;
+	}
+	ReleaseDC(m_hwnd, hDC);
+	ShowCursor();
 }
 
 void
 TtyView::GotoXY( WORD x, WORD y )
 {
-	DWORD dwCurX, dwCurY;
-	
-	m_dwCurCol = x;
-	m_dwCurLine = y;
-	dwCurX = m_dwFontW * m_dwCurCol ;
-	dwCurY = m_dwFontH * m_dwCurLine ;
-	SetCaretPos(dwCurX, dwCurY);
-#ifdef	FEPCTRL
+	HideCursor();
+	m_dwCurCol = x ;
+	m_dwCurLine = y ;
+	ShowCursor();
+#if defined(FEPCTRL) && !defined(USE_KCTRL)
 	{
 		HIMC hIMC = ImmGetContext(m_hwnd);
 		if (hIMC) {
 			COMPOSITIONFORM cf;
 			cf.dwStyle = CFS_POINT;
-			cf.ptCurrentPos.x = dwCurX;
-			cf.ptCurrentPos.y = dwCurY;
+			cf.ptCurrentPos.x = m_dwLastCurX;
+			cf.ptCurrentPos.y = m_dwLastCurY;
 			ImmSetCompositionWindow(hIMC, &cf);
 			ImmReleaseContext(m_hwnd, hIMC);
 		}
 	}
 #endif
-	ShowCursor();
 }
 
 BOOL
@@ -387,8 +424,8 @@ TtyView::EraseEOL()
 	HGDIOBJ	hOldObj ;
 	HDC		hDC, hdcBmp ;
 
+	HideCursor();
 	hDC = GetDC( m_hwnd ) ;
-	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -402,8 +439,8 @@ TtyView::EraseEOL()
 
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
+	ShowCursor();
 }
 
 void
@@ -411,10 +448,10 @@ TtyView::EraseEOP()
 {
 	RECT	rect ;
 	HGDIOBJ	hOldObj ;
-	HDC		hDC, hdcBmp ;
+	HDC	hDC, hdcBmp ;
 
+	HideCursor();
 	hDC = GetDC( m_hwnd ) ;
-	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -437,79 +474,19 @@ TtyView::EraseEOP()
 
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
+	ShowCursor();
 }
 
 void
 TtyView::PutLine( WORD y, WORD color, LPCSTR sjis )
 {
-#if 0
-	WORD	x ;
 	RECT	rect ;
 	HGDIOBJ	hOldObj ;
 	HDC	hDC, hdcBmp ;
-	TCHAR	unicode[ 2 ] ;
-	BYTE	foo[3] ;
-	HFONT hOldFont ;		/* to speed hack */
-
-	hDC = GetDC( m_hwnd ) ;
-	HideCursor() ;
-	hdcBmp = CreateCompatibleDC( hDC ) ;
-	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
-	/* This is speed hack, default this is on KDrawText() */
-	hOldFont = (HFONT)SelectObject( hdcBmp, m_hFont );
-
-	rect.left = 0;
-	rect.top  = y * m_dwFontH ;
-	rect.right = rect.left + m_dwFontW;
-	rect.bottom = rect.top + m_dwFontH;
-
-	for (x=0; x<m_dwCols; x++)
-	{
-		if (*sjis == 0) {
-			unicode[0] = TEXT(' ');
-			unicode[1] = 0;
-		} else if (is_kanji((BYTE)*sjis)) {
-			foo[0] = *sjis++;
-			foo[1] = *sjis++;
-			foo[2] = (BYTE)0;
-			sjis2unicode(foo, unicode, sizeof unicode );
-			rect.right += m_dwFontW;
-			x++;
-		} else {
-			unicode[0] = sjis2unicode_char( *sjis++ ) ;
-			unicode[1] = 0 ;
-		}
-
-
-		DrawText(hdcBmp, unicode, -1, &rect,
-			 (DT_NOPREFIX | DT_LEFT | DT_EXPANDTABS));
-		// KDrawText( hdcBmp, unicode, -1, &rect, 0 ) ;
-		/* goto next position */
-		rect.left  = rect.right;
-		rect.right = rect.left + m_dwFontW;
-	}
-	if ( color ) {
-	  PatBlt(hdcBmp, 0, y * m_dwFontH, m_dwCols * m_dwFontW - 1, m_dwCurH,
-		 PATINVERT);
-	}
-	BitBlt( hDC, 0, y * m_dwFontH, m_dwCols * m_dwFontW, m_dwCurH,
-			hdcBmp, 0, y * m_dwFontH, SRCCOPY ) ;
-	SelectObject( hdcBmp, hOldFont ) ;	/* speed hack */
-	SelectObject( hdcBmp, hOldObj ) ;
-	DeleteDC( hdcBmp ) ;
-
-	ShowCursor() ;
-	ReleaseDC( m_hwnd, hDC ) ;
-#else
-	RECT	rect ;
-	HGDIOBJ	hOldObj ;
-	HDC		hDC, hdcBmp ;
 	TCHAR	unicode[ 256 ] ;
-
+	HideCursor();
 	hDC = GetDC( m_hwnd ) ;
-	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -521,16 +498,16 @@ TtyView::PutLine( WORD y, WORD color, LPCSTR sjis )
 	KDrawText( hdcBmp, unicode, -1, &rect, 0 ) ;
 	if ( color ) {
 	  PatBlt(hdcBmp,
-		 rect.left, rect.top, rect.right - rect.left, m_dwCurH,
-		 PATINVERT);
+		 rect.left, rect.top, rect.right - rect.left,
+		 m_dwCurH - PUTLINE_ADJUSTMENT, PATINVERT);
 	}
 	BitBlt( hDC, rect.left, rect.top, rect.right - rect.left + 1, rect.bottom - rect.top + 1,
 			hdcBmp, rect.left, rect.top, SRCCOPY ) ;
+
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
-#endif
+	ShowCursor();
 }
 
 void
@@ -544,19 +521,19 @@ TtyView::Flush()
 }
 
 /*
- * 1文字取得する
+ * Get one character
  */
 int
 TtyView::GetChar()
 {
-  WORD c;
+	WORD c;
 
-  if (m_dwKeyIn == m_dwKeyOut) {
-    return -1;
-  }
-  c = m_szKeyBuf[m_dwKeyOut];
-  m_dwKeyOut = (m_dwKeyOut + 1) % MAX_KEYBUF;
-  return (int) c;
+	if (m_dwKeyIn == m_dwKeyOut)
+		return -1;
+
+	c = m_szKeyBuf[m_dwKeyOut];
+	m_dwKeyOut = (m_dwKeyOut + 1) % MAX_KEYBUF;
+	return (int) c;
 }
 
 DWORD
@@ -564,6 +541,56 @@ TtyView::GetWH() const
 {
 	return MAKELONG( m_dwLines, m_dwCols ) ;
 }
+
+/* To process the commands which corresponds to push buttons on
+   the main window of MG */
+void
+TtyView::Command(WPARAM wparam, LPARAM lparam)
+{
+	switch (LOWORD(wparam)) {
+	case IDC_PRIOR:
+		AddMetaChar(TEXT('V'));
+		break;
+
+	case IDC_NEXT:
+		AddChar(TEXT('V') - TEXT('@'));
+		break;
+
+	case IDC_MARK:
+		AddChar(TEXT('@') - TEXT('@'));
+		break;
+
+	case IDC_CUT:
+		AddChar(TEXT('W') - TEXT('@'));
+		break;
+
+	case IDC_COPY:
+		AddMetaChar(TEXT('W'));
+		break;
+
+	case IDC_PASTE:
+		AddChar(TEXT('Y') - TEXT('@'));
+		break;
+
+	case IDC_CLOSE:
+		AddChar(TEXT('X') - TEXT('@'));
+		AddChar(TEXT('C') - TEXT('@'));
+		break;
+
+	default:
+		break;
+	}
+}
+
+#ifdef	DO_METAKEY
+#ifndef METABIT
+#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
+#define METABIT 0x100
+#else	/* if !KANJI */
+#define METABIT 0x80
+#endif	/* !KANJI */
+#endif	/* !METABIT */
+#endif  /* DO_METAKEY */
 
 void
 TtyView::AddMetaChar( TCHAR c )
@@ -574,11 +601,16 @@ TtyView::AddMetaChar( TCHAR c )
 	if ( next1 == m_dwKeyOut ) {
 		return ;
 	}
-	m_szKeyBuf[ m_dwKeyIn ] = 0x100 | (c & 0xFF) ;
+#ifdef DO_METAKEY
+	m_szKeyBuf[ m_dwKeyIn ] = METABIT | (c % METABIT) ;
 	m_dwKeyIn = next1 ;
 	if ( m_hevtKey ) {
 		::SetEvent( m_hevtKey ) ;
 	}
+#else /* if !DO_METAKEY */
+	AddChar('\033'); /* ESC */
+	AddChar(c);
+#endif
 }
 
 void
@@ -589,9 +621,8 @@ TtyView::AddChar( TCHAR c )
 
 	sjisChar = c ? unicode2sjis_char( c ) : 0 ;
 	next1 = (m_dwKeyIn + 1) % MAX_KEYBUF ;
-	if ( next1 == m_dwKeyOut ) {
+	if ( next1 == m_dwKeyOut )
 		return ;
-	}
 	if ( sjisChar / 0x100 ) {
 		next2 = (m_dwKeyIn + 2) % MAX_KEYBUF ;
 		if ( next2 == m_dwKeyOut ) {
@@ -601,7 +632,7 @@ TtyView::AddChar( TCHAR c )
 		m_dwKeyIn = next1 ;
 		next1 = next2 ;
 	}
-	m_szKeyBuf[ m_dwKeyIn ] = sjisChar & 0xFF;
+	m_szKeyBuf[ m_dwKeyIn ] = sjisChar % 0x100 ;
 	m_dwKeyIn = next1 ;
 	if ( m_hevtKey ) {
 		::SetEvent( m_hevtKey ) ;
@@ -621,9 +652,9 @@ TtyView::GetDropFiles( HLOCAL *lphMemory )
     if ( lphMemory == NULL )
 	return -1;
     
-    if (m_dwDropIn == m_dwDropOut) {
+    if (m_dwDropIn == m_dwDropOut)
 	return -1;
-    }
+
     *lphMemory = m_szDropBuf[m_dwDropOut];
     line = m_iDropLine[m_dwDropOut];
     m_dwDropOut = (m_dwDropOut + 1) % MAX_DROPBUF;
@@ -671,29 +702,37 @@ TtyView::AddWindowEvent(int ev)
 
 
 /*---------------------------------------------------------------------*
- * カーソル表示関係
+ * Drawing cursor
  *---------------------------------------------------------------------*/
+#define CARETWIDTH 2
+
 /*
- * カーソルを表示する
+ * Show cursor
  */
+
 void
 TtyView::ShowCursor(void)
 {
-	ShowCaret(m_hwnd);
-	m_bShowCursor = TRUE;
+  if (!m_dwLastCurWidth) {
+    m_dwLastCurWidth = CARETWIDTH;
+    m_dwLastCurX = m_dwFontW * m_dwCurCol;
+    m_dwLastCurY = m_dwFontH * m_dwCurLine;
+    SetCaretPos(m_dwLastCurX, m_dwLastCurY);
+    ShowCaret(m_hwnd);
+  }
 }
 
 /*
- * カーソルを消去する
+ * Hide cursor
  */
+
 void
 TtyView::HideCursor(void)
 {
-	if ( !m_bShowCursor ) {
-		return ;
-	}
-	HideCaret(m_hwnd);
-	m_bShowCursor = FALSE;
+  if (m_dwLastCurWidth) {
+    m_dwLastCurWidth = 0;
+    HideCaret(m_hwnd);
+  }
 }
 
 void
@@ -702,94 +741,112 @@ TtyView::ResetContent()
 	ClearScreen() ;
 }
 
+#ifndef USE_KCTRL
 void
 TtyView::SetFontValues(LOGFONT *lf, HDC hdc)
 {
-  DWORD val, point, linespace;
-  FLOAT cyDpi, cxDpi;
-  POINT pt;
-  TCHAR fontname[LF_FACESIZE];
+	DWORD		val, point, linespace;
+	FLOAT		cyDpi, cxDpi;
+	POINT		pt;
+	TCHAR		fontname[LF_FACESIZE];
 
-  val = sizeof(fontname);
-  if (RegQueryString(HKEY_CURRENT_USER, NGREGKEY, NGFONTNAMEVAL,
+	cxDpi = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSX);
+	cyDpi = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSY);
+
+	val = sizeof(fontname);
+	if (RegQueryString(HKEY_CURRENT_USER, NGREGKEY, NGFONTNAMEVAL,
 		     fontname, &val) == ERROR_SUCCESS) {
-    point = RegQueryDWord(HKEY_CURRENT_USER, NGREGKEY, NGFONTSIZEVAL);
-    if (point > 0) {
-      linespace = RegQueryDWord(HKEY_CURRENT_USER, NGREGKEY, NGLINESPACEVAL);
-
-      cxDpi = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSX);
-      cyDpi = (FLOAT)GetDeviceCaps(hdc, LOGPIXELSY);
-      pt.x = (int)(point * cxDpi / 72);
-      pt.y = (int)(point * cyDpi / 72);
+		point = RegQueryDWord(HKEY_CURRENT_USER, NGREGKEY, NGFONTSIZEVAL);
+		if (point > 0) {
+		      linespace = RegQueryDWord(HKEY_CURRENT_USER, NGREGKEY, NGLINESPACEVAL);
+#ifndef KANJI
+	    	calcsizes:
+#endif
+			pt.x = (int)(point * cxDpi / 72);
+			pt.y = (int)(point * cyDpi / 72);
 #ifndef _WIN32_WCE
-      DPtoLP(hdc, &pt, 1);
-      /* What should I do for Windows CE for above? */
+			DPtoLP(hdc, &pt, 1);
+			/* What should I do for Windows CE for above? */
 #endif
-      if (pt.y < 0) {
-	pt.y = -pt.y; /* obtain an absolute value */
-      }
-      lf->lfHeight = -(int)pt.y; /* specify character height, not cell one */
-      lf->lfWidth = 0;
-      lstrcpy(lf->lfFaceName, fontname);
-      m_dwHMargin = linespace;
-      return;
-    }
-  }
-  /* reset to default values */
-  lf->lfHeight = 12;
-  lf->lfWidth = 6;
+			if (pt.y < 0) {
+				/* obtain an absolute value */
+				pt.y = -pt.y;
+			}
+			 /* specify character height, not cell one */
+			lf->lfHeight = -(int)pt.y;
+			lf->lfWidth = 0;
+			lstrcpy(lf->lfFaceName, fontname);
+			m_dwHMargin = linespace;
+			return;
+		}
+	}
 
+	m_dwHMargin = DEFAULT_HMARGIN;
 #ifdef KANJI
-  lf->lfFaceName[0] = TEXT('\0');
-#else
-#ifdef _WIN32_WCE
-  lstrcpy(lf->lfFaceName, TEXT("Courier New"));
-#else
-  lf->lfFaceName[0] = TEXT('\0');
-#endif
-#endif
+	/* reset to default values */
+	lf->lfHeight = 12;
+	lf->lfWidth = 6;
 
-  m_dwHMargin = 2;
+	lf->lfFaceName[0] = TEXT('\0');
+#else /* if !KANJI */
+	/* reset to default values */
+	point = DEFAULT_POINT;
+	linespace = DEFAULT_HMARGIN;
+#ifdef _WIN32_WCE
+	lstrcpy(lf->lfFaceName, TEXT("Courier New"));
+#else /* if !_WIN32_WCE */
+	lf->lfFaceName[0] = TEXT('\0');
+#endif /* !_WIN32_WCE */
+	goto calcsizes;
+
+#endif /* !KANJI */
 }
+#endif /* !USE_KCTRL */
 
 void
 TtyView::AdjustScreen(HWND hWnd, HDC hDC)
 {
-  TEXTMETRIC tm;
-  RECT rect;
+	RECT		rect;
+#ifndef USE_KCTRL
+	TEXTMETRIC	tm;
 
-  /* create an handle of required font */
-  SetFontValues(&lfont, hDC);
-  m_hFont = CreateFontIndirect(&lfont);
+	/* create an handle of required font */
+	SetFontValues(&lfont, hDC);
+	m_hFont = CreateFontIndirect(&lfont);
 
-  /* re-calculate the font metrics */
-  SelectObject(hDC, m_hFont);
-  GetTextMetrics(hDC, &tm);
-  m_dwFontW = tm.tmAveCharWidth;
-  m_dwFontH = tm.tmHeight + m_dwHMargin;
-  m_dwCurH = tm.tmHeight;
-
+	/* re-calculate the font metrics */
+	SelectObject(hDC, m_hFont);
+	GetTextMetrics(hDC, &tm);
+	m_dwFontW = tm.tmAveCharWidth;
+	m_dwFontH = tm.tmHeight + m_dwHMargin;
+	m_dwCurH = tm.tmHeight;
 #ifdef	FEPCTRL
-  /* set font to imm */
-  {
-    HIMC hIMC = ImmGetContext(m_hwnd);
-    if (hIMC) {
-      ImmSetCompositionFont(hIMC, &lfont);
-      ImmReleaseContext(m_hwnd, hIMC);
-    }
-  }
-#endif
-  
-  /* Calculate the line numbers and column numbers */
-  GetClientRect(m_hwnd, &rect);
-  m_dwLines = rect.bottom / m_dwFontH;
-  m_dwCols = rect.right / m_dwFontW;
+	/* set font to imm */
+	{
+		HIMC hIMC = ImmGetContext(m_hwnd);
+		if (hIMC) {
+			ImmSetCompositionFont(hIMC, &lfont);
+			ImmReleaseContext(m_hwnd, hIMC);
+		}
+	}
+#endif /* FEPCTRL */
+#endif /* !USE_KCTRL */
 
-  /* Create a display buffer */
-  if (m_bmpScreen) {
-    DeleteObject(m_bmpScreen);
-  }
-  m_bmpScreen = CreateCompatibleBitmap(hDC, rect.right, rect.bottom);
+	/* Calculate the line numbers and column numbers */
+	GetClientRect(m_hwnd, &rect);
+	m_dwLines = rect.bottom / m_dwFontH;
+	m_dwCols = rect.right / m_dwFontW;
+
+	/* Create a display buffer */
+	if (m_bmpScreen)
+		DeleteObject(m_bmpScreen);
+	m_bmpScreen = CreateCompatibleBitmap(hDC, rect.right, rect.bottom);
+}
+
+void
+TtyView::SetKeyboardLocale(DWORD val)
+{
+	m_keyboardlocale = val;
 }
 
 void
@@ -814,11 +871,11 @@ TtyView::WMPaint()
 	PAINTSTRUCT	ps ;
 	RECT		rect ;
 	HGDIOBJ		hOldObj ;
-	HDC			hDC, hdcBmp ;
+	HDC		hDC, hdcBmp ;
 
 	GetClientRect( m_hwnd, &rect ) ;
 	hDC = ::BeginPaint( m_hwnd, &ps ) ;
-	//HideCursor() ;
+	/* HideCursor( hDC ) ; */
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -827,7 +884,7 @@ TtyView::WMPaint()
 
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor() ;
+	/* ShowCursor( hDC ) ; */
 	::EndPaint( m_hwnd, &ps ) ;
 }
 
@@ -836,6 +893,11 @@ TtyView::WMChar( TCHAR chCharCode, LONG lKeyData )
 {
 	BOOL	fControl = 0x80 & GetKeyState( VK_CONTROL ) ;
 
+#if defined(KANJI) && defined(USE_KCTRL)
+	if ( Fep_WM_CHAR( m_hwnd, chCharCode, lKeyData ) ) {
+		return ;
+	} else
+#endif
 	if ( chCharCode == TEXT(' ') && fControl ) {
 		chCharCode = 0 ;
 	}
@@ -845,6 +907,11 @@ TtyView::WMChar( TCHAR chCharCode, LONG lKeyData )
 BOOL
 TtyView::WMSysChar( TCHAR chCharCode, LONG lKeyData )
 {
+#if defined(KANJI) && defined(USE_KCTRL)
+	if ( Fep_WM_SYSCHAR( m_hwnd, chCharCode, lKeyData ) ) {
+		return TRUE ;
+	} else
+#endif
         if ( !(lKeyData & 0x20000000) ) {
 		return FALSE ;
 	}
@@ -879,20 +946,16 @@ TtyView::WMKeyDown( int nVirtKey, LONG lKeyData )
 		AddChar( TEXT('V') - TEXT('@') ) ;
 		break ;
 	case VK_HOME:
-		if (fControl) {
-		  AddMetaChar(TEXT('<'));
-		}
-		else {
-		  AddChar(TEXT('A') - TEXT('@'));
-		}
+		if (fControl)
+			AddMetaChar(TEXT('<'));
+		else
+			AddChar(TEXT('A') - TEXT('@'));
 		break ;
 	case VK_END:
-		if (fControl) {
-		  AddMetaChar(TEXT('>'));
-		}
-		else {
-		  AddChar(TEXT('E') - TEXT('@'));
-		}
+		if (fControl)
+			AddMetaChar(TEXT('>'));
+		else
+			AddChar(TEXT('E') - TEXT('@'));
 		break ;
 	case VK_DELETE:
 		AddChar(0x7f);
@@ -902,33 +965,56 @@ TtyView::WMKeyDown( int nVirtKey, LONG lKeyData )
      Windows CE Japanese version.  It looks as if the virtual key code
      is the same as English one, but mapping from virtual key to
      character differs. */
-
+    default:
+		if (m_keyboardlocale == NGKEYBOARD_JP) {
+#if defined(VK_LBRACKET) || defined(VK_BACKQUOTE) || defined(VK_EQUAL)
+			switch (nVirtKey) {
 #ifdef VK_LBRACKET
-	case VK_LBRACKET:
-		if (fControl) {
-		  AddChar(TEXT('@') - TEXT('@'));
-		}
-		break;
+			case VK_LBRACKET:
+				if (fControl)
+					AddChar(TEXT('@') - TEXT('@'));
+				break;
 #endif
 
 #ifdef VK_BACKQUOTE
-	case VK_BACKQUOTE:
-		if (fControl) {
-		  AddChar(TEXT('_') - TEXT('@'));
-		}
-		break;
+			case VK_BACKQUOTE:
+				if (fControl)
+					AddChar(TEXT('_') - TEXT('@'));
+				break;
 #endif
 
 #ifdef VK_EQUAL
-	case VK_EQUAL:
-		if (fControl) {
-		  AddChar(TEXT('^') - TEXT('@'));
-		}
-		break;
+			case VK_EQUAL:
+				if (fControl)
+					AddChar(TEXT('^') - TEXT('@'));
+				break;
 #endif
-#endif /* JAPANESE_KEYBOARD */
-	
+			}
+#endif /* defined(VK_LBRACKET) || defined(VK_BACKQUOTE) || defined(VK_EQUAL) */
+		}
+#if 0
+		else {
+			switch (nVirtKey) {
+#ifdef VK_LBRACKET
+			case VK_LBRACKET:
+				if (fControl)
+					AddChar(TEXT('[') - TEXT('@'));
+				break;
+#endif
+
+#ifdef VK_RBRACKET
+			case VK_RBRACKET:
+				if (fControl)
+					AddChar(TEXT(']') - TEXT('@'));
+				break;
+#endif
+			}
+		}
+#endif
+		break;
+#else /* not JAPANESE_KEYBOARD */
 	default:
+#endif /* JAPANESE_KEYBOARD */
 		return FALSE;
 	}
 	return TRUE;
@@ -941,10 +1027,10 @@ TtyView::WMCommand( HWND hWnd, UINT msg, WPARAM wp, LPARAM lp )
 
 	switch ( LOWORD(wp) ) {
 	case IDM_FEPOK:
-		/* FEP受け入れ応答 */
+		/* return ACK for accepting FEP */
 		return IDM_FEPOK ;
 	case IDM_FEPKEY:
-		/* FEPからのキー入力があった場合 */
+		/* Key input from FEP */
 		nVirtKey = lp & 0xFF ;
 		WMKeyDown( nVirtKey, 0 ) ;
 		break ;
@@ -968,21 +1054,21 @@ void
 TtyView::WMSize( DWORD fwSize, WORD nWidth, WORD nHeight )
 {
 	HDC		hDC ;
-	RECT	rect ;
-	DWORD prevlines, prevcols;
+	RECT		rect ;
+	DWORD		prevlines, prevcols;
 
 	prevlines = m_dwLines;
 	prevcols = m_dwCols;
 
-	/* 1画面に表示できる行数を求める */
+	/* Get how many columns in a line and lines in a screen */
 	GetClientRect( m_hwnd, &rect ) ;
 	m_dwLines = rect.bottom / m_dwFontH ;
 	m_dwCols = rect.right / m_dwFontW ;
-	/* 画面バッファを作成する */
+	/* Create a screen buffer */
 	if ( m_bmpScreen ) {
 		DeleteObject( m_bmpScreen ) ;
 	}
-	/* 画面バッファを作成する */
+	/* Create a screen buffer */
 	hDC = GetDC( m_hwnd ) ;
 	m_bmpScreen = CreateCompatibleBitmap( hDC, rect.right, rect.bottom ) ;
 	ReleaseDC( m_hwnd, hDC ) ;
@@ -1005,80 +1091,96 @@ TtyView::WMLButtonDown(int x, int y)
 void
 TtyView::WMDropFiles( HDROP hDrop )
 {
-    UINT	iFile ;
-    HLOCAL	hMemory ;
+	UINT	iFile ;
+	HLOCAL	hMemory ;
 	POINT	sDropPoint ;
 
-    /* ファイル名を格納するためのメモリを確保 */
-    hMemory = LocalAlloc(LPTR, 16) ;
+	/* allocate memory for store filename */
+	hMemory = LocalAlloc(LPTR, 16) ;
 
-    /* ドロップされたファイル数を得る */
-    iFile = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0) ;
-    if( iFile && hMemory) {
-	UINT	iMemSize ;	/* 確保されたメモリサイズ */
-	UINT	iMemPos ;
+	/* get file count which is dropped */
+	iFile = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0) ;
+	if (iFile && hMemory) {
+		UINT	iMemSize ;	/* allocated memory size */
+		UINT	iMemPos ;
 
-	DragQueryPoint(hDrop, &sDropPoint);
-	iMemSize = LocalSize( hMemory ) ;
-	iMemPos = 0 ;
-	while( iFile-- ) {
-	    UINT bufsz ;	/* 個々のファイル名の長さ（単位：バイト） */
-	    UINT newsize ;	/* 追加格納するために必要な容量（要求量） */
-	    char *fname ;
-
-	    /* 個々のファイル名の長さ(必要なバッファサイズ)を得る  */
-	    bufsz = DragQueryFile(hDrop, iFile, NULL, 0) ;
-	    ++bufsz ;
-	    bufsz *= sizeof(TCHAR) ;	/* 文字数 -> バイト数 */
-
-	    /* hMemory の空き容量をチェック！ */
-	    newsize = iMemPos + bufsz + sizeof(TCHAR) ;
-	    if ( iMemSize < newsize ) {
-		HLOCAL	hNewMem ;
-		/* 足りなければ追加確保 */
-		hNewMem = LocalAlloc(LPTR, newsize) ;
-		if ( hNewMem == NULL ) {
-		    LocalFree( hMemory );  hMemory = NULL;
-		    break ;
-		}
-		CopyMemory(hNewMem, hMemory, iMemSize);
-		LocalFree(hMemory);
-		hMemory = hNewMem;
+		DragQueryPoint(hDrop, &sDropPoint);
 		iMemSize = LocalSize( hMemory ) ;
-	    }
+		iMemPos = 0 ;
+		while (iFile--) {
+			UINT bufsz ;	/* filename length (unit : byte) */
+			UINT newsize ;	/* request memory size */
+			char *fname ;
 
-	    /* 読み取りのバッファ(fname)は hMemory から iMemPos バイト目 */
-	    fname = (char *) hMemory ;
-	    fname += iMemPos ;
-	    iMemPos += bufsz ;
-	    fname[bufsz] = 0;
-
-	    /* ファイル名を読み取る */
-	    DragQueryFile(hDrop, iFile, (LPTSTR) fname, bufsz) ;
+			/* get filename length for allocate buffer */
+			bufsz = DragQueryFile(hDrop, iFile, NULL, 0) ;
+			++bufsz ;
+			bufsz *= sizeof(TCHAR) ;/* char count -> byte count */
+			
+			/* check room of hMemory */
+			newsize = iMemPos + bufsz + sizeof(TCHAR) ;
+			if ( iMemSize < newsize ) {
+				HLOCAL	hNewMem ;
+				/* realloc hMemory if it is too small */
+				hNewMem = LocalAlloc(LPTR, newsize) ;
+				if ( hNewMem == NULL ) {
+					LocalFree( hMemory );  hMemory = NULL;
+					break ;
+				}
+				CopyMemory(hNewMem, hMemory, iMemSize);
+				LocalFree(hMemory);
+				hMemory = hNewMem;
+				iMemSize = LocalSize( hMemory ) ;
+			}
+			
+			/* beginning of filename is hMemory[iMemPos] */
+			fname = (char *) hMemory ;
+			fname += iMemPos ;
+			iMemPos += bufsz ;
+			fname[bufsz] = 0;
+			
+			/* get filename */
+			DragQueryFile(hDrop, iFile, (LPTSTR) fname, bufsz) ;
+		}
 	}
-    }
-
-    DragFinish(hDrop);
-
-    if ( hMemory ) {
-	DWORD		next1 ;
 	
-	next1 = (m_dwDropIn + 1) % MAX_DROPBUF ;
-	if ( next1 == m_dwDropOut ) {
-	    return ;
+	DragFinish(hDrop);
+	
+	if ( hMemory ) {
+	    DWORD	next1 ;
+	    
+	    next1 = (m_dwDropIn + 1) % MAX_DROPBUF ;
+	    if ( next1 == m_dwDropOut ) {
+		return ;
+	    }
+	    m_szDropBuf[ m_dwDropIn ] = hMemory ;
+	    m_iDropLine[ m_dwDropIn ] = sDropPoint.y / m_dwFontH ;
+	    m_dwDropIn = next1 ;
 	}
-	m_szDropBuf[ m_dwDropIn ] = hMemory ;
-	m_iDropLine[ m_dwDropIn ] = sDropPoint.y / m_dwFontH ;
-	m_dwDropIn = next1 ;
-    }
     
-    AddWindowEvent(TTY_WM_DROPFILES);
+	AddWindowEvent(TTY_WM_DROPFILES);
 }
 #endif	/* DROPFILES */
 
+void
+TtyView::WMSetFocus(void)
+{
+	CreateCaret(m_hwnd, NULL, CARETWIDTH, m_dwCurH);
+	m_dwLastCurWidth = 0;
+	ShowCursor();
+}
+
+void
+TtyView::WMKillFocus(void)
+{
+	HideCursor();
+	DestroyCaret();
+}
+
+
 #if 0
 /*
- * TABのサイズを設定する
+ * Set TAB size
  */
 void
 TtyView::SetTab( DWORD wParam, BOOL bUpdate )
@@ -1094,7 +1196,7 @@ TtyView::SetTab( DWORD wParam, BOOL bUpdate )
 #endif
 
 /*
- * 縦方向のマージンを設定する
+ * Set virtical margin
  */
 void
 TtyView::SetHMargin( DWORD wParam, BOOL bUpdate )
@@ -1113,22 +1215,22 @@ TtyView::SetHMargin( DWORD wParam, BOOL bUpdate )
 	}
 }
 
-#ifndef _WIN32_WCE
+#ifdef CONFIG_FONT
 /*
  * Notified if font was changed.
  */
 void
 TtyView::FontChanged(void)
 {
-  HDC		hDC ;
+	HDC	hDC ;
 
-  hDC = GetDC(m_hwnd);
+	hDC = GetDC(m_hwnd);
 
-  AdjustScreen(m_hwnd, hDC);
-  ReleaseDC(m_hwnd, hDC);
-  ClearScreen() ;
+	AdjustScreen(m_hwnd, hDC);
+	ReleaseDC(m_hwnd, hDC);
+	ClearScreen() ;
 
-  AddWindowEvent(TTY_WM_RESIZE);
+	AddWindowEvent(TTY_WM_RESIZE);
 }
 #endif
 
@@ -1143,7 +1245,7 @@ TtyViewRegisterClass( HINSTANCE hInst )
 	wc.cbWndExtra    = 4 ;
 	wc.hInstance     = hInst ;
 	wc.hIcon         = NULL ;
-#ifdef _WIN32_WCE
+#ifndef IDC_ARROW
 	wc.hCursor       = NULL ;
 #else
 	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
@@ -1180,15 +1282,6 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 		delete pWindow ;
 		SetWindowLong( hWnd, 0, (LONG) 0 ) ;
 		break ;
-	case WM_SETFOCUS:
-		CreateCaret(hWnd, NULL, 2, pWindow->m_dwFontH);
-		if (pWindow->m_bShowCursor)
-			pWindow->GotoXY((WORD)pWindow->m_dwCurCol,
-					(WORD)pWindow->m_dwCurLine);
-		break;
-	case WM_KILLFOCUS:
-		DestroyCaret();
-		break;
 	case WM_COMMAND:
 		return pWindow->WMCommand( hWnd, msg, wParam, lParam ) ;
 	case WM_COPYDATA:
@@ -1201,12 +1294,12 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 		break ;
 	case WM_SYSCHAR:
 		if ( !pWindow->WMSysChar( (TCHAR) wParam, lParam ) )
-			return DefWindowProc( hWnd, msg, wParam, lParam ) ;
+			DefWindowProc( hWnd, msg, wParam, lParam ) ;
 		break ;
 	case WM_KEYDOWN:
 		if ( !pWindow->WMKeyDown( (int) wParam, lParam ) )
 			return DefWindowProc( hWnd, msg, wParam, lParam ) ;
-		break ;
+  		break ;
 	case WM_SIZE:
 		pWindow->WMSize( wParam, LOWORD(lParam), HIWORD(lParam) ) ;
 		break ;
@@ -1221,12 +1314,18 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 		pWindow->WMDropFiles( (HDROP) wParam ) ;
 		break ;
 #endif	/* DROPFILES */
+	case WM_SETFOCUS:
+		pWindow->WMSetFocus();
+		break;
+	case WM_KILLFOCUS:
+		pWindow->WMKillFocus();
+		break;
 #if 0
 	case TTYM_SETTAB:		pWindow->SetTab( (DWORD) wParam, (BOOL) lParam ) ;		break ;
 	case TTYM_SETHMARGIN:	pWindow->SetHMargin( (DWORD) wParam, (BOOL) lParam ) ;	break ;
 #endif
 	case TTYM_SETEVENT:		pWindow->SetupEvent( (HANDLE) wParam ) ;					break ;
-#ifndef _WIN32_WCE
+#ifdef CONFIG_FONT
 	case TTYM_FONTCHANGED:
 		pWindow->FontChanged();
 		break;
@@ -1241,10 +1340,17 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 	case TTYM_KBHIT:		return pWindow->Kbhit() ;
 	case TTYM_GETCHAR:		return pWindow->GetChar() ;
 	case TTYM_GETWINDOWEVENT:	return pWindow->GetWindowEvent() ;
-	case TTYM_GETWH:		return pWindow->GetWH() ;
 #ifdef	DROPFILES	/* 00.07.07  by sahf */
-	case TTYM_DROPFILES:	return  pWindow->GetDropFiles( (LPHANDLE) lParam ) ;
+	case TTYM_DROPFILES:
+		return  pWindow->GetDropFiles( (LPHANDLE) lParam ) ;
 #endif	/* DROPFILES */
+	case TTYM_GETWH:		return pWindow->GetWH() ;
+        case TTYM_COMMAND:
+		pWindow->Command(wParam, lParam);
+		break;
+        case TTYM_SETKEYBOARDLOCALE:
+		pWindow->SetKeyboardLocale((DWORD)wParam);
+		break;
 
 	default:
 		return DefWindowProc( hWnd, msg, wParam, lParam ) ;

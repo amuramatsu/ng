@@ -492,6 +492,41 @@ DEP_CPP_BUFFE=\
 # End Source File
 # Begin Source File
 
+SOURCE=.\sys\win32\buttons.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\win32\cefep.c
+
+!IF  "$(CFG)" == "ng - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "ng - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "ng - Win32 (WCE x86em) Release"
+
+!ELSEIF  "$(CFG)" == "ng - Win32 (WCE x86em) Debug"
+
+!ELSEIF  "$(CFG)" == "ng - Win32 (WCE MIPS) Release"
+
+!ELSEIF  "$(CFG)" == "ng - Win32 (WCE MIPS) Debug"
+
+!ELSEIF  "$(CFG)" == "ng - Win32 (WCE SH) Release"
+
+!ELSEIF  "$(CFG)" == "ng - Win32 (WCE SH) Debug"
+
+!ELSEIF  "$(CFG)" == "ng - Win32 Debug NO UNICODE"
+
+!ELSEIF  "$(CFG)" == "ng - Win32 Release NO UNICODE"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\win32\cefep.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\sys\default\chrdef.h
 # End Source File
 # Begin Source File
@@ -1652,6 +1687,10 @@ DEP_CPP_MODES=\
 # End Source File
 # Begin Source File
 
+SOURCE=.\sys\win32\newres.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\sys\win32\ng.rc
 
 !IF  "$(CFG)" == "ng - Win32 Release"
@@ -1841,6 +1880,10 @@ NODEP_CPP_RE_SE=\
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\win32\rebar.bmp
 # End Source File
 # Begin Source File
 

@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.2 2000/10/23 16:52:51 amura Exp $ */
+/* $Id: ttyio.c,v 1.3 2000/11/16 14:21:32 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -24,6 +24,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.3  2000/11/16 14:21:32  amura
+ * merge Ng for win32 0.5
+ *
  * Revision 1.2  2000/10/23 16:52:51  amura
  * add GPL copyright to header
  *
@@ -57,6 +60,12 @@ int
 ttopen()
 {
 	GetWH( &ncol, &nrow ) ;
+	if (NROW < nrow) {
+		nrow = NROW;
+	}
+	if (NCOL < ncol) {
+		ncol = NCOL;
+	}
 	return 0 ;
 }
 
@@ -146,4 +155,10 @@ void
 setttysize()
 {
   GetWH(&ncol, &nrow);
+  if (NROW < nrow) {
+    nrow = NROW;
+  }
+  if (NCOL < ncol) {
+    ncol = NCOL;
+  }
 }

@@ -1,7 +1,10 @@
-# $Id: ngbc.mak,v 1.2 2000/07/17 14:10:07 amura Exp $
+# $Id: ngbc.mak,v 1.3 2000/11/16 14:21:30 amura Exp $
 # Makefile for Ng at Win32 with Borland C++ 5.5
 #
 # $Log: ngbc.mak,v $
+# Revision 1.3  2000/11/16 14:21:30  amura
+# merge Ng for win32 0.5
+#
 # Revision 1.2  2000/07/17 14:10:07  amura
 # some typo bug fixed
 #
@@ -37,7 +40,7 @@ IND	= buffer.obj complt.obj display.obj cmode.obj echo.obj extend.obj \
 OOBJS = cinfo.obj spawn.obj tty.obj ttykbd.obj
 
 # Win32 additional objects
-WOBJS = tools.obj ttyctrl.obj winmain.obj
+WOBJS = tools.obj ttyctrl.obj winmain.obj cefep.obj
 
 OBJ = $(OBJS) $(IND) $(OOBJS) $(WOBJS) fileio.obj ttyio.obj
 
@@ -126,9 +129,11 @@ tools.obj:	$(INCS) $(OINCS) tools.h
 
 tty.obj:	$(INCS) $(OINCS) tools.h winmain.h
 
-ttyctrl.obj:	$(INCS) $(OINCS) tools.h ttyctrl.h
+ttyctrl.obj:	$(INCS) $(OINCS) tools.h ttyctrl.h cefep.h
 
-winmain.obj:	$(INCS) $(OINCS) tools.h ttyctrl.h winmain.h resource.h
+winmain.obj:	$(INCS) $(OINCS) tools.h ttyctrl.h winmain.h resource.h cefep.h
+
+cefep.obj:	$(INCS) $(OINCS) cefep.h
 
 sysdef.h:	sys/$(SYS)/sysdef.h
 	copy sys\$(SYS)\sysdef.h .
@@ -177,6 +182,12 @@ ttyctrl.cpp:	sys/$(SYS)/ttyctrl.cpp
 
 winmain.c:	sys/$(SYS)/winmain.c
 	copy sys\$(SYS)\winmain.c .
+
+cefep.c:	sys/$(SYS)/cefep.c
+	copy sys\$(SYS)\cefep.c .
+
+cefep.h:	sys/$(SYS)/cefep.h
+	copy sys\$(SYS)\cefep.h .
 
 appicon.ico:	sys/$(SYS)/appicon.ico
 	copy sys\$(SYS)\appicon.ico .

@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.3 2000/10/23 16:52:51 amura Exp $ */
+/* $Id: tools.h,v 1.4 2000/11/16 14:21:31 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: tools.h,v $
+ * Revision 1.4  2000/11/16 14:21:31  amura
+ * merge Ng for win32 0.5
+ *
  * Revision 1.3  2000/10/23 16:52:51  amura
  * add GPL copyright to header
  *
@@ -82,6 +85,10 @@ LONG RegRemoveValue(HKEY, LPCTSTR, LPTSTR);
 #define NGFONTSIZEVAL TEXT("Font Size")
 #define NGLINESPACEVAL TEXT("Line Space")
 #define NGPREVPOSVAL TEXT("Previous Position")
+#define NGKEYBOARDLOCALEVAL TEXT("Keyboard Locale")
+
+#define NGKEYBOARD_US  1
+#define NGKEYBOARD_JP 81
 
 #define NG_WAVE_OFFSET 2
 
