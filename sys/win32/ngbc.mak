@@ -1,9 +1,12 @@
-# $Id: ngbc.mak,v 1.1 2000/06/27 01:48:00 amura Exp $
+# $Id: ngbc.mak,v 1.2 2000/07/17 14:10:07 amura Exp $
 # Makefile for Ng at Win32 with Borland C++ 5.5
 #
 # $Log: ngbc.mak,v $
-# Revision 1.1  2000/06/27 01:48:00  amura
-# Initial revision
+# Revision 1.2  2000/07/17 14:10:07  amura
+# some typo bug fixed
+#
+# Revision 1.1.1.1  2000/06/27 01:48:00  amura
+# import to CVS
 #
 
 SYS	= win32
@@ -27,8 +30,8 @@ OBJS	= basic.obj dir.obj dired.obj shell.obj version.obj window.obj \
 # Those with unique requirements
 IND	= buffer.obj complt.obj display.obj cmode.obj echo.obj extend.obj \
 	  file.obj help.obj kbd.obj keymap.obj line.obj macro.obj main.obj \
-	  modes.obj match.obj parag.obj random.obj region.obj regex.obj \
-	  research.obj search.obj skg.obj kanji.obj undo.obj word.obj
+	  modes.obj match.obj paragraph.obj random.obj region.obj regex.obj \
+	  re_search.obj search.obj skg.obj kanji.obj undo.obj word.obj
 
 # System dependent objects
 OOBJS = cinfo.obj spawn.obj tty.obj ttykbd.obj
@@ -71,7 +74,7 @@ file.obj:	$(INCS) $(OINCS) undo.h
 
 line.obj:	$(INCS) $(OINCS) undo.h
 
-parag.obj:	$(INCS) $(OINCS) undo.h
+paragraph.obj:	$(INCS) $(OINCS) undo.h
 
 random.obj:	$(INCS) $(OINCS) undo.h
 
@@ -91,7 +94,7 @@ modes.obj:	$(INCS) $(OINCS) kbd.h
 
 fileio.obj:	$(INCS) $(OINCS) kbd.h resource.h
 
-echo.obj:	$(INCS) $(OINCS) key.h varargs.h
+echo.obj:	$(INCS) $(OINCS) key.h
 
 extend.obj:	$(INCS) $(OINCS) kbd.h key.h macro.h
 
@@ -111,7 +114,7 @@ search.obj:	$(INCS) $(OINCS) macro.h
 
 match.obj:	$(INCS) $(OINCS) key.h
 
-research.obj:	$(INCS) $(OINCS) $(REINCS) macro.h
+re_search.obj:	$(INCS) $(OINCS) $(REINCS) macro.h
 
 regex.obj:	$(INCS) $(OINCS) $(REINCS)
 
