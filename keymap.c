@@ -5,162 +5,190 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: keymap.c,v 1.1 1999/05/19 03:59:01 amura Exp $ */
+/* $Id: keymap.c,v 1.2 2000/03/10 21:29:32 amura Exp $ */
 
 /* $Log: keymap.c,v $
-/* Revision 1.1  1999/05/19 03:59:01  amura
-/* Initial revision
+/* Revision 1.2  2000/03/10 21:29:32  amura
+/* some function added
 /*
+ * Revision 1.1  1999/05/19  03:59:01  amura
+ * Initial revision
+ *
 */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
 #include	"kbd.h"
 
+#define _PF() pro((int, int))
+
 /*
  * Defined by "basic.c".
  */
-extern	int	gotobol();		/* Move to start of line	*/
-extern	int	backchar();		/* Move backward by characters	*/
-extern	int	gotoeol();		/* Move to end of line		*/
-extern	int	forwchar();		/* Move forward by characters	*/
-extern	int	gotobob();		/* Move to start of buffer	*/
-extern	int	gotoeob();		/* Move to end of buffer	*/
-extern	int	forwline();		/* Move forward by lines	*/
-extern	int	backline();		/* Move backward by lines	*/
-extern	int	forwpage();		/* Move forward by pages	*/
-extern	int	backpage();		/* Move backward by pages	*/
-extern	int	pagenext();		/* Page forward next window	*/
-extern	int	setmark();		/* Set mark			*/
-extern	int	swapmark();		/* Swap "." and mark		*/
-extern	int	gotoline();		/* Go to a specified line.	*/
+extern	int	gotobol _PF();		/* Move to start of line	*/
+extern	int	backchar _PF();		/* Move backward by characters	*/
+extern	int	gotoeol _PF();		/* Move to end of line		*/
+extern	int	forwchar _PF();		/* Move forward by characters	*/
+extern	int	gotobob _PF();		/* Move to start of buffer	*/
+extern	int	gotoeob _PF();		/* Move to end of buffer	*/
+extern	int	forwline _PF();		/* Move forward by lines	*/
+extern	int	backline _PF();		/* Move backward by lines	*/
+extern	int	forwpage _PF();		/* Move forward by pages	*/
+extern	int	backpage _PF();		/* Move backward by pages	*/
+extern	int	pagenext _PF();		/* Page forward next window	*/
+extern	int	setmark _PF();		/* Set mark			*/
+extern	int	swapmark _PF();		/* Swap "." and mark		*/
+extern	int	gotoline _PF();		/* Go to a specified line.	*/
 #ifdef	GOSMACS
-extern	int	forw1page();		/* move forward by lines	*/
-extern	int	back1page();		/* move back by lines		*/
+extern	int	forw1page _PF();	/* move forward by lines	*/
+extern	int	back1page _PF();	/* move back by lines		*/
 #endif
 
 /*
  * Defined by "buffer.c".
  */
-extern	int	listbuffers();		/* Display list of buffers	*/
-extern	int	usebuffer();		/* Switch a window to a buffer	*/
-extern	int	poptobuffer();		/* Other window to a buffer	*/
-extern	int	killbuffer();		/* Make a buffer go away.	*/
-extern	int	savebuffers();		/* Save unmodified buffers	*/
-extern	int	bufferinsert();		/* Insert buffer into another	*/
-extern	int	notmodified();		/* Reset modification flag	*/
+extern	int	listbuffers _PF();	/* Display list of buffers	*/
+extern	int	usebuffer _PF();	/* Switch a window to a buffer	*/
+extern	int	poptobuffer _PF();	/* Other window to a buffer	*/
+extern	int	killbuffer _PF();	/* Make a buffer go away.	*/
+extern	int	savebuffers _PF();	/* Save unmodified buffers	*/
+extern	int	bufferinsert _PF();	/* Insert buffer into another	*/
+extern	int	notmodified _PF();	/* Reset modification flag	*/
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-extern	int	togglereadonly();	/* Toggle read-only flag	*/
+extern	int	togglereadonly _PF();	/* Toggle read-only flag	*/
 #endif	/* READONLY */
+#ifdef  VARIABLE_TAB
+extern	int	set_default_tabwidth _PF();/* set default tab width	*/
+extern	int	set_tabwidth _PF();	/* set local tab width		*/
+extern	int	set_cmode_tabwidth _PF();/* set c-mode tab width	*/
+#endif  /* VARIABLE_TAB */
+#ifdef	BUFFER_MODE
+extern	int	b_del _PF();		/* buffer-mode mark for kill	*/
+extern	int	b_undel _PF();		/* buffer-mode unmark		*/
+extern	int	b_expunge _PF();	/* buffer-mode kill marked buff	*/
+extern	int	b_thiswin _PF();	/* buffer-mode on this window	*/
+#endif
+
 
 /*
  * Defined by "cmode.c".
  */
 #ifdef	C_MODE	/* 90.07.24  by K.Takano */
-extern	int	cm_brace();		/* c-mode electric-c-brace	*/
-extern	int	cm_semi();		/* c-mode electric-c-semi	*/
-extern	int	cm_term();		/* c-mode electric-c-terminator	*/
-extern	int	cm_indent();		/* c-mode indent line		*/
-extern	int	cm_lfindent();		/* c-mode newline and indent	*/
-extern	int	cm_set_indent();	/* set-c-indent-level		*/
-extern	int	cm_set_imagin();	/* set-c-brace-imaginary-offset	*/
-extern	int	cm_set_brace();		/* set-c-brace-offset		*/
-extern	int	cm_set_arg();		/* set-c-argdecl-indent		*/
-extern	int	cm_set_label();		/* set-c-label-offset		*/
-extern	int	cm_set_cstat();		/* set-c-continued-statement-offset*/
-extern	int	cm_set_cbrace();	/* set-c-continued-brace-offset	*/
-extern	int	cm_set_newl();		/* set-c-auto-newline		*/
-extern	int	cm_set_tab();		/* set-c-tab-always-indent	*/
-extern	int	cm_list_var();		/* list-c-mode-variables	*/
+extern	int	cm_brace _PF();		/* c-mode electric-c-brace	*/
+extern	int	cm_brace_blink _PF();	/* c-mode electric-c-brace-blink*/
+extern	int	cm_semi _PF();		/* c-mode electric-c-semi	*/
+extern	int	cm_term _PF();		/* c-mode electric-c-terminator	*/
+extern	int	cm_indent _PF();	/* c-mode indent line		*/
+extern	int	cm_lfindent _PF();	/* c-mode newline and indent	*/
+extern	int	cm_set_indent _PF();	/* set-c-indent-level		*/
+extern	int	cm_set_imagin _PF();	/* set-c-brace-imaginary-offset	*/
+extern	int	cm_set_brace _PF();	/* set-c-brace-offset		*/
+extern	int	cm_set_arg _PF();	/* set-c-argdecl-indent		*/
+extern	int	cm_set_label _PF();	/* set-c-label-offset		*/
+extern	int	cm_set_cstat _PF();	/* set-c-continued-statement-offset*/
+extern	int	cm_set_cbrace _PF();	/* set-c-continued-brace-offset	*/
+extern	int	cm_set_newl _PF();	/* set-c-auto-newline		*/
+extern	int	cm_set_tab _PF();	/* set-c-tab-always-indent	*/
+extern	int	cm_list_var _PF();	/* list-c-mode-variables	*/
 #endif	/* C_MODE */
 
 #ifndef NO_DIR
 /*
  * Defined by "dir.c"
  */
-extern	int	changedir();		/* change current directory	*/
-extern	int	showcwdir();		/* show current directory	*/
+extern	int	changedir _PF();	/* change current directory	*/
+extern	int	showcwdir _PF();	/* show current directory	*/
 
 #ifndef NO_DIRED
 /*
  * defined by "dired.c"
  */
-extern	int	dired();		/* dired			*/
-extern	int	d_findfile();		/* dired find file		*/
-extern	int	d_del();		/* dired mark for deletion	*/
-extern	int	d_undel();		/* dired unmark			*/
-extern	int	d_undelbak();		/* dired unmark backwards	*/
-extern	int	d_expunge();		/* dired expunge		*/
-extern	int	d_copy();		/* dired copy			*/
-extern	int	d_rename();		/* dired rename			*/
-extern	int	d_otherwindow();	/* dired other window		*/
-extern	int	d_ffotherwindow();	/* dired find file other window */
+extern	int	dired _PF();		/* dired			*/
+extern	int	d_findfile _PF();	/* dired find file		*/
+extern	int	d_del _PF();		/* dired mark for deletion	*/
+extern	int	d_undel _PF();		/* dired unmark			*/
+extern	int	d_undelbak _PF();	/* dired unmark backwards	*/
+extern	int	d_expunge _PF();	/* dired expunge		*/
+extern	int	d_copy _PF();		/* dired copy			*/
+extern	int	d_rename _PF();		/* dired rename			*/
+extern	int	d_otherwindow _PF();	/* dired other window		*/
+extern	int	d_ffotherwindow _PF();	/* dired find file other window */
+extern	int	d_flag _PF();		/* dired mark backup files	*/
+extern	int	d_viewfile _PF();	/* dired find file read only	*/
+extern	int	d_execute _PF();	/* dired execute command (win32)*/
 #endif
 #endif
 
 /*
  * Defined by "extend.c".
  */
-extern	int	extend();		/* Extended commands.		*/
-extern	int	bindtokey();		/* Modify global key bindings.	*/
-extern	int	localbind();		/* Modify mode key bindings.	*/
-extern	int	define_key();		/* modify any key map		*/
-extern	int	unbindtokey();		/* delete global binding	*/
-extern	int	localunbind();		/* delete local binding		*/
-extern	int	insert();		/* insert string		*/
+extern	int	extend _PF();		/* Extended commands.		*/
+extern	int	bindtokey _PF();	/* Modify global key bindings.	*/
+extern	int	localbind _PF();	/* Modify mode key bindings.	*/
+extern	int	define_key _PF();	/* modify any key map		*/
+extern	int	unbindtokey _PF();	/* delete global binding	*/
+extern	int	localunbind _PF();	/* delete local binding		*/
+extern	int	insert _PF();		/* insert string		*/
 #ifndef NO_STARTUP
-extern	int	evalexpr();		/* Extended commands (again)	*/
-extern	int	evalbuffer();		/* Evaluate current buffer	*/
-extern	int	evalfile();		/* Evaluate a file		*/
+extern	int	evalexpr _PF();		/* Extended commands (again)	*/
+extern	int	evalbuffer _PF();	/* Evaluate current buffer	*/
+extern	int	evalfile _PF();		/* Evaluate a file		*/
 #endif
 
 /*
  * Defined by "file.c".
  */
-extern	int	filevisit();		/* Get a file, read write	*/
-extern	int	poptofile();		/* Get a file, other window	*/
+extern	int	filevisit _PF();	/* Get a file, read write	*/
+extern	int	poptofile _PF();	/* Get a file, other window	*/
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-extern	int	filereadonly();		/* Get a file, read only	*/
+extern	int	filereadonly _PF();	/* Get a file, read only	*/
 #endif	/* READONLY */
-extern	int	filewrite();		/* Write a file			*/
-extern	int	filesave();		/* Save current file		*/
-extern	int	fileinsert();		/* Insert file into buffer	*/
+extern	int	filealternate _PF();	/* Get a file, in this buffer	*/
+extern	int	filewrite _PF();	/* Write a file			*/
+extern	int	filesave _PF();		/* Save current file		*/
+extern	int	fileinsert _PF();	/* Insert file into buffer	*/
 #ifndef NO_BACKUP
-extern	int	makebkfile();		/* Control backups on saves	*/
+extern	int	makebkfile _PF();	/* Control backups on saves	*/
 #endif
 
 /*
  * defined by help.c
  */
 #ifndef NO_HELP
-extern	int	desckey();		/* describe key			*/
-extern	int	wallchart();		/* Make wall chart.		*/
-extern	int	help_help();		/* help help			*/
-extern	int	apropos_command();	/* apropos			*/
+extern	int	desckey _PF();		/* describe key			*/
+extern	int	wallchart _PF();	/* Make wall chart.		*/
+extern	int	help_help _PF();	/* help help			*/
+extern	int	apropos_command _PF();	/* apropos			*/
 #endif
 
+/*
+ * defined by "jump.c"         Dec 1991. bsh
+ */
+#ifdef	JUMPERR
+extern	int	jumptoerror();	/* parse current line as error message */
+#endif
 /*
  * defined by "kanji.c"
  */
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-extern	int	k_rot_fio();		/* Change global file I/O code.	*/
-extern	int	k_set_fio();		/* Set global file I/O code.	*/
-extern	int	k_rot_buffio();		/* Change buffer file I/O code.	*/
-extern	int	k_set_buffio();		/* Set buffer file I/O code.	*/
-extern	int	k_set_expect();		/* Set expected file input code. */
-extern	int	k_rot_input();		/* Change keyboard input code.	*/
-extern	int	k_set_input();		/* Set keyboard input code.	*/
-extern	int	k_rot_display();	/* Change KANJI display code.	*/
-extern	int	k_set_display();	/* Set KANJI display code.	*/
-extern	int	k_list_code();		/* List each KANJI code values.	*/
-extern	int	k_show_code();		/* Show each KANJI code values.	*/
-extern	int	k_set_tokfio();		/* Set file KANJI select char.	*/
-extern	int	k_set_toafio();		/* Set file ASCII select char.	*/
-extern	int	k_set_tokdisplay();	/* Set disp KANJI select char.	*/
-extern	int	k_set_toadisplay();	/* Set disp ASCII select char.	*/
+extern	int	k_rot_fio _PF();	/* Change global file I/O code.	*/
+extern	int	k_set_fio _PF();	/* Set global file I/O code.	*/
+extern	int	k_rot_buffio _PF();	/* Change buffer file I/O code.	*/
+extern	int	k_set_buffio _PF();	/* Set buffer file I/O code.	*/
+extern	int	k_set_expect _PF();	/* Set expected file input code. */
+extern	int	k_rot_input _PF();	/* Change keyboard input code.	*/
+extern	int	k_set_input _PF();	/* Set keyboard input code.	*/
+extern	int	k_rot_display _PF();	/* Change KANJI display code.	*/
+extern	int	k_set_display _PF();	/* Set KANJI display code.	*/
+extern	int	k_list_code _PF();	/* List each KANJI code values.	*/
+extern	int	k_show_code _PF();	/* Show each KANJI code values.	*/
+extern	int	k_set_tokfio _PF();	/* Set file KANJI select char.	*/
+extern	int	k_set_toafio _PF();	/* Set file ASCII select char.	*/
+extern	int	k_set_tokdisplay _PF();	/* Set disp KANJI select char.	*/
+extern	int	k_set_toadisplay _PF();	/* Set disp ASCII select char.	*/
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
-extern	int	k_set_tokanafio();	/* Set file KANA select char.	*/
-extern	int	k_set_tokanadisplay();	/* Set disp KANA select char.	*/
+extern	int	k_set_tokanafio _PF();	/* Set file KANA select char.	*/
+extern	int	k_set_tokanadisplay _PF();/* Set disp KANA select char.	*/
 #endif  /* HANKANA */
 #endif	/* KANJI */
 
@@ -168,161 +196,172 @@ extern	int	k_set_tokanadisplay();	/* Set disp KANA select char.	*/
  * defined by "kbd.c"
  */
 #ifdef	DO_METAKEY
-extern	int	do_meta();		/* interpret meta keys		*/
+extern	int	do_meta _PF();		/* interpret meta keys		*/
 #endif
 #ifdef	BSMAP
-extern	int	bsmap();		/* backspace mapping		*/
+extern	int	bsmap _PF();		/* backspace mapping		*/
 #endif
-extern	int	universal_argument();	/* Ctrl-U			*/
-extern	int	digit_argument();	/* M-1, etc.			*/
-extern	int	negative_argument();	/* M--				*/
-extern	int	selfinsert();		/* Insert character		*/
-extern	int	rescan();		/* internal try again function	*/
+extern	int	universal_argument _PF();/* Ctrl-U			*/
+extern	int	digit_argument _PF();	/* M-1, etc.			*/
+extern	int	negative_argument _PF();/* M--				*/
+extern	int	selfinsert _PF();	/* Insert character		*/
+extern	int	rescan _PF();		/* internal try again function	*/
 
 /*
  * defined by "kinsoku.c"
  */
 #ifdef	KINSOKU	/* 90.01.29  by S.Yoshida */
-extern	int	kc_list_char();		/* List BOL/EOL KINSOKU chars.	*/
-extern	int	kc_add_bol();		/* Add BOL KINSOKU chars.	*/
-extern	int	kc_del_bol();		/* Delete BOL KINSOKU chars.	*/
-extern	int	kc_add_eol();		/* Add EOL KINSOKU chars.	*/
-extern	int	kc_del_eol();		/* Delete EOL KINSOKU chars.	*/
+extern	int	kc_list_char _PF();	/* List BOL/EOL KINSOKU chars.	*/
+extern	int	kc_add_bol _PF();	/* Add BOL KINSOKU chars.	*/
+extern	int	kc_del_bol _PF();	/* Delete BOL KINSOKU chars.	*/
+extern	int	kc_add_eol _PF();	/* Add EOL KINSOKU chars.	*/
+extern	int	kc_del_eol _PF();	/* Delete EOL KINSOKU chars.	*/
 #endif	/* KINSOKU */
 
 /*
  * defined by "macro.c"
  */
 #ifndef NO_MACRO
-extern	int	definemacro();		/* Begin macro			*/
-extern	int	finishmacro();		/* End macro			*/
-extern	int	executemacro();		/* Execute macro		*/
+extern	int	definemacro _PF();	/* Begin macro			*/
+extern	int	finishmacro _PF();	/* End macro			*/
+extern	int	executemacro _PF();	/* Execute macro		*/
 #endif
 
 /*
  * Defined by "main.c".
  */
-extern	int	ctrlg();		/* Abort out of things		*/
-extern	int	quit();			/* Quit				*/
+extern	int	ctrlg _PF();		/* Abort out of things		*/
+extern	int	quit _PF();		/* Quit				*/
 
 /*
  * Defined by "match.c"
  */
-extern	int	showmatch();		/* Hack to show matching paren	 */
+extern	int	showmatch _PF();	/* Hack to show matching paren	 */
+#ifdef	GOMATCH
+extern	int	gotomatch _PF();	/* goto-matching-fence a la kemacs */
+#endif
 
 /* defined by "modes.c" */
 
-extern	int	indentmode();		/* set auto-indent mode		*/
-extern	int	fillmode();		/* set word-wrap mode		*/
-extern	int	blinkparen();		/* Fake blink-matching-paren var */
+extern	int	indentmode _PF();	/* set auto-indent mode		*/
+extern	int	fillmode _PF();		/* set word-wrap mode		*/
+extern	int	blinkparen _PF();	/* Fake blink-matching-paren var */
 #ifdef	NOTAB
-extern	int	notabmode();		/* no tab mode			*/
+extern	int	notabmode _PF();	/* no tab mode			*/
 #endif
-extern	int	overwrite();		/* overwrite mode		*/
+extern	int	overwrite _PF();	/* overwrite mode		*/
 #ifdef	C_MODE	/* 90.07.24  by K.Takano */
-extern	int	cmode();		/* set c-mode			*/
+extern	int	cmode _PF();		/* set c-mode			*/
 #endif	/* C_MODE */
-extern	int	set_default_mode();	/* set default modes		*/
+extern	int	set_default_mode _PF();	/* set default modes		*/
 
 /*
  * defined by "paragraph.c" - the paragraph justification code.
  */
-extern	int	gotobop();		/* Move to start of paragraph.	*/
-extern	int	gotoeop();		/* Move to end of paragraph.	*/
-extern	int	fillpara();		/* Justify a paragraph.		*/
-extern	int	killpara();		/* Delete a paragraph.		*/
-extern	int	setfillcol();		/* Set fill column for justify. */
-extern	int	fillword();		/* Insert char with word wrap.	*/
+extern	int	gotobop _PF();		/* Move to start of paragraph.	*/
+extern	int	gotoeop _PF();		/* Move to end of paragraph.	*/
+extern	int	fillpara _PF();		/* Justify a paragraph.		*/
+extern	int	killpara _PF();		/* Delete a paragraph.		*/
+extern	int	setfillcol _PF();	/* Set fill column for justify. */
+extern	int	fillword _PF();		/* Insert char with word wrap.	*/
 #ifdef	FILLPREFIX	/* 90.12.30  by S.Yoshida */
-extern	int	setfillprefix();	/* Set fill prefix strings.	*/
+extern	int	setfillprefix _PF();	/* Set fill prefix strings.	*/
 #endif	/* FILLPREFIX */
 
 /*
  * Defined by "random.c".
  */
-extern	int	showcpos();		/* Show the cursor position	*/
-extern	int	twiddle();		/* Twiddle characters		*/
-extern	int	quote();		/* Insert literal		*/
-extern	int	openline();		/* Open up a blank line		*/
-extern	int	newline();		/* Insert newline		*/
-extern	int	deblank();		/* Delete blank lines		*/
-extern	int	justone();		/* Delete extra whitespace	*/
-extern	int	delwhite();		/* Delete all whitespace	*/
-extern	int	indent();		/* Insert newline, then indent	*/
-extern	int	forwdel();		/* Forward delete		*/
-extern	int	backdel();		/* Backward delete in		*/
-extern	int	killline();		/* Kill forward			*/
-extern	int	killoneline();		/* Kill current line		*/
-extern	int	yank();			/* Yank back from killbuffer.	*/
+extern	int	showcpos _PF();		/* Show the cursor position	*/
+extern	int	twiddle _PF();		/* Twiddle characters		*/
+extern	int	quote _PF();		/* Insert literal		*/
+extern	int	openline _PF();		/* Open up a blank line		*/
+extern	int	newline _PF();		/* Insert newline		*/
+extern	int	deblank _PF();		/* Delete blank lines		*/
+extern	int	justone _PF();		/* Delete extra whitespace	*/
+extern	int	delwhite _PF();		/* Delete all whitespace	*/
+extern	int	indent _PF();		/* Insert newline, then indent	*/
+extern	int	forwdel _PF();		/* Forward delete		*/
+extern	int	backdel _PF();		/* Backward delete in		*/
+extern	int	killline _PF();		/* Kill forward			*/
+extern	int	killoneline _PF();	/* Kill current line		*/
+extern	int	yank _PF();		/* Yank back from killbuffer.	*/
 #ifdef NOTAB
-extern	int	space_to_tabstop();
+extern	int	space_to_tabstop _PF();
+#endif
+#ifdef	ZAPTOC_A
+# define ZAPTOCHAR
+#endif
+#ifdef ZAPTOCHAR
+extern	int	zaptochar _PF();	/* Kill up to CHAR              */
 #endif
 #ifdef	ADDFUNC	/* 90.02.15  by S.Yoshida */
-extern	int	pagelines();		/* Count lines in the page.	*/
-extern	int	regionlines();		/* Count lines in the region.	*/
+extern	int	pagelines _PF();	/* Count lines in the page.	*/
+extern	int	regionlines _PF();	/* Count lines in the region.	*/
 #endif	/* ADDFUNC */
 
 #ifdef	REGEX
 /*
  * Defined by "re_search.c"
  */
-extern	int	re_forwsearch();	/* Regex search forward		 */
-extern	int	re_backsearch();	/* Regex search backwards	 */
-extern	int	re_searchagain();	/* Repeat regex search command	 */
-extern	int	re_queryrepl();		/* Regex query replace		 */
-extern	int	setcasefold();		/* Set case fold in searches	 */
-extern	int	delmatchlines();	/* Delete all lines matching	 */
-extern	int	delnonmatchlines();	/* Delete all lines not matching */
-extern	int	cntmatchlines();	/* Count matching lines		 */
-extern	int	cntnonmatchlines();	/* Count nonmatching lines	 */
+extern	int	re_forwsearch _PF();	/* Regex search forward		 */
+extern	int	re_backsearch _PF();	/* Regex search backwards	 */
+extern	int	re_searchagain _PF();	/* Repeat regex search command	 */
+extern	int	re_queryrepl _PF();	/* Regex query replace		 */
+extern	int	setcasefold _PF();	/* Set case fold in searches	 */
+extern	int	delmatchlines _PF();	/* Delete all lines matching	 */
+extern	int	delnonmatchlines _PF();	/* Delete all lines not matching */
+extern	int	cntmatchlines _PF();	/* Count matching lines		 */
+extern	int	cntnonmatchlines _PF();	/* Count nonmatching lines	 */
 #endif
 
 /*
  * Defined by "region.c".
  */
-extern	int	killregion();		/* Kill region.			*/
-extern	int	copyregion();		/* Copy region to kill buffer.	*/
-extern	int	lowerregion();		/* Lower case region.		*/
-extern	int	upperregion();		/* Upper case region.		*/
+extern	int	killregion _PF();	/* Kill region.			*/
+extern	int	copyregion _PF();	/* Copy region to kill buffer.	*/
+extern	int	lowerregion _PF();	/* Lower case region.		*/
+extern	int	upperregion _PF();	/* Upper case region.		*/
+extern	int	copybuffer _PF();	/* Copy buffer to kill buffer	*/
 #ifdef	PREFIXREGION
-extern	int	prefixregion();		/* Prefix all lines in region	*/
-extern	int	setprefix();		/* Set line prefix string	*/
+extern	int	prefixregion _PF();	/* Prefix all lines in region	*/
+extern	int	setprefix _PF();	/* Set line prefix string	*/
 #endif
 
 /*
  * Defined by "search.c".
  */
-extern	int	forwsearch();		/* Search forward		*/
-extern	int	backsearch();		/* Search backwards		*/
-extern	int	searchagain();		/* Repeat last search command	*/
-extern	int	forwisearch();		/* Incremental search forward	*/
-extern	int	backisearch();		/* Incremental search backwards */
-extern	int	queryrepl();		/* Query replace		*/
+extern	int	forwsearch _PF();	/* Search forward		*/
+extern	int	backsearch _PF();	/* Search backwards		*/
+extern	int	searchagain _PF();	/* Repeat last search command	*/
+extern	int	forwisearch _PF();	/* Incremental search forward	*/
+extern	int	backisearch _PF();	/* Incremental search backwards */
+extern	int	queryrepl _PF();	/* Query replace		*/
 
 #ifndef NO_SHELL	/* 91.01.10  by K.Maeda */
 /*
  * Defined by "shell.c"
  */
-extern	int	shellcmnd();		/* Get shell command result.	*/
+extern	int	shellcmnd _PF();	/* Get shell command result.	*/
 #endif	/* NO_SHELL */
 
 /*
  * Defined by "spawn.c".
  */
-extern	int	spawncli();		/* Run CLI in a subjob.		*/
+extern	int	spawncli _PF();		/* Run CLI in a subjob.		*/
 #ifdef	VMS
-extern	int	attachtoparent();	/* Attach to parent process	*/
+extern	int	attachtoparent _PF();	/* Attach to parent process	*/
 #endif
 
 /*
  * Defined by "ttyio.c".
  */
-#ifdef	J3100	/* 91.01.11  by S.Yoshida */
-extern	int	j31_set_cursor();	/* Set J-3100 cursor mode.	*/
-#endif	/* J3100 */
+#ifdef	IBMPC	/* 91.01.11  by S.Yoshida */
+extern	int	j31_set_cursor _PF();	/* Set J-3100 cursor mode.	*/
+#endif	/* IBMPC */
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
-extern	int	fepmode_set();		/* Set FEP control mode		*/
-extern	int	fepmode_chg();		/* Change FEP control mode	*/
+extern	int	fepmode_set _PF();	/* Set FEP control mode		*/
+extern	int	fepmode_chg _PF();	/* Change FEP control mode	*/
+extern  int     fepmode_toggle _PF();	/* Toggle FEP on/off		*/
 #endif
 
 /* defined by "version.c" */
@@ -335,76 +374,91 @@ extern	int	showngversion();	/* Show Ng version, etc.	*/
 /*
  * Defined by "window.c".
  */
-extern	int	reposition();		/* Reposition window		*/
-extern	int	refresh();		/* Refresh the screen		*/
-extern	int	nextwind();		/* Move to the next window	*/
+extern	int	reposition _PF();	/* Reposition window		*/
+extern	int	refresh _PF();		/* Refresh the screen		*/
+extern	int	nextwind _PF();		/* Move to the next window	*/
 #ifdef	GOSMACS
-extern	int	prevwind();		/* Move to the previous window	*/
+extern	int	prevwind _PF();		/* Move to the previous window	*/
 #endif
-extern	int	onlywind();		/* Make current window only one */
-extern	int	splitwind();		/* Split current window		*/
-extern	int	delwind();		/* Delete current window	*/
-extern	int	enlargewind();		/* Enlarge display window.	*/
-extern	int	shrinkwind();		/* Shrink window.		*/
+extern	int	onlywind _PF();		/* Make current window only one */
+extern	int	splitwind _PF();	/* Split current window		*/
+extern	int	delwind _PF();		/* Delete current window	*/
+extern	int	enlargewind _PF();	/* Enlarge display window.	*/
+extern	int	shrinkwind _PF();	/* Shrink window.		*/
 
 /*
  * Defined by "word.c".
  */
-extern	int	backword();		/* Backup by words		*/
-extern	int	forwword();		/* Advance by words		*/
-extern	int	upperword();		/* Upper case word.		*/
-extern	int	lowerword();		/* Lower case word.		*/
-extern	int	capword();		/* Initial capitalize word.	*/
-extern	int	delfword();		/* Delete forward word.		*/
-extern	int	delbword();		/* Delete backward word.	*/
+extern	int	backword _PF();		/* Backup by words		*/
+extern	int	forwword _PF();		/* Advance by words		*/
+extern	int	upperword _PF();	/* Upper case word.		*/
+extern	int	lowerword _PF();	/* Lower case word.		*/
+extern	int	capword _PF();		/* Initial capitalize word.	*/
+extern	int	delfword _PF();		/* Delete forward word.		*/
+extern	int	delbword _PF();		/* Delete backward word.	*/
 
-/* defined by "skg.c" */
+/*
+ * Defined by "version.c".
+ */
+extern	int showversion _PF();		/* Show ng version breifry	*/
+extern	int showngversion _PF();	/* Show ng version verbose	*/
 
+/*
+ * Defined by "skg.c".
+ */
 #ifdef INCLUDE_SKG
-extern	int	skginput();		/* Get Kanji strings.		*/
-#endif /* INCLUDE_SKG */
+extern	int	skginput _PF();		/* Get Kanji strings.		*/
+extern	int	skg_set_romanname _PF();/* Set Roman->Kana dict name	*/
+extern	int	skg_set_dicname _PF();	/* Set Kana->Kanji dict name	*/
+#endif
+
+#ifdef	_WIN32
+#ifndef NO_STARTUP
+extern int ConfigStartupFilePath _PF();
+#endif
+#endif
 
 #ifdef	AMIGA
 #ifdef	DO_ICONIFY
-extern	int tticon();
+extern	int	tticon _PF();
 #endif
 #ifdef	DO_MENU
-extern	int	amigamenu();		/* Menu function		*/
+extern	int	amigamenu _PF();	/* Menu function		*/
 #endif
 #ifdef	MOUSE
-extern	int	amigamouse();		/* Amiga mouse functions	*/
-extern	int	mgotobob();
-extern	int	mforwdel();
-extern	int	mdelwhite();
-extern	int	mdelwind();
-extern	int	mgotoeob();
-extern	int	menlargewind();
-extern	int	mkillline();
-extern	int	mkillregion();
-extern	int	mdelfword();
-extern	int	mreposition();
-extern	int	mbackpage();
-extern	int	mforwpage();
-extern	int	mshrinkwind();
-extern	int	msplitwind();
-extern	int	myank();
+extern	int	amigamouse _PF();	/* Amiga mouse functions	*/
+extern	int	mgotobob _PF();
+extern	int	mforwdel _PF();
+extern	int	mdelwhite _PF();
+extern	int	mdelwind _PF();
+extern	int	mgotoeob _PF();
+extern	int	menlargewind _PF();
+extern	int	mkillline _PF();
+extern	int	mkillregion _PF();
+extern	int	mdelfword _PF();
+extern	int	mreposition _PF();
+extern	int	mbackpage _PF();
+extern	int	mforwpage _PF();
+extern	int	mshrinkwind _PF();
+extern	int	msplitwind _PF();
+extern	int	myank _PF();
 #endif	MOUSE
 
-extern	int	togglewindow();		/* Defined by "ttyio.c"		*/
-extern	int	togglezooms();		/*    ""         ""		*/
+extern	int	togglewindow _PF();	/* Defined by "ttyio.c"		*/
+extern	int	togglezooms _PF();	/*    ""         ""		*/
 
 #ifdef	CHANGE_FONT
-extern	int	setfont();		/* Defined by "ttyio.c"		*/
+extern	int	setfont _PF();		/* Defined by "ttyio.c"		*/
 #endif
 
 #ifdef	CHANGE_COLOR
 	/* functions to mess with the mode line rendition, window colors*/
-extern	int	ttmode();		/* Defined by "tty.c"		*/
-extern	int	tttext();		/*  ""				*/
-extern	int	textforeground();	/*  ""				*/
-extern	int	textbackground();	/*  ""				*/
-extern	int	modeforeground();	/*  ""				*/
-extern	int	modebackground();	/*  ""				*/
+extern	int	ttmode _PF();		/* Defined by "tty.c"		*/
+extern	int	tttext _PF();		/*  ""				*/
+extern	int	textforeground _PF();	/*  ""				*/
+extern	int	textbackground _PF();	/*  ""				*/
+extern	int	modeforeground _PF();	/*  ""				*/
+extern	int	modebackground _PF();	/*  ""				*/
 #endif
 
 /*
@@ -521,7 +575,7 @@ static	PF	cXcL[] = {
 	filesave,	/* ^S */
 	rescan,		/* ^T */
 	upperregion,	/* ^U */
-	rescan,		/* ^V */
+	filealternate,	/* ^V */
 	filewrite,	/* ^W */
 	swapmark,	/* ^X */
 };
@@ -550,7 +604,11 @@ static	PF	cXeq[]	= {
 static	PF	cXcar[] = {
 	enlargewind,	/* ^ */
 	rescan,		/* _ */
+#ifdef JUMPERR
+	jumptoerror,	/* ` */
+#else
 	rescan,		/* ` */
+#endif
 	rescan,		/* a */
 	usebuffer,	/* b */
 	rescan,		/* c */
@@ -680,6 +738,10 @@ static	PF	metal[] = {
 	backpage,	/* v */
 	copyregion,	/* w */
 	extend,		/* x */
+#ifdef ZAPTOCHAR
+        rescan,  	/* y */
+        zaptochar,	/* z */
+#endif	
 };
 static	PF	metatilde[] = {
 	notmodified,	/* ~ */
@@ -690,6 +752,8 @@ static	PF	metacK[] = {
 	skginput,	/* ^K */
 };
 #define XSKGMAP 1
+#else
+#define XSKGMAP 0
 #endif
 static	struct	KEYMAPE(8+IMAPEXT+XSKGMAP)	metamap = {
 	8+XSKGMAP,
@@ -709,7 +773,11 @@ static	struct	KEYMAPE(8+IMAPEXT+XSKGMAP)	metamap = {
 		{'%',	'%',		metapct,(KEYMAP *)NULL},
 		{'-',	'>',		metami, (KEYMAP *)NULL},
 		{'[',	'f',		metalb, (KEYMAP *)NULL},
+#ifndef ZAPTOCHAR
 		{'l',	'x',		metal,	(KEYMAP *)NULL},
+#else
+		{'l',	'z',		metal,	(KEYMAP *)NULL},
+#endif	    
 		{'~',	CCHR('?'),	metatilde,(KEYMAP *)NULL},
 	}
 };
@@ -756,7 +824,23 @@ static	PF	fund_CJ[] = {
 static	PF	fund_esc[] = {
 	prefix,		/* esc */
 #ifdef	MSDOS	/* 90.02.20  by S.Yoshida */
+#ifdef	PC9801	/* 97.09.11  by amura */
+#ifdef	FEPCTRL
+	fepmode_toggle,	/* ^\ */	/* ^\ is fep-toggle */
+#else
 	setmark,	/* ^\ */	/* ^\ is also set-mark-command. */
+#endif	/* FEPCTRL */
+#else	/* NOT PC9801 */
+#ifdef	IBMPC
+#ifdef	FEPCTRL
+	fepmode_toggle,	/* ^\ */	/* ^\ is fep-toggle */
+#else
+	setmark,	/* ^\ */	/* ^\ is also set-mark-command. */
+#endif	/* FEPCTRL */
+#else	/* NOT IBMPC and PC9801 */
+	setmark,	/* ^\ */	/* ^\ is also set-mark-command. */
+#endif	/* IBMPC */
+#endif	/* PC9801 */
 #else	/* NOT MSDOS */
 #ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
 	setmark,	/* ^\ */	/* ^\ is also set-mark-command. */
@@ -914,9 +998,16 @@ static	PF	diredn[] = {
 	rescan,		/* s */
 	rescan,		/* t */
 	d_undel,	/* u */
+#ifdef READONLY
+	d_viewfile,	/* v */
+#else
 	rescan,		/* v */
+#endif
 	rescan,		/* w */
 	d_expunge,	/* x */
+};
+static	PF	diredf[] = {
+ 	d_flag,		/* ~ */
 };
 static	PF	direddl[] = {
 	d_undelbak,	/* del */
@@ -926,9 +1017,9 @@ static	PF	direddl[] = {
 #define	NDIRED_XMAPS	0	/* number of extra map sections */
 #endif
 
-static	struct	KEYMAPE(6 + NDIRED_XMAPS + IMAPEXT)	diredmap = {
-	6 + NDIRED_XMAPS,
-	6 + NDIRED_XMAPS + IMAPEXT,
+static	struct	KEYMAPE(7 + NDIRED_XMAPS + IMAPEXT)	diredmap = {
+	7 + NDIRED_XMAPS,
+	7 + NDIRED_XMAPS + IMAPEXT,
 	rescan,
 	{
 #ifndef NO_HELP
@@ -940,6 +1031,7 @@ static	struct	KEYMAPE(6 + NDIRED_XMAPS + IMAPEXT)	diredmap = {
 		{CCHR('Z'),	' ',		diredcz,  (KEYMAP *)&metamap},
 		{'c',		'f',		diredc,   (KEYMAP *)NULL},
 		{'n',		'x',		diredn,   (KEYMAP *)NULL},
+		{'~',		'~',		diredf,   (KEYMAP *)NULL},
 		{CCHR('?'),	CCHR('?'),	direddl,  (KEYMAP *)NULL},
 #ifdef	DIRED_XMAPS
 		DIRED_XMAPS,	/* map sections for dired mode keys	*/
@@ -977,6 +1069,106 @@ static	struct	KEYMAPE(3+IMAPEXT)	cmodemap = {
 };
 #endif	/* C_MODE */
 
+#ifdef BUFFER_MODE /* 1999.5.30  by Tillanosoft */
+static	PF	buffernul[] = {
+	setmark,	/* ^@ */
+	gotobol,	/* ^A */
+	backchar,	/* ^B */
+	rescan,		/* ^C */
+	b_del,		/* ^D */
+	gotoeol,	/* ^E */
+	forwchar,	/* ^F */
+	ctrlg,		/* ^G */
+#ifndef NO_HELP
+	prefix,		/* ^H */
+#endif
+};
+static	PF	buffercl[] = {
+	reposition,	/* ^L */
+ 	forwline,	/* ^M */
+	forwline,	/* ^N */
+	rescan,		/* ^O */
+	backline,	/* ^P */
+	rescan,		/* ^Q */
+	backisearch,	/* ^R */
+	forwisearch,	/* ^S */
+	rescan,		/* ^T */
+	universal_argument, /* ^U */
+	forwpage,	/* ^V */
+	rescan,		/* ^W */
+	prefix,		/* ^X */
+};
+static	PF	buffercz[] = {
+#ifndef VMS
+	spawncli,	/* ^Z */
+#else
+	attachtoparent, /* ^Z */
+#endif
+	prefix,		/* esc */
+	rescan,		/* ^\ */
+	rescan,		/* ^] */
+	rescan,		/* ^^ */
+	rescan,		/* ^_ */
+	forwline,	/* SP */
+};
+
+/*
+  1
+  2
+  d done
+  f done
+  g
+  k done
+  n done
+  o
+  p done
+  u done
+  x done
+  ~
+  %
+*/
+
+static	PF	bufferd[] = {
+	b_del,		/* d */
+	rescan,		/* e */
+	b_thiswin,	/* f */
+	rescan,		/* g */
+	rescan,		/* h */
+	rescan,		/* i */
+	rescan,		/* j */
+	b_del,		/* k */
+	rescan,		/* l */
+	rescan,		/* m */
+	forwline,	/* n */
+	rescan,		/* o */
+	backline,	/* p */
+	rescan,		/* q */
+	rescan,		/* r */
+	rescan,		/* s */
+	rescan,		/* t */
+	b_undel,	/* u */
+	rescan,		/* v */
+	rescan,		/* w */
+	b_expunge,	/* x */
+};
+
+static struct KEYMAPE(4 + IMAPEXT) bufmodemap = {
+  4,
+  4 + IMAPEXT,
+  rescan,
+  {
+#ifndef NO_HELP
+    {CCHR('@'),	CCHR('H'),	buffernul, (KEYMAP *)&helpmap},
+#else
+    {CCHR('@'),	CCHR('G'),	buffernul, (KEYMAP *)NULL},
+#endif
+    {CCHR('L'),	CCHR('X'),	buffercl,  (KEYMAP *)&cXmap},
+    {CCHR('Z'),	' ',		buffercz,  (KEYMAP *)&metamap},
+    {'d',	'x',		bufferd,   (KEYMAP *)NULL},
+  }
+};
+#endif	/* BUF_MODE */
+
 /* give names to the maps, for use by help etc.
  * If the map is to be bindable, it must also be listed in the
  * function name table below with the same name.
@@ -1011,6 +1203,9 @@ MAPS	map_table[] = {
 #ifdef C_MODE	/* 90.07.24  by K.Takano */
 	{(KEYMAP *)&cmodemap,	"C"},
 #endif	/* C_MODE */
+#ifdef BUFFER_MODE
+	{(KEYMAP *)&bufmodemap,	"Buffer Menu"},
+#endif
 };
 
 #define NMAPS	(sizeof map_table/sizeof(MAPS))
@@ -1045,12 +1240,19 @@ char *name;
 	return (mp=name_mode(name))==NULL ? (KEYMAP *)NULL : mp->p_map;
 }
 
+
 /* Warning: functnames MUST be in alphabetical order!  (due to binary
  * search in name_function.)  If the function is prefix, it must be listed
  * with the same name in the map_table above.
  */
 
 FUNCTNAMES	functnames[] = {
+#ifdef BUFFER_MODE
+	{b_del,		"Buffer-menu-delete"},
+	{b_expunge,	"Buffer-menu-execute"},
+	{b_thiswin,	"Buffer-menu-this-window"},
+	{b_undel,	"Buffer-menu-unmark"},
+#endif
 #ifdef	KINSOKU	/* 90.01.29  by S.Yoshida */
 	{kc_add_bol,	"add-kinsoku-bol-chars"},
 	{kc_add_eol,	"add-kinsoku-eol-chars"},
@@ -1119,6 +1321,15 @@ FUNCTNAMES	functnames[] = {
 	{k_rot_buffio,	"change-fileio-code"},
 	{k_rot_input,	"change-input-code"},
 #endif	/* KANJI */
+#ifdef	COMPILE_MODE
+	{compile,	"compile"},
+#endif	/* COMPILE_MODE */
+#ifndef NO_STARTUP
+#ifdef _WIN32
+	{ConfigStartupFilePath, "configure"},
+#endif
+#endif
+ 	{copybuffer,	"copy-buffer-as-kill"},
 	{copyregion,	"copy-region-as-kill"},
 #ifdef	ADDFUNC	/* 90.02.15  by S.Yoshida */
 	{pagelines,	 "count-lines-page"},
@@ -1153,8 +1364,10 @@ FUNCTNAMES	functnames[] = {
 	{d_undelbak,	"dired-backup-unflag"},
 	{d_copy,	"dired-copy-file"},
 	{d_expunge,	"dired-do-deletions"},
+	{d_execute,	"dired-do-shell-command"},
 	{d_findfile,	"dired-find-file"},
 	{d_ffotherwindow, "dired-find-file-other-window"},
+	{d_flag,	"dired-flag-backup-files"},
 	{d_del,		"dired-flag-file-deleted"},
 	{d_otherwindow, "dired-other-window"},
 	{d_rename,	"dired-rename-file"},
@@ -1164,6 +1377,7 @@ FUNCTNAMES	functnames[] = {
 	{lowerword,	"downcase-word"},
 #ifdef C_MODE	/* 90.07.24  by K.Takano */
 	{cm_brace,	"electric-c-brace"},
+	{cm_brace_blink,"electric-c-brace-blink"},
 	{cm_semi,	"electric-c-semi"},
 	{cm_term,	"electric-c-terminator"},
 #endif	/* C_MODE */
@@ -1181,6 +1395,9 @@ FUNCTNAMES	functnames[] = {
 #endif
 	{swapmark,	"exchange-point-and-mark"},
 	{extend,	"execute-extended-command"},
+#ifdef FEPCTRL
+	{fepmode_toggle,"fep-toggle"},
+#endif
 	{fillpara,	"fill-paragraph"},
 	{filevisit,	"find-file"},
 	{poptofile,	"find-file-other-window"},
@@ -1193,19 +1410,28 @@ FUNCTNAMES	functnames[] = {
 	{bindtokey,	"global-set-key"},
 	{unbindtokey,	"global-unset-key"},
 	{gotoline,	"goto-line"},
+#ifdef	GOMATCH    
+	{gotomatch,	"goto-matching-fence"},
+#endif    
 #ifndef NO_HELP
 	{prefix,	"help"},
 	{help_help,	"help-help"},
 #endif
+#ifdef	IBMPC	/* 91.01.11  by S.Yoshida */
+	{j31_set_cursor, "ibmpc-set-cursor"},
+#endif	/* IBMPC */
 	{insert,	"insert"},
 	{bufferinsert,	"insert-buffer"},
 	{fileinsert,	"insert-file"},
 	{fillword,	"insert-with-wrap"},
 	{backisearch,	"isearch-backward"},
 	{forwisearch,	"isearch-forward"},
-#ifdef	J3100	/* 91.01.11  by S.Yoshida */
+#ifdef	IBMPC	/* 91.01.11  by S.Yoshida */
 	{j31_set_cursor, "j31-set-cursor"},
-#endif	/* J3100 */
+#endif	/* IBMPC */
+#ifdef	JUMPERR	
+        {jumptoerror,	"jump-to-error"},
+#endif
 	{justone,	"just-one-space"},
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	{prefix,	"kanji-prefix"},
@@ -1239,6 +1465,9 @@ FUNCTNAMES	functnames[] = {
 #ifdef	DO_METAKEY
 	{do_meta,	"meta-key-mode"},	/* better name, anyone? */
 #endif
+#ifndef KANJI
+	{showngversion,	"mg-version"},
+#endif
 #ifdef	AMIGA
 #ifdef	MOUSE
 	{mgotobob,	"mouse-beginning-of-buffer"},
@@ -1262,9 +1491,14 @@ FUNCTNAMES	functnames[] = {
 	{negative_argument, "negative-argument"},
 	{newline,	"newline"},
 	{indent,	"newline-and-indent"},
+#ifdef	COMPILE_MODE
+	{nexterror,	"next-error"},
+#endif
 	{forwline,	"next-line"},
 #ifdef	ADDFUNC	/* 90.12.28  by S.Yoshida */
+#ifdef	KANJI
 	{showngversion,	"ng-version"},
+#endif
 #endif
 #ifdef	NOTAB
 	{notabmode,	"no-tab-mode"},
@@ -1322,6 +1556,9 @@ FUNCTNAMES	functnames[] = {
 	{cm_set_indent,	"set-c-indent-level"},
 	{cm_set_label,	"set-c-label-offset"},
 	{cm_set_tab,	"set-c-tab-always-indent"},
+#ifdef	VARIABLE_TAB
+	{set_cmode_tabwidth, "set-c-tab-width"},
+#endif	
 #endif	/* C_MODE */
 #ifdef	REGEX
 	{setcasefold,	"set-case-fold-search"},
@@ -1330,6 +1567,9 @@ FUNCTNAMES	functnames[] = {
 	{k_set_fio,	"set-default-fileio-code"},
 #endif	/* KANJI */
 	{set_default_mode, "set-default-mode"},
+#ifdef	VARIABLE_TAB
+	{set_default_tabwidth,"set-default-tab-width"},
+#endif	/* VARIABLE_TAB */
 #ifdef	FEPCTRL	/* 90.11.26  by K.Takano */
 	{fepmode_set,	"set-fep-control"},
 #endif	/* FEPCTRL */
@@ -1347,6 +1587,13 @@ FUNCTNAMES	functnames[] = {
 #ifdef	PREFIXREGION
 	{setprefix,	"set-prefix-string"},
 #endif
+#ifdef	INCLUDE_SKG  /* 00.2.16 by amura */
+	{skg_set_dicname, "set-skg-kanji-dictionary"},
+	{skg_set_romanname, "set-skg-roman-dictionary"},
+#endif  /* INCLUDE_SKG */
+#ifdef	VARIABLE_TAB
+	{set_tabwidth,	"set-tab-width"},
+#endif	/* VARIABLE_TAB */
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	{k_set_toadisplay, "set-to-ascii-display"},
 	{k_set_toafio,	"set-to-ascii-fileio"},
@@ -1378,6 +1625,7 @@ FUNCTNAMES	functnames[] = {
 #endif
 	{usebuffer,	"switch-to-buffer"},
 	{poptobuffer,	"switch-to-buffer-other-window"},
+	{fillmode,	"text-mode"},		/* dummy */
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
 	{togglereadonly, "toggle-read-only"},
 #endif	/* READONLY */
@@ -1388,6 +1636,9 @@ FUNCTNAMES	functnames[] = {
 	{showcpos,	"what-cursor-position"},
 	{filewrite,	"write-file"},
 	{yank,		"yank"},
+#ifdef ZAPTOCHAR	/* Nov 91, bsh */
+	{zaptochar,	"zap-to-char"},
+#endif
 };
 
 #define NFUNCT	(sizeof(functnames)/sizeof(FUNCTNAMES))
@@ -1494,3 +1745,12 @@ register PF fpoint;
 	} while(++fnp < &functnames[NFUNCT]);
 	return (char *)NULL;
 }
+
+/* $Id: keymap.c,v 1.2 2000/03/10 21:29:32 amura Exp $ */
+/* Local Variables: */
+/*  c-indent-level:                   8      */
+/*  c-continued-statement-offset:     8      */
+/*  c-brace-offset:                  -8      */
+/*  c-argdecl-indent:                 8      */
+/*  c-label-offset:                  -8      */
+/* End: */
