@@ -1,4 +1,4 @@
-AC_REVISION($Id: configure.in,v 1.5 2000/12/22 19:55:36 amura Exp $)
+AC_REVISION($Id: configure.in,v 1.6 2000/12/27 17:57:13 amura Exp $)
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(basic.c)
 AC_CONFIG_HEADER(sysconfig.h:sys/unix/sysconfig.h.in)
@@ -54,8 +54,9 @@ if test "$host_os" != "cygwin"; then
   AC_CHECK_TYPE(fd_set, int)
 fi
 dnl Minix define SIGTSTP but don't have suspend yet...
-case "$host_os" in
-  minix*)
+dnl I want to use $host_os, but cannot use because Minix's sed has bug...
+case "$host" in
+  *-*-minix*)
     AC_DEFINE(UNDEF_SIGTSTP, 1);;
 esac
 
