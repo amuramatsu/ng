@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.3 2000/07/18 12:38:56 amura Exp $ */
+/* $Id: jump.c,v 1.4 2000/07/22 20:47:32 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: jump.c,v $
+ * Revision 1.4  2000/07/22 20:47:32  amura
+ * do not use excline()
+ *
  * Revision 1.3  2000/07/18 12:38:56  amura
  * remove some compile warning
  *
@@ -38,6 +41,8 @@
 #ifndef	R_OK              /* for access() */
 #  define R_OK 4
 #endif
+
+#define	BUFLEN	100
 
 static struct re_pattern_buffer re_buff;
 static char fastmap[(1 << BYTEWIDTH)];
@@ -96,7 +101,6 @@ set_regexp( pat )
     return TRUE;
 }
 
-#define	BUFLEN	100
 parse_error_message( clp, col, namebuf, ip, parse_end )
     LINE *clp;
     char *namebuf;
@@ -152,10 +156,10 @@ jumptoerror(f,n)
     int  lineno;
     char buf[BUFLEN+1];
     char *p=buf;
-    char cmdbuf[200];
     int col;
     LINE *dlp;
     extern int gotoline();
+    extern int filevisit(), poptofile();
 	
     dlp = curwp->w_dotp;
     while (dlp != curbp->b_linep)
@@ -168,24 +172,20 @@ jumptoerror(f,n)
 	    if (0 == access( buf, R_OK )){
 		/* ewprintf( "file:`%s' line %d", buf, lineno ); */
 		/*
-		 * All the hairly works to give filename to filevisit() is
-		 * done by excline().
+		 * All the hairly works to give filename to filevisit()
 		 */
-		while (*p) {
-		    if (*p == '\\')
-			*p = '/';
-		    p++;
-		}
-		sprintf( cmdbuf, "(%s \"%s\")",
-			(f&FFARG)?"find-file":"find-file-other-window", buf);
 		curwp->w_flag |= WFHARD;
 		curwp->w_doto = 0;
 		curwp->w_linep = dlp;
 		curwp->w_lines = 0;
 		if (lforw(dlp) != curbp->b_linep)
 		    curwp->w_dotp = lforw(dlp);
-		if (!excline(cmdbuf))
-		    return FALSE;
+		eargset(buf);
+		if (f&FFARG) {
+			if (!filevisit(FFARG,0)) return FALSE;
+		} else {
+			if (!poptofile(FFARG,0)) return FALSE;
+		}
 		gotoline( FFARG, lineno );
 		return TRUE;
 	    }
