@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.5 2000/07/20 12:45:17 amura Exp $ */
+/* $Id: def.h,v 1.6 2000/07/22 20:50:54 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.6  2000/07/22 20:50:54  amura
+ * redefine NFILEN macro
+ *
  * Revision 1.5  2000/07/20 12:45:17  amura
  * support undo with auto-fill mode
  *
@@ -73,7 +76,15 @@ typedef int (*PF) pro((int, int)); /* generaly useful type */
 /*
  * Table sizes, etc.
  */
+#ifdef	MSDOS
 #define NFILEN	80			/* Length, file name.		*/
+#else	/* Not MSDOS */
+#ifdef	HUMAN68K
+#define NFILEN	128			/* Length, file name.		*/
+#else	/* Not HUMAN68K */
+#define NFILEN	256			/* Length, file name.		*/
+#endif	/* HUMAN68K */
+#endif	/* MSODS */
 #define NBUFN	24			/* Length, buffer name.		*/
 #define NLINE	256			/* Length, line.		*/
 #define PBMODES 4			/* modes per buffer		*/
