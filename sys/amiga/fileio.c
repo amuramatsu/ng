@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.10 2001/11/28 17:51:47 amura Exp $ */
+/* $Id: fileio.c,v 1.11 2002/11/06 16:05:23 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,6 +14,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.11  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 1.10  2001/11/28 17:51:47  amura
  * little modifies for support VBCC. (but not work yet)
  *
@@ -79,6 +82,9 @@
 #else
 # define FCHARS			32L
 #endif
+
+extern struct SysBase *SysBase;
+extern struct IntuitionBase *IntuitionBase;
 
 #define	NIOBUF			4096
 

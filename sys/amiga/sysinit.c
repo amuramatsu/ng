@@ -1,4 +1,4 @@
-/* $Id: sysinit.c,v 1.7 2001/11/23 11:56:45 amura Exp $ */
+/* $Id: sysinit.c,v 1.8 2002/11/06 16:05:23 amura Exp $ */
 /*
  * Name:	MG 2a
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: sysinit.c,v $
+ * Revision 1.8  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 1.7  2001/11/23 11:56:45  amura
  * Rewrite all sources
  *
@@ -54,6 +57,8 @@
 #undef	TRUE
 #define	TRUE	1
 #define	FALSE	0
+
+extern struct SysBase *SysBase;
 
 #ifdef USE_ARP
 #include <libraries/arpbase.h>

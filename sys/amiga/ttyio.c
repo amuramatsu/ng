@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.7 2001/11/23 11:56:45 amura Exp $ */
+/* $Id: ttyio.c,v 1.8 2002/11/06 16:05:23 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga terminal window I/O, with all kinds o' trimmings.
@@ -9,6 +9,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.8  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 1.7  2001/11/23 11:56:45  amura
  * Rewrite all sources
  *
@@ -79,16 +82,22 @@
 #endif
 #include <clib/alib_protos.h>
 
-#ifdef	DO_METAKEY
+extern struct GfxBase *GfxBase;
+extern struct SysBase *SysBase;
+extern struct IntuitionBase *IntuitionBase;
+extern struct Library *DiskfontBase;
+
+
+#ifdef DO_METAKEY
 #define	IEQUALIFIER_ALT		(IEQUALIFIER_RALT | IEQUALIFIER_LALT)
-#endif	/* DO_METAKEY */
+#endif /* DO_METAKEY */
 
 /* ARexx support. this is mg3b's feature! */
-#ifdef	REXX	/* Dec.20,1992 Add by H.Ohkubo */
+#ifdef REXX	/* Dec.20,1992 Add by H.Ohkubo */
 #include "key.h"
 #endif
 
-#ifdef	MANX
+#ifdef MANX
 extern int Enable_Abort;		/* Do NOT allow abort!		*/
 #endif
 
@@ -101,11 +110,10 @@ extern char version[];			/* Version information		*/
 extern int  ttrow;			/* Current cursor row		*/
 extern int  use_metakey;		/* Do meta characters?		*/
 
-#ifdef	DO_MENU
+#ifdef DO_MENU
 /* defined in ttymenu.c */
-struct Menu *    InitEmacsMenu();
-VOID             DisposeMenus();
-struct MenuItem *ItemAddress();
+struct Menu *InitEmacsMenu _PRO((struct Window *));
+VOID         DisposeMenus _PRO((struct Menu *));
 #endif
 
 /* defined in cosole.c */

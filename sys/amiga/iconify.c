@@ -1,4 +1,4 @@
-/* $Id: iconify.c,v 2.2 2001/11/23 11:56:44 amura Exp $ */
+/* $Id: iconify.c,v 2.3 2002/11/06 16:05:23 amura Exp $ */
 /*
  * iconify.c
  *   Leo Schwab's iconify() compatible iconify routine.
@@ -30,6 +30,9 @@
 
 /*
  * $Log: iconify.c,v $
+ * Revision 2.3  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 2.2  2001/11/23 11:56:44  amura
  * Rewrite all sources
  *
@@ -59,6 +62,7 @@
 #include <clib/exec_protos.h>
 #endif
 
+extern struct SysBase *SysBase;
 extern struct Library *WorkbenchBase;
 
 static struct DiskObject icondef = {

@@ -1,4 +1,4 @@
-/* $Id: ttyicon.c,v 1.4 2001/11/23 11:56:45 amura Exp $ */
+/* $Id: ttyicon.c,v 1.5 2002/11/06 16:05:23 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Iconify the MG window using Leo Schwab's iconify() routine.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: ttyicon.c,v $
+ * Revision 1.5  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 1.4  2001/11/23 11:56:45  amura
  * Rewrite all sources
  *
@@ -37,6 +40,8 @@
 #else
 #include <clib/exec_protos.h>
 #endif
+
+extern struct SysBase *SysBase;
 
 /*
  * Simple Mg 2a icon image.  We need a more imaginative one.

@@ -1,4 +1,4 @@
-/* $Id: sleep.c,v 1.2 2001/11/23 11:56:45 amura Exp $ */
+/* $Id: sleep.c,v 1.3 2002/11/06 16:05:23 amura Exp $ */
 /*
  * Name:	MicroEmacs
  *		AmigaDOS sleep function
@@ -9,6 +9,9 @@
 
 /*
  * $Log: sleep.c,v $
+ * Revision 1.3  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 1.2  2001/11/23 11:56:45  amura
  * Rewrite all sources
  *
@@ -24,6 +27,8 @@
 #else
 #include <clib/dos_protos.h>
 #endif
+
+extern struct DOSBase *DOSBase;
 
 /* There are really 60 ticks/second, but I don't want to wait that 	*/
 /* long when matching parentheses... */

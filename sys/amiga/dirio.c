@@ -1,4 +1,4 @@
-/* $Id: dirio.c,v 1.6 2001/11/23 11:56:44 amura Exp $ */
+/* $Id: dirio.c,v 1.7 2002/11/06 16:05:23 amura Exp $ */
 /*
  * Name:	MG 2x
  *		Directory I/O routines, by Stephen Walton
@@ -7,6 +7,9 @@
 
 /*
  * $Log: dirio.c,v $
+ * Revision 1.7  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 1.6  2001/11/23 11:56:44  amura
  * Rewrite all sources
  *
@@ -39,6 +42,8 @@
 #else
 #include <clib/exec_protos.h>
 #endif
+
+extern struct SysBase *SysBase;
 
 extern char MyDirName[NFILEN];
 extern char *wdir, *startdir;

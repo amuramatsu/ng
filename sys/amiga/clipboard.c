@@ -1,4 +1,4 @@
-/* $Id: clipboard.c,v 1.3 2001/11/23 11:56:44 amura Exp $ */
+/* $Id: clipboard.c,v 1.4 2002/11/06 16:05:23 amura Exp $ */
 /*   
  * clipboard.c
  *   Amiga clipboard support routine.
@@ -42,6 +42,9 @@
 
 /*
  * $Log: clipboard.c,v $
+ * Revision 1.4  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 1.3  2001/11/23 11:56:44  amura
  * Rewrite all sources
  *
@@ -75,6 +78,8 @@
 #include <clib/exec_protos.h>
 #endif
 #include <clib/alib_protos.h>
+
+extern struct SysBase *SysBase;
 
 #include <string.h>
 

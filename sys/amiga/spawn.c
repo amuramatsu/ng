@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.4 2001/11/28 17:51:48 amura Exp $ */
+/* $Id: spawn.c,v 1.5 2002/11/06 16:05:23 amura Exp $ */
 /*
  * Name:	MG
  * Version:	2x
@@ -9,6 +9,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.5  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 1.4  2001/11/28 17:51:48  amura
  * little modifies for support VBCC. (but not work yet)
  *
@@ -36,6 +39,8 @@
 #include <clib/dos_protos.h>
 #include <clib/exec_protos.h>
 #endif
+
+extern struct DOSBase *DOSBase;
 
 /*
  * Create a subjob with a copy of the command intrepreter in it.

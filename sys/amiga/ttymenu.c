@@ -1,4 +1,4 @@
-/* $Id: ttymenu.c,v 2.5 2001/11/28 17:51:48 amura Exp $ */
+/* $Id: ttymenu.c,v 2.6 2002/11/06 16:05:24 amura Exp $ */
 /*
  * ttymenu.c
  *   Amiga intuition menu handling routine for Ng 1.x
@@ -30,6 +30,9 @@
 
 /*
  * $Log: ttymenu.c,v $
+ * Revision 2.6  2002/11/06 16:05:24  amura
+ * compile with newstyle source
+ *
  * Revision 2.5  2001/11/28 17:51:48  amura
  * little modifies for support VBCC. (but not work yet)
  *
@@ -69,10 +72,13 @@
 #define	MENU_SUB_ICON	" \273"
 #include "menumap.h"
 
-struct Menu *    InitEmacsMenu(struct Window *);
-VOID             DisposeMenus(struct Menu *);
-struct MenuItem *MakeMenuItems(MenuMap *, struct TextAttr *);
-VOID             DisposeMenuItems(struct MenuItem *);
+extern struct SysBase *SysBase;
+extern struct GfxBase *GfxBase;
+
+struct Menu *    InitEmacsMenu _PRO((struct Window *));
+VOID             DisposeMenus _PRO((struct Menu *));
+struct MenuItem *MakeMenuItems _PRO((MenuMap *, struct TextAttr *));
+VOID             DisposeMenuItems _PRO((struct MenuItem *));
 int amigamenu _PRO((int, int));
 
 /*
@@ -80,12 +86,15 @@ int amigamenu _PRO((int, int));
  * these functions based on menulayout.c included
  *    in "AMIGA DEVELOPER CD 1.2"
  */
-static USHORT MaxLength(struct RastPort *textRPort,
-			struct MenuItem *first_item, USHORT char_size);
-static VOID adjustItems(struct RastPort *textRPort,
-			struct MenuItem *first_item, USHORT char_size,
-			USHORT height, USHORT level, USHORT left_edge);
-static VOID adjustMenus(struct Menu *first_menu, struct Window *win);
+static USHORT MaxLength _PRO((struct RastPort *textRPort,
+			      struct MenuItem *first_item,
+			      USHORT char_size));
+static VOID adjustItems _PRO((struct RastPort *textRPort,
+			      struct MenuItem *first_item,
+			      USHORT char_size,
+			      USHORT height, USHORT level,
+			      USHORT left_edge));
+static VOID adjustMenus _PRO((struct Menu *first_menu, struct Window *win));
 
 struct Menu *
 InitEmacsMenu(win)

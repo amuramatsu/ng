@@ -1,4 +1,4 @@
-/* $Id: zz_pointer.c,v 1.3 2001/11/28 17:51:48 amura Exp $ */
+/* $Id: zz_pointer.c,v 1.4 2002/11/06 16:05:24 amura Exp $ */
 /**************************************
 *  ZZ_POINTER.C  08/05/90
 *  Written by Timm Martin
@@ -7,6 +7,9 @@
 
 /*
  * $Log: zz_pointer.c,v $
+ * Revision 1.4  2002/11/06 16:05:24  amura
+ * compile with newstyle source
+ *
  * Revision 1.3  2001/11/28 17:51:48  amura
  * little modifies for support VBCC. (but not work yet)
  *
@@ -33,6 +36,8 @@
 #else
 #include <clib/exec_protos.h>
 #endif
+
+extern struct SysBase *SysBase;
 
 #include "zz_pointer.h"
 

@@ -1,4 +1,4 @@
-/* $Id: console.c,v 1.3 2001/11/23 11:56:44 amura Exp $ */
+/* $Id: console.c,v 1.4 2002/11/06 16:05:23 amura Exp $ */
 /*
  * These functions are taken directly from the
  * console.device chapter in the Amiga V1.1
@@ -7,6 +7,9 @@
 
 /*
  * $Log: console.c,v $
+ * Revision 1.4  2002/11/06 16:05:23  amura
+ * compile with newstyle source
+ *
  * Revision 1.3  2001/11/23 11:56:44  amura
  * Rewrite all sources
  *
@@ -31,6 +34,8 @@
 #else
 #include <clib/exec_protos.h>
 #endif
+
+extern struct SysBase *SysBase;
 
 #ifdef	KANJI	/* Dec.27,1992 Add by H.Ohkubo */
 #define	READBUF		4
