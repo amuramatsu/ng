@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.11 2001/02/18 17:07:23 amura Exp $ */
+/* $Id: buffer.c,v 1.12 2001/02/18 19:26:41 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.12  2001/02/18 19:26:41  amura
+ * remove malloc() prototype
+ *
  * Revision 1.11  2001/02/18 17:07:23  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -474,17 +477,6 @@ anycb(f) {
 BUFFER	*
 bfind(bname, cflag) register char *bname; {
 	register BUFFER *bp;
-#ifdef NEED_MALLOC_DECLARATION
-#ifdef	MSDOS	/* 90.03.27  by A.Shirahashi */
-	void		*malloc();
-#else	/* NOT MSDOS */
-#ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
-	void		*malloc();
-#else	/* NOT HUMAN68K */
-	char		*malloc();
-#endif	/* HUMAN68K */
-#endif	/* MSDOS */
-#endif
 	register LINE	*lp;
 	int i;
 	extern int defb_nmodes;
