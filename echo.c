@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.13 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: echo.c,v 1.14 2003/02/23 20:12:10 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -269,6 +269,21 @@ struct _Line {
     struct _Line *next;
 };
 
+/* for Minibuffer history */
+#define MB_NHISTS		10
+#define MB_HIST_FUNC		0
+#define MB_HIST_BUF		1
+#define MB_HIST_FILE		2
+#define MB_HIST_MISC		3
+#define MB_HIST_NTYPES		4
+/* Note: mb_hist_buf[*][0] plays a special role. */
+static char *mb_hist_buf[MB_HIST_NTYPES][MB_NHISTS+1];
+#define mb_get_hist_buf(flag)					\
+	(((flag)&EFFUNC) ? mb_hist_buf[MB_HIST_FUNC] :		\
+	(((flag)&EFBUF)  ? mb_hist_buf[MB_HIST_BUF] :		\
+	(((flag)&EFFILE) ? mb_hist_buf[MB_HIST_FILE] :		\
+			mb_hist_buf[MB_HIST_MISC])))		\
+
 extern int refresh _PRO((int, int));
 
 static int mb_init _PRO((int, char *, va_list *));
@@ -320,6 +335,7 @@ static int mb_fixlines _PRO((int, struct _Line *, int, int *, int *));
 static VOID mb_redisplay _PRO((void));
 static VOID mb_refresh _PRO((int, int));
 static VOID mb_flush _PRO((void));
+static VOID mb_hist_save _PRO((char **, char *));
 static char* sformat _PRO((char *, va_list *));
 static int s_put_i _PRO((char *, int, int, int, int));
 static int s_put_l _PRO((char *, int, int, long, int));
@@ -353,6 +369,8 @@ va_list *ap;
 {
     int MetaPrefix, CtluPrefix, nargs, cmp_msg_len, sign, ctluf;
     int c;
+    char **hist_buf;
+    int hist_idx;
   
 #ifdef ADDFUNC
     /* If an extra argument exists, use it.			*/
@@ -390,6 +408,9 @@ va_list *ap;
     mb_cannamode  = FALSE;
     mbMode[0] = '\0';
 #endif
+    hist_buf	= mb_get_hist_buf(flag);
+    hist_buf[0] = buf;
+    hist_idx = 0;
 
     for (;;) {
 	ttflush();
@@ -490,9 +511,39 @@ Cmd:
 		    while (nargs++ < 0)
 			complete_scroll_up();
 		break;
-	    case 'p': case 'P':
+	    case 'p': case 'P':  /* History, prev */
+		if (hist_idx < MB_NHISTS && hist_buf[hist_idx+1] != NULL) {
+		    if (hist_idx == 0)
+			mb_get_buffer(buf, nbuf);
+		    hist_idx++;
+		    mb_begl();
+		    mb_kill();
+		    mb_insertstr(hist_buf[hist_idx]);
+		    mb_begl();
+		}
+		else {
+		    message("Beginning of history; no preceding item");
+		    ttwait();
+		}
+		mb_redisplay();
 		break;
-	    case 'n': case 'N':
+	    case 'n': case 'N':  /* History, next */
+		if (hist_buf[1] == NULL) {
+		    message("End of history; no default available");
+		    ttwait();
+		}
+		else if (hist_idx == 0) {
+		    message("End of history; no next item");
+		    ttwait();
+		}
+		else {
+		    hist_idx--;
+		    mb_begl();
+		    mb_kill();
+		    mb_insertstr(hist_buf[hist_idx]);
+		    mb_begl();
+		}
+		mb_redisplay();
 		break;
 		    
 	    default:
@@ -554,7 +605,10 @@ Cmd:
 		    bcopy(buf, lp->l_text, mb_bufsize());
 		}
 #endif
-		return ((mb_bufsize() == 0) ? FALSE : TRUE);
+		if (mb_bufsize() == 0)
+		    return FALSE;
+		mb_hist_save(hist_buf, buf);
+		return TRUE;
 	    case CCHR('G'):	/* Abort */
 		(VOID) ctrlg(FFRAND, 0);
 		mb_flush();
@@ -2237,6 +2291,21 @@ register int *visu, *mem;
 	*visu = 1;
 	*mem  = 1;
     }
+}
+
+static VOID
+mb_hist_save(hist_buf, buf)
+char *hist_buf[];
+char *buf;
+{
+    int i;
+    /* rotate history */
+    for (i = MB_NHISTS; i > 1; i--)
+	hist_buf[i] = hist_buf[i-1];
+    /* and insert new history to head */
+    hist_buf[1] = realloc(hist_buf[MB_NHISTS], strlen(buf)+1);
+    strcpy(hist_buf[1], buf);
+    hist_buf[0] = NULL;
 }
 #else   /* NOT MINIBUF_EDIT */
 static int veread_del_char ();
