@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.1 2002/04/18 13:50:32 amura Exp $ */
+/* $Id: tty.c,v 1.2 2002/04/18 14:36:29 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,6 +28,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.2  2002/04/18 14:36:29  amura
+ * now can compile without DIRECT_IOCS option
+ *
  * Revision 1.1  2002/04/18 13:50:32  amura
  * HUMAN68K's console output routine is modified for speed
  *
@@ -58,7 +61,7 @@ static VOID setttysize _PRO((void));
 VOID ttputc _PRO((int));
 
 #ifndef DIRECT_IOCS
-static int charcost _PRO((char *))
+static int charcost _PRO((char *));
 
 static int insdel;		/* Do we have both insert & delete line? */
 char tcapbuf[TERMCAP_BUF_LEN];
@@ -574,7 +577,6 @@ charcost(s)
 char *s;
 {
     cci = 0;
-    
     tputs(s, nrow, fakec);
     return cci;
 }
