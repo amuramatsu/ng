@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.10 2001/01/05 14:07:08 amura Exp $ */
+/* $Id: fileio.c,v 1.11 2001/01/17 18:34:53 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.11  2001/01/17 18:34:53  amura
+ * now compile successfull on VC++ and BC++
+ *
  * Revision 1.10  2001/01/05 14:07:08  amura
  * first implementation of Hojo Kanji support
  *
@@ -66,7 +69,6 @@ int		bufstoe_c( char *p, int len ) ;
 int		bufstoe( char *p, int len ) ;
 #endif
 void	kputc( char c, FILE* fp, int kfio ) ;
-void	kfselectcode( int next_is_k ) ;
 #if 0
 char*	fftolower( char *name ) ;
 #endif
@@ -498,7 +500,7 @@ ffputbuf( BUFFER *bp )
 		}
 #ifdef KANJI
 		if ( kfio == JIS ) {
-			kfselectcode( FALSE ) ;
+			kfselectcode(NULL, FALSE) ;
 		}
 #endif
 		lp = lforw( lp ) ;

@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.4 2001/01/05 14:07:09 amura Exp $ */
+/* $Id: sysdef.h,v 1.5 2001/01/17 18:34:53 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.5  2001/01/17 18:34:53  amura
+ * now compile successfull on VC++ and BC++
+ *
  * Revision 1.4  2001/01/05 14:07:09  amura
  * first implementation of Hojo Kanji support
  *
@@ -76,11 +79,19 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
 char *getenv();
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
+#ifdef __BORLANDC__
+#include <malloc.h>	/* for alloca() definition */
+#else
 #define alloca(n)	_alloca(n)
+#endif
 
 #ifdef	putc
 #undef	putc
 #endif
 #define	putc(c,fp)	Fputc(c)
+#ifdef	__cplusplus
+extern "C" int Fputc(int c);
+#else
 extern	int Fputc(int c);
+#endif
 
