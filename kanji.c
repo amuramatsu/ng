@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.3 2000/09/21 17:28:30 amura Exp $ */
+/* $Id: kanji.c,v 1.4 2000/11/16 14:31:12 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,10 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.4  2000/11/16 14:31:12  amura
+ * fix some typos which cause compile error when using
+ * strict ANSI-C compiler (ex ACK, gcc-1.x)
+ *
  * Revision 1.3  2000/09/21 17:28:30  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -854,7 +858,7 @@ reinput:
 	  savedchar = c1;
 	  kgetkey_more = TRUE;
 	  c1 = SS2;
-#endif */ HANKANA */
+#endif /* HANKANA */
 	} else if (global_kinput == SJIS && issjis1st(c1)) {
 		c2 = getkbd();
 		stoe(c1, c2);
@@ -897,7 +901,7 @@ extern int ttputkc(int, int);
 int	kdselected = FALSE;
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 int	kanadselected = FALSE;
-#endif */ HANKANA */
+#endif /* HANKANA */
 
 /*
  * Output one byte to the display with KANJI code conversion.

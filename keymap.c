@@ -1,4 +1,4 @@
-/* $Id: keymap.c,v 1.6 2000/09/21 17:28:30 amura Exp $ */
+/* $Id: keymap.c,v 1.7 2000/11/16 14:31:12 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
@@ -7,6 +7,10 @@
 
 /*
  * $Log: keymap.c,v $
+ * Revision 1.7  2000/11/16 14:31:12  amura
+ * fix some typos which cause compile error when using
+ * strict ANSI-C compiler (ex ACK, gcc-1.x)
+ *
  * Revision 1.6  2000/09/21 17:28:30  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -469,7 +473,7 @@ extern	int	mforwpage _PF();
 extern	int	mshrinkwind _PF();
 extern	int	msplitwind _PF();
 extern	int	myank _PF();
-#endif	MOUSE
+#endif	/* MOUSE */
 
 extern	int	togglewindow _PF();	/* Defined by "ttyio.c"		*/
 extern	int	togglezooms _PF();	/*    ""         ""		*/

@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.1 2000/06/27 01:47:59 amura Exp $ */
+/* $Id: ttyio.c,v 1.2 2000/11/16 14:32:03 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		System V terminal I/O.
@@ -19,8 +19,12 @@
 
 /*
  * $Log: ttyio.c,v $
- * Revision 1.1  2000/06/27 01:47:59  amura
- * Initial revision
+ * Revision 1.2  2000/11/16 14:32:03  amura
+ * fix some typos which cause compile error when using
+ * strict ANSI-C compiler (ex ACK, gcc-1.x)
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:59  amura
+ * import to CVS
  *
  */
 /* 90.02.05	Modified for Ng 1.0 by S.Yoshida */
@@ -402,4 +406,4 @@ ttwait()
 	alarm(0);
 	return FALSE;			/* successful read if here	*/
 }
-#endif NO_DPROMPT
+#endif /* NO_DPROMPT */

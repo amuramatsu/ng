@@ -1,4 +1,4 @@
-/* $Id: skg.c,v 1.3 2000/10/02 16:13:46 amura Exp $ */
+/* $Id: skg.c,v 1.4 2000/11/16 14:31:13 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
@@ -7,6 +7,10 @@
 
 /*
  * $Log: skg.c,v $
+ * Revision 1.4  2000/11/16 14:31:13  amura
+ * fix some typos which cause compile error when using
+ * strict ANSI-C compiler (ex ACK, gcc-1.x)
+ *
  * Revision 1.3  2000/10/02 16:13:46  amura
  * ignore mouse event in minibuffer editing
  *
@@ -405,7 +409,7 @@ skg_text_insert( insert_str , mode )
 	selfinsert(FFRAND, 1);
 #ifdef	UNDO
 	ublock_close(curbp);
-#endif	UNDO
+#endif
 	lastflag = thisflag;
 	if ( i+1 == KEY_BUFFER_SIZE ) break;
     }
@@ -988,7 +992,7 @@ skg_set_romanname(f, n)
 
     strcpy(romanname, file);
     return TRUE;
-};
+}
 
 
 skg_set_dicname(f, n)

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.5 2000/10/02 16:24:42 amura Exp $ */
+/* $Id: display.c,v 1.6 2000/11/16 14:31:12 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,10 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.6  2000/11/16 14:31:12  amura
+ * fix some typos which cause compile error when using
+ * strict ANSI-C compiler (ex ACK, gcc-1.x)
+ *
  * Revision 1.5  2000/10/02 16:24:42  amura
  * bugfix by Tillanosoft(Ng for Win32)
  *
@@ -377,11 +381,15 @@ vteeol() {
 /* Calculate offset to col and row
 */
 int
+#ifdef SUPPORT_ANSI /* for strict compiler */
+colrow(LINE *lp, short offset, int *curcol, int *lines)
+#else
 colrow(lp, offset, curcol, lines)
 LINE	*lp;
 short	offset;
 int	*curcol;
 int	*lines;
+#endif
 {
 	register int	i;
 	register char	c;

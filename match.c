@@ -1,4 +1,4 @@
-/* $Id: match.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: match.c,v 1.2 2000/11/16 14:31:13 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Limited parenthesis matching routines
@@ -15,8 +15,12 @@
 
 /*
  * $Log: match.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2000/11/16 14:31:13  amura
+ * fix some typos which cause compile error when using
+ * strict ANSI-C compiler (ex ACK, gcc-1.x)
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 /* Nov 1991. Modified by bsh to add electric-c-brace-blink and
@@ -27,7 +31,6 @@
 #include	"def.h"
 #include	"key.h"
 
-static int	balance();
 static VOID	displaymatch();
 static int	getmatch();     /* Nov 91. Added by bsh */
 

@@ -1,4 +1,4 @@
-/* $Id: kinsoku.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: kinsoku.c,v 1.2 2000/11/16 14:31:13 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,8 +8,12 @@
 
 /*
  * $Log: kinsoku.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2000/11/16 14:31:13  amura
+ * fix some typos which cause compile error when using
+ * strict ANSI-C compiler (ex ACK, gcc-1.x)
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 /* 90.01.29	Created by S.Yoshida */
@@ -290,10 +294,15 @@ kc_del_eol(f, n)
 /*
  * Insert one KINSOKU char in a KINSOKU char list.
  */
+int
+#ifdef SUPPORT_ANSI /* for strict compiler */
+kcinsert(unsigned short *kclist, unsigned short kc, int nkc)
+#else
 kcinsert(kclist, kc, nkc)
 unsigned short	*kclist;		/* KINSOKU char list.	*/
 unsigned short	kc;			/* Target KINSOKU char.	*/
 int		nkc;			/* Current number of KINSOKU chars. */
+#endif
 {
 	unsigned short	*p = kclist;	/* Start of KINSOKU char list.	  */
 	unsigned short	*eop = &kclist[nkc]; /* End of KINSOKU char list. */
@@ -319,10 +328,15 @@ int		nkc;			/* Current number of KINSOKU chars. */
 /*
  * Delete one KINSOKU char form a KINSOKU char list.
  */
+int
+#ifdef SUPPORT_ANSI /* for strict compiler */
+kcdelete(unsigned short *kclist, unsigned short kc,int nkc)
+#else
 kcdelete(kclist, kc, nkc)
 unsigned short	*kclist;		/* KINSOKU char list.	*/
 unsigned short	kc;			/* Target KINSOKU char.	*/
 int		nkc;			/* Current number of KINSOKU chars. */
+#endif
 {
 	unsigned short	*p = kclist;	/* Start of KINSOKU char list.	  */
 	unsigned short	*eop = &kclist[nkc]; /* End of KINSOKU char list. */
