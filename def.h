@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.21 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: def.h,v 1.22 2003/03/07 23:59:15 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -146,6 +146,10 @@ typedef int (*PF) _PRO((int, int)); /* generaly useful type */
 #define KNONE	0
 #define KFORW	1
 #define KBACK	2
+#ifdef KANJI
+#define KNOKANJI	0x80
+#define KFLAGS(n)	((n) & 0x0f)
+#endif
 
 /*
  * All text is kept in circularly linked

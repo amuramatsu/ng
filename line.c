@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.21 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: line.c,v 1.22 2003/03/07 23:59:15 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -466,6 +466,13 @@ int kflag;
 	}
     }
 #endif
+#ifdef KANJI
+    if (kflag & KNOKANJI)
+	kanji2nd = -1;
+    else
+	kanji2nd = 0;
+    kflag = KFLAGS(kflag);
+#endif
 
     /*
      * HACK - doesn't matter, and fixes back-over-nl bug for empty
@@ -512,25 +519,28 @@ int kflag;
 	lchange(WFEDIT);
 	cp1 = &dotp->l_text[doto];	/* Scrunch text.	*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	cp2 = cp1;
-	kanji2nd = 0;
-	for (i = 0; i < chunk; i++, cp2++) {
-	    if (kanji2nd) {
-		kanji2nd--;
+	if (kanji2nd < 0) /* ignore KANJI */
+	    cp2 = cp1 + chunk;
+	else {
+	    cp2 = cp1;
+	    for (i = 0; i < chunk; i++, cp2++) {
+		if (kanji2nd) {
+		    kanji2nd--;
 #ifdef	HOJO_KANJI
-	    }
-	    else if (ISHOJO(*cp2)) {
-		kanji2nd = 2;
+		}
+		else if (ISHOJO(*cp2)) {
+		    kanji2nd = 2;
 #endif
+		}
+		else if (ISKANJI(*cp2)) {
+		    kanji2nd = 1;
+		}
 	    }
-	    else if (ISKANJI(*cp2)) {
-		kanji2nd = 1;
+	    if (kanji2nd) {
+		cp2	+= kanji2nd;
+		chunk	+= kanji2nd;
+		n	+= kanji2nd;
 	    }
-	}
-	if (kanji2nd) {
-	    cp2	+= kanji2nd;
-	    chunk	+= kanji2nd;
-	    n	+= kanji2nd;
 	}
 #else	/* NOT KANJI */
 	cp2 = cp1 + chunk;
@@ -592,7 +602,8 @@ int kflag;
 	n -= chunk;
     }
 #ifdef	CLIPBOARD
-    send_clipboard();
+    if (kflag != KNONE)
+	send_clipboard();
 #endif
 #ifdef	UNDO
     if (isundo() && char_num!=0)
@@ -747,7 +758,7 @@ int f;					/* case hack disable		*/
     }
 #endif
     if (plen > rlen)
-	(VOID) ldelete((RSIZE) (plen-rlen), KNONE);
+	(VOID) ldelete((RSIZE) (plen-rlen), KNONE|KNOKANJI);
     else if (plen < rlen) {
 	if (linsert((int)(rlen-plen), ' ') == FALSE)
 	    return FALSE;
