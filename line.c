@@ -19,16 +19,24 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: line.c,v 1.1 1999/06/12 19:56:32 amura Exp $ */
+/* $Id: line.c,v 1.2 2000/03/10 21:27:42 amura Exp $ */
 
 /* $Log: line.c,v $
-/* Revision 1.1  1999/06/12 19:56:32  amura
-/* Initial revision
+/* Revision 1.2  2000/03/10 21:27:42  amura
+/* separate win32 depend code
 /*
+ * Revision 1.1  1999/06/12  19:56:32  amura
+ * Initial revision
+ *
 */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
+
+#ifdef	CLIPBOARD
+extern int	send_clipboard();
+extern int	receive_clipboard();
+#endif
 
 /* number of bytes member is from start of structure type	*/
 /* should be computed at compile time				*/
@@ -412,19 +420,22 @@ ldelete(n, kflag) RSIZE n; {
 		for(wp = wheadp; wp != NULL; wp = wp->w_wndp ) {
 			if (wp->w_dotp==dotp && wp->w_doto>=doto) {
 				/*NOSTRICT*/
-				wp->w_doto -= chunk;
+				wp->w_doto -= (short)chunk;
 				if (wp->w_doto < doto)
 					wp->w_doto = doto;
 			}
 			if (wp->w_markp==dotp && wp->w_marko>=doto) {
 				/*NOSTRICT*/
-				wp->w_marko -= chunk;
+				wp->w_marko -= (short)chunk;
 				if (wp->w_marko < doto)
 					wp->w_marko = doto;
 			}
 		}
 		n -= chunk;
 	}
+#ifdef	CLIPBOARD
+	send_clipboard();
+#endif
 	return TRUE;
 }
 
@@ -657,3 +668,48 @@ kremove(n) {
 		return -1;
 	return CHARMASK(kbufp[n + kstart]);
 }
+
+
+#ifdef	CLIPBOARD
+int	send_clipboard_ pro((char *buf, int size));
+int	size_clipboard_ pro((void));
+int	recieve_clipboard_ pro((char *buf, int *size));
+
+int
+send_clipboard( void )
+{
+  return send_clipboard_(&kbufp[kstart], kused-kstart);
+}
+
+int
+receive_clipboard( void )
+{
+	int	size;
+	char	*buf;
+
+	kdelete() ;
+	size = size_clipboard_();
+	if ( !size ) {
+		return TRUE;
+	}
+	buf = malloc(size);
+	if (!buf) {
+		return FALSE;
+	}
+	buf[0] = 0 ;
+	recieve_clipboard_(buf, &size);
+	ksize = size + 1;
+	ksize = (ksize + KBLOCK - 1) / KBLOCK * KBLOCK ;
+	kbufp = malloc(ksize);
+	if (!kbufp) {
+		ksize = 0;
+		free(buf);
+		return FALSE;
+	}
+	bcopy(buf, kbufp, size);
+	kused = size;
+	kstart = 0;
+	free(buf);
+	return TRUE;
+}
+#endif	/* CLIPBOARD */
