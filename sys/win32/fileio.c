@@ -1,9 +1,12 @@
-/* $Id: fileio.c,v 1.1 2000/06/27 01:47:59 amura Exp $ */
+/* $Id: fileio.c,v 1.2 2000/09/01 19:37:52 amura Exp $ */
 
 /*
  * $Log: fileio.c,v $
- * Revision 1.1  2000/06/27 01:47:59  amura
- * Initial revision
+ * Revision 1.2  2000/09/01 19:37:52  amura
+ * support KANJI filename on WIN32
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:59  amura
+ * import to CVS
  *
  */
 
@@ -502,7 +505,15 @@ char* suffix;
   if (ngrcfile) {
     lstrcpy(unicode, ngrcfile);
     if (GetFileAttributes(unicode) != 0xFFFFFFFF) {
-      unicode2sjis(unicode, sjis, sizeof sjis);
+#ifdef	_WIN32_WCE
+	  unicode2sjis(unicode, sjis, sizeof sjis);
+#else
+	  strncpy(sjis, unicode,  sizeof sjis);
+	  sjis[(sizeof sjis)-1] = '\0';
+#endif
+#ifdef KANJI
+	  bufstoe(sjis, strlen(sjis)+1);
+#endif
       return (char*)sjis;
     }
   }
@@ -520,6 +531,9 @@ char* suffix;
     }
   }
   unicode2sjis(unicode, sjis, sizeof sjis);
+#ifdef	KANJI
+  bufstoe(sjis, strlen(sjis)+1);
+#endif
   return (char*)sjis;
 }
 

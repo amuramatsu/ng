@@ -1,10 +1,13 @@
-/* $Id: main.c,v 1.4 2000/07/25 15:06:18 amura Exp $ */
+/* $Id: main.c,v 1.5 2000/09/01 19:36:02 amura Exp $ */
 /*
  *		Mainline
  */
 
 /*
  * $Log: main.c,v $
+ * Revision 1.5  2000/09/01 19:36:02  amura
+ * support KANJI filename on WIN32
+ *
  * Revision 1.4  2000/07/25 15:06:18  amura
  * handle Kanji filename for win32
  *
@@ -151,7 +154,7 @@ char **argv;
 			continue;
 		}
 #endif	/* ADDOPT */
-#if defined(MSDOS)||defined(HUMAN68K)||defined(_WIN32)
+#if defined(KANJI)&&(defined(MSDOS)||defined(HUMAN68K)||defined(_WIN32))
 		{
 			char argve[NFILEN];
 
@@ -162,7 +165,7 @@ char **argv;
 		}
 #else
 		cp = adjustname(*++argv);
-#endif	/* MSDOS or HUMAN68K */
+#endif	/* KANJI and (MSDOS or HUMAN68K or _WIN32) */
 
 #ifndef NO_DIRED	/* 91.01.16  by S.Yoshida */
 		if (ffisdir(cp)) {
