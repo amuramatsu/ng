@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.1 2000/11/19 18:35:00 amura Exp $ */
+/* $Id: ttyio.c,v 1.2 2000/11/23 14:03:32 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.2  2000/11/23 14:03:32  amura
+ * some fix for FreeBSD's termios interface
+ *
  * Revision 1.1  2000/11/19 18:35:00  amura
  * support GNU configure system
  *
@@ -53,6 +56,9 @@ static int ttysavedp = FALSE;		/* terminal state saved?	*/
 #ifdef	HAVE_TERMIOS_H
 static struct termios	ot;		/* entry state of the terminal	*/
 static struct termios	nt;		/* editor's terminal state	*/
+# ifndef _POSIX_VDISABLE		/* some system not defined this */
+# define _POSIX_VDISABLE 0
+# endif
 #else
 static struct termio	ot;		/* entry state of the terminal	*/
 static struct termio	nt;		/* editor's terminal state	*/
@@ -156,7 +162,12 @@ ttraw() {
 	nt.c_cc[VMIN] = 1;	/* one character read is OK	*/
 	nt.c_cc[VTIME] = 0;	/* Never time out.		*/
 #ifdef HAVE_TERMIOS_H
-	nt.c_cc[VLNEXT] = 0;
+# ifdef VLNEXT
+	nt.c_cc[VLNEXT]   = _POSIX_VDISABLE;
+# endif
+# ifdef VDISCARD
+	nt.c_cc[VDISCARD] = _POSIX_VDISABLE;
+# endif
 #endif
 	nt.c_iflag |= IGNBRK;
 	nt.c_iflag &= ~( ICRNL | INLCR | ISTRIP | IXON | IXOFF );
