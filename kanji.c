@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.5 2000/12/14 18:12:14 amura Exp $ */
+/* $Id: kanji.c,v 1.6 2000/12/18 17:17:41 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.6  2000/12/18 17:17:41  amura
+ * fix dropped NINPUT
+ *
  * Revision 1.5  2000/12/14 18:12:14  amura
  * use alloca() and more memory secure
  *
@@ -631,7 +634,7 @@ int	*lastch;
 	register int	i;
 	register char	*p = "KANA Select Char [78I] : ";
 	register int	n;
-	char	lchar[];
+	char	lchar[NINPUT];
 
 	for (n = 0; n < 2; n++) {
 		if ((s = ereply(p, lchar, sizeof(lchar))) != TRUE) {
