@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.3 2000/07/16 15:47:06 amura Exp $ */
+/* $Id: undo.c,v 1.4 2000/07/18 18:59:57 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -7,6 +7,9 @@
 
 /*
  * $Log: undo.c,v $
+ * Revision 1.4  2000/07/18 18:59:57  amura
+ * fixed never end loop on do_undo with arguments
+ *
  * Revision 1.3  2000/07/16 15:47:06  amura
  * undo bug on autofill fixed
  *
@@ -24,7 +27,7 @@
 #include 	"undo.h"
 
 UNDO_DATA **undoptr;
-UNDO_DATA **undobefore;
+UNDO_DATA **undostart;
 static int undofirst;
 
 VOID
@@ -33,8 +36,7 @@ register BUFFER *bp;
 {
     if (undoptr != NULL)
 	panic("bug: ublock openning error");
-    undoptr = &bp->b_ustack[bp->b_utop];
-    undobefore = NULL;
+    undoptr = undostart = &bp->b_ustack[bp->b_utop];
     if ((curbp->b_flag&BFCHG) == 0)	/* First change	*/
 	undofirst = TRUE;
     else
@@ -45,16 +47,13 @@ VOID
 ublock_close(bp)
 register BUFFER *bp;
 {
-    if (undoptr == NULL) {
-	undobefore = NULL;
+    if (undoptr == NULL)
 	return; 
-    }
-
-    if (undobefore != NULL)
+    if (undoptr != undostart)
     {
 	ublock_clear(undoptr);
-	if (undofirst && *undobefore!=NULL)
-	    (*undobefore)->u_type |= UDFIRST;
+	if (undofirst && *undostart!=NULL)
+	    (*undostart)->u_type |= UDFIRST;
 	bp->b_utop++;
 	if (bp->b_utop > UNDOSIZE)
 	    bp->b_utop = 0;
@@ -64,7 +63,7 @@ register BUFFER *bp;
 		bp->b_ubottom = 0;
 	}
     }
-    undoptr = undobefore = NULL;
+    undoptr = NULL;
 }
 
 VOID
@@ -159,8 +158,9 @@ do_undo(f, n)
     register char *p;
     register int  i;
     register LINE* lp;
-    UNDO_DATA *undo,*undonext;
+    UNDO_DATA *undo,*undoend;
     int firstcheck = FALSE;
+    extern int twiddle();
 
     ewprintf("Undo!");
 
@@ -178,17 +178,15 @@ do_undo(f, n)
 	curbp->b_utop--;
 	if (curbp->b_utop < 0)
 	    curbp->b_utop = UNDOSIZE;
+	undoend = NULL;
 	while (1)
 	{
 	    undo = curbp->b_ustack[curbp->b_utop];
-	    undonext = undo->u_next;
-	    while (undonext!=NULL && undonext->u_type!=UDNONE)
-	    {
-		undo = undonext;
-		undonext = undo->u_next;
-	    }
-	    if (undo->u_type == UDNONE)
+	    if (undo == undoend)
 		break;
+	    while (undo->u_next != undoend)
+		undo = undo->u_next;
+	    undoend = undo;
 
 	    lp = lforw(curbp->b_linep);
 	    for (i=undo->u_dotlno; i>0; i--)
@@ -304,7 +302,6 @@ do_undo(f, n)
 	      default:
 		panic("bug: do_undo");
 	    }
-	    undo->u_type = UDNONE;
 	}
     }
     if (firstcheck) {
