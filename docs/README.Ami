@@ -1,28 +1,9 @@
-# $Id: README.Ami,v 1.1 2000/06/27 01:48:03 amura Exp $
+# $Id: README.Ami,v 1.2 2000/10/23 17:04:47 amura Exp $
 README.Ami -- この file には、Ng Amiga OS におけるソースの変更点につい
-              て記述してあります。[ここに書かれている情報は昔の物です]
+              て記述してあります。
 
 
-1.   Ng 各機種共通ソース
-
-    Ng Amiga OS の各機種共通ソースは、Ng 1.3L のものをほぼそのまま使用
-しています。変更点は、
-
-      1) config.h に AmigaDOS 版に固有のコンパイルオプションを追加
-      2) version.c に AmigaDOS 版の version & option 表示を追加
-      3) def.h の一部に AREXX 対応のための変更を行なった。
-
-です。ただし、3) の変更は現在 AREXX 未対応のため、無効となっています。
-
-
-2.   Ng 低レベル共通ソース
-
-    sys/default にあるソースに関しては、Ng 1.3L そのままです。ただし、
-AmigaDOS 版のソースパッケージには AmigaDOS 版を Make するために必要な
-ものだけが含まれています。
-
-
-3.   Ng 低レベル機種依存ソース
+1.   Amiga 依存部分ソース
 
     sys/amiga にある機種依存ソースは、mg2b(FredFish#147) のものをベー
 スに、Ng で機能拡張された ReadOnlyMode とか ShellCommand の起動とか、
@@ -34,7 +15,6 @@ TABによる filename 補完などに必要なものを追加した形になっています。追
       1) ttyio.c 内のルーチンで行なわれていた各 Shared Library の
          Open,Close を、sysinit.c に移動した。(この方がリーズナブルで
          ある)
-
       2) RAWkeyConvert によって行なわれていた Keyboard からの入力を、
          Console Device からの Read に変更した。(日本語対応のため)
 
@@ -49,13 +29,38 @@ file R/W 時の Mouse pointer を sleep pointer に変更するためpublic
 domain なソース、zz_pointer.c を追加しました。
 
 
-4.   使用コンパイラ、コンパイル方法
+2.   Scratch から再実装されたソース
 
-    現在 Ng 1.4 は GeekGadgets　990501 SNAPSHOT、DICE 3.57 でのコンパ
-イルを確認しております。SAS C、Manx 用の Makefile も付属しますが、これは
-SAS C や Manx でコンパイルできるという保証ではありません。
-    コンパイル方法は sys/amiga から、必要な Makefile をカレントディレ
-クトリのコピーして make(or DMake) ですむと思います。
+    Ng 1.4.1 で、Amiga 依存部分ソースのうち、 menustack.c は削除され、
+ttymenu.c、iconify.[ch] は新たに書き直されました。これは、
+
+    1) ttymenu.c は変更不可とされており、ttymenu.c が依存している
+       menustack.c は変更不可/商用利用不可である。
+    2) iconify.[ch] は変更の許可が不明で、またソースコードを付けて配布
+       すること、また、これを利用したソフトを(iconify.cの)作者に送る事、
+       が使用条件である。(しかし、作者との連絡方法は不明)
+
+となっていて、変更が許可されていないにもかかわらず Ng では変更して使用し
+ていたこと、また、変更前のソースコードに戻したとしても、現在の Ng の配布
+条件とはあわないことが理由です。
+
+    新たに作成した ttymenu.c、iconify.[ch] は村松が無から作成し直した物で
+あり、趣味もしくは技術的な理由により元の物の完全なコピーではありません。
+
+    1) マクロ V2 を定義してコンパイルすると、アイコン化に
+       workbench.library の機能を使うようになります。
+    2) メニューの構造がGNU Emacsに近くなりました。
+    3) Kg 4.x で追加されたコマンドボックスは使えなくなりました。
+    4) ASL を使わない BROWSER 機能は実装されていません。
+
+
+3.   使用コンパイラ、コンパイル方法
+
+    現在 Ng は GeekGadgets　990501 SNAPSHOT、DICE 3.57 でのコンパイルを確
+認しております。SAS C、Manx 用の Makefile も付属しますが、これは SAS C や
+Manx でコンパイルできるという保証ではありません。
+    コンパイル方法は sys/amiga から、必要な Makefile / DMakefile をカレン
+トディレクトリのコピーして make(or DMake) ですむと思います。
 
 H.Ohkubo (ASCII-net pcs35757)				Dec.31,1992
-amura(村松 篤)				<修正加筆>	Feb.??,2000
+amura(村松 篤)				<修正加筆>	Oct.07,2000
