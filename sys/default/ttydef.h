@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.2 2001/01/05 14:07:07 amura Exp $ */
+/* $Id: ttydef.h,v 1.3 2001/02/14 09:19:45 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: ttydef.h,v $
+ * Revision 1.3  2001/02/14 09:19:45  amura
+ * code cleanup around putline() and NCOL/NROW
+ *
  * Revision 1.2  2001/01/05 14:07:07  amura
  * first implementation of Hojo Kanji support
  *
@@ -16,26 +19,24 @@
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /* 90.02.05	Modified for Ng 1.0 by S.Yoshida */
 
-#ifdef	PC9801	/* 90.03.24  by A.Shirahashi */
+#if defined(PC9801)||defined(WIN32)	/* 90.03.24  by A.Shirahashi */
 #define	MEMMAP			/* Not memory mapped video.	*/
-#else	/* NOT PC9801 */
+#else	/* not !PC9801 && !WIN32 */
 #define GOSLING			/* Compile in fancy display.	*/
 #endif	/* PC9801 */
 
 #if !(defined(NROW)&&defined(NCOL))
-#ifdef	MSDOS	/* 90.04.02  by S.Yoshida */
-#define NROW	50			/* (maximum) Rows.		*/
-#define NCOL	96			/* (maximum) Columns.		*/
-#else	/* NOT MSDOS */
-# ifdef HUMAN68K /* by Sawayanagi Yosirou */
-#define NROW	32			/* (maximum) Rows.		*/
-#define NCOL	96			/* (maximum) Columns.		*/
-# else
-#define NROW	66			/* (maximum) Rows.		*/
-#define NCOL	132			/* (maximum) Columns.		*/
-# endif	/* HUMAN68K */
-#endif	/* MSDOS */
-#endif
+#if defined(MSDOS)	/* 90.04.02  by S.Yoshida */
+#define NROW	50			/* (default) Rows.		*/
+#define NCOL	80			/* (default) Columns.		*/
+#elif defined(HUMAN68K)	/* by Sawayanagi Yosirou */
+#define NROW	32			/* (default) Rows.		*/
+#define NCOL	96			/* (default) Columns.		*/
+#else /* not MSDOS or HUMAN68K */
+#define NROW	66			/* (default) Rows.		*/
+#define NCOL	132			/* (default) Columns.		*/
+#endif	/* MSDOS or HUMAN68K */
+#endif	/* NROW && NCOL */
 /* #define	MOVE_STANDOUT		/* don't move in standout mode	*/
 #define STANDOUT_GLITCH			/* possible standout glitch	*/
 #define TERMCAP				/* for possible use in ttyio.c	*/
