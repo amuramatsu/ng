@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.3 2000/09/01 19:44:25 amura Exp $ */
+/* $Id: random.c,v 1.4 2000/09/04 20:46:10 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.4  2000/09/04 20:46:10  amura
+ * fix yank() bug appeared from rev 1.3
+ *
  * Revision 1.3  2000/09/01 19:44:25  amura
  * dirty hack for speed optimize of "yank"
  *
@@ -675,7 +678,7 @@ yank(f, n)
 		while ((c=kremove(i)) >= 0) {
 			if (c == '\n') {
 				if (newline(FFRAND, 1) == FALSE) {
-					set_lineno == -1;
+					set_lineno = -1;
 					return FALSE;
 				}
 				++nline; ++set_lineno;
@@ -686,7 +689,7 @@ yank(f, n)
 				else if (*undoptr != NULL)
 					(*undoptr)->u_type = UDNONE;
 				if (linsert(1, c) == FALSE) {
-					set_lineno == -1;
+					set_lineno = -1;
 					return FALSE;
 				}
 				run_insert = TRUE;
