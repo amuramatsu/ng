@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.7 2001/05/25 15:37:21 amura Exp $ */
+/* $Id: random.c,v 1.8 2001/06/19 15:15:32 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.8  2001/06/19 15:15:32  amura
+ * add correcting mark position when yank empty line
+ *
  * Revision 1.7  2001/05/25 15:37:21  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -723,7 +726,11 @@ yank(f, n)
 					set_lineno = -1;
 					return FALSE;
 				}
-				++nline; ++set_lineno;
+				/* Mark position correction.	*/
+				if (curbp->b_marko == 0)
+					curbp->b_markp=lforw(curbp->b_linep);
+
+				++nline; set_lineno++;
 				run_insert = FALSE;
 			} else {
 				if (run_insert)
@@ -745,6 +752,10 @@ yank(f, n)
 			if (c == '\n') {
 				if (newline(FFRAND, 1) == FALSE)
 					return FALSE;
+				/* Mark position correction.	*/
+				if (curbp->b_marko == 0)
+					curbp->b_markp=lforw(curbp->b_linep);
+
 				++nline;
 			} else {
 				if (linsert(1, c) == FALSE)
