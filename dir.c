@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.7 2000/07/18 12:40:34 amura Exp $ */
+/* $Id: dir.c,v 1.8 2000/07/18 20:30:34 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -8,6 +8,9 @@
 
 /*
  * $Log: dir.c,v $
+ * Revision 1.8  2000/07/18 20:30:34  amura
+ * rewrite some description (for Win32)
+ *
  * Revision 1.7  2000/07/18 12:40:34  amura
  * for Win32, enable to handle japanese directory
  *
@@ -104,9 +107,9 @@ dirinit()
 #endif	/* MSDOS */
 		panic("Can't get current directory!");
 #ifdef	_WIN32
-#ifdef	KANJI
 	unicode2sjis(wdir, wdir2, sizeof(wdir2));
 	strcpy(wdir, wdir2);
+#ifdef	KANJI
 	bufstoe(wdir, strlen(wdir)+1);
 #endif
 #ifndef	_WIN32_WCE
@@ -202,10 +205,10 @@ char *newdir;
     strcpy(dir, newdir);
 #ifdef	KANJI
     bufetos(dir, strlen(dir)+1);
+#endif
 #ifdef	_WIN32
     sjis2unicode(dir, dir2, sizeof(dir2));
     strcpy(dir, dir2);
-#endif
 #endif
     i = strlen(dir) - 1;
 #ifdef	BDC2
@@ -251,11 +254,13 @@ char *newdir;
 	return 0;
     }
 #else	/* NOT (MSDOS||HUMAN68K||_WIN32) */
-#if defined(_WIN32_WCE)&&defined(KANJI)
+#ifdef	_WIN32_WCE
     /* WinCE has no drive */
     char dir[NFILEN], dir2[NFILEN];
     strcpy(dir, newdir);
+#ifdef	KANJI
     bufetos(dir, strlen(dir)+1);
+#endif
     sjis2unicode(dir, dir2, sizeof(dir2));
     return chdir(dir2);
 #else	/* not _WIN32_WCE&&KANJI */
@@ -343,7 +348,7 @@ changedir(f, n)
 changedir(f, n)
 {
 	register int s;
-#if defined(_WIN32)&&defined(KANJI)
+#ifdef	_WIN32
 	char bufc1[NPAT],bufc2[NPAT];
 	char *bufc = bufc1;
 #else
@@ -362,9 +367,9 @@ changedir(f, n)
 #ifdef	_WIN32_WCE
 #ifdef	KANJI
 	bufetos(bufc1, strlen(bufc1)+1);
+#endif	/* KANJI */
 	sjis2unicode(bufc1, bufc2, sizeof(bufc2));
 	bufc = bufc2;
-#endif	/* KANJI */
 #else	/* not _WIN32_WCE */
 	else if (bufc[1] == ':' && bufc[0] != wdir[0]) {
 		int	drive;
@@ -381,12 +386,10 @@ changedir(f, n)
 	}
 #ifdef	KANJI
 	bufetos(bufc1, strlen(bufc1)+1);
+#endif
 	sjis2unicode(bufc1, bufc2, sizeof(bufc2));
 	bufc = bufc2;
 	if (bufc1[1] == ':' && bufc1[2] == '\0') {
-#else
-	if (bufc[1] == ':' && bufc[2] == '\0') {
-#endif
 		/* 90.07.01  Add fftolower() by S.Yoshida */
 		if (!(wdir = getcwd(cwd, NFILEN - 1)))
 			panic("Can't get current directory!");
