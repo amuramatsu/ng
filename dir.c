@@ -6,12 +6,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
-/* $Id: dir.c,v 1.2 2000/03/10 21:26:50 amura Exp $ */
+/* $Id: dir.c,v 1.3 2000/03/28 02:37:46 amura Exp $ */
 
 /* $Log: dir.c,v $
-/* Revision 1.2  2000/03/10 21:26:50  amura
-/* Merge Ng for win32 0.4
+/* Revision 1.3  2000/03/28 02:37:46  amura
+/* Added startdir.
 /*
+ * Revision 1.2  2000/03/10  21:26:50  amura
+ * Merge Ng for win32 0.4
+ *
  * Revision 1.1  1999/05/21  02:20:08  amura
  * Initial revision
  *
@@ -41,9 +44,13 @@ char	*getwd();
 #ifdef	EXTD_DIR
 extern VOID makepath pro((char *dname, char *fname, int len)); /* file.c */
 #endif
+#ifndef strncpy
+extern char* strncpy();
+#endif
 
 char	*wdir;
 static char cwd[NFILEN];
+static char startdir[NFILEN];
 
 /*
  * Initialize anything the directory management routines need
@@ -55,13 +62,46 @@ dirinit()
 	/* 90.07.01  Add fftolower() by S.Yoshida */
 	if (!(wdir = fftolower(getcwd(cwd, NFILEN - 1))))
 #else	/* NOT MSDOS */
-#ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
+# ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
 	if (!(wdir = tounixfn(getcwd(cwd, NFILEN - 1))))
-#else	/* NOT HUMAN68K */
+# else	/* NOT HUMAN68K && NOT MSDOS*/
 	if (!(wdir = getwd(cwd)))
-#endif	/* HUMAN68K */
+# endif	/* HUMAN68K */
 #endif	/* MSDOS */
 		panic("Can't get current directory!");
+	if (startdir[0] == '\0') {
+		int i;
+		strncpy(startdir, cwd, NFILEN-1);
+#ifdef EXTD_DIR
+		i = strlen(startdir) - 1;
+#ifdef BDC2
+		if (startdir[i] != BDC1 && startdir[i] != BDC2) {
+			startdir[i+1] = BDC2;
+			startdir[i+2] = '\0';
+		}
+#else
+		if (startdir[i] != BDC1) {
+			startdir[i+1] = BDC1;
+			startdir[i+2] = '\0';
+		}
+#endif
+#endif
+	}
+}
+
+/*
+ * dirend routine
+ */
+VOID
+dirend()
+{
+#if defined(MSDOS)||defined(HUMAN68K)
+# ifdef EXTD_DIR
+	rchdir(startdir);
+# else
+	chdir(startdir);
+# endif
+#endif
 }
 
 #ifdef EXTD_DIR
@@ -78,6 +118,8 @@ BUFFER *bp;
 {
   if (bp) {
     makepath(bp->b_cwd, bp->b_fname, NFILEN);
+    if (bp->b_cwd[0] == '\0')
+      strncpy(bp->b_cwd, startdir, NFILEN);
   }
 }
 
@@ -99,6 +141,7 @@ int
 rchdir(newdir)
 char *newdir;
 {
+#if defined(MSDOS)||defined(HUMAN68K)
     char dir[NFILEN];
     int i;
 
@@ -110,7 +153,6 @@ char *newdir;
     if (dir[i] == BDC1)
 #endif
 	dir[i] = '\0';
-#if defined(MSDOS)||defined(HUMAN68K)
     if (newdir[1] == ':' && newdir[0] != wdir[0]) {
 	int	drive;
 	int	ndrive;
@@ -149,8 +191,8 @@ char *newdir;
 	return 0;
     }
 #else	/* !(MSDOS||HUMAN68K) */
-    /* Maybe this is just for AMIGA, UNIX and Windows CE */
-    return chdir(dir);
+    /* Maybe this is just for AMIGA, UNIX and Windows */
+    return chdir(newdir);
 #endif	/* MSDOS||HUMAN68K */
 }
 
@@ -327,7 +369,11 @@ showcwdir(f, n)
 	  (VOID)strcpy(dirname, curbp->b_cwd);
 	  len = strlen(dirname) - 1;
 #ifdef	BDC2
+# ifdef	AMIGA
+	  if (dirname[len]==BDC2)
+# else
 	  if (dirname[len]==BDC1 || dirname[len]==BDC2)
+# endif
 #else
 	  if (dirname[len] == BDC1)
 #endif
