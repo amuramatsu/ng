@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.3 2000/12/01 09:47:25 amura Exp $ */
+/* $Id: ttyio.c,v 1.4 2001/01/17 18:31:53 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		System V terminal I/O.
@@ -19,6 +19,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.4  2001/01/17 18:31:53  amura
+ * fix typo POSIXTTY to POSIX_TTY
+ *
  * Revision 1.3  2000/12/01 09:47:25  amura
  * fix ttraw() with termios
  * unset IEXTEN flag on c_lflag
@@ -120,7 +123,7 @@ ttopen()
 		nt.c_cflag |= CS8;	/* allow 8th bit on input	*/
 		nt.c_cflag &= ~PARENB;	/* Don't check parity		*/
 		nt.c_lflag &= ~( ECHO | ICANON | ISIG );
-#ifdef	POSIX_TTY
+#ifdef	POSIXTTY
 		nt.c_lflag &= ~IEXTEN;
 #endif
 		kbdpoll = (((kbdflgs = fcntl(0, F_GETFL, 0)) & O_NDELAY) != 0);
