@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.4 2000/09/04 20:46:10 amura Exp $ */
+/* $Id: random.c,v 1.4.2.1 2001/06/19 18:09:38 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.4.2.1  2001/06/19 18:09:38  amura
+ * add correcting mark position when yank empty line
+ *
  * Revision 1.4  2000/09/04 20:46:10  amura
  * fix yank() bug appeared from rev 1.3
  *
@@ -681,6 +684,10 @@ yank(f, n)
 					set_lineno = -1;
 					return FALSE;
 				}
+				/* Mark position correction.	*/
+				if (curbp->b_marko == 0)
+					curbp->b_markp=lforw(curbp->b_linep);
+				
 				++nline; ++set_lineno;
 				run_insert = FALSE;
 			} else {
@@ -703,6 +710,10 @@ yank(f, n)
 			if (c == '\n') {
 				if (newline(FFRAND, 1) == FALSE)
 					return FALSE;
+				/* Mark position correction.	*/
+				if (curbp->b_marko == 0)
+					curbp->b_markp=lforw(curbp->b_linep);
+				
 				++nline;
 			} else {
 				if (linsert(1, c) == FALSE)
