@@ -1,7 +1,10 @@
-/* $Id: ttyctrl.cpp,v 1.3 2000/07/22 20:46:33 amura Exp $ */
+/* $Id: ttyctrl.cpp,v 1.4 2000/07/24 15:34:55 amura Exp $ */
 
 /*
  * $Log: ttyctrl.cpp,v $
+ * Revision 1.4  2000/07/24 15:34:55  amura
+ * rewrite PutLine()
+ *
  * Revision 1.3  2000/07/22 20:46:33  amura
  * support "Drag&Drop"
  *
@@ -416,6 +419,65 @@ TtyView::EraseEOP()
 void
 TtyView::PutLine( WORD y, WORD color, LPCSTR sjis )
 {
+#if 1
+	WORD	x ;
+	RECT	rect ;
+	HGDIOBJ	hOldObj ;
+	HDC	hDC, hdcBmp ;
+	TCHAR	unicode[ 2 ] ;
+	BYTE	foo[3] ;
+	HFONT hOldFont ;		/* to speed hack */
+
+	hDC = GetDC( m_hwnd ) ;
+	HideCursor() ;
+	hdcBmp = CreateCompatibleDC( hDC ) ;
+	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
+	/* This is speed hack, default this is on KDrawText() */
+	hOldFont = (HFONT)SelectObject( hdcBmp, m_hFont );
+
+	rect.left = 0;
+	rect.top  = y * m_dwFontH ;
+	rect.right = rect.left + m_dwFontW;
+	rect.bottom = rect.top + m_dwFontH;
+
+	for (x=0; x<m_dwCols; x++)
+	{
+		if (*sjis == 0) {
+			unicode[0] = TEXT(' ');
+			unicode[1] = 0;
+		} else if (is_kanji((BYTE)*sjis)) {
+			foo[0] = *sjis++;
+			foo[1] = *sjis++;
+			foo[2] = (BYTE)0;
+			sjis2unicode(foo, unicode, sizeof unicode );
+			rect.right += m_dwFontW;
+			x++;
+		} else {
+			unicode[0] = sjis2unicode_char( *sjis++ ) ;
+			unicode[1] = 0 ;
+		}
+
+
+		DrawText(hdcBmp, unicode, -1, &rect,
+			 (DT_NOPREFIX | DT_LEFT | DT_EXPANDTABS));
+		// KDrawText( hdcBmp, unicode, -1, &rect, 0 ) ;
+		/* goto next position */
+		rect.left  = rect.right;
+		rect.right = rect.left + m_dwFontW;
+	}
+	if ( color ) {
+	  PatBlt(hdcBmp, 0, y * m_dwFontH, m_dwCols * m_dwFontW - 1, m_dwCurH,
+		 PATINVERT);
+	}
+	BitBlt( hDC, 0, y * m_dwFontH, m_dwCols * m_dwFontW, m_dwCurH,
+			hdcBmp, 0, y * m_dwFontH, SRCCOPY ) ;
+	SelectObject( hdcBmp, hOldFont ) ;	/* speed hack */
+	SelectObject( hdcBmp, hOldObj ) ;
+	DeleteDC( hdcBmp ) ;
+
+	ShowCursor() ;
+	ReleaseDC( m_hwnd, hDC ) ;
+#else
 	RECT	rect ;
 	HGDIOBJ	hOldObj ;
 	HDC		hDC, hdcBmp ;
@@ -443,6 +505,7 @@ TtyView::PutLine( WORD y, WORD color, LPCSTR sjis )
 	DeleteDC( hdcBmp ) ;
 	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
+#endif
 }
 
 void
