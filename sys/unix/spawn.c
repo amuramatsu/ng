@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.2 2000/11/23 14:10:33 amura Exp $ */
+/* $Id: spawn.c,v 1.3 2000/12/01 10:09:11 amura Exp $ */
 /*
  *	Spawn. (for configure)
  * This interracts with the job control stuff
@@ -10,6 +10,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.3  2000/12/01 10:09:11  amura
+ * fix typos and edit MACROS adapting for POSIX
+ *
  * Revision 1.2  2000/11/23 14:10:33  amura
  * small fixes on spawncli()
  *
@@ -22,6 +25,7 @@
 #include	"def.h"
 
 #include	<signal.h>
+#include	<strings.h>
 #ifdef	HAVE_VFORK_H
 #include	<vfork.h>
 #endif
@@ -29,6 +33,7 @@
 #include	<sys/wait.h>
 #endif
 
+/* some system don't have job-control even if SIGTSTP is defined... */
 #ifdef	SIGTSTP
 # ifdef __CYGWIN__
 #  undef SIGTSTP
@@ -169,6 +174,11 @@ spawncli(f, n) {
 #ifndef NO_SHELL	/* 91.01.10  by K.Maeda */
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifndef S_IRUSR		/* for old system compat? */
+#define S_IRUSR		S_IREAD
+#define S_IWUSR		S_IWRITE
+#endif
+
 /*
  *	Call process in subshell.
  * Execute COMMAND binding standard input to file INPUT.
@@ -196,21 +206,21 @@ char *input;
     
     if ((in = open(input ? input : "/dev/null", 0)) < 0)
 	return NULL;
-#ifndef HAVE_MKSTEMP	
-    if ((tmp = mktemp(tmpbuf)) == NULL) {
-	close(in);
-	return NULL;
-    }
-    if ((out = creat(tmp, S_IREAD | S_IWRITE)) < 0) {
-	close(in);
-	return NULL;
-    }
-#else
+#ifdef HAVE_MKSTEMP	
     if ((out = mkstemp(tmpbuf)) < 0) {
 	close(in);
 	return NULL;
     }
     tmp = tmpbuf;
+#else
+    if ((tmp = mktemp(tmpbuf)) == NULL) {
+	close(in);
+	return NULL;
+    }
+    if ((out = creat(tmp, S_IRUSR | S_IWUSR)) < 0) {
+	close(in);
+	return NULL;
+    }
 #endif
     
     ostdin = dup(0); ostdout = dup(1); ostderr = dup(2);
