@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.8 2000/11/04 13:44:58 amura Exp $ */
+/* $Id: line.c,v 1.9 2000/11/05 01:58:39 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.9  2000/11/05 01:58:39  amura
+ * speed ldelete() with undo up
+ *
  * Revision 1.8  2000/11/04 13:44:58  amura
  * undo memory exception is more safety
  *
@@ -465,12 +468,13 @@ ldelete(n, kflag) RSIZE n; {
 		    char_num = 1;
 		    undo_bfree(undo);
 		}
-		else
+		else if (undo_balloc(undo, n)) {
 		    char_num = 2;
-		undo->u_used = 0;
-		undo->u_doto = curwp->w_doto;
-		undo->u_dotlno = get_lineno(curbp, curwp->w_dotp);
-		undo->u_type = (kflag==KBACK) ? UDBS : UDDEL;
+		    undo->u_used = 0;
+		    undo->u_doto = curwp->w_doto;
+		    undo->u_dotlno = get_lineno(curbp, curwp->w_dotp);
+		    undo->u_type = (kflag==KBACK) ? UDBS : UDDEL;
+		}
 	    }
 	}
 #endif
