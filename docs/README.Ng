@@ -1,8 +1,8 @@
-# $Id: README.Ng,v 1.1 2000/06/27 01:48:04 amura Exp $
+# $Id: README.Ng,v 1.2 2000/07/26 14:56:54 amura Exp $
 ==============================================================================
     README.Ng for Ng (Micro Nemacs) 1.3				  1991.01.25
 						 吉田茂樹 (shige@iamas.ac.jp)
-                                    1.4 (修正加筆)                2000.04.14
+                                    1.4 (修正加筆)                2000.07.26
                                            村松  篤 (amura@ma3.seikyou.ne.jp)
 ==============================================================================
 
@@ -98,10 +98,10 @@
     オリジナルの Mg は、ほとんどの部分には著作権がなく、Public Domain に置
     かれていると宣言されています。
 
-    正規表現ルーチン (re_search.c, regex.h, regex.c) については Richard M.
-    Stallman が著作権を保有しています。GNU emacs の copyright による制限を
-    避けたい時には、この 3 つのソースを空ファイルと置き換えるように、とい
-    う原著作者の記述が README にあります。GNU emacs の copyright は
+    正規表現ルーチン (re_search.c, regex_{j,e}.h, regex_{j,e}.c) については
+    Richard M. Stallman が著作権を保有しています。GNU emacs の copyright に
+    よる制限を避けたい時には、この 3 つのソースを空ファイルと置き換えるよう
+    に、という原著作者の記述が README にあります。GNU emacs の copyright は
     COPYING をご覧ください。
 
     太田純氏による MS-DOS 用 FEP 自動制御ライブラリ fepctrl.c, fepcsub.asm
