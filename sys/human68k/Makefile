@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2003/02/22 08:09:47 amura Exp $
+# $Id: Makefile,v 1.7 2003/02/25 14:12:01 amura Exp $
 # Makefile for Ng on Human68k (SHARP X68000)
 #
 
@@ -14,7 +14,7 @@ LIBS	= a:\xc\lib\doslib.l a:\xc\lib\iocslib.l a:\xc\lib\floatfnc.l \
 #
 # Now, compile time options are defined in a "config.h".
 #
-CDEFS	=  -DHUMAN68K
+CDEFS	=  -DHUMAN68K -DDIRECT_IOCS
 CFLAGS	=  -O -fcombine-regs -fomit-frame-pointer -fstrength-reduce $(CDEFS)
 
 CC	= gcc

@@ -1,22 +1,26 @@
-# $Id: GNUmakefile,v 1.6 2003/02/22 08:09:47 amura Exp $
+# $Id: GNUmakefile,v 1.7 2003/02/25 14:12:01 amura Exp $
 # GNUmakefile for Ng on Human68k (SHARP X68000)
 #	This makefile requires GNU make		91.01.20  by K.Maeda.
 #
 
 SYS	= human68k
-LIBS	= cshwild.a gmalloc.a h68unix.a doslib.a iocslib.a 
+LIBS	= -lhmem -lsignal -ldos -liocs
+#LIBS	= cshwild.a gmalloc.a h68unix.a doslib.a iocslib.a 
 #LIBS	= a:\xc\lib\doslib.l a:\xc\lib\iocslib.l a:\xc\lib\floatfnc.l \
 #	a:\gcc\lib\gnulib.l a:\xc\lib\clib.l
 #LIBS	= a:\jshwild3\jshwild.l a:\xc\lib\doslib.l a:\xc\lib\iocslib.l \
 #	a:\xc\lib\floatfnc.l a:\gcc\lib\gnulib.l a:\gmalloc\gmalloc.l \
 #	a:\xc\lib\clib.l
 
-ifeq ($(SHELL),minsh)
+# if your shell and command like as UN*X, set this 'yes'
+UNIX_STYLE = yes
+
+ifeq ($(UNIX_STYLE),yes)
 CP		= cp
 PATHDELIM	= /
 else
 CP		= copy
-PATHDELIM	= \\		# or \ if your GNU make recognise \ as a path delimiter.
+PATHDELIM	= \\
 endif
 
 SYSDIR = sys$(PATHDELIM)$(SYS)$(PATHDELIM)
@@ -27,7 +31,7 @@ SYSDEF = sys$(PATHDELIM)default$(PATHDELIM)
 #
 # Now, compile time options are defined in a "config.h".
 #
-CDEFS	=  -DHUMAN68K
+CDEFS	=  -DHUMAN68K -DDIRECT_IOCS
 
 ifneq (,$(findstring gmalloc,$(LIBS)))
 override	CDEFS := $(CDEFS) -DFLEX_MALLOC
@@ -173,7 +177,7 @@ hentrap.s:	$(SYSDIR)hentrap.s
 	$(CP) $(SYSDIR)hentrap.s .
 
 clean:
-ifeq ($(SHELL),minsh)
+ifeq ($(UNIX_STYLE),yes)
 	-rm *.o $(OINCS) varargs.h fepctrl.h $(OSRCS) $(HSRCS) ng.x
 else
 	del *.o
