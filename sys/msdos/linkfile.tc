@@ -7,4 +7,4 @@ kanji.obj kinsoku.obj +
 cinfo.obj spawn.obj ttyio.obj tty.obj ttykbd.obj +
 termcap.obj +
 dosutil.obj fepctrl.obj rawgetc.obj +
-fileio.obj + putline.obj + alloca.obj + skg.obj + jump.obj + undo.obj
+fileio.obj putline.obj alloca.obj skg.obj jump.obj undo.obj autosave.obj

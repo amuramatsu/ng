@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.8 2001/03/02 08:48:31 amura Exp $ */
+/* $Id: fileio.c,v 1.9 2001/03/09 15:53:14 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.9  2001/03/09 15:53:14  amura
+ * enable to really work autosave feature
+ *
  * Revision 1.8  2001/03/02 08:48:31  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -1135,22 +1138,23 @@ char* name;
     strcpy(buff, name);
     if (strlen(name)) {
 	char *dot;
-	char *fn = rindex(name, '/');
+	char *fn = strrchr(name, '/');
 	if (fn == NULL)
-	    fn = rindex(name, '\\');
+	    fn = strrchr(name, '\\');
 	if (fn == NULL)
-	    fn = rindex(name, ':');
+	    fn = strrchr(name, ':');
 	if (fn == NULL)
 	    fn = name;
 	else
 	    fn++;
-	dot = rindex(name, '.');
-	if (dot == NULL || dot < fn)
+
+	dot = strrchr(fn, '.');
+	if (dot == NULL)
 	    dot = name + strlen(name);
-	if (dot - name < 8)
-	    buff[dot]
-	if (
+	if (dot-fn < 8)
+	    strcpy(&buff[(fn-name)] + 1, fn);
+
+	buff[fn-name] = '#';
     }
 }
 #endif	/* AUTOSAVE */
-

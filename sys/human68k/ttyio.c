@@ -1,10 +1,13 @@
-/* $Id: ttyio.c,v 1.5 2001/03/02 08:48:31 amura Exp $ */
+/* $Id: ttyio.c,v 1.6 2001/03/09 15:53:14 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.6  2001/03/09 15:53:14  amura
+ * enable to really work autosave feature
+ *
  * Revision 1.5  2001/03/02 08:48:31  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -283,6 +286,10 @@ ttgetc() {
 		return(keybuf[--nkey]);
 	}	/* 91.01.14  by K.Maeda ---remove else */
 #endif	/* KANJI */
+#ifdef	AUTOSAVE
+	while (!kbhit())
+		autosave_handler();	/* this is polling */
+#endif
 	c = FGETC (1);
  	shifts = K_SFTSNS() & 0xFFFF;
 	shifts |= K_KEYBIT(XF1_3GROUP)<<16;

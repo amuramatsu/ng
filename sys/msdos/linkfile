@@ -7,7 +7,7 @@ kanji.obj kinsoku.obj +
 cinfo.obj spawn.obj ttyio.obj tty.obj ttykbd.obj +
 termcap.obj +
 dosutil.obj fepctrl.obj fepcsub.obj rawgetc.obj putline.obj +
-fileio.obj + skg.obj + jump.obj + undo.obj
+fileio.obj skg.obj jump.obj undo.obj autosave.obj
 c:\msc\lib\setargv.obj
 ng.exe/E/NOE/NOI/ST:3000/F/PACKCODE
 ;

@@ -6,6 +6,9 @@
 
 /*
  * $Log: putline.c,v $
+ * Revision 1.3  2001/03/09 15:53:14  amura
+ * enable to really work autosave feature
+ *
  * Revision 1.2  2001/01/20 15:47:23  amura
  * putline() support Hojo Kanji now
  *
@@ -110,7 +113,7 @@ putline(int row, int column, unsigned char *s, short color)
 	} else
 #endif /* HANKANA */    
 #ifdef HOJO_KANJI
-	if ( ISHOJO(*s) {
+	if ( ISHOJO(*s) ) {
             pokeb(ATTR_SEG, dest, attr);
             pokeb(VRAM_SEG, dest++, TOUFU1ST - 0x20);
             pokeb(VRAM_SEG, dest++, TOUFU2ND);
