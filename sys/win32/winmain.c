@@ -1,4 +1,4 @@
-/* $Id: winmain.c,v 1.3 2000/07/22 20:46:33 amura Exp $ */
+/* $Id: winmain.c,v 1.4 2000/09/01 19:41:21 amura Exp $ */
 /*
  * NG : NG program main routine
  *
@@ -8,6 +8,9 @@
 
 /*
  * $Log: winmain.c,v $
+ * Revision 1.4  2000/09/01 19:41:21  amura
+ * fix for suppress buffer overrun
+ *
  * Revision 1.3  2000/07/22 20:46:33  amura
  * support "Drag&Drop"
  *
@@ -163,7 +166,8 @@ WinMain( HINSTANCE hThisInst, HINSTANCE hPrevInst,
 #ifdef	_WIN32_WCE
 	unicode2sjis( lpszArgs, g_szArgBuf, sizeof g_szArgBuf ) ;
 #else	/* _WIN32_WCE */
-	strcpy(g_szArgBuf, lpszArgs);
+	strncpy(g_szArgBuf, lpszArgs, sizeof g_szArgBuf);
+	g_szArgBuf[(sizeof g_szArgBuf)-1] = '\0';
 #endif	/* _WIN32_WCE */
 	cmdline2args( g_szArgBuf, &g_dwArgc, g_szArgv ) ;
 	/* event loop */
