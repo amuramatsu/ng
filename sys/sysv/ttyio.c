@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.5 2001/01/20 15:48:47 amura Exp $ */
+/* $Id: ttyio.c,v 1.6 2001/01/23 08:43:50 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		System V terminal I/O.
@@ -19,6 +19,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.6  2001/01/23 08:43:50  amura
+ * reset terminal polling mode in ttwait()
+ *
  * Revision 1.5  2001/01/20 15:48:47  amura
  * very big terminal supported
  *
@@ -407,6 +410,9 @@ ttwait()
 #else	/* NOT BUGFIX */
 	signal(SIGALRM, alrm); alarm(2);
 #endif	/* BUGFIX */
+	if (kbdpoll && fcntl( 0, F_SETFL, kbdflgs ) < 0)
+		abort();
+	kbdpoll = FALSE;
 	kbdqp = (1 == read(0, &kbdq, 1));
 	alarm(0);
 	return FALSE;			/* successful read if here	*/
