@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: spawn.c,v 1.2 2000/10/23 13:17:06 amura Exp $ */
 /*
  * Name:	MG
  * Version:	2x
@@ -9,8 +9,11 @@
 
 /*
  * $Log: spawn.c,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2000/10/23 13:17:06  amura
+ * no spawncli() do change directory
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 
@@ -40,7 +43,7 @@ spawncli(f, n)
 		return (FALSE);
 	}
 #ifdef	EXTD_DIR
-	dirend();
+	ensurecwd();
 #endif
 	Execute("NEWCLI \"CON:0/0/640/200/MicroEmacs Subprocess\"",nil,nil);
 	Close(nil);
