@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.12 2001/02/01 16:30:39 amura Exp $ */
+/* $Id: def.h,v 1.13 2001/02/11 15:40:24 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.13  2001/02/11 15:40:24  amura
+ * some function are changed to static for speed/size
+ *
  * Revision 1.12  2001/02/01 16:30:39  amura
  * add vtsetsize() definition and change NFILEN size for amiga
  *
@@ -520,19 +523,13 @@ extern int fbackupfile pro((char *));
 extern int ffwopen pro((char *));
 extern int ffputbuf pro((BUFFER *));
 extern int popbuftop pro((BUFFER *));
-extern int kcodenumber pro((int *, int));
 extern VOID upmodes pro((BUFFER *));
-extern int klastchar pro((int *, int));
-extern int kanalastchar pro((int *));
 extern VOID vtputc pro((int));
 extern int ttgetc pro((void));
 extern int ttungetc pro((int));
-extern int kcodecheck pro((char *, int));
 extern int bufjtoe pro((char *, int));
 extern int bufstoe pro((char *, int));
 extern VOID bufetos pro((char *, int));
-extern int bufjtoe_c pro((char *, int));
-extern int bufstoe_c pro((char *, int));
 extern int charcategory pro((int, int));
 extern VOID PutLine pro((int, unsigned char *, short));
 extern VOID kgetkeyflush pro((void));

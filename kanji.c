@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.9 2001/01/20 15:49:36 amura Exp $ */
+/* $Id: kanji.c,v 1.10 2001/02/11 15:40:25 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.10  2001/02/11 15:40:25  amura
+ * some function are changed to static for speed/size
+ *
  * Revision 1.9  2001/01/20 15:49:36  amura
  * move TOUFU charactor to kinit.h
  *
@@ -49,26 +52,26 @@ int	global_kfio 	= KFIO;		/* default-kanji-fileio-code	*/
 int	global_kexpect	= KEXPECT;	/* kanji-expected-code		*/
 int	global_kinput 	= KINPUT;	/* kanji-input-code		*/
 int	global_kdisplay = KDISPLAY;	/* kanji-display-code		*/
-int	to_k_fio	= TO_KFIO;	/* to-kanji-fileio		*/
-int	to_a_fio	= TO_AFIO;	/* to-ascii-fileio		*/
-int	to_k_display	= TO_KDISPLAY;	/* to-kanji-display		*/
-int	to_a_display	= TO_ADISPLAY;	/* to-ascii-display		*/
+static int to_k_fio	= TO_KFIO;	/* to-kanji-fileio		*/
+static int to_a_fio	= TO_AFIO;	/* to-ascii-fileio		*/
+static int to_k_display	= TO_KDISPLAY;	/* to-kanji-display		*/
+static int to_a_display	= TO_ADISPLAY;	/* to-ascii-display		*/
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
-int	to_kana_fio	= TO_KANAFIO;	   /* to-kana-fileio		*/
-int	to_kana_display	= TO_KANADISPLAY;  /* to-kana-display		*/
+static int to_kana_fio	= TO_KANAFIO;	   /* to-kana-fileio		*/
+static int to_kana_display = TO_KANADISPLAY;  /* to-kana-display	*/
 #endif  /* HANKANA */
-int	local_kfin;			/* Buffer local file input code. */
+static int local_kfin;			/* Buffer local file input code. */
 
-char	symbol_c[] = {'N', 'S', 'J', 'E', '-', 'T'};
-char	*symbol_s[] = {"No-conversion", "Shift-JIS", "JIS", "EUC", "NIL", "T"};
+static char symbol_c[] = {'N', 'S', 'J', 'E', '-', 'T'};
+static char *symbol_s[] = {"No-conversion", "Shift-JIS", "JIS", "EUC", "NIL", "T"};
 					/* Symbol chars & strings to	*/
 					/* display a KANJI code info to	*/
 					/* the user.  This order depend	*/
 					/* on the values of KANJI code	*/
 					/* macro defined at def.h.	*/
 
-char	*kcodename_u[] = {"NOCONV", "SHIFT-JIS", "JIS", "EUC", "NIL", "T"};
-char	*kcodename_l[] = {"noconv", "shift-jis", "jis", "euc", "nil", "t"};
+static char *kcodename_u[] = {"NOCONV", "SHIFT-JIS", "JIS", "EUC", "NIL", "T"};
+static char *kcodename_l[] = {"noconv", "shift-jis", "jis", "euc", "nil", "t"};
 #define	NKCODENAME	6
 					/* The strings of KANJI code	*/
 					/* name and the numner of KANJI	*/
@@ -134,6 +137,14 @@ char	*kcodename_l[] = {"noconv", "shift-jis", "jis", "euc", "nil", "t"};
 #define	CAT_GREEK	6		/* Category: JIS GREEK char.	*/
 #define	CAT_RUSSIAN	7		/* Category: JIS RUSSIAN char.	*/
 #define	CAT_KANJI	8		/* Category: KANJI char.	*/
+
+/* prototype for static routines */
+static int kcodenumber pro((int *code, int num));
+static int kanalastchar pro((int *lastch));
+static int klastchar pro((int *lastch, int kselect));
+static int kcodecheck pro((char *p, int len));
+static int bufjtoe_c pro((char *j, int len));
+static int bufstoe_c pro((char *p, int len));
 
 /*
  * COMMAND: change-default-fileio-code
@@ -600,6 +611,7 @@ k_set_toadisplay(f, n)
 /*
  * Select target KANJI code and return its inner number.
  */
+static int
 kcodenumber(code, num)
 int	*code;
 int	num;
@@ -636,6 +648,7 @@ int	num;
  * Input last char of the KANA code select escape sequence,
  * and return its value.
  */
+static int
 kanalastchar(lastch)
 int	*lastch;
 {
@@ -670,6 +683,7 @@ int	*lastch;
  * and return its value.  KANJI select char is input when kselect
  * is TRUE, othewise ASCII select char is input.
  */
+static int
 klastchar(lastch, kselect)
 int	*lastch;
 int	kselect;
@@ -931,15 +945,14 @@ extern int ttputkc(int, int);
 #define ttputkc(a, b) (ttputc(a),ttputc(b))
 #endif
 
-int	kdselected = SELROMA;
+static int	kdselected = SELROMA;
 #ifdef	HANKANA
-int	kanadselected = FALSE;
+static int	kanadselected = FALSE;
 #endif
 
 /*
  * Output one byte to the display with KANJI code conversion.
  */
-int
 kttputc(c)
 register int	c;	/* 90.07.25  Add "register". by S.Yoshida */
 {
@@ -1353,6 +1366,7 @@ register int	len;
  * This routine is refered to Nemacs's kanji.c.
  */
 #ifdef  SS_SUPPORT /* 92.11.21  by S.Sasaki */
+static int
 kcodecheck(p, len)
 char	*p;
 int	len;
@@ -1385,6 +1399,7 @@ int	len;
 }
 
 #else  /* not SS_SUPPORT */
+static int
 kcodecheck(p, len)
 char	*p;
 int	len;
@@ -1605,6 +1620,7 @@ int	len;
 }
 
 #ifdef  SS_SUPPORT /* 92.11.21  by S.Sasaki */
+static int
 bufjtoe_c(j, len)
 char	*j;				/* JIS code text.	*/
 int	len;
@@ -1664,6 +1680,7 @@ int	len;
 	return (leng);
 }
 
+static int
 bufstoe_c(p, len)
 char	*p;
 int	len;

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.10 2001/02/01 16:29:32 amura Exp $ */
+/* $Id: display.c,v 1.11 2001/02/11 15:40:24 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.11  2001/02/11 15:40:24  amura
+ * some function are changed to static for speed/size
+ *
  * Revision 1.10  2001/02/01 16:29:32  amura
  * fix terminal buffer size check
  *
@@ -122,8 +125,8 @@ typedef struct	{
 }	SCORE;
 
 int	sgarbf	= TRUE;			/* TRUE if screen is garbage.	*/
-int	vtrow	= 0;			/* Virtual cursor row.		*/
-int	vtcol	= 0;			/* Virtual cursor column.	*/
+static int	vtrow	= 0;		/* Virtual cursor row.		*/
+static int	vtcol	= 0;		/* Virtual cursor column.	*/
 int	tthue	= CNONE;		/* Current color.		*/
 int	ttrow	= HUGE;			/* Physical cursor row.		*/
 int	ttcol	= HUGE;			/* Physical cursor column.	*/
@@ -135,10 +138,10 @@ extern int	nrow;
 static int	vncol   = 0;
 static int	vnrow	= 0;
 
-VIDEO	**vscreen = NULL;		/* Edge vector, virtual.	*/
-VIDEO	**pscreen = NULL;		/* Edge vector, physical.	*/
-VIDEO	*video    = NULL;		/* Actual screen data.		*/
-VIDEO	*blanks   = NULL;		/* Blank line image.		*/
+static VIDEO	**vscreen = NULL;	/* Edge vector, virtual.	*/
+static VIDEO	**pscreen = NULL;	/* Edge vector, physical.	*/
+static VIDEO	*video    = NULL;	/* Actual screen data.		*/
+static VIDEO	*blanks   = NULL;	/* Blank line image.		*/
 
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 #define	ASCII	0
@@ -154,20 +157,17 @@ int	vtkattr	= ASCII;
  */
 VOID	vtinit();
 VOID	vttidy();
-VOID	vtmove();
 VOID	vtputc();
-VOID	vtmarkyen();
-VOID	vteeol();
 VOID	update();
-VOID	ucopy();
-VOID	uline();
-VOID	modeline();
+static VOID	vtmove();
+static VOID	vtmarkyen();
+static VOID	vteeol();
+static VOID	ucopy();
+static VOID	uline();
+static VOID	modeline();
 #ifdef	ADDFUNC
-VOID	moderatio();
+static VOID	moderatio();
 #endif
-VOID	hash();
-VOID	setscores();
-VOID	traceback();
 
 #ifdef	GOSLING
 /*
@@ -177,7 +177,11 @@ VOID	traceback();
  * It would be "SCORE	score[vnrow][vnrow]" in old speak.
  * Look at "setscores" to understand what is up.
  */
-SCORE	*score = NULL;
+static VOID	hash();
+static VOID	setscores();
+static VOID	traceback();
+
+static SCORE	*score = NULL;
 #endif
 
 VOID
@@ -276,7 +280,7 @@ vttidy() {
  * more efficient. No checking for errors.
 
  */
-VOID
+static VOID
 vtmove(row, col) {
 	vtrow = row;
 	vtcol = col;
@@ -407,7 +411,7 @@ vtputc(c) register int c; {
 }
 
 #if defined(MEMMAP)&&(!defined(PC9801))
-VOID
+static VOID
 putline(int row, int col, unsigned char *s, unsigned char *t)
 {
     register int i;
@@ -434,7 +438,7 @@ putline(int row, int col, unsigned char *s, unsigned char *t)
 /* Mark '\\' end of line 
  * whether curcol is not on the top of line.
  */
-VOID
+static VOID
 vtmarkyen(fillchar)
 char	fillchar;
 {
@@ -458,7 +462,7 @@ char	fillchar;
  * if a hardware erase to end of line command
  * should be used to display this.
  */
-VOID
+static VOID
 vteeol() {
 	register VIDEO	*vp;
 
@@ -1042,7 +1046,7 @@ out:
  * virtual and physical screens the same when
  * display has done an update.
  */
-VOID
+static VOID
 ucopy(vvp, pvp) register VIDEO *vvp; register VIDEO *pvp; {
 
 	vvp->v_flag &= ~VFCHG;			/* Changes done.	*/
@@ -1065,7 +1069,7 @@ ucopy(vvp, pvp) register VIDEO *vvp; register VIDEO *pvp; {
  * line when updating CMODE color lines, because of the way that
  * reverse video works on most terminals.
  */
-VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
+static VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 #if defined(WIN32)
 #ifdef	SS_SUPPORT
 	putline( row, 0, &vvp->v_text[0], &vvp->v_sub(0), vvp->v_color ) ;
@@ -1208,8 +1212,13 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 		return;
         }
 	nbflag = FALSE;
+#ifdef	BUGFIX	/* 1999.09.07 by M.Suzuki */
+	ccp3 = cp3 = &vvp->v_text[ncol];	/* Compute right match. */
+	ccp4 = cp4 = &pvp->v_text[ncol];
+#else
 	cp3 = &vvp->v_text[ncol];		/* Compute right match. */
 	cp4 = &pvp->v_text[ncol];
+#endif
 
 	while (cp3[-1] == cp4[-1]) {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
@@ -1323,7 +1332,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
  * Note that if STANDOUT_GLITCH is defined, first and last SG characters
  * may never be seen.
  */
-VOID
+static VOID
 modeline(wp) register WINDOW *wp; {
 	register int	n;
 	register BUFFER *bp;
@@ -1431,7 +1440,7 @@ modeline(wp) register WINDOW *wp; {
  * Note that if STANDOUT_GLITCH is defined, first and last SG characters
  * may never be seen.
  */
-VOID
+static VOID
 moderatio(wp) register WINDOW *wp; {
 	register int	n;
 	register BUFFER *bp;
@@ -1507,7 +1516,7 @@ vtputs(s) register char *s; {
  * by Bob McNamara; better than it used to be on
  * just about any machine.
  */
-VOID
+static VOID
 hash(vp) register VIDEO *vp; {
 	register int	i;
 	register int	n;
@@ -1555,7 +1564,7 @@ hash(vp) register VIDEO *vp; {
  * i = 1; do { } while (++i <=size)" will make the code quite a
  * bit better; but it looks ugly.
  */
-VOID
+static VOID
 setscores(offs, size) {
 	register SCORE	*sp;
 	SCORE		*sp1;
@@ -1642,7 +1651,7 @@ setscores(offs, size) {
  * which is acceptable because this routine is much less compute
  * intensive then the code that builds the score matrix!
  */
-VOID traceback(offs, size, i, j) {
+static VOID traceback(offs, size, i, j) {
 	register int	itrace;
 	register int	jtrace;
 	register int	k;

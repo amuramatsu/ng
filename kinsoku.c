@@ -1,4 +1,4 @@
-/* $Id: kinsoku.c,v 1.2 2000/11/16 14:31:13 amura Exp $ */
+/* $Id: kinsoku.c,v 1.3 2001/02/11 15:40:25 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kinsoku.c,v $
+ * Revision 1.3  2001/02/11 15:40:25  amura
+ * some function are changed to static for speed/size
+ *
  * Revision 1.2  2000/11/16 14:31:13  amura
  * fix some typos which cause compile error when using
  * strict ANSI-C compiler (ex ACK, gcc-1.x)
@@ -28,8 +31,9 @@
 #define	MAXEOLKC	64		/* Maximum number of EOL (end	*/
 					/* of line) KINSOKU chars.	*/
 
-unsigned short	bolkchar[MAXBOLKC] = {	/* BOL KINSOKU char list (EUC).	*/
-					/* This table must be sorted.	*/
+/* BOL KINSOKU char list (EUC).	*/
+/* This table must be sorted.	*/
+static unsigned short	bolkchar[MAXBOLKC] = {
 	'!',	'\'',	')',	',',	'-',	/*  5 */
 	'.',	':',	';',	'?',	']',	/* 10 */
 	'_',	'}',	'~',	0xa1a2,	0xa1a3,	/* 15 */
@@ -50,16 +54,17 @@ unsigned short	bolkchar[MAXBOLKC] = {	/* BOL KINSOKU char list (EUC).	*/
 	0xa5f6
 };
 
-unsigned short	eolkchar[MAXEOLKC] = {	/* EOL KINSOKU char list (EUC).	*/
-					/* This table must be sorted.	*/
+/* EOL KINSOKU char list (EUC).	*/
+/* This table must be sorted.	*/
+static unsigned short	eolkchar[MAXEOLKC] = {
 	'(',	'[',	'{',	0xa1c6,	0xa1c8,	/*  5 */
 	0xa1ca,	0xa1cc,	0xa1ce,	0xa1d0,	0xa1d2,	/* 10 */
 	0xa1d4,	0xa1d6,	0xa1d8,	0xa1da,	0xa1eb,	/* 15 */
 	0xa1ec,	0xa1ed,	0xa1ee,	0xa1f7,	0xa1f8	/* 20 */
 };
 
-int	nbolkc = 86;			/* Number of BOL KINSOKU chars.	*/
-int	neolkc = 20;			/* Number of EOL KINSOKU chars.	*/
+static int	nbolkc = 86;		/* Number of BOL KINSOKU chars.	*/
+static int	neolkc = 20;		/* Number of EOL KINSOKU chars.	*/
 
 /*
  * FUNCTION: list-kinsoku-chars
