@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.6 2000/11/04 13:44:58 amura Exp $ */
+/* $Id: undo.h,v 1.7 2000/11/05 01:59:20 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: undo.h,v $
+ * Revision 1.7  2000/11/05 01:59:20  amura
+ * ploblem with big undo is fixed
+ *
  * Revision 1.6  2000/11/04 13:44:58  amura
  * undo memory exception is more safety
  *
@@ -45,10 +48,10 @@ typedef struct UNDO_DATA {
     int    u_type;
     int    u_dotlno;
     short  u_doto;
-    short  u_size;
+    RSIZE  u_size;
     char   u_code[2];
     struct UNDO_DATA* u_next;
-    short  u_used;
+    RSIZE  u_used;
     char   *u_buffer;
 } UNDO_DATA;
 
@@ -62,8 +65,8 @@ VOID ublock_open  pro((register BUFFER *));
 VOID ublock_close pro((register BUFFER *));
 VOID ublock_clear pro((register UNDO_DATA **));
 VOID undo_clean   pro((BUFFER*));
-int  undo_balloc pro((register UNDO_DATA*, register int));
-int  undo_bgrow  pro((register UNDO_DATA*, register int));
+int  undo_balloc pro((register UNDO_DATA*, register RSIZE));
+int  undo_bgrow  pro((register UNDO_DATA*, register RSIZE));
 
 /* undo support functions (implemented by macro for SPEED) */
 

@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.7 2000/11/04 13:44:58 amura Exp $ */
+/* $Id: undo.c,v 1.8 2000/11/05 01:59:20 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -7,6 +7,9 @@
 
 /*
  * $Log: undo.c,v $
+ * Revision 1.8  2000/11/05 01:59:20  amura
+ * ploblem with big undo is fixed
+ *
  * Revision 1.7  2000/11/04 13:44:58  amura
  * undo memory exception is more safety
  *
@@ -116,26 +119,42 @@ register UNDO_DATA **upp;
 int
 undo_balloc(undo, size)
 register UNDO_DATA *undo;
-register int size;
+register RSIZE size;
 {
     char *newbuffer;
+
+    /* For memory save, too big undo buffer is turncate */
+    if (undo->u_size<size && (size*4)<undo->u_size)
+	undo_bfree(undo);
+
     if (undo->u_size < size)
     {
         size = (size + UBLOCK - 1) / UBLOCK * UBLOCK;
 #ifdef	MALLOCROUND
 	MALLOCROUND(size);
 #endif
-	newbuffer = malloc(size);
-	if (newbuffer == NULL)
+	if (size < undo->u_size)
 	{
-	    ewprintf("undo_balloc: No Memory");
+	    ewprintf("Undo buffer too BIG!");
 	    ttwait();
 	    undo_clean(curbp);
 	    undoptr = NULL;
 	    return FALSE;
 	}
-	if (undo->u_size)
+	
+	if (undo->u_size) {
 	    free(undo->u_buffer);
+	    undo->u_size = 0;
+	}
+	newbuffer = malloc(size);
+	if (newbuffer == NULL)
+	{
+	    ewprintf("Can't get %ld Bytes / Undo buffer clear", size);
+	    ttwait();
+	    undo_clean(curbp);
+	    undoptr = NULL;
+	    return FALSE;
+	}
 	undo->u_buffer = newbuffer;
 	undo->u_size = size;
     }
@@ -145,20 +164,31 @@ register int size;
 int
 undo_bgrow(undo, size)
 register UNDO_DATA *undo;
+RSIZE size;
 {
     char *newbuffer;
-    int newsize = (undo->u_used + size);
+    RSIZE newsize = (undo->u_used + size);
 
+    if (newsize < size)
+    {
+	ewprintf("Undo buffer too BIG!");
+	ttwait();
+	undo_clean(curbp);
+	undoptr = NULL;
+	return FALSE;
+    }
     if (newsize > undo->u_size)
     {
-	newsize = (newsize + UBLOCK - 1) / UBLOCK * UBLOCK;
+	size = (newsize + UBLOCK - 1) / UBLOCK * UBLOCK;
 #ifdef	MALLOCROUND
-	MALLOCROUND(newsize);
+	MALLOCROUND(size);
 #endif
-	newbuffer = malloc(newsize);
+	if (size < newsize)
+	    size = newsize;
+	newbuffer = malloc(size);
 	if (newbuffer == NULL)
 	{
-	    ewprintf("undo_bgrow: No Memory");
+	    ewprintf("Can't get %ld Bytes / Undo buffer clear");
 	    ttwait();
 	    undo_clean(curbp);
 	    undoptr = NULL;
@@ -169,7 +199,7 @@ register UNDO_DATA *undo;
 	    free(undo->u_buffer);
 	}
 	undo->u_buffer = newbuffer;
-	undo->u_size = newsize;
+	undo->u_size = size;
     }
     return TRUE;
 }
