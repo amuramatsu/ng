@@ -1,7 +1,8 @@
-# $Id: MANIFEST,v 1.5 2000/10/11 13:42:23 amura Exp $
+# $Id: MANIFEST,v 1.6 2000/10/23 16:53:18 amura Exp $
    File Name			  Description
 -----------------------------------------------------------
  COPYING			GNU GENERAL PUBLIC LICENSE
+ LICENSE			Ng LICENSE (BSD-style)
  MANIFEST			このファイル
  basic.c                   	共通部分ソース
  buffer.c			〃
