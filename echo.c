@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.7 2000/11/19 18:15:11 amura Exp $ */
+/* $Id: echo.c,v 1.6.2.1 2000/12/01 09:59:44 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -14,7 +14,7 @@
 
 /*
  * $Log: echo.c,v $
- * Revision 1.7  2000/11/19 18:15:11  amura
+ * Revision 1.6.2.1  2000/12/01 09:59:44  amura
  * rename sput?() functions because HP-UX have sputl() function
  * in its library
  *
