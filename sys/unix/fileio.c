@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.8 2001/01/05 13:55:28 amura Exp $ */
+/* $Id: fileio.c,v 1.9 2001/02/11 15:39:01 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.9  2001/02/11 15:39:01  amura
+ * change getuid() geteuid()
+ *
  * Revision 1.8  2001/01/05 13:55:28  amura
  * filename completion fixed
  *
@@ -243,7 +246,7 @@ char	*fn;
 	    }
 	}
 #endif
-	if (filestat.st_mode&S_IWUSR && filestat.st_uid==getuid())
+	if (filestat.st_mode&S_IWUSR && filestat.st_uid==geteuid())
 	    return FALSE;
 	return TRUE;
     } else {
