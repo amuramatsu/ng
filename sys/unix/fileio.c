@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.13 2001/08/17 19:15:07 amura Exp $ */
+/* $Id: fileio.c,v 1.14 2001/08/29 00:05:04 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,10 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.14  2001/08/29 00:05:04  amura
+ * change macro UNICODE to USE_UNICODE and
+ * some unicode support routine for win32 are implemented
+ *
  * Revision 1.13  2001/08/17 19:15:07  amura
  * first try of unicode support (unix only/win32 on the way)
  *
@@ -134,11 +138,11 @@ BUFFER *bp;
 #endif	/* KANJI */
 	lp = lforw(lp);
 	if(lp == lpend) break;		/* no implied newline on last line */
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 	if (kfio == UCS2) {
 		putc(0, ffp);
 	}
-#endif	/* UNICODE */
+#endif	/* USE_UNICODE */
 	putc('\n', ffp);
     } while(!ferror(ffp));
     if(ferror(ffp)) {

@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.13 2001/08/17 19:15:05 amura Exp $ */
+/* $Id: kanji.c,v 1.14 2001/08/29 00:04:54 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,10 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.14  2001/08/29 00:04:54  amura
+ * change macro UNICODE to USE_UNICODE and
+ * some unicode support routine for win32 are implemented
+ *
  * Revision 1.13  2001/08/17 19:15:05  amura
  * first try of unicode support (unix only/win32 on the way)
  *
@@ -58,7 +62,7 @@ static int to_kana_display = TO_KANADISPLAY;  /* to-kana-display	*/
 #endif  /* HANKANA */
 static int local_kfin;			/* Buffer local file input code. */
 
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 static char symbol_c[] = {'N', 'S', 'J', 'E', 'U', 'W', '-', 'T'};
 static char *symbol_s[] = {"No-conversion", "Shift-JIS", "JIS", "EUC",
 			   "UTF-8", "UCS-2", "NIL", "T"};
@@ -80,7 +84,7 @@ static char *kcodename_l[] = {"noconv", "shift-jis", "jis", "euc",
 					/* This order depend on	the	*/
 					/* values of KANJI code macro	*/
 					/* defined at def.h.		*/
-#else	/* not UNICODE */
+#else	/* not USE_UNICODE */
 static char symbol_c[] = {'N', 'S', 'J', 'E', '-', 'T'};
 static char *symbol_s[] = {"No-conversion", "Shift-JIS", "JIS", "EUC", "NIL", "T"};
 					/* Symbol chars & strings to	*/
@@ -99,7 +103,7 @@ static char *kcodename_l[] = {"noconv", "shift-jis", "jis", "euc", "nil", "t"};
 					/* This order depend on	the	*/
 					/* values of KANJI code macro	*/
 					/* defined at def.h.		*/
-#endif	/* UNICODE */
+#endif	/* USE_UNICODE */
 
 #define	ESC	CCHR('[')		/* Escape char.			*/
 
@@ -123,14 +127,14 @@ static int kcodecheck pro((char *p, int len));
 static int bufjtoe_c pro((char *j, int len));
 int bufstoe_c pro((char *p, int len));
 
-#ifdef UNICODE
+#ifdef USE_UNICODE
 extern int bufu2toe pro((char *p, int len, int buflen));
 extern int bufu8toe pro((char *p, int len, int buflen));
 extern int bufetou2 pro((char *p, int len, int buflen));
 extern int bufetou8 pro((char *p, int len, int buflen));
 static int bufu2toe_c pro((char *p, int len));
 static int bufu8toe_c pro((char *p, int len));
-#endif /* UNICODE */
+#endif /* USE_UNICODE */
 
 
 /*
@@ -151,7 +155,7 @@ k_rot_fio(f, n)
 	} else if (global_kfio == JIS) {
 		global_kfio = EUC;
 	} else if (global_kfio == EUC) {
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 		global_kfio = UTF8;
 	} else if (global_kfio == UTF8) {
 		global_kfio = UCS2;
@@ -203,7 +207,7 @@ k_rot_buffio(f, n)
 	} else if (curbp->b_kfio == JIS) {
 		curbp->b_kfio = EUC;
 	} else if (curbp->b_kfio == EUC) {
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 		curbp->b_kfio = UTF8;
 	} else if (curbp->b_kfio == UTF8) {
 		curbp->b_kfio = UCS2;
@@ -279,7 +283,7 @@ k_rot_input(f, n)
 	} else if (global_kinput == JIS) {
 		global_kinput = EUC;
 	} else if (global_kinput == EUC) {
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 		global_kinput = UTF8;
 	} else if (global_kinput == UTF8) {
 		global_kinput = UCS2;
@@ -332,7 +336,7 @@ k_rot_display(f, n)
 	} else if (global_kdisplay == JIS) {
 		global_kdisplay = EUC;
 	} else if (global_kdisplay == EUC) {
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 		global_kdisplay = UTF8;
 	} else if (global_kdisplay == UTF8) {
 		global_kdisplay = UCS2;
@@ -903,7 +907,7 @@ reinput:
 		kgetkey_more = 1;
 		c1 = SS2;
 #endif /* HANKANA */
-#ifdef UNICODE
+#ifdef USE_UNICODE
 	} else if (global_kinput == UCS2
 		   || (global_kinput == UTF8 && !isutf1byte(c1))) {
 		int c3;
@@ -933,7 +937,7 @@ reinput:
 				savedchar[kgetkey_more++] = c3;
 			savedchar[kgetkey_more++] = c2;
 		}
-#endif /* UNICODE */
+#endif /* USE_UNICODE */
 	} else if (global_kinput == SJIS && issjis1st(c1)) {
 		c2 = getkbd();
 		stoe(c1, c2);
@@ -1070,7 +1074,7 @@ register int	c;	/* 90.07.25  Add "register". by S.Yoshida */
 			etos(c1, c);
 			ttputkc(c1, c);
 			c1 = '\0';	/* 91.01.15  NULL -> '\0' */
-#ifdef UNICODE
+#ifdef USE_UNICODE
 		} else if (global_kdisplay == UTF8
 			   || global_kdisplay == UCS2) {
 #ifdef HOJO_KANJI
@@ -1138,11 +1142,11 @@ register int	c;	/* 90.07.25  Add "register". by S.Yoshida */
 				kdselected = SELROMA;
 			}
 		}
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 		else if (global_kdisplay == UCS2) {
 			ttputc(0);
 		}
-#endif	/* UNICODE */
+#endif	/* USE_UNICODE */
 		ttputc(c);
 	        res = 1;
 	}
@@ -1210,7 +1214,7 @@ register FILE	*fp;
 register int	kfio;
 {
 	static	int	c1 = '\0';	/* 91.01.15  NULL -> '\0' */
-#if defined(HOJO_KANJI)||defined(UNICODE)
+#if defined(HOJO_KANJI)||defined(USE_UNICODE)
 	static	int	c2 = '\0';
 #endif
 
@@ -1295,7 +1299,7 @@ register int	kfio;
 			putc(c1, fp);
 			putc(c, fp);
 			c1 = '\0';	/* 91.01.15  NULL -> '\0' */
-#ifdef UNICODE
+#ifdef USE_UNICODE
 		} else if (kfio == UTF8 || kfio == UCS2) {
 #ifdef HOJO_KANJI
 			if (ISHOJO(c1)) {
@@ -1319,7 +1323,7 @@ register int	kfio;
 			    }
 			}
 			c1 = c2 = '\0';
-#endif /* UNICODE */
+#endif /* USE_UNICODE */
 		} else {		/* May be EUC. */
 #ifdef HOJO_KANJI
 			if (ISHOJO(c1)) {
@@ -1352,10 +1356,10 @@ register int	kfio;
 				kfselected = SELROMA;
 			}
 		}
-#ifdef UNICODE
+#ifdef USE_UNICODE
 		else if (kfio == UCS2)
 			putc(0, fp);
-#endif /* UNICODE */
+#endif /* USE_UNICODE */
 		putc(c, fp);
 	}
 }
@@ -1443,12 +1447,12 @@ int		buflen;
 #else	/* Not HANKANA */
 			bufstoe(buf, len);
 #endif  /* HANKANA */
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 		} else if (local_kfin == UTF8) {
 			len = bufu8toe(buf, len, buflen);
 		} else if (local_kfin == UCS2) {
 			len = bufu2toe(buf, len, buflen);
-#endif	/* UNICODE */
+#endif	/* USE_UNICODE */
 		}			/* EUC need not convert. */
 		if (bp != NULL &&
 		    bp->b_kfio == NIL) { /* set buffer local code. */
@@ -1464,7 +1468,7 @@ int		buflen;
  * When file KANJI code is not decided, we check and determine it
  * to see a text line.
  */
-#if defined(SS_SUPPORT) || defined(UNICODE)
+#if defined(SS_SUPPORT) || defined(USE_UNICODE)
 kcodecount(buf, len)
 register char	*buf;
 register int	len;
@@ -1477,7 +1481,7 @@ register int	len;
 			len = bufjtoe_c(buf, len);
 		} else if (local_kfin == SJIS) {
 			len = bufstoe_c(buf, len);
-#ifdef UNICODE
+#ifdef USE_UNICODE
 		} else if (local_kfin == UTF8) {
 			len = bufu8toe_c(buf, len);
 		} else if (local_kfin == UCS2) {
@@ -1487,7 +1491,7 @@ register int	len;
 	}
 	return(len);
 }
-#endif  /* SS_SUPPORT || UNICODE */
+#endif  /* SS_SUPPORT || USE_UNICODE */
 
 /*
  * Check and determine what kind of KANJI code exists.
@@ -1841,7 +1845,7 @@ int	len;
 }
 #endif /* SS_SUPPORT */
 
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 int
 bufu2toe_c(p, len)
     register char *p;
@@ -1900,7 +1904,7 @@ bufu8toe_c(p, len)
     }
     return len;
 }
-#endif	/* UNICODE */
+#endif	/* USE_UNICODE */
 
 /*
  * Is current position char KANJI ?

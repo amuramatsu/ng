@@ -43,7 +43,7 @@
 	(c2) &= 0xff;				\
 } while (0/*CONSTCOND*/)
 
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 #define isutf1byte(c)	(!(c)&0x80)
 #define isutf2byte(c)	(!(c)&0x20)
 
@@ -66,6 +66,7 @@
 		if ((a) <= 0x07) {				\
 			(a) = 0xC0|((a)<<2)|(((b)>>6)&0x03);	\
 			(b) = 0x80|((b)&0x3F);			\
+			(c) = 0;				\
 		} else {					\
 			(c) = 0x80|((b)&0x3F);			\
 			(b) = 0x80|(((a)<<2)&0x3C)|(((b)>>6)&0x03);\

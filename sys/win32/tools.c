@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.10 2001/08/17 19:15:08 amura Exp $ */
+/* $Id: tools.c,v 1.11 2001/08/29 00:05:05 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -31,6 +31,10 @@
 
 /*
  * $Log: tools.c,v $
+ * Revision 1.11  2001/08/29 00:05:05  amura
+ * change macro UNICODE to USE_UNICODE and
+ * some unicode support routine for win32 are implemented
+ *
  * Revision 1.10  2001/08/17 19:15:08  amura
  * first try of unicode support (unix only/win32 on the way)
  *
@@ -660,7 +664,7 @@ sjis2unicode_char(WORD c)
 }
 #endif	/* KANJI */
 
-#if defined(UNICODE)&&defined(KANJI)
+#ifdef USE_UNICODE
 VOID
 utoe_in(c0, c1, c2)
      int *c0;
@@ -706,6 +710,9 @@ bufu2toe(p, len, buflen)
     int len;
     int buflen;
 {
+    char *buffer;
+    size_t size;
+
     size = WideCharToMultiByte(CP_ACP, 0, (LPCTSTR)p, len,
 			       NULL, 0, NULL, NULL);
     buffer = alloca(size);
@@ -722,7 +729,34 @@ bufu8toe(p, len, buflen)
     int len;
     int buflen;
 {
-    return 0;
+    char *buffer, *endp;
+    register char *p1, *p2;
+
+    p1 = p;
+    p2 = buffer = alloca(len * 2);
+    endp = p + len;
+
+    while (p < endp) {
+	int c0, c1, c2;
+	c0 = *p1++;
+	if (isutf1byte(c0)) {
+	    *p2++ = c0;
+	    continue;
+	}
+	c1 = *p1++;
+	if (isutf2byte(c0)) {
+	    u8tou2(c0, c1, 0);
+	}
+	else {
+	    c2 = *p1++;
+	    u8tou2(c0, c1, c2);
+	}
+	*p2++ = c0;
+	*p2++ = c1;
+    }
+    len = WideCharToMultiByte(CP_ACP, 0, (LPCTSTR)buffer, p2 - buffer,
+			      p, buflen, NULL, NULL);
+    return bufstoe(p, len);
 }
 
 int
@@ -731,7 +765,17 @@ bufetou2(p, len, buflen)
     int len;
     int buflen;
 {
-    return 0;
+    char * buffer;
+    size_t size;
+    
+    len = bufetos(p, len);
+    size = MultiByteToWideChar(CP_ACP, 0, (LPCWSTR)p, len,
+			       NULL, 0) * sizeof(TCHAR);
+    buffer = alloca(size);
+    size = MultiByteToWideChar(CP_ACP, 0, (LPCWSTR)p, len,
+			(LPSTR)buffer, size/sizeof(TCHAR)) * sizeof(TCHAR);
+    bcopy(buffer, p, size);
+    return size;
 }
 
 int
@@ -740,9 +784,32 @@ bufetou8(p, len, buflen)
     int len;
     int buflen;
 {
-    return 0;
+    register char *buffer, *p1;
+    size_t size;
+    
+    len = bufetos(p, len);
+    size = MultiByteToWideChar(CP_ACP, 0, (LPCWSTR)p, len,
+			       NULL, 0);
+    buffer = alloca(size * sizeof(TCHAR));
+    size = MultiByteToWideChar(CP_ACP, 0, (LPCWSTR)p, len,
+			       (LPSTR)buffer, size);
+    p1 = p;
+    for (i = 0; i < size; i++) {
+	int c0, c1, c2;
+	c0 = *buffer++;
+	c1 = *buffer++;
+	u2tou8(c0, c1, c2);
+	*p1++ = c0;
+	if (c1) {
+	    *p1++ = c1;
+	    if (c2) {
+		*p1++ = c2;
+	    }
+	}
+    }
+    return p1 - p;
 }
-#endif	/* UNICODE */
+#endif	/* USE_UNICODE */
 
 extern int allow_mouse_event;
 /*

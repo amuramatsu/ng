@@ -29,7 +29,7 @@
 #undef UNDEF_SIGTSTP
 
 /* Define if Unicode be able to Support by iconv(3) */
-#undef UNICODE
+#undef USE_UNICODE
 
 /* EUC codename Support by iconv(3) */
 #undef EUC_CODENAME

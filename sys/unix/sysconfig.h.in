@@ -75,7 +75,7 @@
 #undef UNDEF_SIGTSTP
 
 /* Define if Unicode be able to Support by iconv(3) */
-#undef UNICODE
+#undef USE_UNICODE
 
 /* EUC codename Support by iconv(3) */
 #undef EUC_CODENAME
@@ -127,12 +127,6 @@
 
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
-
-/* Define if you have the <giconv.h> header file.  */
-#undef HAVE_GICONV_H
-
-/* Define if you have the <iconv.h> header file.  */
-#undef HAVE_ICONV_H
 
 /* Define if you have the <ndir.h> header file.  */
 #undef HAVE_NDIR_H

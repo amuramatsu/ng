@@ -1,7 +1,7 @@
-/* $Id: unicode.c,v 1.1 2001/08/17 19:15:08 amura Exp $ */
+/* $Id: unicode.c,v 1.2 2001/08/29 00:05:04 amura Exp $ */
 /*
  *		Unicode handling routines for POSIX iconv
- *		These are only used when UNICODE is #defined.
+ *		These are only used when USE_UNICODE is #defined.
  *
  *		Coded by MURAMATSU Atsushi
  */
@@ -9,7 +9,7 @@
 #include "config.h"
 #include "def.h"
 
-#ifdef	UNICODE
+#ifdef	USE_UNICODE
 #include "kanji.h"
 #include <iconv.h>
 #include <errno.h>
@@ -236,4 +236,4 @@ iconv_all_close()
     }
     iconv_u2_e = iconv_e_u2 = iconv_u8_e = iconv_e_u8 = (iconv_t)-1;
 }
-#endif /* UNICODE */
+#endif /* USE_UNICODE */
