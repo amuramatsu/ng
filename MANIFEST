@@ -1,4 +1,4 @@
-# $Id: MANIFEST,v 1.4 2000/09/04 19:19:01 amura Exp $
+# $Id: MANIFEST,v 1.5 2000/10/11 13:42:23 amura Exp $
    File Name			  Description
 -----------------------------------------------------------
  COPYING			GNU GENERAL PUBLIC LICENSE
@@ -85,7 +85,7 @@
  sys/amiga/fileio.c		¡·
  sys/amiga/iconify.c		¡·
  sys/amiga/iconify.h		¡·
- sys/amiga/menustack.c		¡·
+ sys/amiga/menumap.h		¡·
  sys/amiga/offset.c		¡·
  sys/amiga/sleep.c		¡·
  sys/amiga/spawn.c		¡·
