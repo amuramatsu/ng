@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.1 2000/06/27 01:47:58 amura Exp $ */
+/* $Id: tty.c,v 1.2 2000/09/13 23:36:15 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,8 +28,11 @@
 
 /*
  * $Log: tty.c,v $
- * Revision 1.1  2000/06/27 01:47:58  amura
- * Initial revision
+ * Revision 1.2  2000/09/13 23:36:15  amura
+ * use TCCONIO's window
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:58  amura
+ * import to CVS
  *
  */
 
@@ -321,15 +324,12 @@ ttinsl(row, bot, nchunk) {
 	}
 #ifdef TCCONIO
 	ttflush();
-	gotoxy(1, 2+bot-nchunk);
-	nl = nrow - ttrow;
-	for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-		delline();
-	gotoxy(1, row+1);
-	nl = nrow - ttrow;	/* ttmove() changes ttrow */
-	for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-		insline();
-	ttrow = ttcol = HUGE;
+	window(1, row+1, ncol, bot+1);
+	gotoxy(1, 1);
+	while (nchunk--) insline();
+	window(1, 1, ncol, nrow);
+	ttrow = HUGE;			/* Unknown.		*/
+	ttcol = HUGE;
 #else
 	if (CS && SR) {		/* Use scroll region and back index	*/
 		nl = bot - row;
@@ -374,15 +374,12 @@ ttdell(row, bot, nchunk)
 	}
 #ifdef TCCONIO
 	ttflush();
-	gotoxy(1, row+1);		/* Else use insert/delete line	*/
-	nl = nrow - ttrow;
-	for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-		delline();
-	gotoxy(1,2+bot-nchunk);
-	nl = nrow - ttrow;	/* ttmove() changes ttrow */
-	for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-		insline();
-	ttrow = ttcol = HUGE;
+	window(1, row+1, ncol, bot+1);
+	gotoxy(1, 1);
+	while (nchunk--) delline();
+	window(1, 1, ncol, nrow);
+	ttrow = HUGE;			/* Unknown.		*/
+	ttcol = HUGE;
 #else
 	if (CS) {			/* scrolling region	*/
 		nl = bot - row;
@@ -422,14 +419,7 @@ ttdell(row, bot, nchunk)
  */
 ttwindow(top, bot)
 {
-#ifdef TCCONIO
-	window(1, top+1, ncol, bot+1);
-	
-	ttrow = HUGE;			/* Unknown.		*/
-	ttcol = HUGE;
-	tttop = top;			/* Remember region.	*/
-	ttbot = bot;
-#else
+#ifndef TCCONIO
 	if (CS && (tttop!=top || ttbot!=bot)) {
 		putpad(tgoto(CS, bot, top), nrow - ttrow);
 		ttrow = HUGE;			/* Unknown.		*/
@@ -452,13 +442,7 @@ ttwindow(top, bot)
  */
 ttnowindow()
 {
-#ifdef TCCONIO
-	window(1, 1, ncol, nrow);
-	ttrow = HUGE;			/* Unknown.		*/
-	ttcol = HUGE;
-	tttop = HUGE;			/* No scroll region.	*/
-	ttbot = HUGE;
-#else
+#ifndef TCCONIO
 	if (CS) {
 	putpad(tgoto(CS, (nrow > LI ? nrow : LI) - 1, 0), nrow - ttrow);
 	ttrow = HUGE;			/* Unknown.		*/
