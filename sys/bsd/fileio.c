@@ -1,12 +1,15 @@
-/* $Id: fileio.c,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: fileio.c,v 1.1.1.1.2.1 2000/12/01 10:01:06 amura Exp $ */
 /*
  *		bsd (4.2, others?), Sun (3.2, ?) and Ultrix-32 (?) file I/O.
  */
 
 /*
  * $Log: fileio.c,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.1.1.1.2.1  2000/12/01 10:01:06  amura
+ * fix problems open "/" and sybolic link directory
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
@@ -338,7 +341,7 @@ register char *fn;
 	}
 	while(*fn && (*cp++ = *fn++) != '/') {}
     }
-    if(cp[-1]=='/') --cp;
+    if((cp-1)!=fnb && cp[-1]=='/') --cp;
     *cp = '\0';
     return fnb;
 }
@@ -539,6 +542,10 @@ register char **fn;
     cp += strlen(cp);
     bcopy(lp->l_text + l, cp, len);
     cp[len-1] = '\0';
+#ifdef SYMBLINK
+    if (lgetc(lp, 2) == 'l')
+      return ffisdir(curbp->b_fname);
+#endif
     return lgetc(lp, 2) == 'd';
   }
   else {
