@@ -1,4 +1,4 @@
-/* $Id: fileio.cpp,v 1.1 2001/09/30 15:59:12 amura Exp $ */
+/* $Id: fileio.cpp,v 1.2 2001/10/06 14:21:02 amura Exp $ */
 /*
  *	Epoc32 file I/O. (Tested only at Psion 5mx)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.cpp,v $
+ * Revision 1.2  2001/10/06 14:21:02  amura
+ * edit to avoid egcs-20000828 (or XSDK?) bugs
+ *
  * Revision 1.1  2001/09/30 15:59:12  amura
  * Initial EPOC32 commit.
  *
@@ -562,7 +565,8 @@ d_makename(register LINE *lp, register char *fn, int buflen)
     strcpy(cp, curbp->b_fname);
     cp += strlen(cp);
     bcopy(&lp->l_text[41], cp, llength(lp) - 41);
-    cp[llength(lp) - 41] = '\0';
+    int l = llength(lp) - 41; // to avoid GCC (egcs-20000828)
+    cp[l] = '\0';
     return lgetc(lp, 2) == 'd';
 }
 
@@ -778,9 +782,8 @@ char *
 file_name_part (char *s)
 {
     int i;
-
-    for (i = strlen (s) - 1; i > 0; i--) {
-	if (s[i - 1] == '/' || s[i - 1] == '\\' || s[i - 1] == ':')
+    for (i = strlen(s) - 1; i > 0; i--) {
+	if (*(s+i-1) == '/' || *(s+i-1) == '\\' || *(s+i-1) == ':')
 	    break;
     }
     return (s + i);
