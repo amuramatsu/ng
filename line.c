@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.9.2.1 2000/11/21 20:01:33 amura Exp $ */
+/* $Id: line.c,v 1.9.2.2 2001/07/23 18:01:30 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.9.2.2  2001/07/23 18:01:30  amura
+ * fix mark handling when make newline on the mark position
+ *
  * Revision 1.9.2.1  2000/11/21 20:01:33  amura
  * fix bug in ldelete when delete 1 charactor
  *
@@ -427,7 +430,7 @@ lnewline()
 			wp->w_dotp = lp2;
 			wp->w_doto -= doto;
 		}
-		if (wp->w_markp == lp1 && wp->w_marko >= doto) {
+		if (wp->w_markp == lp1 && wp->w_marko > doto) {
 			wp->w_markp = lp2;
 			wp->w_marko -= doto;
 		}

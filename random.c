@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.4.2.1 2001/06/19 18:09:38 amura Exp $ */
+/* $Id: random.c,v 1.4.2.2 2001/07/23 18:01:30 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.4.2.2  2001/07/23 18:01:30  amura
+ * fix mark handling when make newline on the mark position
+ *
  * Revision 1.4.2.1  2001/06/19 18:09:38  amura
  * add correcting mark position when yank empty line
  *
@@ -652,6 +655,7 @@ yank(f, n)
 	register LINE	*lp;
 	register int	nline;
 	VOID	 isetmark();
+	int mark_adjust = FALSE;
 #ifdef	UNDO
 	int run_insert = FALSE;
 #endif
@@ -680,14 +684,19 @@ yank(f, n)
 		set_lineno = get_lineno(curbp, curwp->w_dotp);
 		while ((c=kremove(i)) >= 0) {
 			if (c == '\n') {
+				if (i == 0 && curwp->w_marko == 0)
+					mark_adjust = TRUE;
 				if (newline(FFRAND, 1) == FALSE) {
 					set_lineno = -1;
 					return FALSE;
 				}
 				/* Mark position correction.	*/
-				if (curbp->b_marko == 0)
-					curbp->b_markp=lforw(curbp->b_linep);
-				
+				if (mark_adjust) {
+					LINE *lp=lback(curwp->w_dotp);
+					curwp->w_markp  = lp;
+					curwp->w_marko  = llength(lp);
+					mark_adjust = FALSE;
+				}
 				++nline; ++set_lineno;
 				run_insert = FALSE;
 			} else {
@@ -708,11 +717,17 @@ yank(f, n)
 #endif
 		while ((c=kremove(i)) >= 0) {
 			if (c == '\n') {
+				if (i == 0 && curwp->w_marko == 0)
+					mark_adjust = TRUE;
 				if (newline(FFRAND, 1) == FALSE)
 					return FALSE;
 				/* Mark position correction.	*/
-				if (curbp->b_marko == 0)
-					curbp->b_markp=lforw(curbp->b_linep);
+				if (mark_adjust) {
+					LINE *lp=lback(curwp->w_dotp);
+					curwp->w_markp  = lp;
+					curwp->w_marko  = llength(lp);
+					mark_adjust = FALSE;
+				}
 				
 				++nline;
 			} else {
