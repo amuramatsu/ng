@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.2 2000/06/27 01:49:45 amura Exp $ */
+/* $Id: undo.h,v 1.3 2000/07/16 15:50:32 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -8,6 +8,10 @@
 
 /*
  * $Log: undo.h,v $
+ * Revision 1.3  2000/07/16 15:50:32  amura
+ * undo bug on autofill fixed
+ * rewrite macro functions
+ *
  * Revision 1.2  2000/06/27 01:49:45  amura
  * import to CVS
  *
@@ -20,7 +24,7 @@
 #define	UDDEL		1
 #define UDBS		2
 #define UDINS		3
-#define	UDINSNL		4
+#define	UDINSNL		3
 #define UDOVER		5
 #define UDTWIDDLE	6
 #define	UDREPL		7
@@ -56,42 +60,37 @@ VOID undo_bgrow  pro((register UNDO_DATA*, register int));
 #define isundo() (undoptr  != NULL)
 #define undo_check(_bp)	(_bp->b_utop != _bp->b_ubottom)
 #define undo_reset(_bp)	((void)(_bp->b_ubottom = _bp->b_utop = 0))
-#define undo_setup(_u) \
-{\
-  /* if rewrite to function, this prototype is \
-   * UNDO_DATA* undo_setup(UNDO_DATA*);        \
-   */                                          \
-    if (undoptr != NULL) {\
-	if (*undoptr == NULL) {\
-	    *undoptr = malloc(sizeof(UNDO_DATA));\
-	    if (*undoptr == NULL)\
-	    {\
-		ewprintf("undo_setup: No memory");\
-		ttwait();\
-		undo_clean(curbp);\
-		undoptr = NULL;\
-		(_u) = NULL;\
-	    }\
-	    else\
-		bzero(*undoptr, sizeof(UNDO_DATA));\
-	}\
-	if (undoptr != NULL)\
-	    (_u) = *undoptr;\
-    }\
-}
-#define undo_finish(_n) \
-{\
-    undobefore = undoptr;\
-    undoptr = (_n);\
-}
+#define undo_setup(_u) do {				\
+  /* if rewrite to function, this prototype is		\
+   * UNDO_DATA* undo_setup(UNDO_DATA*);			\
+   */							\
+    if (undoptr != NULL) {				\
+	if (*undoptr == NULL) {				\
+	    *undoptr = malloc(sizeof(UNDO_DATA));	\
+	    if (*undoptr == NULL) {			\
+		ewprintf("undo_setup: No memory");	\
+		ttwait();				\
+		undo_clean(curbp);			\
+		undoptr = NULL;				\
+		(_u) = NULL;				\
+	    } else					\
+		bzero(*undoptr, sizeof(UNDO_DATA));	\
+	}						\
+	if (undoptr != NULL)				\
+	    (_u) = *undoptr;				\
+    }							\
+} while (/*CONSTCOND*/0)
+#define undo_finish(_n) do {				\
+    undobefore = undoptr;				\
+    undoptr = (_n);					\
+} while (/*CONSTCOND*/0)
 #define	undo_type(_u) ((_u)->u_type & UDMASK)
-#define undo_bfree(_u) \
-{\
-    if ((_u)->u_size) {\
-	free((_u)->u_buffer);\
-	(_u)->u_size = 0;\
-    }\
-}
+#define undo_bfree(_u) do {				\
+    if ((_u)->u_size) {					\
+	free((_u)->u_buffer);				\
+	(_u)->u_size = 0;				\
+    }							\
+} while (/*CONSTCOND*/0)
 
 /* in line.c */
 int get_lineno   pro((BUFFER*, LINE*));
