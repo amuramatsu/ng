@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.3 2000/10/02 16:13:06 amura Exp $ */
+/* $Id: ttyio.c,v 1.4 2000/12/21 16:54:20 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga terminal window I/O, with all kinds o' trimmings.
@@ -9,6 +9,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.4  2000/12/21 16:54:20  amura
+ * fix usage of strncat()
+ *
  * Revision 1.3  2000/10/02 16:13:06  amura
  * ignore mouse event in minibuffer editing
  *
@@ -561,7 +564,7 @@ setfont(f, n)
 {
 	register int	s, size;
 	register struct TextFont *newfont;
-	char		fontname[80], fontpath[84], fontsize[3];
+	char		fontname[NFILEN], fontpath[NFILEN], fontsize[3];
 	struct TextAttr	ta;
 
 	/* If negative size, reset to default font
@@ -576,8 +579,10 @@ setfont(f, n)
 
 	if ((s = ereply("Font name: ",fontname, sizeof(fontname))) != TRUE)
 		return (s);
-	strcpy(fontpath,fontname);
-	strncat(fontpath,".font",sizeof(fontpath));/* make name */
+	/* make name */
+	strncpy(fontpath,fontname,sizeof(fontpath));
+	fontpath[sizeof(fontpath)-1] = '\0';
+	strncat(fontpath,".font",sizeof(fontpath)-strlen(fontpath)-1);
 
 	/* Get font size */
 	if (f & FFARG)

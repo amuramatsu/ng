@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.2 2000/12/14 18:07:52 amura Exp $ */
+/* $Id: fileio.c,v 1.3 2000/12/21 16:54:20 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,6 +14,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.3  2000/12/21 16:54:20  amura
+ * fix usage of strncat()
+ *
  * Revision 1.2  2000/12/14 18:07:52  amura
  * filename length become flexible
  *
@@ -518,7 +521,7 @@ BUFFER *dired_(dirname)
 char *dirname;
 {
     register BUFFER *bp;
-    char line[256];
+    char line[CMDLINELENGTH];
     BUFFER *findbuffer();
     char *tmpname, *mktemp();
     int i;
@@ -542,10 +545,11 @@ char *dirname;
     }
     bclear(bp);				/* clear out leftover garbage	*/
     (void) strcpy(line, "list >");
-    (void) strncat(line, tmpname = mktemp("ram:mgXXX.XXX"), sizeof(line));
-    (void) strncat(line, " \"", sizeof(line));
-    (void) strncat(line, dirname, sizeof(line));
-    (void) strncat(line, "\"", sizeof(line));
+    (void) strncat(line, tmpname = mktemp("ram:mgXXX.XXX"),
+		   sizeof(line)-strlen(line)-1);
+    (void) strncat(line, " \"", sizeof(line)-strlen(line)-1);
+    (void) strncat(line, dirname, sizeof(line)-strlen(line)-1);
+    (void) strncat(line, "\"", sizeof(line)-strlen(line)-1);
     Execute(line, 0L, 0L);
     if (ffropen(tmpname) != FIOSUC) {
  	ewprintf("Can't open temporary dir file");
