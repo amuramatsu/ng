@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.14 2001/09/27 19:36:36 amura Exp $ */
+/* $Id: config.h,v 1.15 2001/09/30 13:58:37 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -115,10 +115,14 @@
 #if defined(_WIN32)&&!defined(__CYGWIN__)&&!defined(WIN32)
 #define	WIN32		/* Do not edit this line. */
 #endif			/* Do not edit this line. */
+#if defined(__XSDK__)&&!defined(EPOC32)
+#define EPOC32		/* Do not edit this line. */
+#endif			/* Do not edit this line. */
 #ifndef	MSDOS		/* Do not edit this line. */
 #ifndef	HUMAN68K	/* Do not edit this line. */
 #ifndef	AMIGA		/* Do not edit this line. */
 #ifndef WIN32		/* Do not edit this line. */
+#ifndef EPOC32		/* Do not edit this line. */
 /*................................................*/
 
 #undef	SVR2		/* System V is Release 2.	*/
@@ -132,6 +136,7 @@
 /*#define CANNA*/	/* use CANNA kana-kanji server (by Endo) */
 
 /*................................................*/
+#endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
@@ -253,6 +258,19 @@
 #endif			/* Do not edit this line. */
 /*................................................*/
 
+/*----------------------------------------------------------------------*/
+/*	Epoc32 machine dependent features.				*/
+/*----------------------------------------------------------------------*/
+/*................................................*/
+#ifdef	EPOC32		/* Do not edit this line. */
+/*................................................*/
+
+/* This port have no options yet */
+
+/*................................................*/
+#endif			/* Do not edit this line. */
+/*................................................*/
+
 /************************************************************************/
 /*	Do not edit following lines.					*/
 /************************************************************************/
@@ -319,6 +337,18 @@
 # ifndef KANJI
 #  undef FEPCTRL
 # endif
+#endif
+
+#ifdef	TCCONIO
+#   ifdef WITHOUT_TERMCAP
+#	undef	WITHOUT_TERMCAP
+#   endif
+#endif
+
+#ifdef	EPOC32
+#   ifdef WITHOUT_TERMCAP
+#	undef	WITHOUT_TERMCAP
+#   endif
 #endif
 
 #ifdef	NEW_COMPLETE

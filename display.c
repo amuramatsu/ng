@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.14 2001/04/28 18:54:27 amura Exp $ */
+/* $Id: display.c,v 1.15 2001/09/30 13:58:38 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.15  2001/09/30 13:58:38  amura
+ * Define and rename macros support for EPOC32
+ *
  * Revision 1.14  2001/04/28 18:54:27  amura
  * support line-number-mode (based on MATSUURA's patch )
  *
@@ -23,36 +26,7 @@
  * Revision 1.12  2001/02/14 09:18:55  amura
  * code cleanup around putline()
  *
- * Revision 1.11  2001/02/11 15:40:24  amura
- * some function are changed to static for speed/size
- *
- * Revision 1.10  2001/02/01 16:29:32  amura
- * fix terminal buffer size check
- *
- * Revision 1.9  2001/01/20 18:16:20  amura
- * fix vtsetsize() bug, and make alignment VIDEO buffer
- *
- * Revision 1.8  2001/01/20 15:48:45  amura
- * very big terminal supported
- *
- * Revision 1.7  2001/01/05 14:07:01  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.6  2000/11/16 14:31:12  amura
- * fix some typos which cause compile error when using
- * strict ANSI-C compiler (ex ACK, gcc-1.x)
- *
- * Revision 1.5  2000/10/02 16:24:42  amura
- * bugfix by Tillanosoft(Ng for Win32)
- *
- * Revision 1.4  2000/09/21 17:28:29  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.3  2000/06/27 01:49:43  amura
- * import to CVS
- *
- * Revision 1.2  2000/06/01  18:29:12  amura
- * support VARIABLE_TAB
+ * -- snip --
  *
  * Revision 1.1  1999/05/19  04:25:31  amura
  * Initial revision
@@ -79,11 +53,11 @@
 #endif
 
 #ifdef	STANDOUT_GLITCH
-# ifdef TCCONIO
+# ifdef WITHOUT_TERMCAP
 #  undef STANDOUT_GLITCH
 # else
 extern int SG;				/* number of standout glitches	*/
-# endif /* TCCONIO */
+# endif /* WITHOUT_TERMCAP */
 #endif /* STANDOUT_GLITCH */
 #ifdef GOSLING
 # undef GOSLING				/* GOSLING too slow?		*/

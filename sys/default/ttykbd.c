@@ -1,4 +1,4 @@
-/* $Id: ttykbd.c,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: ttykbd.c,v 1.2 2001/09/30 13:58:38 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Termcap keyboard driver using key files
@@ -7,8 +7,11 @@
 
 /*
  * $Log: ttykbd.c,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.2  2001/09/30 13:58:38  amura
+ * Define and rename macros support for EPOC32
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 
@@ -41,7 +44,7 @@ char *ngrcfile;
 ttykeymapinit()
 #endif
 {
-#ifndef TCCONIO
+#ifndef WITHOUT_TERMCAP
 	extern	char *KS;
 #endif
 #ifndef	NO_STARTUP
@@ -64,7 +67,7 @@ ttykeymapinit()
  */
 ttykeypadstart()
 {
-#ifndef	TCCONIO
+#ifndef	WITHOUT_TERMCAPO
 	extern	char *KS;
 	if (KS && *KS)			/* turn on keypad	*/
 		putpad(KS, 1);
@@ -76,7 +79,7 @@ ttykeypadstart()
  */
 ttykeymaptidy()
 {
-#ifndef	TCCONIO
+#ifndef	WITHOUT_TERMCAP
 	extern	char *KE;
 
 	if (KE && *KE)
