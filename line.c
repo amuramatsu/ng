@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.10 2000/11/21 19:49:01 amura Exp $ */
+/* $Id: line.c,v 1.9.2.1 2000/11/21 20:01:33 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,7 +21,7 @@
 
 /*
  * $Log: line.c,v $
- * Revision 1.10  2000/11/21 19:49:01  amura
+ * Revision 1.9.2.1  2000/11/21 20:01:33  amura
  * fix bug in ldelete when delete 1 charactor
  *
  * Revision 1.9  2000/11/05 01:58:39  amura
