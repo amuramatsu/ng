@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.5 2000/07/22 20:49:38 amura Exp $ */
+/* $Id: undo.c,v 1.6 2000/09/01 19:43:10 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -7,6 +7,9 @@
 
 /*
  * $Log: undo.c,v $
+ * Revision 1.6  2000/09/01 19:43:10  amura
+ * change undo buffer memory allocation strategy for speed
+ *
  * Revision 1.5  2000/07/22 20:49:38  amura
  * more secure run insert
  *
@@ -28,6 +31,10 @@
 #include	"def.h"
 #ifdef	UNDO
 #include 	"undo.h"
+
+#ifndef	UBLOCK
+#define	UBLOCK	32
+#endif
 
 UNDO_DATA **undoptr;
 UNDO_DATA **undostart;
@@ -109,6 +116,7 @@ register int size;
     char *newbuffer;
     if (undo->u_size < size)
     {
+        size = (size + UBLOCK - 1) / UBLOCK * UBLOCK;
 #ifdef	MALLOCROUND
 	MALLOCROUND(size);
 #endif
@@ -133,10 +141,11 @@ undo_bgrow(undo, size)
 register UNDO_DATA *undo;
 {
     char *newbuffer;
-    int newsize = undo->u_used + size;
+    int newsize = (undo->u_used + size);
 
     if (newsize > undo->u_size)
     {
+	newsize = (newsize + UBLOCK - 1) / UBLOCK * UBLOCK;
 #ifdef	MALLOCROUND
 	MALLOCROUND(newsize);
 #endif
