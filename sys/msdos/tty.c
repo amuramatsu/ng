@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.6 2001/11/28 19:02:11 amura Exp $ */
+/* $Id: tty.c,v 1.7 2002/04/18 14:35:54 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,6 +28,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.7  2002/04/18 14:35:54  amura
+ * now can compile without TCCONIO option
+ *
  * Revision 1.6  2001/11/28 19:02:11  amura
  * Small fixes arount termcap library.
  *
@@ -72,7 +75,7 @@ static VOID setttysize _PRO((void));
 
 VOID ttputc _PRO((int));
 #ifndef TCCONIO
-static int charcost _PRO((char *))
+static int charcost _PRO((char *));
 
 static int insdel;		/* Do we have both insert & delete line? */
 char tcapbuf[TERMCAP_BUF_LEN];
@@ -610,7 +613,6 @@ charcost(s)
 char *s;
 {
     cci = 0;
-    
     tputs(s, nrow, fakec);
     return cci;
 }
