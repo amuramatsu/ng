@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.18 2001/11/24 08:24:28 amura Exp $ */
+/* $Id: config.h,v 1.19 2001/11/28 19:00:43 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -335,12 +335,6 @@
 #endif
 
 #ifdef	TCCONIO
-#   ifndef WITHOUT_TERMCAP
-#	define	WITHOUT_TERMCAP
-#   endif
-#endif
-
-#ifdef	EPOC32
 #   ifndef WITHOUT_TERMCAP
 #	define	WITHOUT_TERMCAP
 #   endif
