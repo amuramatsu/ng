@@ -1,11 +1,11 @@
-/* $Id: config.h,v 1.3 2000/09/21 17:28:28 amura Exp $ */
+/* $Id: config.h,v 1.4 2000/10/11 13:40:23 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
 /* 90.12.20	Created by S.Yoshida */
 
 /*................................................*/
-#if defined(_WIN32)&&!defined(__CYGWIN__)/* Do not edit this line. */
+#if defined(_WIN32)&&!defined(__CYGWIN__)&&!defined(WIN32)
 #define	WIN32		/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 /*................................................*/
@@ -206,10 +206,7 @@
 
 #define V2		/* Don't support AmigaDOS 1.x (by amura) */
 
-#define	MENU		/* Enable Menu selection */
-
-#define	BROWSER		/* Enable to present a menu of files */
-			/* MENU must be also */
+#define	DO_MENU		/* Enable Menu selection */
 
 #define	MOUSE		/* Enable mouse */
 
@@ -339,8 +336,8 @@
 #endif
 
 #ifdef	BROWSER
-#   ifndef  MENU
-#	define	MENU
+#   ifndef  DO_MENU
+#	define	DO_MENU
 #   endif
 #endif
 
@@ -354,13 +351,17 @@
 # ifdef __STDC__
 #  define SUPPORT_ANSI
 # endif
-# ifdef _WIN32
+# ifdef WIN32
 #  define SUPPORT_ANSI
 # endif
 #endif
 
+#ifdef WIN32
+#define MOUSE
+#endif
+
 #ifdef CLIPBOARD
-# ifndef _WIN32
+# ifndef WIN32
 #  ifndef AMIGA
 #   undef CLIPBOARD
 #  endif
@@ -368,11 +369,17 @@
 #endif
 
 #ifdef V2
-# ifndef KANJI
-#  undef V2
+# ifdef V11
+#  undef V11
+# endif
+#endif
+
+#ifdef ASL
+# ifndef V2
+#  undef ASL
 # else
-#  ifdef V11
-#   undef V11
+#  ifndef DO_MENU
+#   undef ASL
 #  endif
 # endif
 #endif
