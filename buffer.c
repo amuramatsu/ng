@@ -1,14 +1,16 @@
+/* $Id: buffer.c,v 1.5 2000/06/27 01:49:41 amura Exp $ */
 /*
  *		Buffer handling.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: buffer.c,v 1.4 2000/03/10 21:31:53 amura Exp $ */
-
-/* $Log: buffer.c,v $
-/* Revision 1.4  2000/03/10 21:31:53  amura
-/* merge Ng for win32 0.4
 /*
+ * $Log: buffer.c,v $
+ * Revision 1.5  2000/06/27 01:49:41  amura
+ * import to CVS
+ *
+ * Revision 1.4  2000/03/10  21:31:53  amura
+ * merge Ng for win32 0.4
+ *
  * Revision 1.3  2000/01/11  20:19:01  amura
  * merge NG32 rev 04
  *
@@ -18,11 +20,15 @@
  * Revision 1.1  1999/05/19  03:47:59  amura
  * Initial revision
  *
-*/
+ */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
 #include	"kbd.h"			/* needed for modes */
+#ifdef	UNDO
+#include	"undo.h"
+#endif
 
 #ifdef  VARIABLE_TAB
 int defb_tab = 8;
@@ -165,6 +171,9 @@ killbuffer(f, n)
 		bp1 = bp1->b_bufp;
 	}
 	free(bp->b_bname);			/* Release name block	*/
+#ifdef	UNDO
+	undo_clean(bp);				/* Release undo data	*/
+#endif
 	free((char *) bp);			/* Release buffer block */
 	return TRUE;
 }
@@ -443,6 +452,10 @@ bfind(bname, cflag) register char *bname; {
 		free((char *) bp);
 		return NULL;
 	}
+#ifdef	UNDO
+	bzero(bp->b_ustack, sizeof(UNDO_DATA *)*(UNDOSIZE+1));
+	bp->b_utop = bp->b_ubottom = 0;
+#endif
 	bp->b_altb = bp->b_bufp	 = NULL;
 	bp->b_dotp  = lp;
 	bp->b_doto  = 0;

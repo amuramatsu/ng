@@ -1,3 +1,4 @@
+/* $Id: random.c,v 1.2 2000/06/27 01:49:45 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -5,16 +6,18 @@
  * commands. The only thing they have in common is
  * that they are all command processors.
  */
+
+/*
+ * $Log: random.c,v $
+ * Revision 1.2  2000/06/27 01:49:45  amura
+ * import to CVS
+ *
+ * Revision 1.1  2000/06/01  05:35:32  amura
+ * Initial revision
+ *
+ */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 /* 91.11.30     Modified by bsh */
-
-/* $Id: random.c,v 1.1 2000/06/01 05:35:32 amura Exp $ */
-
-/* $Log: random.c,v $
-/* Revision 1.1  2000/06/01 05:35:32  amura
-/* Initial revision
-/*
-*/
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"

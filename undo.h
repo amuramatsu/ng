@@ -1,3 +1,4 @@
+/* $Id: undo.h,v 1.2 2000/06/27 01:49:45 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -5,13 +6,15 @@
  * by MURAMATSU Atsushi
  */
 
-/* $Id: undo.h,v 1.1 2000/06/01 05:21:24 amura Exp $ */
-
-/* $Log: undo.h,v $
-/* Revision 1.1  2000/06/01 05:21:24  amura
-/* Initial revision
 /*
-*/
+ * $Log: undo.h,v $
+ * Revision 1.2  2000/06/27 01:49:45  amura
+ * import to CVS
+ *
+ * Revision 1.1  2000/06/01 05:21:24  amura
+ * Initial revision
+ *
+ */
 
 #define UDNONE		0
 #define	UDDEL		1

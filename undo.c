@@ -1,16 +1,19 @@
+/* $Id: undo.c,v 1.2 2000/06/27 01:49:45 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
  * are a general set of undo support utilities.
  */
 
-/* $Id: undo.c,v 1.1 2000/06/01 05:36:42 amura Exp $ */
-
-/* $Log: undo.c,v $
-/* Revision 1.1  2000/06/01 05:36:42  amura
-/* Initial revision
 /*
-*/
+ * $Log: undo.c,v $
+ * Revision 1.2  2000/06/27 01:49:45  amura
+ * import to CVS
+ *
+ * Revision 1.1  2000/06/01  05:36:42  amura
+ * Initial revision
+ *
+ */
 
 #include	"config.h"
 #include	"def.h"
@@ -156,10 +159,11 @@ do_undo(f, n)
     UNDO_DATA *undo,*undonext;
     int firstcheck = FALSE;
 
-    if (n < 0) {
-	ewprintf("Undo!");
+    ewprintf("Undo!");
+
+    if (n < 0)
 	return FALSE;
-    }
+
     undoptr = NULL;
     while (n--)
     {
@@ -309,7 +313,7 @@ do_undo(f, n)
 	    }
 	}
     }
-    ewprintf("Undo!");
+
     return TRUE;
 }
 #endif

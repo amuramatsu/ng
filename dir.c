@@ -1,17 +1,19 @@
+/* $Id: dir.c,v 1.6 2000/06/27 01:49:42 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
  * Created:	Ron Flax (ron@vsedev.vse.com)
  *		Modified for MG 2a by Mic Kaczmarczik 03-Aug-1987
  */
-/* 90.01.29	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
-/* $Id: dir.c,v 1.5 2000/06/04 05:42:59 amura Exp $ */
-
-/* $Log: dir.c,v $
-/* Revision 1.5  2000/06/04 05:42:59  amura
-/* win32 drive support
 /*
+ * $Log: dir.c,v $
+ * Revision 1.6  2000/06/27 01:49:42  amura
+ * import to CVS
+ *
+ * Revision 1.5  2000/06/04  05:42:59  amura
+ * win32 drive support
+ *
  * Revision 1.4  2000/06/01  05:22:25  amura
  * More robust
  *
@@ -24,7 +26,8 @@
  * Revision 1.1  1999/05/21  02:20:08  amura
  * Initial revision
  *
-*/
+ */
+/* 90.01.29	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"

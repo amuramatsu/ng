@@ -1,3 +1,4 @@
+/* $Id: echo.c,v 1.5 2000/06/27 01:49:43 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -10,14 +11,15 @@
  * The varargs lint directive comments are 0 an attempt to get lint to shup
  * up about CORRECT usage of varargs.h.  It won't.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: echo.c,v 1.4 2000/06/04 06:21:47 amura Exp $ */
-
-/* $Log: echo.c,v $
-/* Revision 1.4  2000/06/04 06:21:47  amura
-/* To be able to compile without KANJI
 /*
+ * $Log: echo.c,v $
+ * Revision 1.5  2000/06/27 01:49:43  amura
+ * import to CVS
+ *
+ * Revision 1.4  2000/06/04  06:21:47  amura
+ * To be able to compile without KANJI
+ *
  * Revision 1.3  2000/06/01  05:26:18  amura
  * Debug CANNA support
  *
@@ -29,6 +31,7 @@
  * Initial revision
  *
  */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"

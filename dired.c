@@ -1,13 +1,16 @@
+/* $Id: dired.c,v 1.2 2000/06/27 01:49:42 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
-/* $Id: dired.c,v 1.1 1999/05/21 02:45:06 amura Exp $ */
-
-/* $Log: dired.c,v $
-/* Revision 1.1  1999/05/21 02:45:06  amura
-/* Initial revision
 /*
-*/
+ * $Log: dired.c,v $
+ * Revision 1.2  2000/06/27 01:49:42  amura
+ * import to CVS
+ *
+ * Revision 1.1  1999/05/21  02:45:06  amura
+ * Initial revision
+ *
+ */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
@@ -15,6 +18,9 @@
 #ifndef NO_DIRED
 
 BUFFER *dired_();
+#ifndef strncpy
+extern char* strncpy();
+#endif
 
 /*ARGSUSED*/
 dired(f, n)
@@ -22,6 +28,12 @@ int f, n;
 {
     char dirname[NFILEN];
     BUFFER *bp;
+#ifdef	EXTD_DIR
+    int i;
+
+    ensurecwd();
+    edefset(curbp->b_cwd);
+#endif
 
     dirname[0] = '\0';
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
@@ -32,9 +44,40 @@ int f, n;
 	return ABORT;
     if((bp = dired_(dirname)) == NULL) return FALSE;
     curbp = bp;
+#ifdef	EXTD_DIR
+    strncpy(curbp->b_cwd, dirname, NFILEN-1);
+    i = strlen(dirname) - 1;
+#ifdef BDC2
+    if (curbp->b_cwd[i] != BDC1 && curbp->b_cwd[i] != BDC2) {
+	curbp->b_cwd[i+1] = BDC2;
+	curbp->b_cwd[i+2] = '\0';
+    }
+#else
+    if (curbp->b_cwd[i] != BDC1) {
+	curbp->b_cwd[i+1] = BDC1;
+	curbp->b_cwd[i+2] = '\0';
+    }
+#endif
+#endif	/* EXTD_DIR */
 #ifdef	READONLY	/* 91.01.15  by K.Maeda */
     curbp->b_flag |= BFRONLY;
 #endif	/* READONLY */
+#ifdef FEPCTRL
+    /* The following fepmode_off() is only effective if the provided
+       fepcontrol supports a doubled fepmode_off() feature.  That is,
+       the second call for the fepmode_off() is expected to change the
+       previous fep mode as off, without doing any actual fep control
+       since the fep mode has been already turned off by the first
+       call of the function.  So, the succeeding fepmode_on() will not
+       turn on the fep mode even if the previous fep mode was on
+       before the first call of fepmode_off().
+
+       If this feature is not provided, entering dired does not affect
+       the fep mode.
+
+       By Tillanosoft, Mar 21, 1999 */
+    fepmode_off();
+#endif
     return showbuffer(bp, curwp, WFHARD | WFMODE);
 }
 
@@ -45,6 +88,11 @@ int f, n;
     char dirname[NFILEN];
     BUFFER *bp;
     WINDOW *wp;
+
+#ifdef	EXTD_DIR
+    ensurecwd();
+    edefset(curbp->b_cwd);
+#endif
 
     dirname[0] = '\0';
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
@@ -112,67 +160,111 @@ int f, n;
 }
 
 /*ARGSUSED*/
-d_findfile(f, n)
+d_flag(f, n)
 int f, n;
 {
-    char fname[NFILEN];
-    register BUFFER *bp;
-    register int s;
-    BUFFER *findbuffer();
+  struct LINE *lp;
+  char flag = (f & FFARG) ? ' ' : 'D';
+  int nflags = 0, len;
 
-    if((s = d_makename(curwp->w_dotp, fname)) == ABORT) return FALSE;
-    if ((bp = (s ? dired_(fname) : findbuffer(fname))) == NULL) return FALSE;
-#ifdef	READONLY	/* 91.01.16  by S.Yoshida */
-    if (s) {			/* If dired buffer,	*/
-	bp->b_flag |= BFRONLY;	/* mark as read-only.	*/
+  lp = curbp->b_linep;
+  do {
+    len = llength(lp);
+    if (len > 0 && lgetc(lp, len - 1) == '~') {
+      lputc(lp, 0, flag);
+      nflags++;
     }
-#endif	/* READONLY */
-    curbp = bp;
-    if (showbuffer(bp, curwp, WFHARD) != TRUE) return FALSE;
-    if (bp->b_fname[0] != 0) return TRUE;
-#ifdef	READONLY	/* 91.01.16  by S.Yoshida */
-    s = readin(fname);
-    if (fchkreadonly(bp->b_fname)) { /* If no write permission, */
-	    bp->b_flag |= BFRONLY;	 /* mark as read-only.      */
-	    ewprintf("File is write protected");
-    }
-    return s;
-#else	/* NOT READONLY */
-    return readin(fname);
-#endif	/* READONLY */
+    lp = lforw(lp);
+  } while (lp != curbp->b_linep);
+  curwp->w_flag |= WFEDIT | WFMOVE;
+  ewprintf(flag == 'D' ? 
+	   "%d backup file%s flagged." : "%d backup file%s unmarked.",
+	   nflags, nflags == 1 ? "" : "s");
+  return TRUE;
 }
 
-/*ARGSUSED*/
-d_ffotherwindow(f, n)
-int f, n;
+/*
+ * unified routine for d_findfile and d_ffotherwindow
+ */
+
+static
+d_fileopen(f, n, popup)
+int f, n, popup;
 {
-    char fname[NFILEN];
+    char *fname;
     register BUFFER *bp;
     register int s;
     register WINDOW *wp;
     BUFFER *findbuffer();
 
-    if((s = d_makename(curwp->w_dotp, fname)) == ABORT) return FALSE;
-    if ((bp = (s ? dired_(fname) : findbuffer(fname))) == NULL) return FALSE;
+    if((s = d_makename(curwp->w_dotp, &fname)) == ABORT) return FALSE;
+    if ((bp = (s ? dired_(fname) : findbuffer(fname))) == NULL) {
+      free(fname);
+      return FALSE;
+    }
 #ifdef	READONLY	/* 91.01.16  by S.Yoshida */
     if (s) {			/* If dired buffer,	*/
 	bp->b_flag |= BFRONLY;	/* mark as read-only.	*/
     }
 #endif	/* READONLY */
-    if ((wp = popbuf(bp)) == NULL) return FALSE;
-    curbp = bp;
-    curwp = wp;
-    if (bp->b_fname[0] != 0) return TRUE;  /* never true for dired buffers */
-#ifdef	READONLY	/* 91.01.16  by S.Yoshida */
+    if (popup) {
+      if ((wp = popbuf(bp)) == NULL) {
+	free(fname);
+	return FALSE;
+      }
+      curbp = bp;
+      curwp = wp;
+    }
+    else {
+      curbp = bp;
+      if (showbuffer(bp, curwp, WFHARD) != TRUE) {
+	free(fname);
+	return FALSE;
+      }
+    }
+    if (bp->b_fname[0] != 0) {
+      free(fname);
+      return TRUE;
+    }
     s = readin(fname);
+#ifdef	READONLY	/* 91.01.16  by S.Yoshida */
     if (fchkreadonly(bp->b_fname)) { /* If no write permission, */
 	    bp->b_flag |= BFRONLY;	 /* mark as read-only.      */
 	    ewprintf("File is write protected");
     }
-    return s;
-#else	/* NOT READONLY */
-    return readin(fname);
 #endif	/* READONLY */
+    free(fname);
+    return s;
+}
+
+/*ARGSUSED*/
+d_findfile(f, n)
+int f, n;
+{
+  return d_fileopen(f, n, FALSE);
+}
+
+#ifdef READONLY
+/*ARGSUSED*/
+int
+d_viewfile(f, n)
+int f, n;
+{
+  int res;
+
+  res = d_findfile(f, n);
+  if (res) {
+    curbp->b_flag |= BFRONLY; /* set read-only bit. */
+  }
+  return res;
+}
+#endif
+
+/*ARGSUSED*/
+d_ffotherwindow(f, n)
+int f, n;
+{
+  return d_fileopen(f, n, TRUE);
 }
 
 /*ARGSUSED*/
@@ -180,27 +272,35 @@ d_expunge(f, n)
 int f, n;
 {
     register LINE *lp, *nlp;
-    char fname[NFILEN];
+    char *fname;
     VOID lfree();
+
+#ifdef	EXTD_DIR
+    ensurecwd();
+#endif
 
     for(lp = lforw(curbp->b_linep); lp != curbp->b_linep; lp = nlp) {
 	nlp = lforw(lp);
 	if(llength(lp) && lgetc(lp, 0) == 'D') {
-	    switch(d_makename(lp, fname)) {
+	    switch(d_makename(lp, &fname)) {
 		case ABORT:
 		    ewprintf("Bad line in dired buffer");
 		    return FALSE;
 		case FALSE:
 		    if(unlink(fname) < 0) {
 			ewprintf("Could not delete '%s'", fname);
+			free(fname);
 			return FALSE;
 		    }
+		    free(fname);
 		    break;
 		case TRUE:
 		    if(unlinkdir(fname) < 0) {
 			ewprintf("Could not delete directory '%s'", fname);
+			free(fname);
 			return FALSE;
 		    }
+		    free(fname);
 		    break;
 	    }
 	    lfree(lp);
@@ -210,45 +310,148 @@ int f, n;
     return TRUE;
 }
 
+static char *
+filename(path)
+char *path;
+{
+  char *cp1;
+
+  cp1 = path;
+  while (*cp1 != 0) {
+    ++cp1;
+  }
+  --cp1; /* insure at least 1 character ! */
+#ifdef	BDC2
+  while (cp1!= path && cp1[-1] != BDC1 && cp1[-1] != BDC2) {
+    --cp1;
+  }
+#else
+  while (cp1 != path && cp1[-1]!=BDC1) {
+    --cp1;
+  }
+#endif
+  return cp1;
+}
+
 /*ARGSUSED*/
 d_copy(f, n)
 int f, n;
 {
-    char frname[NFILEN], toname[NFILEN];
+    char *frname, toname[NFILEN], *fr = frname;
     int stat;
 
-    if(d_makename(curwp->w_dotp, frname) != FALSE) {
-	ewprintf("Not a file");
-	return FALSE;
+#ifdef	EXTD_DIR
+    ensurecwd();
+#endif
+
+    switch (d_makename(curwp->w_dotp, &frname)) {
+    case TRUE:
+      ewprintf("Not a file");
+      free(frname);
+      return FALSE;
+
+    case ABORT:
+      return FALSE;
+
+    case FALSE:
+      /* nothing to do */
+      break;
     }
+  
+#ifdef	EXTD_DIR
+    fr = filename(frname);
+    edefset(curbp->b_cwd);
+#endif
+
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if((stat = eread("Copy %s to: ", toname, NFILEN, EFNEW | EFCR | EFFILE, frname))
+    if((stat = eread("Copy %s to: ", toname, NFILEN, EFNEW | EFCR | EFFILE, fr))
 #else	/* NO_FILECOMP */
-    if((stat = eread("Copy %s to: ", toname, NFILEN, EFNEW | EFCR, frname))
+    if((stat = eread("Copy %s to: ", toname, NFILEN, EFNEW | EFCR, fr))
 #endif	/* NO_FILECOMP */
-	!= TRUE) return stat;
-    return copy(frname, toname) >= 0;
+	!= TRUE) {
+	free(frname);
+	return stat;
+    }
+    stat = (copy(frname, toname) >= 0);
+    free(frname);
+    return stat;
 }
 
 /*ARGSUSED*/
 d_rename(f, n)
 int f, n;
 {
-    char frname[NFILEN], toname[NFILEN];
+    char *frname, toname[NFILEN], *fr = frname;
     int stat;
 
-    if(d_makename(curwp->w_dotp, frname) != FALSE) {
-	ewprintf("Not a file");
-	return FALSE;
-    }
-#ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if((stat = eread("Rename %s to: ", toname, NFILEN, EFNEW | EFCR | EFFILE, frname))
-#else	/* NO_FILECOMP */
-    if((stat = eread("Rename %s to: ", toname, NFILEN, EFNEW | EFCR, frname))
-#endif	/* NO_FILECOMP */
-	!= TRUE) return stat;
-    return rename(frname, toname) >= 0;
-}
+#ifdef	EXTD_DIR
+    ensurecwd();
 #endif
 
+    switch (d_makename(curwp->w_dotp, &frname)) {
+    case TRUE:
+      ewprintf("Not a file");
+      free(frname);
+      return FALSE;
 
+    case ABORT:
+      return FALSE;
+
+    case FALSE:
+      /* nothing to do */
+      break;
+    }
+
+#ifdef	EXTD_DIR
+    fr = filename(frname);
+    edefset(curbp->b_cwd);
+#endif
+
+#ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
+    if((stat = eread("Rename %s to: ", toname, NFILEN, EFNEW | EFCR | EFFILE,
+		     fr))
+#else	/* NO_FILECOMP */
+    if((stat = eread("Rename %s to: ", toname, NFILEN, EFNEW | EFCR, fr))
+#endif	/* NO_FILECOMP */
+	!= TRUE) {
+      free(frname);
+      return stat;
+    }
+    stat = (rename(frname, toname) >= 0);
+    free(frname);
+    return stat;
+}
+
+/*ARGSUSED*/
+int
+d_execute(f, n)
+int f, n;
+{
+#ifdef _WIN32
+  char *fname;
+  register int s;
+  extern void WinExecute(char *);
+
+  s = d_makename(curwp->w_dotp, &fname);
+  if (s == ABORT) {
+    return FALSE;
+  }
+  else if (s) { /* that is, fname points to a directory */
+#if !defined(_WIN32_WCE) || 200 <= _WIN32_WCE
+    goto noproblem;
+#endif
+    free(fname);
+    return FALSE;
+  }
+  else {
+noproblem:
+    WinExecute(fname);
+    free(fname);
+    return TRUE;
+  }
+#else
+  return TRUE;
+#endif	/* WIN32 */
+}
+
+#endif	/* NO_DIRED */

@@ -1,15 +1,18 @@
+/* $Id: kbd.c,v 1.2 2000/06/27 01:49:43 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: kbd.c,v 1.1 2000/06/01 05:29:03 amura Exp $ */
-
-/* $Log: kbd.c,v $
-/* Revision 1.1  2000/06/01 05:29:03  amura
-/* Initial revision
 /*
-*/
+ * $Log: kbd.c,v $
+ * Revision 1.2  2000/06/27 01:49:43  amura
+ * import to CVS
+ *
+ * Revision 1.1  2000/06/01  05:29:03  amura
+ * Initial revision
+ *
+ */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"

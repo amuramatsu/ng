@@ -1,3 +1,4 @@
+/* $Id: display.c,v 1.3 2000/06/27 01:49:43 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -10,18 +11,20 @@
  * changes things around for memory mapped video. With
  * both off, the terminal is a VT52.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: display.c,v 1.2 2000/06/01 18:29:12 amura Exp $ */
-
-/* $Log: display.c,v $
-/* Revision 1.2  2000/06/01 18:29:12  amura
-/* support VARIABLE_TAB
 /*
+ * $Log: display.c,v $
+ * Revision 1.3  2000/06/27 01:49:43  amura
+ * import to CVS
+ *
+ * Revision 1.2  2000/06/01  18:29:12  amura
+ * support VARIABLE_TAB
+ *
  * Revision 1.1  1999/05/19  04:25:31  amura
  * Initial revision
  *
-*/
+ */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
@@ -793,12 +796,14 @@ out:
 		    for (j=x; j<y; ++j)
 			vtputc(lgetc(lp, j));
 		    curwp = old_curwp;
-		    if ( y < llength(lp) ) 
-			vtmarkyen('\\');
+		    if ( y < llength(lp) ) vtmarkyen('\\');
 		    else	vteeol();
 		    i = lines;
 		    lp = lforw(lp);
 		}
+		/* Because vtputc clear modeline, rewrite it */
+		if (vtrow >= wp->w_toprow + wp->w_ntrows)
+		    wp->w_flag |= WFMODE;
 	    }
 	    if ((wp->w_flag&WFMODE) != 0)
 		modeline(wp);

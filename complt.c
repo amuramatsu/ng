@@ -1,18 +1,21 @@
+/* $Id: complt.c,v 1.3 2000/06/27 01:49:42 amura Exp $ */
 /*
  *	Complete completion functions.
  */
-/* 90.12.10  Created by Sawayanagi Yosirou */
 
-/* $Id: complt.c,v 1.2 2000/06/01 05:24:14 amura Exp $ */
-
-/* $Log: complt.c,v $
-/* Revision 1.2  2000/06/01 05:24:14  amura
-/* More robust
 /*
+ * $Log: complt.c,v $
+ * Revision 1.3  2000/06/27 01:49:42  amura
+ * import to CVS
+ *
+ * Revision 1.2  2000/06/01  05:24:14  amura
+ * More robust
+ *
  * Revision 1.1  1999/05/21  02:05:34  amura
  * Initial revision
  *
-*/
+ */
+/* 90.12.10  Created by Sawayanagi Yosirou */
 
 #include    "config.h"
 #ifdef	NEW_COMPLETE

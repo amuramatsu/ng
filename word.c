@@ -1,3 +1,4 @@
+/* $Id: word.c,v 1.2 2000/06/27 01:49:45 amura Exp $ */
 /*
  *		Word mode commands.
  * The routines in this file
@@ -5,15 +6,17 @@
  * a time. There are all sorts of word mode
  * commands.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: word.c,v 1.1 2000/06/01 05:36:12 amura Exp $ */
-
-/* $Log: word.c,v $
-/* Revision 1.1  2000/06/01 05:36:12  amura
-/* Initial revision
 /*
-*/
+ * $Log: word.c,v $
+ * Revision 1.2  2000/06/27 01:49:45  amura
+ * import to CVS
+ *
+ * Revision 1.1  2000/06/01  05:36:12  amura
+ * Initial revision
+ *
+ */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"

@@ -1,16 +1,19 @@
+/* $Id: jump.c,v 1.2 2000/06/27 01:49:43 amura Exp $ */
 /*
  * jump-to-error
  *
  * Written by bsh, Dec 1991.
  */
 
-/* $Id: jump.c,v 1.1 2000/06/01 05:27:47 amura Exp $ */
-
-/* $Log: jump.c,v $
-/* Revision 1.1  2000/06/01 05:27:47  amura
-/* Initial revision
 /*
-*/
+ * $Log: jump.c,v $
+ * Revision 1.2  2000/06/27 01:49:43  amura
+ * import to CVS
+ *
+ * Revision 1.1  2000/06/01  05:27:47  amura
+ * Initial revision
+ *
+ */
 
 #include "config.h"
 #ifdef	JUMPERR

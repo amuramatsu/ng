@@ -1,3 +1,4 @@
+/* $Id: line.c,v 1.5 2000/06/27 01:49:44 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -17,14 +18,15 @@
  * dot and mark values in the buffer headers are
  * nonsense.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: line.c,v 1.4 2000/06/01 05:30:21 amura Exp $ */
-
-/* $Log: line.c,v $
-/* Revision 1.4  2000/06/01 05:30:21  amura
-/* Formal undo support
 /*
+ * $Log: line.c,v $
+ * Revision 1.5  2000/06/27 01:49:44  amura
+ * import to CVS
+ *
+ * Revision 1.4  2000/06/01  05:30:21  amura
+ * Formal undo support
+ *
  * Revision 1.3  2000/05/01  23:04:58  amura
  * undo test version
  *
@@ -34,7 +36,8 @@
  * Revision 1.1  1999/06/12  19:56:32  amura
  * Initial revision
  *
-*/
+ */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
@@ -444,8 +447,7 @@ ldelete(n, kflag) RSIZE n; {
 #ifdef	UNDO
 	UNDO_DATA*	undo = NULL;
 	int		one_char = FALSE;
-#endif
-#ifdef	UNDO
+
 	undo_setup(undo);
 	if (n!=0 && isundo()) {
 	    if (n == 1) {

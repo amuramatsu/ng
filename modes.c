@@ -1,16 +1,19 @@
+/* $Id: modes.c,v 1.2 2000/06/27 01:49:44 amura Exp $ */
 /*
  * Commands to toggle modes. Without an argument, toggle mode.
  * Negitive or zero argument, mode off.	 Positive argument, mode on.
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: modes.c,v 1.1 1999/05/19 04:22:31 amura Exp $ */
-
-/* $Log: modes.c,v $
-/* Revision 1.1  1999/05/19 04:22:31  amura
-/* Initial revision
 /*
-*/
+ * $Log: modes.c,v $
+ * Revision 1.2  2000/06/27 01:49:44  amura
+ * import to CVS
+ *
+ * Revision 1.1  1999/05/19  04:22:31  amura
+ * Initial revision
+ *
+ */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
@@ -101,6 +104,13 @@ notabmode(f, n)
 #ifdef C_MODE	/* 90.07.24  by K.Takano */
 cmode(f, n)
 {
+#ifdef VARIABLE_TAB
+    extern int cmode_tab;
+    int set_tabwidth();
+
+    if (cmode_tab != 0)
+	set_tabwidth(-1, cmode_tab);
+#endif /* VARIABLE_TAB */
     return changemode(f, n, "C");
 }
 #endif

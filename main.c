@@ -1,14 +1,17 @@
+/* $Id: main.c,v 1.2 2000/06/27 01:49:44 amura Exp $ */
 /*
  *		Mainline
  */
 
-/* $Id: main.c,v 1.1 2000/06/01 05:34:17 amura Exp $ */
-
-/* $Log: main.c,v $
-/* Revision 1.1  2000/06/01 05:34:17  amura
-/* Initial revision
 /*
-*/
+ * $Log: main.c,v $
+ * Revision 1.2  2000/06/27 01:49:44  amura
+ * import to CVS
+ *
+ * Revision 1.1  2000/06/01  05:34:17  amura
+ * Initial revision
+ *
+ */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"

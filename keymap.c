@@ -1,23 +1,26 @@
+/* $Id: keymap.c,v 1.4 2000/06/27 01:49:44 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
  * keymap has been moved to a better place.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: keymap.c,v 1.3 2000/06/01 05:30:09 amura Exp $ */
-
-/* $Log: keymap.c,v $
-/* Revision 1.3  2000/06/01 05:30:09  amura
-/* Undo support
 /*
+ * $Log: keymap.c,v $
+ * Revision 1.4  2000/06/27 01:49:44  amura
+ * import to CVS
+ *
+ * Revision 1.3  2000/06/01  05:30:09  amura
+ * Undo support
+ *
  * Revision 1.2  2000/03/10  21:29:32  amura
  * some function added
  *
  * Revision 1.1  1999/05/19  03:59:01  amura
  * Initial revision
  *
-*/
+ */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
@@ -97,7 +100,7 @@ extern	int	cm_set_cbrace _PF();	/* set-c-continued-brace-offset	*/
 extern	int	cm_set_newl _PF();	/* set-c-auto-newline		*/
 extern	int	cm_set_tab _PF();	/* set-c-tab-always-indent	*/
 extern	int	cm_list_var _PF();	/* list-c-mode-variables	*/
-extern	int	cm_indentregion();	/* c-indent-region  Y.Koyanagi	*/
+extern	int	cm_indentregion _PF();	/* c-indent-region  Y.Koyanagi	*/
 #endif	/* C_MODE */
 
 #ifndef NO_DIR

@@ -1,16 +1,19 @@
+/* $Id: paragraph.c,v 1.2 2000/06/27 01:49:44 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: paragraph.c,v 1.1 2000/06/01 05:34:38 amura Exp $ */
-
-/* $Log: paragraph.c,v $
-/* Revision 1.1  2000/06/01 05:34:38  amura
-/* Initial revision
 /*
-*/
+ * $Log: paragraph.c,v $
+ * Revision 1.2  2000/06/27 01:49:44  amura
+ * import to CVS
+ *
+ * Revision 1.1  2000/06/01  05:34:38  amura
+ * Initial revision
+ *
+ */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"

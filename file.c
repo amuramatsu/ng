@@ -1,18 +1,21 @@
+/* $Id: file.c,v 1.3 2000/06/27 01:49:43 amura Exp $ */
 /*
  *		File commands.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: file.c,v 1.2 2000/06/01 05:26:51 amura Exp $ */
-
-/* $Log: file.c,v $
-/* Revision 1.2  2000/06/01 05:26:51  amura
-/* Undo support
 /*
+ * $Log: file.c,v $
+ * Revision 1.3  2000/06/27 01:49:43  amura
+ * import to CVS
+ *
+ * Revision 1.2  2000/06/01  05:26:51  amura
+ * Undo support
+ *
  * Revision 1.1  1999/05/19  03:56:19  amura
  * Initial revision
  *
-*/
+ */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"

@@ -1,19 +1,22 @@
+/* $Id: version.c,v 1.3 2000/06/27 01:49:45 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
  */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: version.c,v 1.2 2000/06/01 05:37:04 amura Exp $ */
-
-/* $Log: version.c,v $
-/* Revision 1.2  2000/06/01 05:37:04  amura
-/* Ng 1.4beta4
 /*
+ * $Log: version.c,v $
+ * Revision 1.3  2000/06/27 01:49:45  amura
+ * import to CVS
+ *
+ * Revision 1.2  2000/06/01  05:37:04  amura
+ * Ng 1.4beta4
+ *
  * Revision 1.1  1999/05/19  04:17:24  amura
  * Initial revision
  *
-*/
+ */
+/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 
@@ -27,33 +30,33 @@
 # ifdef	MSDOS			/* 90.02.11  by S.Yoshida */
 #  ifdef TCCONIO
 #   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4beta4 for IBM PC/TCCONIO [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta5 for IBM PC/TCCONIO [Nihongo Mg 2a] ";
 #   else /* NOT IBMPC */
 #    ifdef PC9801		/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4beta4 for PC-9801/TCCONIO [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta5 for PC-9801/TCCONIO [Nihongo Mg 2a] ";
 #    else /* NOT PC9801 */
-char version[] = "Ng 1.4beta4 for MS-DOS/TCCONIO [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta5 for MS-DOS/TCCONIO [Nihongo Mg 2a] ";
 #    endif /* PC9801 */
 #   endif /* IBMPC */
 #  else /* NOT TCCONIO */
 #   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4beta4 for IBM PC [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta5 for IBM PC [Nihongo Mg 2a] ";
 #   else /* NOT IBMPC */
 #    ifdef PC9801		/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4beta4 for PC-9801 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta5 for PC-9801 [Nihongo Mg 2a] ";
 #    else /* NOT PC9801 */
-char version[] = "Ng 1.4beta4 for MS-DOS [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta5 for MS-DOS [Nihongo Mg 2a] ";
 #    endif /* PC9801 */
 #   endif /* IBMPC */
 #  endif /* TCCONIO */
 # else /* NOT MSDOS */
 #  ifdef AMIGA			/* by H.Ohkubo / H.Konishi */
-char version[] = "Ng 1.4beta4 / KANgee ver 4.3 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta5 / KANgee ver 4.3 [Nihongo Mg 2a] ";
 #  else /* NOT AMIGA */
 #   ifdef _WIN32
-char version[] = "Ng 1.4beta4 / Win32 v0.4.7 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta5 / Win32 v0.4.7 [Nihongo Mg 2a] ";
 #   else
-char version[] = "Ng 1.4beta4 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta5 [Nihongo Mg 2a] ";
 #   endif /* _WIN32 */
 #  endif /* AMIGA */
 # endif /* MSDOS */
