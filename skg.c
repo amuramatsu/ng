@@ -1,4 +1,4 @@
-/* $Id: skg.c,v 1.2 2000/06/27 01:59:42 amura Exp $ */
+/* $Id: skg.c,v 1.3 2000/10/02 16:13:46 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
@@ -7,6 +7,9 @@
 
 /*
  * $Log: skg.c,v $
+ * Revision 1.3  2000/10/02 16:13:46  amura
+ * ignore mouse event in minibuffer editing
+ *
  * Revision 1.2  2000/06/27 01:59:42  amura
  * small bugfix
  *
@@ -28,6 +31,9 @@
 
 #ifdef AMIGA_FAST_FILE
 # undef FILE
+#endif
+#ifdef MOUSE
+extern int allow_mouse_event;
 #endif
 
 #define DIC_BUFFER_SIZE 512
@@ -422,8 +428,15 @@ int skg_input_string( flg, mode, istr )
     ttwait();   
 
     for ( ;; )
-    { 
-	switch( c = getkey(FALSE) )
+    {
+#ifdef	MOUSE
+	allow_mouse_event = TRUE;
+#endif
+	c = getkey(FALSE); 
+#ifdef	MOUSE
+	allow_mouse_event = FALSE;
+#endif
+	switch(c)
 	{ 
 	    /* Ret-Key, Insert String without Kanji-Converting */
 	  case CCHR('M'):
@@ -464,7 +477,7 @@ int skg_input_string( flg, mode, istr )
 	    break;
 
 	  default :
-	    if (!ISCTRL((char) c)) 
+	    if (c==(c&0xFF) && !ISCTRL((char) c)) 
 	    { 
 		sprintf( insert_c , "%c",c ); 
 		strcat( istr , insert_c );

@@ -1,10 +1,13 @@
-/* $Id: kbd.c,v 1.6 2000/09/21 17:28:30 amura Exp $ */
+/* $Id: kbd.c,v 1.7 2000/10/02 16:13:06 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
 
 /*
  * $Log: kbd.c,v $
+ * Revision 1.7  2000/10/02 16:13:06  amura
+ * ignore mouse event in minibuffer editing
+ *
  * Revision 1.6  2000/09/21 17:28:30  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -56,8 +59,8 @@ int henkan( );
 #endif
 
 int use_metakey = TRUE;
-#ifdef WIN32
-extern int allow_mouse_event; /* define on "winutil.c" */
+#ifdef MOUSE
+int allow_mouse_event = FALSE; /* allow mouse event */
 #endif
 
 /*
@@ -203,12 +206,15 @@ doin()
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
     fepmode_on();
 #endif
-#ifdef WIN32
+#ifdef MOUSE
     allow_mouse_event = TRUE;
 #endif
     curmap = curbp->b_modes[curbp->b_nmodes]->p_map;
     key.k_count = 0;
     d=getkey(TRUE);
+#ifdef MOUSE
+    allow_mouse_event = FALSE;
+#endif
 #ifdef CANNA
     if( (curbp->b_flag & BFCANNA) &&
         (ks.length != 0 || !(d==' '||ISCTRL(d)||ISKANJI(d))) )
@@ -219,9 +225,6 @@ doin()
 		== prefix) {
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
 	fepmode_off();
-#endif
-#ifdef WIN32
-	allow_mouse_event = FALSE;
 #endif
 	curmap = ele->k_prefmap;
 	d = getkey(TRUE);

@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.5 2000/09/01 19:39:12 amura Exp $ */
+/* $Id: tools.c,v 1.6 2000/10/02 16:13:07 amura Exp $ */
 /*
  * NG : C library compatible routine for Ng
  *
@@ -12,6 +12,9 @@
 
 /*
  * $Log: tools.c,v $
+ * Revision 1.6  2000/10/02 16:13:07  amura
+ * ignore mouse event in minibuffer editing
+ *
  * Revision 1.5  2000/09/01 19:39:12  amura
  * fix choped data bug on receiving from clipboard
  *
@@ -643,7 +646,7 @@ sjis2unicode_char(WORD c)
 #endif	/* KANJI */
 
 
-int allow_mouse_event = FALSE;
+extern int allow_mouse_event;
 /*
  * Callback function for mouse events.  This function will be called while
  * calling a function getkbd().

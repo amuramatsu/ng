@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.2 2000/09/29 17:26:17 amura Exp $ */
+/* $Id: ttyio.c,v 1.3 2000/10/02 16:13:06 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga terminal window I/O, with all kinds o' trimmings.
@@ -9,6 +9,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.3  2000/10/02 16:13:06  amura
+ * ignore mouse event in minibuffer editing
+ *
  * Revision 1.2  2000/09/29 17:26:17  amura
  * small patch for new ttymenu.c
  *
@@ -137,6 +140,7 @@ static VOID	qmenu(P1(USHORT));
 #endif
 #ifdef	MOUSE
 static VOID	qmouse(P3(SHORT, SHORT, USHORT));
+extern int	allow_mouse_event;
 #endif
 static VOID	ttreopen(P1(int)) ;
 static VOID	setmaxima() ;
@@ -1104,6 +1108,9 @@ USHORT qual;
 	register int	row, col;
 	register WINDOW	*wp;	
 
+	if (!allow_mouse_event)
+		return;
+	
 	/* get row, column	*/
 	col = (x - EmW->BorderLeft) / FontWidth(EmW);
 	row = (y - TOP_OFFSET) / FontHeight(EmW);
