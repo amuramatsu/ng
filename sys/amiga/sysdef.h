@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.3 2001/01/05 14:07:06 amura Exp $ */
+/* $Id: sysdef.h,v 1.4 2001/02/18 19:29:03 amura Exp $ */
 /*
  * Name:	MicroEMACS
  * Version:	MG 2a
@@ -7,6 +7,9 @@
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.4  2001/02/18 19:29:03  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.3  2001/01/05 14:07:06  amura
  * first implementation of Hojo Kanji support
  *
@@ -24,12 +27,6 @@
 extern char *offset_dummy;		/* Manx 3.2 can't handle 0->	*/
 #define OFFSET(type,member) \
  ((char *)&(((type *)offset_dummy)->member)-(char *)((type *)offset_dummy))
-
-#ifdef	MANX
-#define	PCC	0			/* "[]" works.			*/
-#else
-#define	PCC	1			/* "[]" does not work.		*/
-#endif
 
 #ifdef	_DCC
 #include <alloca.h>
@@ -87,8 +84,8 @@ extern char *offset_dummy;		/* Manx 3.2 can't handle 0->	*/
  * stops at end of string (or at the next BDC3 character,
  * if defined). BDC2 and BDC3 are mainly for VMS.
  */
-#define	BDC1	':'			/* Buffer names.		*/
-#define	BDC2	'/'
+#define	BDC1	'/'			/* Buffer names.		*/
+#define	BDC2	':'
 
 
 /*
@@ -109,6 +106,10 @@ typedef	long	RSIZE;	/* size of a region	*/
 #ifndef NO_DIRED
 #define rename(s1,s2) (Rename(s1,s2) == -1 ? 0 : -1)
 #define unlinkdir(s1) (DeleteFile(s1) == -1 ? 0 : -1)
+#endif
+#ifndef	NO_DIR
+#define	rchdir(dir)	chdir(dir)
+#define	dirend()	(VOID)0
 #endif
 
 #ifdef	KANJI	/* Dec.17,1992 by H.Ohkubo */

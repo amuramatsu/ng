@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.11 2001/01/17 18:34:53 amura Exp $ */
+/* $Id: fileio.c,v 1.12 2001/02/18 19:29:04 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.12  2001/02/18 19:29:04  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.11  2001/01/17 18:34:53  amura
  * now compile successfull on VC++ and BC++
  *
@@ -236,12 +239,100 @@ file_name_part( char *s )
 	return s + i ;
 }
 
-char *
-getwd( char *buf )
+#ifndef	NO_DIR
+#include <tchar.h>
+#include <direct.h>
+#ifndef	__BORLANDC__
+#define	chdir	_tchdir
+#define	getcwd	_tgetcwd
+#endif	/* __BORLANDC__ */
+
+extern char	*wdir;
+extern char	*startdir;
+static char	cwd[NFILEN];
+
+/*
+ * Initialize anything the directory management routines need
+ */
+VOID
+dirinit()
 {
-	unicode2sjis( g_szCurDir, (LPBYTE) buf, MAX_PATH ) ;
-	return buf ;
+    char wdir2[NFILEN];
+    
+    if (!(wdir = getcwd(cwd, NFILEN-1)))
+	panic("Can't get current directory!");
+    unicode2sjis(wdir, wdir2, sizeof(wdir2));
+    strcpy(wdir, wdir2);
+#ifdef	KANJI
+    bufstoe(wdir, strlen(wdir)+1);
+#endif
+#ifndef	_WIN32_WCE
+    if (wdir[1]==':' && ISUPPER(wdir[0]))
+	wdir[0] = TOLOWER(wdir[0]);
+#endif	/* _WIN32_WCE */
+    if (startdir == NULL) {
+	int len = strlen(cwd);
+	startdir = malloc(len + 2);
+	if (startdir == NULL) {
+	    ewprintf("Cannot alloc %d bytes", len + 2);
+	    return;
+	}
+	strcpy(startdir, cwd);
+    }
 }
+
+/*
+   rchdir() makes some effects to change directory.  It will affect
+   system to set the actual current directory to the specified one.
+
+   This routine is extracted from changedir(), which is currently do
+   some virtual chdir but previously do the actual one.
+
+   Both bufc and wdir should have enough space to store file path, that
+   is, as long as NFILEN.
+
+   By Tillanosoft, Mar 22, 1999
+ */
+int
+rchdir(newdir)
+char *newdir;
+{
+    char dir[NFILEN], dir2[NFILEN];
+    int i;
+
+    strcpy(dir2, newdir);
+#ifdef	KANJI
+    bufetos(dir2, strlen(dir2)+1);
+#endif
+    sjis2unicode(dir2, dir, sizeof(dir));
+    i = strlen(dir) - 1;
+    if (dir[i] == '\\')
+	dir[i] = '\0';
+#ifndef	_WIN32_WCE    /* WinCE has no drive */
+    if (dir[1] == ':' && dir[0] != wdir[0]) {
+	int drive = newdir[0];
+	/* 90.07.01  Change from TOUPPER() to TOLOWER() */
+	/*                                 by S.Yoshida */
+	if (ISUPPER(drive))
+	    drive = TOLOWER(drive);
+	/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
+	drive = drive - 'a' + 1;
+	_chdrive(drive);
+    }
+    if (dir[1] == ':') {
+	if (dir[2]=='\0') {
+	    dirinit();
+	    return 0;
+	} else if (chdir(dir+2) == -1)
+	    return -1;
+    } else
+#endif
+    if (chdir(dir) == -1)
+	return -1;
+    dirinit();
+    return 0;
+}
+#endif
 
 /*
  * The string "fn" is a file name.

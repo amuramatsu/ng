@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.2 2000/12/14 18:10:46 amura Exp $ */
+/* $Id: sysdef.h,v 1.3 2001/02/18 19:29:04 amura Exp $ */
 /*
  *		Human68k system definitions
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.3  2001/02/18 19:29:04  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.2  2000/12/14 18:10:46  amura
  * filename length become flexible
  *
@@ -40,8 +43,8 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
  * stops at end of string (or at the next BDC3 character,
  * if defined). BDC2 and BDC3 are mainly for VMS.
  */
-#define	BDC1	'\\'			/* Buffer names.		*/
-#define	BDC2	'/'			/* Buffer names.		*/
+#define	BDC1	'/'			/* Buffer names.		*/
+#define	BDC2	'\\'			/* Buffer names.		*/
 
 /* Grab memory as much as possible */
 #define	SYSINIT		sysinit()

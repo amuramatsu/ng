@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.6 2001/02/18 17:00:02 amura Exp $ */
+/* $Id: sysdef.h,v 1.7 2001/02/18 19:29:05 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.7  2001/02/18 19:29:05  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.6  2001/02/18 17:00:02  amura
  * some definitions are imported form def.h
  *
@@ -82,6 +85,9 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
 char *getenv();
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
+#ifndef	NO_DIR
+#define	dirend()	(VOID)0
+#endif
 
 #ifdef __BORLANDC__
 #include <malloc.h>	/* for alloca() definition */

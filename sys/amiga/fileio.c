@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.5 2000/12/28 07:26:50 amura Exp $ */
+/* $Id: fileio.c,v 1.6 2001/02/18 19:29:03 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,6 +14,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.6  2001/02/18 19:29:03  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.5  2000/12/28 07:26:50  amura
  * suffix o is not search in filename complition
  *
@@ -539,9 +542,6 @@ char *dirname;
     }
 #ifndef	NO_DIRED	/* Dec.17,1992 by H.Ohkubo */
     if(!ffisdir(dirname)) {
-#else	/* ORIGINAL Code */
-    if(!isdirectory(dirname)) {
-#endif
 	ewprintf("Not a directory: %s", dirname);
 	return NULL;
     }
@@ -647,9 +647,6 @@ register char *fn;
 
 #ifndef	NO_DIRED	/* Dec.17,1992 by H.Ohkubo */
 ffisdir(name)
-#else	/* ORIGINAL Code */
-static isdirectory(name)
-#endif
 char *name;
 {
     struct FileLock *lock;

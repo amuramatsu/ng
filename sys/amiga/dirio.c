@@ -1,4 +1,4 @@
-/* $Id: dirio.c,v 1.3 2000/12/22 19:48:17 amura Exp $ */
+/* $Id: dirio.c,v 1.4 2001/02/18 19:29:03 amura Exp $ */
 /*
  * Name:	MG 2x
  *		Directory I/O routines, by Stephen Walton
@@ -7,6 +7,9 @@
 
 /*
  * $Log: dirio.c,v $
+ * Revision 1.4  2001/02/18 19:29:03  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.3  2000/12/22 19:48:17  amura
  * change "sysdef.h" to "def.h" for get NFILEN
  *
@@ -26,12 +29,14 @@
 #include <libraries/dosextens.h>
 #include <exec/memory.h>
 
-extern	char		MyDirName[NFILEN], *strncat();
+extern	char	MyDirName[NFILEN];
+extern	char	*wdir, *startdir;
 
 char *getcwd(path, len)
 char *path;
 {
-	strncpy(path,MyDirName,len);
+	strncpy(path, MyDirName, len);
+	path[len-1] = '\0';
 	return path;
 }
 
@@ -72,5 +77,23 @@ char *path;
     clean:
 	FreeMem((void *) fib, (long) sizeof(struct FileInfoBlock));
 	return retval;
+}
+
+/*
+ * Initialize anything the directory management routines need
+ */
+VOID
+dirinit()
+{
+    wdir = MyDirName;
+    if (startdir == NULL) {
+	int len = strlen(wdir);
+	startdir = malloc(len + 2);
+	if (startdir == NULL) {
+	    ewprintf("Cannot alloc %d bytes", len + 2);
+	    return;
+	}
+	strcpy(startdir, wdir);
+    }
 }
 #endif

@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.10 2001/02/18 17:07:40 amura Exp $ */
+/* $Id: fileio.c,v 1.11 2001/02/18 19:29:04 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.11  2001/02/18 19:29:04  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.10  2001/02/18 17:07:40  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -258,6 +261,53 @@ char	*fn;
 }
 #endif	/* READONLY */
 
+#ifndef NO_DIR
+#ifdef	HAVE_GETCWD
+char	*getcwd();
+#else
+char	*getwd();
+#endif
+
+extern char *wdir;
+extern char *startdir;
+static char cwd[NFILEN];
+
+/*
+ * Initialize anything the directory management routines need
+ */
+VOID
+dirinit()
+{
+#ifdef HAVE_GETCWD
+    if (!(wdir = getcwd(cwd, NFILEN-1)))
+#else
+    if (!(wdir = getwd(cwd)))
+#endif
+	panic("Can't get current directory!");
+    if (startdir == NULL) {
+	int len = strlen(cwd);
+	startdir = malloc(len + 2);
+	if (startdir == NULL) {
+	    ewprintf("Cannot alloc %d bytes", len + 2);
+	    return;
+	}
+	strcpy(startdir, cwd);
+    }
+}
+
+rchdir(dir)
+char *dir;
+{
+    int error = chdir(dir);
+    if (error == -1)
+	return error;
+    strncpy(cwd, dir, NFILEN);
+    cwd[NFILEN-1] = '\0';
+    wdir = cwd;
+    return error;
+}
+#endif
+
 /*
  * The string "fn" is a file name.
  * Perform any required appending of directory name or case adjustments.
@@ -278,10 +328,6 @@ char	*fn;
 #endif	/* MAXSYMLINKS */
 #endif	/* HAVE_SYMLINK */
 #include <pwd.h>
-
-#ifndef NO_DIR
-extern char *wdir;
-#endif
 
 char *adjustname(fn)
 register char *fn;

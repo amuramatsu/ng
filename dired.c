@@ -1,9 +1,12 @@
-/* $Id: dired.c,v 1.7 2001/02/18 17:07:24 amura Exp $ */
+/* $Id: dired.c,v 1.8 2001/02/18 19:29:29 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
 /*
  * $Log: dired.c,v $
+ * Revision 1.8  2001/02/18 19:29:29  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.7  2001/02/18 17:07:24  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -103,17 +106,14 @@ int f, n;
 	return FALSE;
     strcpy(curbp->b_cwd, dirname);
     if (i >= 1) {
+	if (curbp->b_cwd[i-1] != BDC1
 #ifdef BDC2
-	if (curbp->b_cwd[i-1] != BDC1 && curbp->b_cwd[i-1] != BDC2) {
-	    curbp->b_cwd[i] = BDC2;
-	    curbp->b_cwd[i+1] = '\0';
-	}
-#else
-	if (curbp->b_cwd[i-1] != BDC1) {
+	    && curbp->b_cwd[i-1] != BDC2
+#endif
+	    ) {
 	    curbp->b_cwd[i] = BDC1;
 	    curbp->b_cwd[i+1] = '\0';
 	}
-#endif
     }
 #endif	/* EXTD_DIR */
 #ifdef	READONLY	/* 91.01.15  by K.Maeda */
@@ -378,15 +378,13 @@ char *path;
     ++cp1;
   }
   --cp1; /* insure at least 1 character ! */
+  while (cp1!= path && cp1[-1] != BDC1
 #ifdef	BDC2
-  while (cp1!= path && cp1[-1] != BDC1 && cp1[-1] != BDC2) {
-    --cp1;
-  }
-#else
-  while (cp1 != path && cp1[-1]!=BDC1) {
-    --cp1;
-  }
+	 && cp1[-1] != BDC2
 #endif
+	 ) {
+    --cp1;
+  }
   return cp1;
 }
 

@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.7 2001/01/05 13:55:27 amura Exp $ */
+/* $Id: fileio.c,v 1.8 2001/02/18 19:29:03 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.8  2001/02/18 19:29:03  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.7  2001/01/05 13:55:27  amura
  * filename completion fixed
  *
@@ -315,16 +318,6 @@ char	*fn;
 #endif	/* READONLY */
 
 /*
- * The string "fn" is a file name.
- * Perform any required appending of directory name or case adjustments.
- * If NO_DIR is not defined, the same file should be refered to even if the
- * working directory changes.
- */
-#ifndef NO_DIR
-extern char *wdir;
-#endif
-
-/*
  * getcwd() in XC version 1.0 doesn't work.
  *	I suggest not to rely on version 2.0, to avoid confusion.
  *
@@ -347,7 +340,7 @@ char *getcwd(cwd, len)
 {
     register int drive;
     register char *s;
-    char buf[131];	/* 128: max path length in Human68k */
+    char buf[NFILEN];
 
     drive = CURDRV();
     buf[0] = drive + 'a';
@@ -358,6 +351,105 @@ char *getcwd(cwd, len)
     strcpy(cwd, buf);
     return (cwd);
 }
+
+/*
+ * The string "fn" is a file name.
+ * Perform any required appending of directory name or case adjustments.
+ * If NO_DIR is not defined, the same file should be refered to even if the
+ * working directory changes.
+ */
+#ifndef NO_DIR
+#include <doslib.h>
+
+extern char	*wdir;
+extern char	*startdir;
+static char	cwd[NFILEN];
+
+/*
+ * Initialize anything the directory management routines need
+ */
+VOID
+dirinit()
+{
+    if (!(wdir = tounixfn(getcwd(cwd, NFILEN - 1))))
+	panic("Can't get current directory!");
+#ifdef	KANJI
+    bufstoe(wdir, strlen(wdir)+1);
+#endif
+    if (startdir == NULL) {
+	int len = strlen(cwd);
+	startdir = malloc(len + 2);
+	if (startdir == NULL) {
+	    ewprintf("Cannot alloc %d bytes", len + 2);
+	    return;
+	}
+	strcpy(startdir, cwd);
+    }
+}
+
+/*
+ * dirend routine
+ */
+VOID
+dirend()
+{
+    rchdir(startdir);
+}
+
+/*
+   rchdir() makes some effects to change directory.  It will affect
+   system to set the actual current directory to the specified one.
+
+   This routine is extracted from changedir(), which is currently do
+   some virtual chdir but previously do the actual one.
+
+   Both bufc and wdir should have enough space to store file path, that
+   is, as long as NFILEN.
+
+   *** This function has not been completed ***
+
+   By Tillanosoft, Mar 22, 1999
+ */
+int
+rchdir(newdir)
+char *newdir;
+{
+    char dir[NFILEN];
+    int i;
+
+    strcpy(dir, newdir);
+#ifdef	KANJI
+    bufetos(dir, strlen(dir)+1);
+#endif
+    i = strlen(dir) - 1;
+    if (dir[i] == '\\' || dir[i] == '/')
+	dir[i] = '\0';
+    if (dir[1] == ':' && dir[0] != wdir[0]) {
+	int	drive;
+	drive = newdir[0];
+	/* 90.07.01  Change from TOUPPER() to TOLOWER() */
+	/*                                 by S.Yoshida */
+	if (ISUPPER(drive))
+	    drive = TOLOWER(drive);
+	/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
+	drive = drive - 'a' + 1;
+	if (CHGDRV(drive) <= drive) {
+	    drive = drive - 'a';
+	    return(FALSE);
+	}
+    }
+    if (dir[1] == ':') {
+	if (dir[2] == '\0') {
+	    dirinit();
+	    return 0;
+	} else if (chdir(dir+2) == -1)
+	    return -1;
+    } else if (chdir(dir) == -1)
+	return -1;
+    dirinit();
+    return 0;
+}
+#endif	/* !NO_DIR */
 
 char *adjustname(fn)
 register char *fn;

@@ -1,10 +1,13 @@
-/* $Id: file.c,v 1.6 2001/02/18 17:07:25 amura Exp $ */
+/* $Id: file.c,v 1.7 2001/02/18 19:29:30 amura Exp $ */
 /*
  *		File commands.
  */
 
 /*
  * $Log: file.c,v $
+ * Revision 1.7  2001/02/18 19:29:30  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.6  2001/02/18 17:07:25  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -611,21 +614,19 @@ makename(bname, fname) char bname[]; char fname[]; {
 	while (*cp1 != 0)
 		++cp1;
 	--cp1;			/* insure at least 1 character ! */
+	while (cp1!=&fname[0] && cp1[-1]!=BDC1
 #ifdef	BDC2
-	while (cp1!=&fname[0] && cp1[-1]!=BDC1 && cp1[-1]!=BDC2)
-		--cp1;
-#else
-	while (cp1!=&fname[0] && cp1[-1]!=BDC1)
-		--cp1;
+	       && cp1[-1]!=BDC2
 #endif
+	       )
+		--cp1;
 	cp2 = &bname[0];
+	while (cp2!=&bname[NBUFN-1] && *cp1!=0
 #ifdef	BDC3
-	while (cp2!=&bname[NBUFN-1] && *cp1!=0 && *cp1!=BDC3)
-		*cp2++ = *cp1++;
-#else
-	while (cp2!=&bname[NBUFN-1] && *cp1!=0)
-		*cp2++ = *cp1++;
+	       && *cp1!=BDC3
 #endif
+	       )
+		*cp2++ = *cp1++;
 	*cp2 = 0;
 }
 
@@ -651,15 +652,13 @@ int len;
   while (*cp1 != 0) {
     ++cp1;
   }
+  while (fname < cp1 && cp1[-1] != BDC1
 #ifdef	BDC2
-  while (fname < cp1 && cp1[-1] != BDC1 && cp1[-1] != BDC2) {
-    --cp1;
-  }
-#else
-  while (fname < cp1 && cp1[-1] != BDC1) {
-    --cp1;
-  }
+	 && cp1[-1] != BDC2
 #endif
+	 ) {
+    --cp1;
+  }
   ecp1 = (fname < cp1) ? cp1 : fname;
   cp1 = fname;
   cp2 = dname;

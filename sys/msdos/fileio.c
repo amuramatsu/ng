@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.6 2001/01/05 13:55:27 amura Exp $ */
+/* $Id: fileio.c,v 1.7 2001/02/18 19:29:04 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.7  2001/02/18 19:29:04  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.6  2001/01/05 13:55:27  amura
  * filename completion fixed
  *
@@ -309,16 +312,109 @@ char	*fn;
 }
 #endif	/* READONLY */
 
+#ifndef NO_DIR
+#include <dos.h>
+char	*getcwd();
+char	*fftolower();	/* 90.07.01  Add by S.Yoshida */
+extern char *wdir;
+extern char *startdir;
+static char cwd[NFILEN];
+
+/*
+ * Initialize anything the directory management routines need
+ */
+VOID
+dirinit()
+{
+    /* 90.07.01  Add fftolower() by S.Yoshida */
+    if (!(wdir = fftolower(getcwd(cwd, NFILEN - 1))))
+	panic("Can't get current directory!");
+    if (wdir[1]==':' && ISUPPER(wdir[0]))
+	wdir[0] = TOLOWER(wdir[0]);
+#ifdef	KANJI
+    bufstoe(wdir, strlen(wdir)+1);
+#endif
+    if (startdir == NULL) {
+	int len = strlen(cwd);
+	startdir = malloc(len + 1);
+	if (startdir == NULL) {
+	    ewprintf("Cannot alloc %d bytes", len + 1);
+	    return;
+	}
+	strcpy(startdir, cwd);
+    }
+}
+
+/*
+ * dirend routine
+ */
+VOID
+dirend()
+{
+    rchdir(startdir);
+}
+
+/*
+   rchdir() makes some effects to change directory.  It will affect
+   system to set the actual current directory to the specified one.
+
+   This routine is extracted from changedir(), which is currently do
+   some virtual chdir but previously do the actual one.
+
+   Both bufc and wdir should have enough space to store file path, that
+   is, as long as NFILEN.
+
+   By Tillanosoft, Mar 22, 1999
+ */
+int
+rchdir(newdir)
+char *newdir;
+{
+    char dir[NFILEN];
+    int i;
+
+    strcpy(dir, newdir);
+#ifdef	KANJI
+    bufetos(dir, strlen(dir)+1);
+#endif
+    i = strlen(dir) - 1;
+    if (dir[i] == '\\' || dir[i] == '/')
+	dir[i] = '\0';
+    if (dir[1] == ':' && dir[0] != wdir[0]) {
+	int	drive;
+	int	ndrive;
+	drive = newdir[0];
+	/* 90.07.01  Change from TOUPPER() to TOLOWER() */
+	/*                                 by S.Yoshida */
+	if (ISUPPER(drive))
+	    drive = TOLOWER(drive);
+	/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
+	drive = drive - 'a' + 1;
+#ifdef	__TURBOC__	/* 90.03.23  by A.Shirahashi */
+	(VOID) setdisk(drive - 1);
+#else
+	_dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
+#endif
+    }
+    if (dir[1] == ':') {
+	if (dir[2] == '\0') {
+	    dirinit();
+	    return 0;
+	} else if (chdir(dir+2) == -1)
+	    return -1;
+    } else if (chdir(dir) == -1)
+	return -1;
+    dirinit();
+    return 0;
+}
+#endif
+
 /*
  * The string "fn" is a file name.
  * Perform any required appending of directory name or case adjustments.
  * If NO_DIR is not defined, the same file should be refered to even if the
  * working directory changes.
  */
-#ifndef NO_DIR
-extern char *wdir;
-#endif
-
 char *adjustname(fn)
 register char *fn;
 {
@@ -385,7 +481,7 @@ register char *fn;
 		} else {
 		    cp = fnb + strlen(fnb);
 		}
-		drive = wdir[0];	/* Reset to current drive. */
+		drive = wdir[0];		/* Reset to current drive. */
 		/* 90.07.01  Change from TOUPPER() to TOLOWER() */
 		/*                                 by S.Yoshida */
 		if (ISUPPER(drive)) {

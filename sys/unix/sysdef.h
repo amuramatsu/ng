@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.3 2000/12/14 18:14:12 amura Exp $ */
+/* $Id: sysdef.h,v 1.4 2001/02/18 19:29:04 amura Exp $ */
 /*
  *	unix based systems (for configure)
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.4  2001/02/18 19:29:04  amura
+ * split dir.c to port depend/independ
+ *
  * Revision 1.3  2000/12/14 18:14:12  amura
  * filename length become flexible
  *
@@ -89,4 +92,6 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #endif
 char *getenv();
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
-
+#ifndef	NO_DIR
+#define	dirend()	(VOID)0
+#endif
