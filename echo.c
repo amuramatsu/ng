@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.15 2003/02/23 20:21:10 amura Exp $ */
+/* $Id: echo.c,v 1.16 2003/02/25 09:01:33 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -409,7 +409,7 @@ va_list *ap;
     mbMode[0] = '\0';
 #endif
     hist_buf	= mb_get_hist_buf(flag);
-    hist_buf[0] = buf;
+    hist_buf[0] = buf; /* set top of history */
     hist_idx = 0;
 
     for (;;) {
@@ -463,8 +463,10 @@ va_list *ap;
 		    nargs = 0;
 		    break;
 		}
-		else
+		else {
+		    hist_buf[0] = NULL; /* reset top of history */
 		    return (ABORT);
+		}
 	    default: 
 		goto Cmd;
 	    }
@@ -592,6 +594,7 @@ Cmd:
 		    ttputc(CCHR('M'));
 		    ttflush ();
 		}
+	        hist_buf[0] = NULL; /* reset top of history */
 #ifndef NO_MACRO
 		if (macrodef) {
 		    LINE *lp;
@@ -613,6 +616,7 @@ Cmd:
 		(VOID) ctrlg(FFRAND, 0);
 		mb_flush();
 		complete_del_list();
+	        hist_buf[0] = NULL; /* reset top of history */
 		return (ABORT);
 	    case CCHR('A'):     /* Beginning of line */
 		mb_begl();
@@ -2307,7 +2311,6 @@ char *buf;
     /* and insert new history to head */
     hist_buf[1] = malloc(strlen(buf)+1);
     strcpy(hist_buf[1], buf);
-    hist_buf[0] = NULL;
 }
 #else   /* NOT MINIBUF_EDIT */
 static int veread_del_char ();
