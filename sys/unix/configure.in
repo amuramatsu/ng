@@ -1,4 +1,4 @@
-AC_REVISION($Id: configure.in,v 1.1 2000/11/19 18:34:59 amura Exp $)
+AC_REVISION($Id: configure.in,v 1.2 2000/12/01 10:10:39 amura Exp $)
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(basic.c)
 AC_CONFIG_HEADER(sysconfig.h:sys/unix/sysconfig.h.in)
@@ -6,9 +6,21 @@ AC_CONFIG_AUX_DIR(sys/unix)
 
 dnl Checks for programs.
 AC_CANONICAL_HOST
+USER_CFLAGS=$CFLAGS
 AC_PROG_CC
-AC_PROG_LN_S
 AC_PROG_INSTALL
+
+dnl Don't strip if we don't have it
+AC_CHECK_PROG(STRIP, strip, strip, :)
+
+dnl Set default value for CFLAGS if none is defined or it's empty
+if test -z "$USER_CFLAGS"; then
+  CFLAGS="-O"
+  test "$GCC" = yes && CFLAGS="-O2"
+else
+  CFLAGS=$USER_CFLAGS
+fi
+
 AC_MINIX
 
 dnl Checks for libraries.
@@ -20,16 +32,16 @@ AC_ARG_WITH(termcap,
 	[  --with-termcap          Build with termcap library. (default)],
 	[ts_with_terminfo="no"])
 if test "$ts_with_terminfo" = "yes"; then
- AC_SEARCH_LIBS(tgetstr, termlib curses ncurses)
+ AC_SEARCH_LIBS(tgetstr, curses ncurses termlib)
 else
- AC_SEARCH_LIBS(tgetstr, termcap curses)
+ AC_SEARCH_LIBS(tgetstr, termcap curses ncurses)
 fi
 
 dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(fcntl.h sys/file.h sys/ioctl.h sys/time.h termio.h termios.h sgtty.h unistd.h)
+AC_CHECK_HEADERS(fcntl.h sys/file.h sys/ioctl.h sys/time.h termio.h termios.h sgtty.h unistd.h sys/param.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -44,7 +56,8 @@ AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
 AC_FUNC_VFORK
-AC_CHECK_FUNCS(getcwd rmdir rename opendir select mkstemp bcopy bzero bcmp)
+AC_CHECK_FUNCS(getcwd rmdir rename opendir select mkstemp bcopy bzero bcmp rindex symlink dup2)
+AC_CHECK_FUNCS(setpgid setpgrp setsid)
 
 dnl Checks for commands called from dired
 AC_PATH_PROG(cp_cmd, cp)
@@ -59,7 +72,7 @@ AC_DEFINE_UNQUOTED(RMDIR_CMD, "$rmdir_cmd")
 dnl If the user wants canna support.
 AC_MSG_CHECKING(if --enable-canna option specified)
 AC_ARG_ENABLE(canna,
-	[  --enable-canna[=DIR]     Build a canna version.],
+	[  --enable-canna[=DIR]    Build a canna version.],
 	[cv_canna="yes"; cannapath=$enableval], [cv_canna="no"])
 AC_MSG_RESULT($cv_canna)
 if test "$cv_canna" = "yes"; then
