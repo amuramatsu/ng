@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.6 2000/07/22 20:50:54 amura Exp $ */
+/* $Id: def.h,v 1.7 2000/09/21 17:28:29 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.7  2000/09/21 17:28:29  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
  * Revision 1.6  2000/07/22 20:50:54  amura
  * redefine NFILEN macro
  *
@@ -451,7 +454,7 @@ extern int d_undelbak pro((int, int));
 extern int d_makename pro((LINE *, char **));
 extern int readin pro((char *));
 extern int fchkreadonly pro((char *));
-#ifdef _WIN32
+#ifdef WIN32
 extern int unlink pro((const char *));
 extern int rmdir pro((const char *));
 extern int rename pro((const char *, const char *));
@@ -522,7 +525,7 @@ extern int charcategory pro((int, int));
 extern VOID PutLine pro((int, unsigned char *, short));
 extern VOID kgetkeyflush pro((void));
 extern VOID kdselectcode pro((int));
-#ifdef _WIN32
+#ifdef WIN32
 extern VOID kfselectcode pro((int));
 #else
 extern VOID kfselectcode pro((FILE *, int));
@@ -593,7 +596,7 @@ extern VOIDptr malloc();
 extern VOIDptr realloc();
 #endif
 
-#ifdef	_WIN32
+#ifdef	WIN32
 void	strcat_num( char *str, int num ) ;
 void	strcat_char( char *str, int c ) ;
 int	stricmp( const char *src, const char *dst ) ;
@@ -601,7 +604,7 @@ int	chdir( const char *dir ) ;
 int	Sprintf( char *buf, const char *fmt, ... ) ;
 #define	exit(rc)	Exit(rc)
 #define	sprintf		Sprintf
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 
 #ifdef	CANNA
 VOID canna_init();

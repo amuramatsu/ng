@@ -1,12 +1,12 @@
-/* $Id: config.h,v 1.2 2000/07/23 22:43:09 amura Exp $ */
+/* $Id: config.h,v 1.3 2000/09/21 17:28:28 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
 /* 90.12.20	Created by S.Yoshida */
 
 /*................................................*/
-#ifdef	__CYGWIN__	/* Do not edit this line. */
-#undef	_WIN32		/* Do not edit this line. */
+#if defined(_WIN32)&&!defined(__CYGWIN__)/* Do not edit this line. */
+#define	WIN32		/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 /*................................................*/
 /*----------------------------------------------------------------------*/
@@ -115,7 +115,7 @@
 #ifndef	MSDOS		/* Do not edit this line. */
 #ifndef	HUMAN68K	/* Do not edit this line. */
 #ifndef	AMIGA		/* Do not edit this line. */
-#ifndef _WIN32		/* Do not edit this line. */
+#ifndef WIN32		/* Do not edit this line. */
 /*................................................*/
 
 #undef	SVR2		/* System V is Release 2.	*/
@@ -126,7 +126,7 @@
 
 #define XKEYS		/* use numelic keypad (by Gen.KUROKI) */
 
-#define CANNA		/* use CANNA kana-kanji server (by Endo) */
+/*#define CANNA		/* use CANNA kana-kanji server (by Endo) */
 
 /*................................................*/
 #endif			/* Do not edit this line. */
@@ -163,7 +163,7 @@
 /*	Win32 machine dependent features. by Eiichirou ITO,Tillanosoft	*/
 /*----------------------------------------------------------------------*/
 /*................................................*/
-#ifdef _WIN32		/* Do not edit this line. */
+#ifdef WIN32		/* Do not edit this line. */
 /*................................................*/
   
 #define	JAPANESE_KEYBOARD /* keyboard layout is Japanese one	*/

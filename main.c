@@ -1,10 +1,13 @@
-/* $Id: main.c,v 1.5 2000/09/01 19:36:02 amura Exp $ */
+/* $Id: main.c,v 1.6 2000/09/21 17:28:31 amura Exp $ */
 /*
  *		Mainline
  */
 
 /*
  * $Log: main.c,v $
+ * Revision 1.6  2000/09/21 17:28:31  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
  * Revision 1.5  2000/09/01 19:36:02  amura
  * support KANJI filename on WIN32
  *
@@ -42,15 +45,15 @@ extern char prompt[], *promptp;		/* delayed prompting		*/
 
 static VOID	edinit();
 
-#ifdef	_WIN32
+#ifdef	WIN32
 VOID
 Main(int argc, char**argv)
-#else	/* _WIN32 */
+#else	/* WIN32 */
 VOID
 main(argc, argv)
 int  argc;
 char **argv;
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 {
 #ifndef NO_STARTUP
 	char	*startupfile();
@@ -154,7 +157,7 @@ char **argv;
 			continue;
 		}
 #endif	/* ADDOPT */
-#if defined(KANJI)&&(defined(MSDOS)||defined(HUMAN68K)||defined(_WIN32))
+#if defined(KANJI)&&(defined(MSDOS)||defined(HUMAN68K)||defined(WIN32))
 		{
 			char argve[NFILEN];
 
@@ -165,7 +168,7 @@ char **argv;
 		}
 #else
 		cp = adjustname(*++argv);
-#endif	/* KANJI and (MSDOS or HUMAN68K or _WIN32) */
+#endif	/* KANJI and (MSDOS or HUMAN68K or WIN32) */
 
 #ifndef NO_DIRED	/* 91.01.16  by S.Yoshida */
 		if (ffisdir(cp)) {

@@ -1,4 +1,4 @@
-/* $Id: keymap.c,v 1.5 2000/09/01 19:45:16 amura Exp $ */
+/* $Id: keymap.c,v 1.6 2000/09/21 17:28:30 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
@@ -7,6 +7,9 @@
 
 /*
  * $Log: keymap.c,v $
+ * Revision 1.6  2000/09/21 17:28:30  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
  * Revision 1.5  2000/09/01 19:45:16  amura
  * add default keybind for "undo"
  *
@@ -435,7 +438,7 @@ extern	int	skg_set_romanname _PF();/* Set Roman->Kana dict name	*/
 extern	int	skg_set_dicname _PF();	/* Set Kana->Kanji dict name	*/
 #endif
 
-#ifdef	_WIN32
+#ifdef	WIN32
 #ifndef NO_STARTUP
 extern int ConfigStartupFilePath _PF();
 #endif
@@ -1380,7 +1383,7 @@ FUNCTNAMES	functnames[] = {
 	{compile,	"compile"},
 #endif	/* JUMPERR */
 #ifndef NO_STARTUP
-#ifdef _WIN32
+#ifdef WIN32
 	{ConfigStartupFilePath, "configure"},
 #endif
 #endif
@@ -1479,7 +1482,7 @@ FUNCTNAMES	functnames[] = {
 #ifdef	IBMPC	/* 91.01.11  by S.Yoshida */
 	{j31_set_cursor, "ibmpc-set-cursor"},
 #endif	/* IBMPC */
-#if (defined(AMIGA)&&defined(DO_ICONIFY)||defined(_WIN32))
+#if (defined(AMIGA)&&defined(DO_ICONIFY))||defined(WIN32)
 	{tticon,	"iconify-frame"},
 #endif	/* ICONIFY */
 	{insert,	"insert"},

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.3 2000/06/27 01:49:43 amura Exp $ */
+/* $Id: display.c,v 1.4 2000/09/21 17:28:29 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.4  2000/09/21 17:28:29  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
  * Revision 1.3  2000/06/27 01:49:43  amura
  * import to CVS
  *
@@ -947,13 +950,13 @@ ucopy(vvp, pvp) register VIDEO *vvp; register VIDEO *pvp; {
  * reverse video works on most terminals.
  */
 VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
-#ifdef	_WIN32
+#ifdef	WIN32
 #ifdef	HANKANA
 	putline( row, 0, &vvp->v_text[0], &vvp->v_sub[0], vvp->v_color ) ;
 #else
 	putline( row, 0, &vvp->v_text[0], vvp->v_color ) ;
 #endif
-#else	/* _WIN32 */
+#else	/* WIN32 */
 #ifdef	MEMMAP
 	ttflush();	/* 90.06.09  by A.Shirahashi */
 #ifdef	PC9801	/* 90.03.24  by A.Shirahashi */
@@ -1160,7 +1163,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 #endif
         ttflush(); /* 90.06.09  by A.Shirahashi */
 #endif  /* MEMMAP */
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: kinit.h,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: kinit.h,v 1.2 2000/09/21 17:28:30 amura Exp $ */
 /*
  *	Initial KANJI code setting. (Like site-init.el in Nemacs)
  *
@@ -7,8 +7,11 @@
 
 /*
  * $Log: kinit.h,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2000/09/21 17:28:30  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 /* 90.01.29	Created by S.Yoshida */
@@ -31,17 +34,17 @@
 #define	KINPUT		SJIS		/* kanji-input-code		*/
 #define	KDISPLAY	SJIS		/* kanji-display-code		*/
 #else	/* NOT HUMAN68K */
-#ifdef	_WIN32
+#ifdef	WIN32
 #define	KFIO		SJIS	/* default-kanji-fileio-code	*/
 #define	KEXPECT		T		/* kanji-expected-code		*/
 #define	KINPUT		SJIS	/* kanji-input-code		*/
 #define	KDISPLAY	SJIS	/* kanji-display-code		*/
-#else	/* _WIN32 */
+#else	/* WIN32 */
 #define	KFIO		NIL		/* default-kanji-fileio-code	*/
 #define	KEXPECT		T		/* kanji-expected-code		*/
 #define	KINPUT		EUC		/* kanji-input-code		*/
 #define	KDISPLAY	EUC		/* kanji-display-code		*/
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 #endif	/* HUMAN68K */
 #endif	/* MSDOS */
 

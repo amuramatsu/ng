@@ -1,9 +1,12 @@
-/* $Id: dired.c,v 1.3 2000/07/22 17:54:09 amura Exp $ */
+/* $Id: dired.c,v 1.4 2000/09/21 17:28:29 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
 /*
  * $Log: dired.c,v $
+ * Revision 1.4  2000/09/21 17:28:29  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
  * Revision 1.3  2000/07/22 17:54:09  amura
  * fix typo bug
  *
@@ -430,7 +433,7 @@ int
 d_execute(f, n)
 int f, n;
 {
-#ifdef _WIN32
+#ifdef WIN32
   char *fname;
   register int s;
   extern void WinExecute(char *);
@@ -452,7 +455,7 @@ noproblem:
     free(fname);
     return TRUE;
   }
-#else
+#else	/* not WIN32 */
   return TRUE;
 #endif	/* WIN32 */
 }

@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.9 2000/07/22 17:54:09 amura Exp $ */
+/* $Id: dir.c,v 1.10 2000/09/21 17:28:29 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -8,6 +8,9 @@
 
 /*
  * $Log: dir.c,v $
+ * Revision 1.10  2000/09/21 17:28:29  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
  * Revision 1.9  2000/07/22 17:54:09  amura
  * fix typo bug
  *
@@ -54,7 +57,7 @@ char	*fftolower();	/* 90.07.01  Add by S.Yoshida */
 char	*getcwd();
 char	*tounixfn();
 #else	/* NOT HUMAN68K */
-#ifdef	_WIN32
+#ifdef	WIN32
 #include <tchar.h>
 #include <direct.h>
 int	sjis2unicode(), unicode2sjis();
@@ -63,13 +66,13 @@ int	sjis2unicode(), unicode2sjis();
 #define	getcwd	_tgetcwd
 #endif	/* __BORLANDC__ */
 #define	HAVE_GETCWD 1
-#else	/* NOT _WIN32 */
+#else	/* NOT WIN32 */
 #ifdef	HAVE_GETCWD
 char	*getcwd();
 #else
 char	*getwd();
 #endif
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 #endif	/* HUMAN68K */
 #endif	/* MSDOS */
 #endif
@@ -91,7 +94,7 @@ static char startdir[NFILEN];
 VOID
 dirinit()
 {
-#ifdef	_WIN32
+#ifdef	WIN32
 	char wdir2[NFILEN];
 #endif
 #ifdef	MSDOS	/* 90.01.29  by S.Yoshida */
@@ -109,7 +112,7 @@ dirinit()
 #endif	/* HUMAN68K */
 #endif	/* MSDOS */
 		panic("Can't get current directory!");
-#ifdef	_WIN32
+#ifdef	WIN32
 	unicode2sjis(wdir, wdir2, sizeof(wdir2));
 	strcpy(wdir, wdir2);
 #ifdef	KANJI
@@ -119,13 +122,13 @@ dirinit()
 	if (wdir[1]==':' && ISUPPER(wdir[0]))
 		wdir[0] = TOLOWER(wdir[0]);
 #endif	/* _WIN32_WCE */
-#else	/* _WIN32 */
+#else	/* WIN32 */
 #if	defined(MSDOS)||defined(HUMAN68K)
 #ifdef	KANJI
 	bufstoe(wdir, strlen(wdir)+1);
 #endif
 #endif	/* MSDOS||HUMAN68K */
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 	if (startdir[0] == '\0') {
 		int i;
 		strncpy(startdir, cwd, NFILEN-1);
@@ -198,9 +201,9 @@ int
 rchdir(newdir)
 char *newdir;
 {
-#if defined(MSDOS)||defined(HUMAN68K)||(defined(_WIN32)&&!defined(_WIN32_WCE))
+#if defined(MSDOS)||defined(HUMAN68K)||(defined(WIN32)&&!defined(_WIN32_WCE))
     char dir[NFILEN];
-#ifdef _WIN32
+#ifdef WIN32
     char dir2[NFILEN];
 #endif
     int i;
@@ -209,7 +212,7 @@ char *newdir;
 #ifdef	KANJI
     bufetos(dir, strlen(dir)+1);
 #endif
-#ifdef	_WIN32
+#ifdef	WIN32
     sjis2unicode(dir, dir2, sizeof(dir2));
     strcpy(dir, dir2);
 #endif
@@ -229,7 +232,7 @@ char *newdir;
 	    drive = TOLOWER(drive);
 	/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
 	drive = drive - 'a' + 1;
-#ifdef	_WIN32
+#ifdef	WIN32
 	_chdrive(drive);
 #else
 #ifdef	HUMAN68K
@@ -244,7 +247,7 @@ char *newdir;
 	_dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
 #endif	/* __TURBOC__ */
 #endif	/* HUMAN68K */
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
     }
     if (dir[1] == ':' && dir[2] == '\0') {
 	dirinit();
@@ -257,7 +260,7 @@ char *newdir;
 	dirinit();
 	return 0;
     }
-#else	/* NOT (MSDOS||HUMAN68K||_WIN32) */
+#else	/* NOT (MSDOS||HUMAN68K||WIN32) */
 #ifdef	_WIN32_WCE
     /* WinCE has no drive */
     char dir[NFILEN], dir2[NFILEN];
@@ -271,7 +274,7 @@ char *newdir;
     /* Maybe this is just for AMIGA, UNIX */
     return chdir(newdir);
 #endif	/* _WIN32_WCE&&KANJI */
-#endif	/* MSDOS||HUMAN68K||_WIN32 */
+#endif	/* MSDOS||HUMAN68K||WIN32 */
 }
 
 VOID
@@ -352,7 +355,7 @@ changedir(f, n)
 changedir(f, n)
 {
 	register int s;
-#ifdef	_WIN32
+#ifdef	WIN32
 	char bufc1[NPAT],bufc2[NPAT];
 	char *bufc = bufc1;
 #else
@@ -367,7 +370,7 @@ changedir(f, n)
 		return(s);
 	if (bufc[0] == '\0')
 		(VOID) strcpy(bufc, wdir);
-#ifdef	_WIN32	/* 90.02.11  by S.Yoshida */
+#ifdef	WIN32	/* 90.02.11  by S.Yoshida */
 #ifdef	_WIN32_WCE
 #ifdef	KANJI
 	bufetos(bufc1, strlen(bufc1)+1);
@@ -400,7 +403,7 @@ changedir(f, n)
 		ewprintf("Current directory is now %s", wdir);
 	} else
 #endif	/* _WIN32_WCE */
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 #ifdef	MSDOS	/* 90.02.11  by S.Yoshida */
 	else if (bufc[1] == ':' && bufc[0] != wdir[0]) {
 		int	drive;
@@ -517,9 +520,9 @@ showcwdir(f, n)
 	bufstoe(wdir, strlen(wdir)+1);
 #endif
 #endif	/* MSDOS */
-#if defined(HUMAN68K)||defined(_WIN32)	/* Sawayanagi / _WIN32 added by amura */
+#if defined(HUMAN68K)||defined(WIN32)	/* Sawayanagi / WIN32 added by amura */
 	dirinit ();
-#endif	/* HUMAN68K || _WIN32 */
+#endif	/* HUMAN68K || WIN32 */
 	ewprintf("Current directory: %s", wdir);
 #endif	/* EXTD_DIR */
 	return(TRUE);

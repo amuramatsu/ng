@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.5 2000/07/25 15:04:21 amura Exp $ */
+/* $Id: jump.c,v 1.6 2000/09/21 17:28:29 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: jump.c,v $
+ * Revision 1.6  2000/09/21 17:28:29  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
  * Revision 1.5  2000/07/25 15:04:21  amura
  * fix filevisit() args
  *
@@ -65,7 +68,7 @@ static char compile_command[NLINE]	=  "make";
  */
 #if defined(AMIGA)
 #define	DEFAULT_REGEXP   "\\(\\([^ \n]+:\\)?[^ \n]+\\(:? *\\| at line \\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\)"
-#elif defined(MSDOS)||defined(HUMAN68K)||defined(_WIN32)
+#elif defined(MSDOS)||defined(HUMAN68K)||defined(WIN32)
 #define	DEFAULT_REGEXP   "\\(\\([a-zA-Z]:\\)?[^ :\n]+\\(:? *\\| at line \\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\)"
 #else
 #define	DEFAULT_REGEXP   "\\([^ :\n]+\\(:? *\\| at line \\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\)"
@@ -241,7 +244,7 @@ grab_filename( buf )
     }
     *p = '\0';
 #else
-# if defined(MSDOS)||defined(HUMAN68K)||defined(_WIN32)
+# if defined(MSDOS)||defined(HUMAN68K)||defined(WIN32)
     if (buf[1]==':' && buf[2]!='\0' && (ISUPPER(buf[0])||ISLOWER(buf[0])))
 	p += 2;
 # endif

@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.2 2000/06/29 17:52:56 amura Exp $ */
+/* $Id: kanji.c,v 1.3 2000/09/21 17:28:30 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.3  2000/09/21 17:28:30  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
  * Revision 1.2  2000/06/29 17:52:56  amura
  * enable VTCURSOR all input kanji code
  *
@@ -885,7 +888,7 @@ reinput:
 	return(c1);
 }
 
-#ifdef _WIN32
+#ifdef WIN32
 extern int ttputkc(int, int);
 #else
 #define ttputkc(a, b) ttputc(a); ttputc(b)
@@ -1075,20 +1078,20 @@ int	kanafselected = FALSE;
 /*
  * Output one byte to the file with KANJI code conversion.
  */
-#ifdef	_WIN32
+#ifdef	WIN32
 #undef	putc
 #define	putc(c,fp)	Fputc(c)
 extern	int Fputc(int c);
 
 VOID
 kputc(int c, int kfio)
-#else	/* _WIN32 */
+#else	/* WIN32 */
 VOID
 kputc(c, fp, kfio)
 register int	c;	/* 90.07.25  Add "register". by S.Yoshida */
 register FILE	*fp;
 register int	kfio;
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 {
 	static	int	c1 = '\0';	/* 91.01.15  NULL -> '\0' */
 
@@ -1215,15 +1218,15 @@ register int	kfio;
  * select escape sequence to the file if nessesary.
  * You must not call this function when file I/O code is not JIS.
  */
-#ifdef	_WIN32
+#ifdef	WIN32
 VOID
 kfselectcode( int next_is_k )
-#else	/* _WIN32 */
+#else	/* WIN32 */
 VOID
 kfselectcode(fp, next_is_k)
 register FILE	*fp;
 register int	next_is_k;		/* Is next code KANJI ? */
-#endif	/* _WIN32 */
+#endif	/* WIN32 */
 {
 	if (kfselected && !next_is_k) {	/* Now KANJI && next is ASCII	*/
 		putc(ESC, fp);		/* Select ASCII code.		*/

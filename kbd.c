@@ -1,10 +1,13 @@
-/* $Id: kbd.c,v 1.5 2000/09/13 21:03:53 amura Exp $ */
+/* $Id: kbd.c,v 1.6 2000/09/21 17:28:30 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
 
 /*
  * $Log: kbd.c,v $
+ * Revision 1.6  2000/09/21 17:28:30  amura
+ * replace macro _WIN32 to WIN32 for Cygwin
+ *
  * Revision 1.5  2000/09/13 21:03:53  amura
  * can compile option UNDO without KANJI
  *
@@ -53,7 +56,7 @@ int henkan( );
 #endif
 
 int use_metakey = TRUE;
-#ifdef _WIN32
+#ifdef WIN32
 extern int allow_mouse_event; /* define on "winutil.c" */
 #endif
 
@@ -200,7 +203,7 @@ doin()
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
     fepmode_on();
 #endif
-#ifdef _WIN32
+#ifdef WIN32
     allow_mouse_event = TRUE;
 #endif
     curmap = curbp->b_modes[curbp->b_nmodes]->p_map;
@@ -217,7 +220,7 @@ doin()
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
 	fepmode_off();
 #endif
-#ifdef _WIN32
+#ifdef WIN32
 	allow_mouse_event = FALSE;
 #endif
 	curmap = ele->k_prefmap;
