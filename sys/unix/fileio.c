@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.7 2000/12/28 07:25:40 amura Exp $ */
+/* $Id: fileio.c,v 1.8 2001/01/05 13:55:28 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.8  2001/01/05 13:55:28  amura
+ * filename completion fixed
+ *
  * Revision 1.7  2000/12/28 07:25:40  amura
  * fix filename complition
  *
@@ -229,13 +232,15 @@ char	*fn;
 	    return FALSE;
 #ifdef HAVE_GETGROUPS
 	if (filestat.st_mode & S_IWGRP) {
-	    gid_t gids[NGROUPS_MAX];
-	    int i,num;
-	    
-	    num = getgroups(NGROUPS_MAX, gids);
-	    for (i=0; i<num; i++)
-		if (filestat.st_gid == gids[i])
-		    return FALSE;
+	    gid_t *gids;
+	    int i, num;
+	    num = getgroups(0, NULL);
+	    if (num!=0 && (gids=alloca(sizeof(gid_t)*num))!=NULL) {
+		num = getgroups(num, gids);
+		for (i=0; i<num; i++)
+		    if (filestat.st_gid == gids[i])
+			return FALSE;
+	    }
 	}
 #endif
 	if (filestat.st_mode&S_IWUSR && filestat.st_uid==getuid())
@@ -730,7 +735,7 @@ char *name, **buf;
     int homelen;
 
     if(name[0] == '~' && name[1] == '/' && (home = getenv("HOME"))) {
-	homelen = strlen(home);
+	homelen = strlen(home) - 1;
 	strncpy(pathbuf, home, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
 	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
@@ -754,7 +759,7 @@ char *name, **buf;
 	strcpy(pathbuf, "./");
 	dirpartlen = 0;
     }
-    nampart = name + dirpartlen - homelen + 1;
+    nampart = name + dirpartlen - homelen;
     nampartlen = strlen(nampart);
     
 #ifndef	NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
@@ -809,8 +814,8 @@ char *name, **buf;
 	}
 	if(home) {
 	    strcpy(buffer+len, "~");
-	    strcat(buffer+len, tmpnam+homelen);
-	    l -= homelen - 1;
+	    strcat(buffer+len, tmpnam+homelen+1);
+	    l -= homelen;
 	} else
 	    strcpy(buffer+len, tmpnam);
 	len += l;

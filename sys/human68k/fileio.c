@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.6 2000/12/28 07:27:15 amura Exp $ */
+/* $Id: fileio.c,v 1.7 2001/01/05 13:55:27 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.7  2001/01/05 13:55:27  amura
+ * filename completion fixed
+ *
  * Revision 1.6  2000/12/28 07:27:15  amura
  * homedirctory support with filename complition
  *
@@ -883,7 +886,7 @@ fffiles(name, buf)
     
     if(name[0] == '~' && (name[1]=='/' || name[1]=='\\') &&
        (home = getenv("HOME"))) {
-	homelen = strlen(home);
+	homelen = strlen(home) - 1;
 	strncpy(pathbuf, home, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
 	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
@@ -970,8 +973,8 @@ fffiles(name, buf)
 #ifdef HOMEDIR
 	if(home) {
 	    strcpy(buffer+len, "~");
-	    strcat(buffer+len, tmpnam+homelen);
-	    l -= homelen - 1;
+	    strcat(buffer+len, tmpnam+homelen+1);
+	    l -= homelen;
 	} else
 #endif
         strcpy(buffer + len, tmpnam);
