@@ -1,4 +1,4 @@
-/* $Id: ttymenu.c,v 2.1 2000/10/02 14:03:14 amura Exp $ */
+/* $Id: ttymenu.c,v 2.2 2000/10/11 13:38:59 amura Exp $ */
 /*
  * ttymenu.c
  *   Amiga intuition menu handling routine for Ng 1.x
@@ -30,6 +30,9 @@
 
 /*
  * $Log: ttymenu.c,v $
+ * Revision 2.2  2000/10/11 13:38:59  amura
+ * change wildcard in ASL requester
+ *
  * Revision 2.1  2000/10/02 14:03:14  amura
  * rewrite from scratch
  *
@@ -368,7 +371,7 @@ char *buff;
 
     if (AslBase = OpenLibrary("asl.library", 0L))
     {
-	asl_flag = 0L;
+	asl_flag = FILF_PATGAD;
 	buff[0] = '\0';
 	switch (mode)
 	{
@@ -393,10 +396,9 @@ char *buff;
 	if (fr = AllocAslRequestTags(ASL_FileRequest,
 			ASL_Hail,	(ULONG)title,
 			ASL_Dir,	(ULONG)dir,
-			ASL_Pattern,	"#?",
+			ASL_Pattern,	"~(#?'~)",
 			ASL_OKText,	(ULONG)text_OK,
 			ASL_CancelText,	(ULONG)"Cancel",
-			ASL_Pattern,	"#?",
 			ASL_FuncFlags,	asl_flag,
 			TAG_DONE
 				     ))
