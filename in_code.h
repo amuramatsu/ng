@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.1 2003/02/28 17:13:27 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.2 2003/02/28 17:25:21 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -40,26 +40,34 @@ typedef unsigned short NG_WCHAR_t;
 #define NG_W_PF20	NG_WCODE(0xFF14)
 
 #define NG_W_UP		NG_WCODE(0xFF40)
-#define NG_W_DOWN	NG_WCODE(0xFF40)
-#define NG_W_LEFT	NG_WCODE(0xFF40)
-#define NG_W_RIGHT	NG_WCODE(0xFF40)
-#define NG_W_HOME	NG_WCODE(0xFF40)
-#define NG_W_END	NG_WCODE(0xFF40)
-#define NG_W_HELP	NG_WCODE(0xFF40)
-#define NG_W_PGUP	NG_WCODE(0xFF40)
-#define NG_W_PGDN	NG_WCODE(0xFF40)
-#define NG_W_CLEAR	NG_WCODE(0xFF40)
+#define NG_W_DOWN	NG_WCODE(0xFF41)
+#define NG_W_LEFT	NG_WCODE(0xFF42)
+#define NG_W_RIGHT	NG_WCODE(0xFF43)
+#define NG_W_HOME	NG_WCODE(0xFF44)
+#define NG_W_END	NG_WCODE(0xFF45)
+#define NG_W_PGUP	NG_WCODE(0xFF46)
+#define NG_W_PGDN	NG_WCODE(0xFF47)
+
+#define NG_W_HELP	NG_WCODE(0xFF50)
+#define NG_W_CLEAR	NG_WCODE(0xFF51)
+#define NG_W_PAUSE	NG_WCODE(0xFF52)
 
 /*
  * SPECIAL CHARACTORS TRAILING next code
  */
-#define NG_WW_MOUSE_L	NG_WCODE(0xFF80)
-#define NG_WW_MOUSE_M	NG_WCODE(0xFF81)
-#define NG_WW_MOUSE_R	NG_WCODE(0xFF82)
+#define NG_WW_MOUSE_L		NG_WCODE(0xFF80)
+#define NG_WW_MOUSE_M		NG_WCODE(0xFF81)
+#define NG_WW_MOUSE_R		NG_WCODE(0xFF82)
+#define NG_WW_MOUSE_SHIFT_L	NG_WCODE(0xFF83)
+#define NG_WW_MOUSE_SHIFT_M	NG_WCODE(0xFF84)
+#define NG_WW_MOUSE_SHIFT_R	NG_WCODE(0xFF85)
+#define NG_WW_MOUSE_CTRL_L	NG_WCODE(0xFF86)
+#define NG_WW_MOUSE_CTRL_M	NG_WCODE(0xFF87)
+#define NG_WW_MOUSE_CTRL_R	NG_WCODE(0xFF88)
 /* trailing code: COLUMN*256 + LINE */
 
-#define NG_WW_MENU_M	NG_WCODE(0xFF90)
-#define NG_WW_MENU_E	NG_WCODE(0xFF91)
+#define NG_WW_MENU_M	NG_WCODE(0xFFC0)
+#define NG_WW_MENU_E	NG_WCODE(0xFFC1)
 /* trailing code: menusublevel*256 + menuno */
 
 #endif /* __IN_CODE_H__ */
