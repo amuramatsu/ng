@@ -7,7 +7,15 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#ifndef NO_MFC
 #include "afxres.h"
+#else
+#include <winuser.h>
+#include <winresrc.h>
+#ifndef IDC_STATIC
+#define IDC_STATIC	(-1)
+#endif
+#endif /* NO_MFC */
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS

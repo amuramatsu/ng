@@ -1,7 +1,10 @@
-# $Id: ngbc.mak,v 1.3 2000/11/16 14:21:30 amura Exp $
-# Makefile for Ng at Win32 with Borland C++ 5.5
+# $Id: ngbc.mak,v 1.3.2.1 2001/01/17 18:39:06 amura Exp $
+# Makefile for Ng at Win32 with Borland C++ 5.2/5.5
 #
 # $Log: ngbc.mak,v $
+# Revision 1.3.2.1  2001/01/17 18:39:06  amura
+# now compile successfull on VC++ and BC++
+#
 # Revision 1.3  2000/11/16 14:21:30  amura
 # merge Ng for win32 0.5
 #
@@ -18,13 +21,28 @@ SYS	= win32
 #
 # Now, compile time options are defined in a "config.h".
 #
+INTDIR	= objs
+OUTDIR	= objs
+COPT	= -O -d -f-
 CDEFS	= -DWIN32
-CFLAGS	= -c -O $(CDEFS) -w-nod -w-use -w-pro -w-rvi -w-par
+CINCL	= -Isys\$(SYS) -Isys\default
+CMISC	= -n$(INTDIR) -tWM -w-nod -w-use -w-pro -w-rvi -w-par
+CFLAGS	= -c $(CDEFS) $(COPT) $(CINCL) $(CMISC)
 
+## BCC 5.5
 BCPATH  = c:\Borland\bcc55
 CC	= $(BCPATH)\bin\bcc32 -q
 RSC	= $(BCPATH)\bin\brc32 -r -i"$(BCPATH)\include" -dNO_MFC
-LINK	= $(BCPATH)\bin\ilink32 -c -v- -x -Gn -aa
+LINK	= $(BCPATH)\bin\ilink32 -c -v- -x -Gn -aa -j$(INTDIR)
+LIB = import32.lib cw32.lib
+
+# C Builder 5.2
+#BCPATH  = C:\Program Files\Borland\CBuilder
+#CC	= bcc32
+#RSC	= brcc32 -isys\$(SYS) -i"$(BCPATH)\include" -dNO_MFC
+#LINK	= tlink32 -c -v- -x -aa -Tpe -j$(INTDIR)
+#LIB = import32.lib cw32mt.lib
+
 
 # Objects which only depend on the "standard" includes
 OBJS	= basic.obj dir.obj dired.obj shell.obj version.obj window.obj \
@@ -44,8 +62,6 @@ WOBJS = tools.obj ttyctrl.obj winmain.obj cefep.obj
 
 OBJ = $(OBJS) $(IND) $(OOBJS) $(WOBJS) fileio.obj ttyio.obj
 
-LIB = import32.lib cw32.lib
-
 OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c
 WSRCS	= tools.c ttyctrl.cpp winmain.c
 SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
@@ -54,20 +70,38 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  macro.c main.c modes.c regex.c re_search.c kanji.c kinsoku.c \
 	  skg.c jump.c undo.c
 
-OINCS =	ttydef.h sysdef.h chrdef.h
+OINCS =	sys/default/ttydef.h sys/default/chrdef.h sys/$(SYS)/sysdef.h
 INCS =	config.h def.h
 REINCS = regex_e.h regex_j.h regex_j.c regex_e.h kanji_.h kanji_.c
 
-.c.obj:
-	$(CC) $(CFLAGS) $*.c
+.path.obj=$(INTDIR)
+.path.res=$(INTDIR)
+.path.exe=$(OUTDIR)
+.path.map=$(OUTDIR)
 
-.cpp.obj:
-	$(CC) $(CFLAGS) $*.cpp
+{.}.c {$(INTDIR)}.obj:
+	$(CC) $(CFLAGS) $<
+
+{sys\default}.c {$(INTDIR)}.obj:
+	$(CC) $(CFLAGS) $<
+
+{sys\$(SYS)}.c {$(INTDIR)}.obj:
+	$(CC) $(CFLAGS) $<
+
+{sys\$(SYS)}.cpp {$(INTDIR)}.obj:
+	$(CC) $(CFLAGS) $<
+
+{sys\$(SYS)}.rc {$(INTDIR)}.res:
+	$(RSC) -fo $@ $<
+
+all:	$(INTDIR) ng.exe
 
 ng.exe:	$(OBJ) ng.res
-	$(LINK) c0w32.obj $(OBJ),ng.exe,,$(LIB),,ng.res
+	$(LINK) c0w32.obj $(OBJ),$(OUTDIR)\ng.exe,,$(LIB),,ng.res
 
 $(OBJS):	$(INCS) $(OINCS)
+
+$(OOBJS):	$(INCS) $(OINCS)
 
 buffer.obj:	$(INCS) $(OINCS) kbd.h undo.h
 
@@ -95,9 +129,9 @@ keymap.obj:	$(INCS) $(OINCS) kbd.h
 
 modes.obj:	$(INCS) $(OINCS) kbd.h
 
-fileio.obj:	$(INCS) $(OINCS) kbd.h resource.h
+fileio.obj:	$(INCS) $(OINCS) kbd.h sys/$(SYS)/tools.h sys/$(SYS)/resource.h
 
-echo.obj:	$(INCS) $(OINCS) key.h
+echo.obj:	$(INCS) $(OINCS) key.h macro.h complt.h
 
 extend.obj:	$(INCS) $(OINCS) kbd.h key.h macro.h
 
@@ -121,86 +155,35 @@ re_search.obj:	$(INCS) $(OINCS) $(REINCS) macro.h
 
 regex.obj:	$(INCS) $(OINCS) $(REINCS)
 
-ttyio.obj:	$(INCS) $(OINCS) tools.h winmain.h
+jump.obj:	$(INCS) $(OINCS) regex_e.h regex_j.h
 
-$(OOBJS):	$(INCS) $(OINCS)
+ttyio.obj:	$(INCS) $(OINCS) sys/$(SYS)/tools.h sys/$(SYS)/winmain.h
 
-tools.obj:	$(INCS) $(OINCS) tools.h
+tools.obj:	$(INCS) $(OINCS) sys/$(SYS)/tools.h
 
-tty.obj:	$(INCS) $(OINCS) tools.h winmain.h
+tty.obj:	$(INCS) $(OINCS) sys/$(SYS)/tools.h sys/$(SYS)/winmain.h
 
-ttyctrl.obj:	$(INCS) $(OINCS) tools.h ttyctrl.h cefep.h
+ttyctrl.obj:	$(INCS) $(OINCS) \
+		sys/$(SYS)/tools.h sys/$(SYS)/ttyctrl.h \
+		sys/$(SYS)/cefep.h sys/$(SYS)/resource.h
 
-winmain.obj:	$(INCS) $(OINCS) tools.h ttyctrl.h winmain.h resource.h cefep.h
+spawn.obj:	$(INCS) $(OINCS) sys/$(SYS)/tools.h
 
-cefep.obj:	$(INCS) $(OINCS) cefep.h
+winmain.obj:	$(INCS) $(OINCS) \
+		sys/$(SYS)/tools.h sys/$(SYS)/ttyctrl.h \
+		sys/$(SYS)/winmain.h sys/$(SYS)/resource.h sys/$(SYS)/cefep.h
 
-sysdef.h:	sys/$(SYS)/sysdef.h
-	copy sys\$(SYS)\sysdef.h .
+cefep.obj:	$(INCS) $(OINCS) sys/$(SYS)/cefep.h
 
-ttydef.h:	sys/default/ttydef.h
-	copy sys\default\ttydef.h .
+ng.res:		sys/$(SYS)/resource.h sys/$(SYS)/appicon.ico \
+		sys/$(SYS)/rebar.bmp sys/$(SYS)/buttons.bmp
 
-chrdef.h:	sys/default/chrdef.h
-	copy sys\default\chrdef.h .
-
-fileio.c:	sys/$(SYS)/fileio.c
-	copy sys\$(SYS)\fileio.c .
-
-spawn.c:	sys/$(SYS)/spawn.c
-	copy sys\$(SYS)\spawn.c .
-
-tty.c:	sys/$(SYS)/tty.c
-	copy sys\$(SYS)\tty.c .
-
-ttyio.c:	sys/$(SYS)/ttyio.c
-	copy sys\$(SYS)\ttyio.c .
-
-ttykbd.c:	sys/default/ttykbd.c
-	copy sys\default\ttykbd.c .
-
-cinfo.c:	sys/default/cinfo.c
-	copy sys\default\cinfo.c .
-
-resource.h:	sys/$(SYS)/resource.h
-	copy sys\$(SYS)\resource.h .
-
-tools.h:	sys/$(SYS)/tools.h
-	copy sys\$(SYS)\tools.h .
-
-ttyctrl.h:	sys/$(SYS)/ttyctrl.h
-	copy sys\$(SYS)\ttyctrl.h .
-
-winmain.h:	sys/$(SYS)/winmain.h
-	copy sys\$(SYS)\winmain.h .
-
-tools.c:	sys/$(SYS)/tools.c
-	copy sys\$(SYS)\tools.c .
-
-ttyctrl.cpp:	sys/$(SYS)/ttyctrl.cpp
-	copy sys\$(SYS)\ttyctrl.cpp .
-
-winmain.c:	sys/$(SYS)/winmain.c
-	copy sys\$(SYS)\winmain.c .
-
-cefep.c:	sys/$(SYS)/cefep.c
-	copy sys\$(SYS)\cefep.c .
-
-cefep.h:	sys/$(SYS)/cefep.h
-	copy sys\$(SYS)\cefep.h .
-
-appicon.ico:	sys/$(SYS)/appicon.ico
-	copy sys\$(SYS)\appicon.ico .
-
-ng.rc:		sys/$(SYS)/ng.rc
-	copy sys\$(SYS)\ng.rc .
-
-ng.res:		ng.rc resource.h appicon.ico
-	$(RSC) -fo ng.res ng.rc
+$(INTDIR):
+	@if not exist $(INTDIR) mkdir $(INTDIR)
 
 #clean:
 #	del $(OBJ) $(OSRCS) $(OINCS)
 clean:
-	del *.obj
-	del ng.res
-	del ng.tds
+	-if exist ng.tds del ng.tds
+	-if exist $(INTDIR) del /f/q $(INTDIR)
+	-if exist $(INTDIR) rmdir $(INTDIR)
