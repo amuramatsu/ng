@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.18 2001/09/27 18:56:49 amura Exp $ */
+/* $Id: def.h,v 1.19 2001/09/30 14:01:47 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.19  2001/09/30 14:01:47  amura
+ * some prototypes are corrected
+ *
  * Revision 1.18  2001/09/27 18:56:49  amura
  * Small changes for support EPOC32
  *
@@ -397,17 +400,17 @@ extern	BUFFER	*curbp;
 extern	WINDOW	*wheadp;
 extern	BUFFER	*bheadp;
 extern	char	pat[];
-extern	BUFFER	*bfind();
-extern	WINDOW	*popbuf();
-extern	WINDOW	*wpopup();
-extern	LINE	*lalloc();
-extern	LINE	*lallocx();
+extern	BUFFER	*bfind pro((char *, int));
+extern	WINDOW	*popbuf pro((BUFFER *));
+extern	WINDOW	*wpopup pro((void));
+extern	LINE	*lalloc pro((int));
+extern	LINE	*lallocx pro((int));
 #ifdef SUPPORT_ANSI
 extern VOID ewprintf pro((char *fp, ... ));
 #else
 extern VOID ewprintf pro((va_alist));
 #endif
-extern VOID eerase();
+extern VOID eerase pro((void));
 extern	int	nrow;
 extern	int	ncol;
 extern	int	ttrow;
@@ -417,11 +420,11 @@ extern	int	tcinsl;
 extern	int	tcdell;
 extern	char	cinfo[];
 extern	char	*keystrings[];
-extern	VOID	update();
-extern	char	*keyname();
-extern	char	*adjustname();
-extern	VOID	kdelete();
-extern	VOID	lchange();
+extern	VOID	update pro((void));
+extern	char	*keyname pro((char *, int));
+extern	char	*adjustname pro((char *));
+extern	VOID	kdelete pro((void));
+extern	VOID	lchange pro((int));
 
 /*
    Should the 'ifdef' be applied for the following function declarations.
