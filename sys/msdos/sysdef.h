@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.4 2001/05/08 17:58:57 amura Exp $ */
+/* $Id: sysdef.h,v 1.5 2001/05/20 20:22:51 amura Exp $ */
 /*
  *		MS-DOS based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.5  2001/05/20 20:22:51  amura
+ * fix silly bug
+ *
  * Revision 1.4  2001/05/08 17:58:57  amura
  * fix alloca() probrems with Turbo C
  *
@@ -22,9 +25,9 @@
 #include <stdio.h>
 #ifdef	__TURBOC__	/* 90.03.23  by A.Shirahashi */
 #include <mem.h>
+extern void *alloca(int);		/* defind in alloca.asm		*/
 #else	/* NOT __TURBOC__ */
 #include <memory.h>			/* need to use memmove().	*/
-extern void *alloca(int);		/* defind in alloca.asm		*/
 #endif	/* __TURBOC__ */
 
 #define	KBLOCK	1024			/* Kill grow.			*/
