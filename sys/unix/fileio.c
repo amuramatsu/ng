@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.1 2000/11/19 18:35:00 amura Exp $ */
+/* $Id: fileio.c,v 1.2 2000/12/01 09:51:23 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.2  2000/12/01 09:51:23  amura
+ * fix problems open "/" and sybolic link directory, remove typos
+ *
  * Revision 1.1  2000/11/19 18:35:00  amura
  * support GNU configure system
  *
@@ -163,7 +166,6 @@ fbackupfile(fn) char *fn; {
 
 #ifdef	BUGFIX	/* 90.02.14  by S.Yoshida */
 #ifndef	_SYS_STAT_H_
-#include <sys/types.h>
 #include <sys/stat.h>
 #define	_SYS_STAT_H_
 #endif	/* _SYS_STAT_H_ */
@@ -193,7 +195,6 @@ int	mode;
 
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
 #ifndef	_SYS_STAT_H_
-#include <sys/types.h>
 #include <sys/stat.h>
 #define	_SYS_STAT_H_
 #endif	/* _SYS_STAT_H_ */
@@ -221,7 +222,6 @@ char	*fn;
  */
 #ifdef	HAVE_SYMLINK
 #ifndef	_SYS_STAT_H_	/* 90.02.15  by S.Yoshida */
-#include <sys/types.h>
 #include <sys/stat.h>
 #define	_SYS_STAT_H_
 #endif	/* _SYS_STAT_H_ */
@@ -343,13 +343,15 @@ register char *fn;
 	}
 	while(*fn && (*cp++ = *fn++) != '/') {}
     }
-    if(cp[-1]=='/') --cp;
+    if((cp-1)!=fnb && cp[-1]=='/') --cp;
     *cp = '\0';
     return fnb;
 }
 
 #ifndef NO_STARTUP
+#ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
+#endif
 #ifndef F_OK
 #define F_OK 04			/* for stupid Sys V		*/
 #endif
@@ -516,7 +518,7 @@ register char **fn;
   int l,l1,len;
   char c;
 
-  /* '47' is a magic number and is not correct always */
+  /* '30' is a magic number and is not correct always */
 
   if ( llength( lp ) <= 30 ) {
     return ABORT ;
@@ -560,6 +562,10 @@ register char **fn;
     cp += strlen(cp);
     bcopy(lp->l_text + l, cp, len);
     cp[len-1] = '\0';
+#ifdef	HAVE_SYMLINK
+    if (lgetc(lp, 2) == 'l')
+      return ffisdir(curbp->b_fname);
+#endif
     return lgetc(lp, 2) == 'd';
   }
   else {
@@ -621,7 +627,6 @@ char *f1, *f2;
 #ifndef NO_DIRED	/* 91.01.15  by K.Maeda */
 
 #ifndef	_SYS_STAT_H_
-#include <sys/types.h>
 #include <sys/stat.h>
 #define	_SYS_STAT_H_
 #endif	/* _SYS_STAT_H_ */
