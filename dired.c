@@ -1,9 +1,12 @@
-/* $Id: dired.c,v 1.2 2000/06/27 01:49:42 amura Exp $ */
+/* $Id: dired.c,v 1.3 2000/07/22 17:54:09 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
 /*
  * $Log: dired.c,v $
+ * Revision 1.3  2000/07/22 17:54:09  amura
+ * fix typo bug
+ *
  * Revision 1.2  2000/06/27 01:49:42  amura
  * import to CVS
  *
@@ -337,7 +340,7 @@ char *path;
 d_copy(f, n)
 int f, n;
 {
-    char *frname, toname[NFILEN], *fr = frname;
+    char *frname, toname[NFILEN], *fr;
     int stat;
 
 #ifdef	EXTD_DIR
@@ -358,8 +361,8 @@ int f, n;
       break;
     }
   
-#ifdef	EXTD_DIR
     fr = filename(frname);
+#ifdef	EXTD_DIR
     edefset(curbp->b_cwd);
 #endif
 
@@ -381,7 +384,7 @@ int f, n;
 d_rename(f, n)
 int f, n;
 {
-    char *frname, toname[NFILEN], *fr = frname;
+    char *frname, toname[NFILEN], *fr;
     int stat;
 
 #ifdef	EXTD_DIR
@@ -402,8 +405,8 @@ int f, n;
       break;
     }
 
-#ifdef	EXTD_DIR
     fr = filename(frname);
+#ifdef	EXTD_DIR
     edefset(curbp->b_cwd);
 #endif
 

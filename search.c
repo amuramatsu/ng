@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: search.c,v 1.2 2000/07/22 17:54:09 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -12,8 +12,11 @@
 
 /*
  * $Log: search.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2000/07/22 17:54:09  amura
+ * fix typo bug
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
@@ -935,7 +938,7 @@ readpattern(prompt) char *prompt; {
 	register int	s;
 	char		tpat[NPAT];
 
-	if (tpat[0] == '\0') s = ereply("%s: ", tpat, NPAT, prompt);
+	if (pat[0] == '\0') s = ereply("%s: ", tpat, NPAT, prompt);
 	else s = ereply("%s: (default %s) ", tpat, NPAT, prompt, pat);
 
 	if (s == TRUE)				/* Specified		*/
@@ -945,7 +948,7 @@ readpattern(prompt) char *prompt; {
 	return s;
 }
 
-/* $Id: search.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: search.c,v 1.2 2000/07/22 17:54:09 amura Exp $ */
 /* Local Variables: */
 /*  c-indent-level:                   8      */
 /*  c-continued-statement-offset:     8      */

@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.8 2000/07/18 20:30:34 amura Exp $ */
+/* $Id: dir.c,v 1.9 2000/07/22 17:54:09 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -8,6 +8,9 @@
 
 /*
  * $Log: dir.c,v $
+ * Revision 1.9  2000/07/22 17:54:09  amura
+ * fix typo bug
+ *
  * Revision 1.8  2000/07/18 20:30:34  amura
  * rewrite some description (for Win32)
  *
@@ -245,6 +248,7 @@ char *newdir;
     }
     if (dir[1] == ':' && dir[2] == '\0') {
 	dirinit();
+	return 0;
     } else if (dir[1]==':' && chdir(dir+2) == -1) {
 	return -1;
     } else if (chdir(dir) == -1) {
