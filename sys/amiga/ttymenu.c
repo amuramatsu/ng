@@ -1,4 +1,4 @@
-/* $Id: ttymenu.c,v 2.2 2000/10/11 13:38:59 amura Exp $ */
+/* $Id: ttymenu.c,v 2.3 2000/12/14 18:08:35 amura Exp $ */
 /*
  * ttymenu.c
  *   Amiga intuition menu handling routine for Ng 1.x
@@ -30,6 +30,9 @@
 
 /*
  * $Log: ttymenu.c,v $
+ * Revision 2.3  2000/12/14 18:08:35  amura
+ * filename length become flexible
+ *
  * Revision 2.2  2000/10/11 13:38:59  amura
  * change wildcard in ASL requester
  *
@@ -393,6 +396,8 @@ char *buff;
 	    title   = "Select File";
 	}
 	
+	if (dir == NULL)
+	    dir = "";
 	if (fr = AllocAslRequestTags(ASL_FileRequest,
 			ASL_Hail,	(ULONG)title,
 			ASL_Dir,	(ULONG)dir,

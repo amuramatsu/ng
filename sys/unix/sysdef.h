@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.2 2000/12/01 10:07:09 amura Exp $ */
+/* $Id: sysdef.h,v 1.3 2000/12/14 18:14:12 amura Exp $ */
 /*
  *	unix based systems (for configure)
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.3  2000/12/14 18:14:12  amura
+ * filename length become flexible
+ *
  * Revision 1.2  2000/12/01 10:07:09  amura
  * edit for Minix
  *
@@ -39,9 +42,8 @@ char *alloca ();
 
 #define	KBLOCK		8192		/* Kill grow.			*/
 #define	GOOD		0		/* Good exit status.		*/
-#define	MAXPATH		256		/* Maximum length of path for chdir */
 #ifndef	NO_SHELL
-#define	CMDLINELENGTH	128		/* Maximum length of shell command. */
+#define	CMDLINELENGTH	NFILEN		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	BSMAP		FALSE		/* Bs map feature can use.	*/
 					/* (default mode is bsmap off)	*/
@@ -50,7 +52,7 @@ char *alloca ();
 typedef long	RSIZE;			/* Type for file/region sizes	*/
 typedef short	KCHAR;			/* Type for internal keystrokes	*/
 
-#ifdef fd_set
+#ifndef FD_SET
 #  define FD_SET(fd,fdsp)       ((*fdsp) |= (1<<(fd)))
 #  define FD_ZERO(fdsp)		((*fdsp) = 0)
 #endif

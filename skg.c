@@ -1,4 +1,4 @@
-/* $Id: skg.c,v 1.4 2000/11/16 14:31:13 amura Exp $ */
+/* $Id: skg.c,v 1.5 2000/12/14 18:06:24 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
@@ -7,6 +7,9 @@
 
 /*
  * $Log: skg.c,v $
+ * Revision 1.5  2000/12/14 18:06:24  amura
+ * filename length become flexible
+ *
  * Revision 1.4  2000/11/16 14:31:13  amura
  * fix some typos which cause compile error when using
  * strict ANSI-C compiler (ex ACK, gcc-1.x)
@@ -56,8 +59,10 @@ static struct DICKEYSTR {
 #define H_MODE 0   /* Hiragana MODE */
 #define A_MODE 1   /* Ank MODE,or NOT-Convert MODE  */
 
-char romanname[NFILEN] = "SKG-ROMAN";
-char dicname[NFILEN]   = "SKG-JISYO";
+#define	DEFAULT_ROMANNAME	"SKG-ROMAN"
+#define DEFAULT_DICNAME		"SKG-JISYO"
+char *romanname = NULL;
+char *dicname   = NULL;
 
 extern int isetmark();
 static int skg_check_exist_file();
@@ -306,7 +311,7 @@ int convert_to_hiragana( keystr , dstr )
     int flg=0,sflg,cpnt;
     bufkey[0] = bufstr[0] = '\0';
 
-    romanfile = fopen(romanname , "r");
+    romanfile = fopen((romanname!=NULL) ? romanname : DEFAULT_ROMANNAME, "r");
 
     clear_string( dstr );	    
     cpnt = 0;
@@ -358,7 +363,7 @@ int skg_check_exist_file()
 {
     FILE *romanfile,*dicfile;
 
-    dicfile = fopen(dicname , "r");
+    dicfile = fopen((dicname!=NULL) ? dicname : DEFAULT_DICNAME , "r");
     
     if ( dicfile == NULL ) 
     { 
@@ -367,7 +372,7 @@ int skg_check_exist_file()
     }
     fclose(dicfile);
   
-    romanfile = fopen(romanname , "r");
+    romanfile = fopen((romanname!=NULL) ? romanname : DEFAULT_ROMANNAME , "r");
 
     if ( romanfile == NULL ) 
     { 
@@ -722,7 +727,7 @@ search_dictionary( mode, istr, dlist, rstr )
 	scan_flg,
 	dflg = 0;
 
-    dicfile = fopen(dicname , "rb");
+    dicfile = fopen((dicname!=NULL) ? dicname : DEFAULT_DICNAME , "rb");
 
     ewprintf("Now Scanning Dictionary..."); 
 
@@ -829,7 +834,7 @@ setup_keystring( mode , keystr )
 	return;
     }
 
-    romanfile = fopen(romanname , "r");
+    romanfile = fopen((romanname!=NULL) ? romanname : DEFAULT_ROMANNAME , "r");
 
     cpnt = 0;
     i = 0;
@@ -990,6 +995,12 @@ skg_set_romanname(f, n)
 #endif
 	return s;
 
+    if (romanname)
+	free(romanname);
+    if ((romanname=malloc(strlen(file)+1)) == NULL) {
+	ewprintf("Cannot allocate %d bytes", strlen(file)+1);
+	return FALSE;
+    }
     strcpy(romanname, file);
     return TRUE;
 }
@@ -1010,7 +1021,13 @@ skg_set_dicname(f, n)
     if ((s = ereply("SKG kana-kanji dictionary : ", file, NFILEN)) != TRUE)
 #endif
 	return s;
-
+   
+    if (dicname)
+	free(dicname);
+    if ((dicname=malloc(strlen(file)+1)) == NULL) {
+	ewprintf("Cannot allocate %d bytes", strlen(file)+1);
+	return FALSE;
+    }
     strcpy(dicname, file);
     return TRUE;
 }

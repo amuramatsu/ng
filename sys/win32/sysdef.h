@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.2 2000/09/18 10:22:39 amura Exp $ */
+/* $Id: sysdef.h,v 1.3 2000/12/14 18:10:48 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.3  2000/12/14 18:10:48  amura
+ * filename length become flexible
+ *
  * Revision 1.2  2000/09/18 10:22:39  amura
  * some macro definition is changed
  *
@@ -28,9 +31,8 @@
 
 #define	KBLOCK	1024			/* Kill grow.			*/
 #define	GOOD	0			/* Good exit status.		*/
-#define	MAXPATH	256			/* Maximum length of path for chdir */
 #ifndef	NO_SHELL	/* 91.01.10  by K.Maeda */
-#define	CMDLINELENGTH	80		/* Maximum length of shell command. */
+#define	CMDLINELENGTH	NFILEN		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	NO_RESIZE			/* Screen size is constant.	*/
 #define	BSMAP	TRUE			/* Bs map feature can use.	*/

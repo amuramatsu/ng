@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.2 2000/07/25 15:06:52 amura Exp $ */
+/* $Id: fileio.c,v 1.3 2000/12/14 18:10:47 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.3  2000/12/14 18:10:47  amura
+ * filename length become flexible
+ *
  * Revision 1.2  2000/07/25 15:06:52  amura
  * handle Kanji filename of initfile
  *
@@ -161,13 +164,12 @@ register int	*nbytes;
  */
 fbackupfile(fn) char *fn; {
 	register char	*nname;
-	void		*malloc();	/* 90.03.27  by A.Shirahashi */
 	char		*dotp;		/* 90.07.26  Add by N.Kamei */
 	VOID		strmfe();	/* 90.07.26  Add by N.Kamei */
 	char fns[NFILEN];
 	char nnames[NFILEN];
 
-	if ((nname=malloc((unsigned)(strlen(fn)+4+1))) == NULL) {
+	if ((nname=alloca((unsigned)(strlen(fn)+4+1))) == NULL) {
 					/* 90.07.26  1+1 -> 4+1 by N.Kamei */
 		ewprintf("Can't get %d bytes", strlen(fn) + 4 +1);
 		return (ABORT);
@@ -185,11 +187,8 @@ fbackupfile(fn) char *fn; {
 	bufetos(fns, strlen(fns)+1);
 #endif KANJI
 	(VOID) unlink(nnames);			/* Ignore errors.	*/
-	if (rename(fns, nnames) < 0) {
-		free(nname);
+	if (rename(fns, nnames) < 0)
 		return (FALSE);
-	}
-	free(nname);
 	return (TRUE);
 }
 
@@ -613,9 +612,14 @@ char *dirname;
     }
     free(files);
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    (VOID) strncpy(bp->b_fname, dirname, NFILEN);
+    if (bp->b_fname)
+	free(bp->b_fname);
+    if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
+	(VOID) strcpy(bp->b_fname, dirname);
 #ifdef EXTD_DIR
-    bp->b_cwd[0] = '\0';
+    if (bp->b_cwd)
+	free(bp->b_cwd);
+    bp->b_cwd = NULL;
 #endif
     if((bp->b_modes[0] = name_mode("dired")) == NULL) {
 	bp->b_modes[0] = &map_table[0];

@@ -1,12 +1,15 @@
-/* $Id: sysdef.h,v 1.1 2000/06/27 01:47:57 amura Exp $ */
+/* $Id: sysdef.h,v 1.2 2000/12/14 18:10:46 amura Exp $ */
 /*
  *		Human68k system definitions
  */
 
 /*
  * $Log: sysdef.h,v $
- * Revision 1.1  2000/06/27 01:47:57  amura
- * Initial revision
+ * Revision 1.2  2000/12/14 18:10:46  amura
+ * filename length become flexible
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:57  amura
+ * import to CVS
  *
  */
 /* 90.11.10	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
@@ -17,9 +20,8 @@
 
 #define	KBLOCK	1024			/* Kill grow.			*/
 #define	GOOD	0			/* Good exit status.		*/
-#define	MAXPATH	256			/* Maximum length of path for chdir */
 #ifndef	NO_SHELL	/* 91.01.10  by K.Maeda */
-#define	CMDLINELENGTH	128		/* Maximum length of shell command. */
+#define	CMDLINELENGTH	NFILEN		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	NO_RESIZE			/* Screen size is constant.	*/
 #define	BSMAP	TRUE			/* Bs map feature can use.	*/

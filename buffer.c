@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.7 2000/10/02 16:28:46 amura Exp $ */
+/* $Id: buffer.c,v 1.8 2000/12/14 18:06:23 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.8  2000/12/14 18:06:23  amura
+ * filename length become flexible
+ *
  * Revision 1.7  2000/10/02 16:28:46  amura
  * kill without confirmation a buffer to bind nofile
  *
@@ -147,7 +150,7 @@ killbuffer(f, n)
 				return FALSE;
 		}
 	}
-	if (bp->b_fname[0] == '\0') {
+	if (bp->b_fname == NULL) {
 	  /* Do not ask for saving
 	     if the buffer is not associated with a file.
 	     by Tillanosoft */
@@ -310,8 +313,8 @@ makelist() {
 		cp2 = &b[0];
 		while ((c = *cp2++) != 0)
 			*cp1++ = c;
-		*cp1++ = ' ';			/* Gap..			*/
-		cp2 = &bp->b_fname[0];		/* File name		*/
+		*cp1++ = ' ';			/* Gap..		*/
+		cp2 = bp->b_fname;		/* File name		*/
 		if (*cp2 != 0) {
 			while ((c = *cp2++) != 0) {
 				if (cp1 < &line[128-1])
@@ -392,14 +395,20 @@ addline(bp, text) register BUFFER *bp; char *text; {
 anycb(f) {
 	register BUFFER *bp;
 	register int	s = FALSE, save = FALSE;
-	char		prompt[NFILEN + 11];
+	char		*prompt;
 	VOID		upmodes();
 
 	for (bp = bheadp; bp != NULL; bp = bp->b_bufp) {
-		if (*(bp->b_fname) != '\0'
+		if (bp->b_fname != NULL
 		&&  (bp->b_flag&BFCHG) != 0) {
-			(VOID) strcpy(prompt, "Save file ");
-			(VOID) strcpy(prompt + 10, bp->b_fname);
+		    	prompt = alloca(10 + strlen(bp->b_fname) + 1);
+			if (prompt != NULL) {
+				(VOID) strcpy(prompt, "Save file ");
+				(VOID) strcpy(prompt + 10, bp->b_fname);
+			}
+			else {
+				prompt = "Save file <Somethings>";
+			}
 			if ((f == TRUE || (save = eyorn(prompt)) == TRUE)
 			&&  buffsave(bp) == TRUE) {
 				bp->b_flag &= ~BFCHG;
@@ -488,16 +497,16 @@ bfind(bname, cflag) register char *bname; {
 	do {
 	    bp->b_modes[i] = defb_modes[i];
 	} while(i++ < defb_nmodes);
-	bp->b_fname[0] = '\0';
+	bp->b_fname = NULL;
 #ifdef	EXTD_DIR
-	bp->b_cwd[0] = '\0';
+	bp->b_cwd = NULL;
 	if (curbp) {
-	  if (curbp->b_cwd[0] == '\0' && curbp->b_fname[0]) {
+	  if (curbp->b_cwd == NULL && curbp->b_fname) {
 	    extern void storecwd pro((BUFFER *bp));
-
 	    storecwd(curbp);
 	  }
-	  strcpy(bp->b_cwd, curbp->b_cwd);
+	  if ((bp->b_cwd=malloc(strlen(curbp->b_cwd)+1)) != NULL)
+	    strcpy(bp->b_cwd, curbp->b_cwd);
 	}
 #endif
 	(VOID) strcpy(bp->b_bname, bname);

@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.3 2000/07/25 15:06:52 amura Exp $ */
+/* $Id: fileio.c,v 1.4 2000/12/14 18:10:47 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.4  2000/12/14 18:10:47  amura
+ * filename length become flexible
+ *
  * Revision 1.3  2000/07/25 15:06:52  amura
  * handle Kanji filename of initfile
  *
@@ -172,7 +175,6 @@ fbackupfile(fn) char *fn; {
 /* 90.07.26  by N.Kamei */
 	char    oname[NFILEN];
 	char    *nname;
-	void    *malloc();      /* 90.03.27  by A.Shirahashi */
 	VOID    strmfe();
 
 	(VOID) strcpy(oname, fn);
@@ -180,40 +182,33 @@ fbackupfile(fn) char *fn; {
 #ifdef KANJI
 	bufetos(oname, strlen(oname)+1);
 #endif	
-	if ((nname=malloc((unsigned)(strlen(fn)+4+1))) == NULL) {
+	if ((nname=alloca((unsigned)(strlen(fn)+4+1))) == NULL) {
 		ewprintf("Can't get %d bytes", strlen(fn) + 5);
 		return (ABORT);
 	}
 	strmfe(nname, oname, "bak");
 	(VOID) unlink(nname);		   /* Ignore errors.       */
-	if (rename(oname, nname) < 0) {
-		free(nname);
+	if (rename(oname, nname) < 0)
 		return (FALSE);
-	}
-	free(nname);
 	return (TRUE);
 #else
 	char    oname[NFILEN];
 	register char	*nname;
-	void		*malloc();      /* 90.03.27  by A.Shirahashi */
 
 	strcpy(oname,fn);
 	toh68kfn(oname);
 #ifdef KANJI
 	bufetos(oname, strlen(oname)+1);
 #endif /* KANJI */
-	if ((nname=malloc((unsigned)(strlen(oname)+1+1))) == NULL) {
+	if ((nname=alloca((unsigned)(strlen(oname)+1+1))) == NULL) {
 		ewprintf("Can't get %d bytes", strlen(oname) + 1);
 		return (ABORT);
 	}
 	(VOID) strcpy(nname, oname);
 	(VOID) strcat(nname, "~");
 	(VOID) unlink(nname);			/* Ignore errors.	*/
-	if (rename(oname, nname) < 0) {
-		free(nname);
+	if (rename(oname, nname) < 0)
 		return (FALSE);
-	}
-	free(nname);
 	return (TRUE);
 #endif
 }
@@ -655,9 +650,14 @@ char *dirname;
     }
     free(filelist);
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    (VOID) strncpy(bp->b_fname, dirname, NFILEN);
+    if (bp->b_fname)
+	free(bp->b_fname);
+    if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
+	(VOID) strcpy(bp->b_fname, dirname);
 #ifdef EXTD_DIR
-    bp->b_cwd[0] = '\0';
+    if (bp->b_cwd)
+	free(bp->b_cwd);
+    bp->b_cwd = NULL;
 #endif
     if((bp->b_modes[0] = name_mode("dired")) == NULL) {
 	bp->b_modes[0] = &map_table[0];

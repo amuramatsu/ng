@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: fileio.c,v 1.2 2000/12/14 18:07:52 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,8 +14,11 @@
 
 /*
  * $Log: fileio.c,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2000/12/14 18:07:52  amura
+ * filename length become flexible
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  * Revision 1.1  1999/05/21  00:58:37  amura
  * Initial revision
@@ -442,19 +445,22 @@ register char	*fn;
 	if (!(p = rindex(fnb, '/')))
 		p = index(fnb, ':');
 	p++;
-	strcpy((dup = malloc(strlen(p) + 1)), p);
+	dup = alloca(strlen(p) + 1);
+	if (dup == NULL) {
+	    ewprintf("adjustname: PathName() failed!");
+	    return fn;
+	}
+	strcpy(dup, p);
 	*p = '\0';
 	if (lock = Lock(fnb, SHARED_LOCK)) {
 		if (PathName(lock, fnb, (long) MAX_ELEMS) != 0) {
 			UnLock(lock);
 			TackOn(fnb, dup);
-			free(dup);
 			return fnb;
 		}
 		ewprintf("adjustname: PathName() failed!");
 		UnLock(lock);
 	}
-	free(dup);
 #endif
 	return fn;				/* if all else fails	*/
 }
@@ -560,7 +566,10 @@ char *dirname;
     ffclose();
     DeleteFile(tmpname);
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    (VOID) strncpy(bp->b_fname, dirname, NFILEN);
+    if (bp->b_fname)
+	free(bp->b_fname);
+    if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
+	(VOID) strcpy(bp->b_fname, dirname);
     if((bp->b_modes[0] = name_mode("dired")) == NULL) {
 	bp->b_modes[0] = &map_table[0];
 	ewprintf("Could not find mode dired");

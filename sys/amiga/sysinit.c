@@ -1,4 +1,4 @@
-/* $Id: sysinit.c,v 1.3 2000/10/31 07:08:14 amura Exp $ */
+/* $Id: sysinit.c,v 1.4 2000/12/14 18:08:35 amura Exp $ */
 /*
  * Name:	MG 2a
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: sysinit.c,v $
+ * Revision 1.4  2000/12/14 18:08:35  amura
+ * filename length become flexible
+ *
  * Revision 1.3  2000/10/31 07:08:14  amura
  * fix bug around input.device
  *
@@ -68,9 +71,9 @@ extern	struct	Library *OpenLibrary();
 #ifndef	NO_DIR
 extern struct	Task *FindTask();
 static BPTR	StartLock;
-char		MyDirName[MAXPATH];
+char		MyDirName[NFILEN];
 extern BPTR	DupLock(), CurrentDir();
-#endif NO_DIR
+#endif /* NO_DIR */
 
 sysinit()
 {
@@ -91,8 +94,8 @@ sysinit()
 
 	StartLock = ((struct Process *)FindTask(0L))->pr_CurrentDir;
 	(void) CurrentDir(MyDirLock = DupLock(StartLock));
-	len = PathName(MyDirLock, MyDirName, MAXPATH/31L);
-#endif NO_DIR
+	len = PathName(MyDirLock, MyDirName, NFILEN/31L);
+#endif /* NO_DIR */
 
 /* These from ttyio.c by H.Ohkubo Dec.20,1992 */
 #ifdef	USE_ARP	/* Add by H.Ohkubo */

@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.2 2000/06/27 01:59:42 amura Exp $ */
+/* $Id: sysdef.h,v 1.3 2000/12/14 18:10:46 amura Exp $ */
 /*
  *		BSD unix based systems (sunos, ultrix)
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.3  2000/12/14 18:10:46  amura
+ * filename length become flexible
+ *
  * Revision 1.2  2000/06/27 01:59:42  amura
  * small bugfix
  *
@@ -20,9 +23,8 @@
 #define	KBLOCK	8192			/* Kill grow.			*/
 #define	GOOD	0			/* Good exit status.		*/
 #define	SYMBLINK	1		/* Handle symbolic links	*/
-#define	MAXPATH	256			/* Maximum length of path for chdir */
 #ifndef	NO_SHELL	/* 91.01.10  by K.Maeda */
-#define	CMDLINELENGTH	128		/* Maximum length of shell command. */
+#define	CMDLINELENGTH	NFILEN		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	BSMAP	FALSE			/* Bs map feature can use.	*/
 					/* (default mode is bsmap off)	*/

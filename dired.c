@@ -1,9 +1,12 @@
-/* $Id: dired.c,v 1.4 2000/09/21 17:28:29 amura Exp $ */
+/* $Id: dired.c,v 1.5 2000/12/14 18:06:24 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
 /*
  * $Log: dired.c,v $
+ * Revision 1.5  2000/12/14 18:06:24  amura
+ * filename length become flexible
+ *
  * Revision 1.4  2000/09/21 17:28:29  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -51,19 +54,25 @@ int f, n;
     if((bp = dired_(dirname)) == NULL) return FALSE;
     curbp = bp;
 #ifdef	EXTD_DIR
-    strncpy(curbp->b_cwd, dirname, NFILEN-1);
-    i = strlen(dirname) - 1;
+    i = strlen(dirname);
+    if (curbp->b_cwd)
+	free(curbp->b_cwd);
+    if ((curbp->b_cwd=malloc(i+2)) == NULL)
+	return;
+    strcpy(curbp->b_cwd, dirname);
+    if (i >= 1) {
 #ifdef BDC2
-    if (curbp->b_cwd[i] != BDC1 && curbp->b_cwd[i] != BDC2) {
-	curbp->b_cwd[i+1] = BDC2;
-	curbp->b_cwd[i+2] = '\0';
-    }
+	if (curbp->b_cwd[i-1] != BDC1 && curbp->b_cwd[i-1] != BDC2) {
+	    curbp->b_cwd[i] = BDC2;
+	    curbp->b_cwd[i+1] = '\0';
+	}
 #else
-    if (curbp->b_cwd[i] != BDC1) {
-	curbp->b_cwd[i+1] = BDC1;
-	curbp->b_cwd[i+2] = '\0';
-    }
+	if (curbp->b_cwd[i-1] != BDC1) {
+	    curbp->b_cwd[i] = BDC1;
+	    curbp->b_cwd[i+1] = '\0';
+	}
 #endif
+    }
 #endif	/* EXTD_DIR */
 #ifdef	READONLY	/* 91.01.15  by K.Maeda */
     curbp->b_flag |= BFRONLY;
@@ -228,7 +237,7 @@ int f, n, popup;
 	return FALSE;
       }
     }
-    if (bp->b_fname[0] != 0) {
+    if (bp->b_fname != NULL) {
       free(fname);
       return TRUE;
     }

@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: sysdef.h,v 1.2 2000/12/14 18:07:52 amura Exp $ */
 /*
  * Name:	MicroEMACS
  * Version:	MG 2a
@@ -7,8 +7,11 @@
 
 /*
  * $Log: sysdef.h,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2000/12/14 18:07:52  amura
+ * filename length become flexible
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
 
@@ -70,7 +73,7 @@ extern char *offset_dummy;		/* Manx 3.2 can't handle 0->	*/
 #endif
 
 #ifndef	NO_SHELL	/* Dec. 15, 1992 by H.Ohkubo */
-#define	CMDLINELENGTH	128		/* Maximum length of shell command. */
+#define	CMDLINELENGTH	NFILEN		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	BSMAP	FALSE	/* Dec.18,1992 Add by H.Ohkubo */
 /*
@@ -91,8 +94,6 @@ extern char *offset_dummy;		/* Manx 3.2 can't handle 0->	*/
 
 typedef short	KCHAR;	/* type used to represent Emacs characters */
 typedef	long	RSIZE;	/* size of a region	*/
-
-#define	MAXPATH	128	/* longest expected directory path	*/
 
 #ifndef __GNUC__
 #define	bcopy(src,dest,len) movmem(src,dest,len)

@@ -1,12 +1,15 @@
-/* $Id: sysdef.h,v 1.1 2000/06/27 01:47:58 amura Exp $ */
+/* $Id: sysdef.h,v 1.2 2000/12/14 18:10:47 amura Exp $ */
 /*
  *		MS-DOS based systems
  */
 
 /*
  * $Log: sysdef.h,v $
- * Revision 1.1  2000/06/27 01:47:58  amura
- * Initial revision
+ * Revision 1.2  2000/12/14 18:10:47  amura
+ * filename length become flexible
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:58  amura
+ * import to CVS
  *
  */
 
@@ -19,9 +22,8 @@
 
 #define	KBLOCK	1024			/* Kill grow.			*/
 #define	GOOD	0			/* Good exit status.		*/
-#define	MAXPATH	256			/* Maximum length of path for chdir */
 #ifndef	NO_SHELL	/* 91.01.10  by K.Maeda */
-#define	CMDLINELENGTH	80		/* Maximum length of shell command. */
+#define	CMDLINELENGTH	128		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	NO_RESIZE			/* Screen size is constant.	*/
 #define	BSMAP	TRUE			/* Bs map feature can use.	*/

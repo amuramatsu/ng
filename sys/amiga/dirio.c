@@ -1,4 +1,4 @@
-/* $Id: dirio.c,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: dirio.c,v 1.2 2000/12/14 18:07:51 amura Exp $ */
 /*
  * Name:	MG 2x
  *		Directory I/O routines, by Stephen Walton
@@ -7,8 +7,11 @@
 
 /*
  * $Log: dirio.c,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2000/12/14 18:07:51  amura
+ * filename length become flexible
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
 
@@ -20,7 +23,7 @@
 #include <libraries/dosextens.h>
 #include <exec/memory.h>
 
-extern	char		MyDirName[MAXPATH], *strncat();
+extern	char		MyDirName[NFILEN], *strncat();
 
 char *getcwd(path, len)
 char *path;
@@ -60,7 +63,7 @@ char *path;
 		goto clean;
 	}
 	UnLock(CurrentDir(AttemptLock));	/* do the thing		*/
-	if (PathName(AttemptLock, MyDirName, MAXPATH/31L) == 0)
+	if (PathName(AttemptLock, MyDirName, NFILEN/31L) == 0)
 		MyDirName[0] = '\0';
 	retval = 0;				/* Success!		*/
     clean:

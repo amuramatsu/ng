@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.1 2000/06/27 01:47:55 amura Exp $ */
+/* $Id: basic.c,v 1.2 2000/12/14 18:06:23 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -11,8 +11,11 @@
 
 /*
  * $Log: basic.c,v $
- * Revision 1.1  2000/06/27 01:47:55  amura
- * Initial revision
+ * Revision 1.2  2000/12/14 18:06:23  amura
+ * filename length become flexible
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:55  amura
+ * import to CVS
  *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
@@ -198,10 +201,10 @@ static 	int	flag_nextline = NEXTLINE;
 nextline(f, n)
 {
 	register int	s;
-	char	buf[NFILEN];
+	char	buf[NINPUT];
 
 	if ((f & FFARG) == 0) {
-		if ((s = ereply("next-line-add-newlines : ", buf, NFILEN)) != TRUE)
+		if ((s = ereply("next-line-add-newlines : ", buf, sizeof(buf))) != TRUE)
 			return (s);
 		if (ISDIGIT(buf[0]) || buf[0] == '-')
 			n = atoi(buf) > 0;
@@ -600,7 +603,7 @@ register int n;
 {
 	register LINE	*clp;
 	register int	s;
-	char		buf[32];
+	char		buf[NINPUT];
 
 	if (!(f & FFARG)) {
 		if ((s=ereply("Goto line: ", buf, sizeof(buf))) != TRUE)

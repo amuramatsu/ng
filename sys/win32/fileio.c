@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.5 2000/11/16 14:21:28 amura Exp $ */
+/* $Id: fileio.c,v 1.6 2000/12/14 18:10:48 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.6  2000/12/14 18:10:48  amura
+ * filename length become flexible
+ *
  * Revision 1.5  2000/11/16 14:21:28  amura
  * merge Ng for win32 0.5
  *
@@ -682,9 +685,14 @@ dired_( char *dirname )
 	}
 	free( files ) ;
 	bp->b_dotp = lforw( bp->b_linep ) ;		/* go to first line */
-	(VOID) strncpy( bp->b_fname, dirname, NFILEN ) ;
+	if (bp->b_fname)
+		free(bp->b_fname);
+	if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
+		(VOID) strcpy(bp->b_fname, dirname);
 #ifdef EXTD_DIR
-	bp->b_cwd[0] = '\0';
+	if (bp->b_cwd)
+		free(bp->b_cwd);
+	bp->b_cwd = NULL;
 #endif
 	if ( ( bp->b_modes[0] = name_mode( "dired" ) ) == NULL ) {
 		bp->b_modes[0] = &map_table[0] ;
@@ -1011,7 +1019,7 @@ fbackupfile( char *fn )
 #else
 	len = strlen(fn) + 4 + 1;
 #endif
-	if ( ( nname = malloc(len) ) == NULL ) {
+	if ( ( nname = alloca(len) ) == NULL ) {
 		ewprintf( "Can't get %d bytes", len) ;
 		return ABORT ;
 	}
@@ -1032,11 +1040,8 @@ fbackupfile( char *fn )
 	sjis2unicode( (LPBYTE) fns, unicode, sizeof unicode ) ;
 	rel2abs( szFns, g_szCurDir, unicode ) ;
 	DeleteFile( szNNames ) ;
-	if ( MoveFile( szFns, szNNames ) < 0 ) {
-		free( nname ) ;
+	if ( MoveFile( szFns, szNNames ) < 0 )
 		return FALSE ;
-	}
-	free( nname ) ;
 	return TRUE ;
 }
 #endif	/* NO_BACKUP */

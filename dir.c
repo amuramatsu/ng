@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.10 2000/09/21 17:28:29 amura Exp $ */
+/* $Id: dir.c,v 1.11 2000/12/14 18:06:23 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -8,6 +8,9 @@
 
 /*
  * $Log: dir.c,v $
+ * Revision 1.11  2000/12/14 18:06:23  amura
+ * filename length become flexible
+ *
  * Revision 1.10  2000/09/21 17:28:29  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -86,7 +89,7 @@ extern char* strncpy();
 
 char	*wdir;
 static char cwd[NFILEN];
-static char startdir[NFILEN];
+static char *startdir = NULL;
 
 /*
  * Initialize anything the directory management routines need
@@ -129,22 +132,28 @@ dirinit()
 #endif
 #endif	/* MSDOS||HUMAN68K */
 #endif	/* WIN32 */
-	if (startdir[0] == '\0') {
-		int i;
-		strncpy(startdir, cwd, NFILEN-1);
+	if (startdir == NULL) {
+		int len = strlen(cwd);
+		startdir = malloc(len + 2);
+		if (startdir == NULL) {
+		    ewprintf("Cannot alloc %d bytes", len + 2);
+		    return;
+		}
+		strcpy(startdir, cwd);
 #ifdef EXTD_DIR
-		i = strlen(startdir) - 1;
+		if (len > 1) {
 #ifdef BDC2
-		if (startdir[i] != BDC1 && startdir[i] != BDC2) {
-			startdir[i+1] = BDC2;
-			startdir[i+2] = '\0';
-		}
+		    if (startdir[len-1] != BDC1 && startdir[len-1] != BDC2) {
+			startdir[len] = BDC2;
+			startdir[len+1] = '\0';
+		    }
 #else
-		if (startdir[i] != BDC1) {
-			startdir[i+1] = BDC1;
-			startdir[i+2] = '\0';
-		}
+		    if (startdir[len-1] != BDC1) {
+			startdir[len] = BDC1;
+			startdir[len+1] = '\0';
+		    }
 #endif
+		}
 #endif
 	}
 }
@@ -170,17 +179,31 @@ dirend()
  * specified buffer.
  *
  * By Tillanosoft, Mar 22, 1999.
+ * Modified by amura, Dec 1, 2000.
  */
-
 VOID
 storecwd(bp)
 BUFFER *bp;
 {
-  if (bp) {
-    makepath(bp->b_cwd, bp->b_fname, NFILEN);
-    if (bp->b_cwd[0] == '\0')
-      strncpy(bp->b_cwd, startdir, NFILEN);
-  }
+    char tmp[NFILEN];
+    char *path;
+
+    if (bp) {
+	if (bp->b_fname) {
+	    makepath(tmp, bp->b_fname, NFILEN);
+	    if (tmp[0] == '\0')
+		path = startdir;
+	    else
+		path = tmp;
+	}
+	else
+	    path = startdir;
+	if (bp->b_cwd)
+	    free(bp->b_cwd);
+	if ((bp->b_cwd=malloc(strlen(path)+1)) == NULL)
+	    return;
+	strcpy(bp->b_cwd, path);
+    }
 }
 
 /*
@@ -281,22 +304,26 @@ VOID
 vchdir(newdir)
 char *newdir;
 {
-  if (curbp) {
-    strcpy(curbp->b_cwd, newdir);
-  }
+    if (curbp) {
+	if (curbp->b_cwd)
+	    free(curbp->b_cwd);
+	if ((curbp->b_cwd=malloc(strlen(newdir)+1)) == NULL)
+	    return;
+	strcpy(curbp->b_cwd, newdir);
+    }
 }
 
 VOID
 ensurecwd pro((VOID))
 {
-  if (curbp) {
-    if (curbp->b_cwd[0] == '\0') {
-      storecwd(curbp);
+    if (curbp) {
+      if (curbp->b_cwd == NULL) {
+	  storecwd(curbp);
+      }
+      if (curbp->b_cwd != NULL) {
+	  rchdir(curbp->b_cwd); /* ensure we are in the current dir */
+      }
     }
-    if (curbp->b_cwd[0]) {
-      rchdir(curbp->b_cwd); /* ensure we are in the current dir */
-    }
-  }
 }
 
 /*
@@ -493,11 +520,15 @@ showcwdir(f, n)
 	int  len;
 
 	if (curbp) {
-	  if (curbp->b_cwd[0] == '\0') {
+	  if (curbp->b_cwd == NULL) {
 	    storecwd(curbp);
 	  }
-	  (VOID)strcpy(dirname, curbp->b_cwd);
-	  len = strlen(dirname) - 1;
+	  if (curbp->b_cwd == NULL)
+	      dirname[0] = '\0';
+	  else {
+	      (VOID)strcpy(dirname, curbp->b_cwd);
+	      len = strlen(dirname) - 1;
+	  }
 #ifdef	BDC2
 # ifdef	AMIGA
 	  if (dirname[len]==BDC2)
