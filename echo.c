@@ -12,12 +12,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: echo.c,v 1.3 2000/06/01 05:26:18 amura Exp $ */
+/* $Id: echo.c,v 1.4 2000/06/04 06:21:47 amura Exp $ */
 
 /* $Log: echo.c,v $
-/* Revision 1.3  2000/06/01 05:26:18  amura
-/* Debug CANNA support
+/* Revision 1.4  2000/06/04 06:21:47  amura
+/* To be able to compile without KANJI
 /*
+ * Revision 1.3  2000/06/01  05:26:18  amura
+ * Debug CANNA support
+ *
  * Revision 1.2  2000/03/28  02:38:37  amura
  * CANNA support.
  * ,
@@ -788,9 +791,11 @@ mb_get_buffer(buf, nbuf)
   j = 0;
   for (i = _mb_prompt; i < _mb_point;){
     if (j >= nbuf-1){
+#ifdef	KANJI
       if (ISKANJI(_mb_buf[i]))
 	buf[j-1] = '\0';
       else
+#endif
 	buf[j] = '\0';
       return 0;
     }
@@ -798,9 +803,11 @@ mb_get_buffer(buf, nbuf)
   }
   for (i = _mb_gapend; i < _mb_size;){
     if (j >= nbuf-1){
+#ifdef	KANJI
       if (ISKANJI(_mb_buf[i]))
 	buf[j-1] = '\0';
       else
+#endif
 	buf[j] = '\0';
       return 0;
     }
@@ -886,9 +893,21 @@ mb_insert(n, c)
   char c;
 {
   int  col, pt, ocol, opt;
+#ifdef	KANJI
   static int  k1 = 0, nnn;
+#endif
   struct _Line *lp;
 
+#ifndef	KANJI
+  if (n < 0)
+    return -1;
+  ocol = _mb_ccol;
+  opt  = _mb_point;
+  lp   = CLine;
+  mb2_insert(n, c);
+  mb_fixlines(ocol, lp, opt, &col, &pt);
+  mb_refresh(col, pt);
+#else	/* KANJI is TRUE */
   if (k1 == 0){
     if (n < 0)
       return -1;
@@ -915,6 +934,7 @@ mb_insert(n, c)
     mb_refresh(col, pt);
     k1 = 0;
   }
+#endif /* NOT KANJI */
   return 0;
 }
 static int
@@ -2101,7 +2121,7 @@ chsize2(s, visu, mem)
     *mem  = 1;
   }
 }
-#else   /* MINIBUF_EDIT */
+#else   /* NOT MINIBUF_EDIT */
 static int veread_del_char ();
 static int veread_complete ();
 
