@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.21.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: def.h,v 1.21.2.2 2003/02/28 17:47:18 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -70,11 +70,6 @@ typedef struct LIST {
 #define _PRO(x) ()
 #endif
 
-#ifdef	NO_MACRO
-#ifndef NO_STARTUP
-#define NO_STARTUP			/* NO_MACRO implies NO_STARTUP */
-#endif
-#endif
 typedef int (*PF) _PRO((int, int)); /* generaly useful type */
 
 /*
