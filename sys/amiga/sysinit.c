@@ -1,4 +1,4 @@
-/* $Id: sysinit.c,v 1.5 2000/12/22 19:48:17 amura Exp $ */
+/* $Id: sysinit.c,v 1.6 2001/02/01 16:31:43 amura Exp $ */
 /*
  * Name:	MG 2a
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: sysinit.c,v $
+ * Revision 1.6  2001/02/01 16:31:43  amura
+ * fix small bug? in get current directory
+ *
  * Revision 1.5  2000/12/22 19:48:17  amura
  * change "sysdef.h" to "def.h" for get NFILEN
  *
@@ -97,7 +100,7 @@ sysinit()
 
 	StartLock = ((struct Process *)FindTask(0L))->pr_CurrentDir;
 	(void) CurrentDir(MyDirLock = DupLock(StartLock));
-	len = PathName(MyDirLock, MyDirName, NFILEN/31L);
+	len = PathName(MyDirLock, MyDirName, (NFILEN+31L)/32L - 1);
 #endif /* NO_DIR */
 
 /* These from ttyio.c by H.Ohkubo Dec.20,1992 */
