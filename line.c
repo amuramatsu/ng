@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.9.2.3 2001/07/23 18:15:54 amura Exp $ */
+/* $Id: line.c,v 1.9.2.4 2003/03/08 00:38:05 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.9.2.4  2003/03/08 00:38:05  amura
+ * fix query-replace bug
+ *
  * Revision 1.9.2.3  2001/07/23 18:15:54  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -487,6 +490,13 @@ ldelete(n, kflag) RSIZE n; {
 	    }
 	}
 #endif
+#ifdef KANJI
+	if (kflag & KNOKANJI)
+		kanji2nd = -1;
+	else
+		kanji2nd = 0;
+	kflag = KFLAGS(kflag);
+#endif
 
 	/*
 	 * HACK - doesn't matter, and fixes back-over-nl bug for empty
@@ -533,19 +543,23 @@ ldelete(n, kflag) RSIZE n; {
 		lchange(WFEDIT);
 		cp1 = &dotp->l_text[doto];	/* Scrunch text.	*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		cp2 = cp1;
-		kanji2nd = FALSE;
-		for (i = 0; i < chunk; i++, cp2++) {
-			if (kanji2nd) {
-				kanji2nd = FALSE;
-			} else if (ISKANJI(*cp2)) {
-				kanji2nd = TRUE;
+		if (kanji2nd < 0) /* ignore KANJI */
+			cp2 = cp1 + chunk;
+		else {
+			cp2 = cp1;
+			kanji2nd = 0;
+			for (i = 0; i < chunk; i++, cp2++) {
+				if (kanji2nd) {
+					kanji2nd = 0;
+				} else if (ISKANJI(*cp2)) {
+					kanji2nd = 1;
+				}
 			}
-		}
-		if (kanji2nd) {
-			cp2++;
-			chunk++;
-			n++;
+			if (kanji2nd) {
+				cp2++;
+				chunk++;
+				n++;
+			}
 		}
 #else	/* NOT KANJI */
 		cp2 = cp1 + chunk;
@@ -600,7 +614,8 @@ ldelete(n, kflag) RSIZE n; {
 		n -= chunk;
 	}
 #ifdef	CLIPBOARD
-	send_clipboard();
+	if (kflag != KNONE)
+		send_clipboard();
 #endif
 #ifdef	UNDO
 	if (isundo() && char_num!=0) {
@@ -754,7 +769,11 @@ int		f;			/* case hack disable		*/
 	}
 #endif
 	if (plen > rlen)
+#ifdef KANJI
+		(VOID) ldelete((RSIZE) (plen-rlen), KNONE|KNOKANJI);
+#else
 		(VOID) ldelete((RSIZE) (plen-rlen), KNONE);
+#endif
 	else if (plen < rlen) {
 		if (linsert((int)(rlen-plen), ' ') == FALSE)
 			return FALSE;

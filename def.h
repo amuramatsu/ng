@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.7.2.1 2001/07/23 18:15:53 amura Exp $ */
+/* $Id: def.h,v 1.7.2.2 2003/03/08 00:38:05 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.7.2.2  2003/03/08 00:38:05  amura
+ * fix query-replace bug
+ *
  * Revision 1.7.2.1  2001/07/23 18:15:53  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -170,6 +173,10 @@ typedef int (*PF) pro((int, int)); /* generaly useful type */
 #define KNONE	0
 #define KFORW	1
 #define KBACK	2
+#ifdef KANJI
+#define KNOKANJI	0x80
+#define KFLAGS(n)	((n) & 0x0f)
+#endif
 
 /*
  * All text is kept in circularly linked
