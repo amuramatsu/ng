@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.8 2000/12/14 18:06:23 amura Exp $ */
+/* $Id: buffer.c,v 1.9 2000/12/22 19:54:34 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.9  2000/12/22 19:54:34  amura
+ * fix some bug in filename handling
+ *
  * Revision 1.8  2000/12/14 18:06:23  amura
  * filename length become flexible
  *
@@ -185,6 +188,12 @@ killbuffer(f, n)
 			bp1->b_altb = (bp->b_altb == bp1) ? NULL : bp->b_altb;
 		bp1 = bp1->b_bufp;
 	}
+	if (bp->b_fname != NULL)		/* Release filename block */
+		free(bp->b_fname);
+#ifdef	EXTD_DIR
+	if (bp->b_cwd != NULL)			/* Release pathname block */
+		free(bp->b_cwd);
+#endif
 	free(bp->b_bname);			/* Release name block	*/
 #ifdef	UNDO
 	undo_clean(bp);				/* Release undo data	*/
@@ -315,7 +324,7 @@ makelist() {
 			*cp1++ = c;
 		*cp1++ = ' ';			/* Gap..		*/
 		cp2 = bp->b_fname;		/* File name		*/
-		if (*cp2 != 0) {
+		if (cp2 != NULL) {
 			while ((c = *cp2++) != 0) {
 				if (cp1 < &line[128-1])
 					*cp1++ = c;
@@ -501,11 +510,12 @@ bfind(bname, cflag) register char *bname; {
 #ifdef	EXTD_DIR
 	bp->b_cwd = NULL;
 	if (curbp) {
-	  if (curbp->b_cwd == NULL && curbp->b_fname) {
+	  if (curbp->b_cwd == NULL) {
 	    extern void storecwd pro((BUFFER *bp));
 	    storecwd(curbp);
 	  }
-	  if ((bp->b_cwd=malloc(strlen(curbp->b_cwd)+1)) != NULL)
+	  if (curbp->b_cwd != NULL &&
+	      (bp->b_cwd=malloc(strlen(curbp->b_cwd)+1)) != NULL)
 	    strcpy(bp->b_cwd, curbp->b_cwd);
 	}
 #endif

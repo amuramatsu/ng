@@ -1,10 +1,13 @@
-/* $Id: file.c,v 1.4 2000/12/14 18:06:24 amura Exp $ */
+/* $Id: file.c,v 1.5 2000/12/22 19:54:35 amura Exp $ */
 /*
  *		File commands.
  */
 
 /*
  * $Log: file.c,v $
+ * Revision 1.5  2000/12/22 19:54:35  amura
+ * fix some bug in filename handling
+ *
  * Revision 1.4  2000/12/14 18:06:24  amura
  * filename length become flexible
  *
@@ -149,7 +152,7 @@ char *prompt;
 		if (readonly) {
 		  bp->b_flag |= BFRONLY;	/* Mark as read-only	*/
 		}
-		else {
+		else if (bp->b_fname != NULL) {
 		  if (fchkreadonly(bp->b_fname)) {/* If no write permission, */
 		    bp->b_flag |= BFRONLY;	  /* mark as read-only.      */
 		    ewprintf("File is write protected");
@@ -262,7 +265,7 @@ char *fname;
 	unsigned count = 1;
 
 	for (bp=bheadp; bp!=NULL; bp=bp->b_bufp) {
-		if (bp->b_fname && (fncmp(bp->b_fname, fname)==0))
+		if (bp->b_fname!=NULL && (fncmp(bp->b_fname, fname)==0))
 			return bp;
 	}
 	makename(bname, fname);			/* New buffer name.	*/
@@ -369,7 +372,7 @@ insertfile(fname, newname) char fname[], newname[]; {
 
 	bp = curbp;				/* Cheap.		*/
 	if (newname != (char *) NULL) {
-		if (bp->b_fname)
+		if (bp->b_fname != NULL)
 			free(bp->b_fname);
 		if ((bp->b_fname=malloc(strlen(newname)+1)) == NULL) {
 			ewprintf("Could not allocate %d bytes",
@@ -378,7 +381,7 @@ insertfile(fname, newname) char fname[], newname[]; {
 		}
 		(VOID) strcpy(bp->b_fname, newname);
 #ifdef	EXTD_DIR
-		if (bp->b_cwd)
+		if (bp->b_cwd != NULL)
 			free(bp->b_cwd);
 		bp->b_cwd = NULL;
 #endif		
@@ -687,11 +690,11 @@ filewrite(f, n)
 			return FALSE;
 		}
 		(VOID) strcpy(newname, adjfname);
-		if (curbp->b_fname)
+		if (curbp->b_fname != NULL)
 			free(curbp->b_fname);
 		curbp->b_fname = newname;
 #ifdef	EXTD_DIR
-		if (curbp->b_cwd)
+		if (curbp->b_cwd != NULL)
 			free(curbp->b_cwd);
 		curbp->b_cwd = NULL;
 #endif		
@@ -709,7 +712,8 @@ filewrite(f, n)
 		makename(bname, adjfname);	/* New buffer name.	*/
 		cp = bname + strlen(bname);
 		while((bp = bfind(bname, FALSE)) != NULL) {
-			if (bp->b_fname && (fncmp(bp->b_fname, adjfname)==0)) {
+			if (bp->b_fname!=NULL &&
+			    (fncmp(bp->b_fname, adjfname)==0)) {
 				break;
 			}
 			*cp = '<';	/* add "<count>" to then name	*/
@@ -828,6 +832,8 @@ makebkfile(f, n)
 writeout(bp, fn) register BUFFER *bp; char *fn; {
 	register int	s;
 
+	if (fn == NULL)
+		return (FALSE);
 	if ((s=ffwopen(fn)) != FIOSUC)		/* Open writes message. */
 		return (FALSE);
 	s = ffputbuf(bp);

@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.11 2000/12/14 18:06:23 amura Exp $ */
+/* $Id: dir.c,v 1.12 2000/12/22 19:54:35 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -8,6 +8,9 @@
 
 /*
  * $Log: dir.c,v $
+ * Revision 1.12  2000/12/22 19:54:35  amura
+ * fix some bug in filename handling
+ *
  * Revision 1.11  2000/12/14 18:06:23  amura
  * filename length become flexible
  *
@@ -189,7 +192,7 @@ BUFFER *bp;
     char *path;
 
     if (bp) {
-	if (bp->b_fname) {
+	if (bp->b_fname != NULL) {
 	    makepath(tmp, bp->b_fname, NFILEN);
 	    if (tmp[0] == '\0')
 		path = startdir;
@@ -198,7 +201,7 @@ BUFFER *bp;
 	}
 	else
 	    path = startdir;
-	if (bp->b_cwd)
+	if (bp->b_cwd != NULL)
 	    free(bp->b_cwd);
 	if ((bp->b_cwd=malloc(strlen(path)+1)) == NULL)
 	    return;
@@ -305,7 +308,7 @@ vchdir(newdir)
 char *newdir;
 {
     if (curbp) {
-	if (curbp->b_cwd)
+	if (curbp->b_cwd != NULL)
 	    free(curbp->b_cwd);
 	if ((curbp->b_cwd=malloc(strlen(newdir)+1)) == NULL)
 	    return;
@@ -523,22 +526,24 @@ showcwdir(f, n)
 	  if (curbp->b_cwd == NULL) {
 	    storecwd(curbp);
 	  }
-	  if (curbp->b_cwd == NULL)
-	      dirname[0] = '\0';
+	  if (curbp->b_cwd == NULL) 
+	    dirname[0] = '\0';
 	  else {
-	      (VOID)strcpy(dirname, curbp->b_cwd);
-	      len = strlen(dirname) - 1;
-	  }
+	    (VOID)strcpy(dirname, curbp->b_cwd);
+	    len = strlen(dirname) - 1;
+	    if (len >= 0) {
 #ifdef	BDC2
 # ifdef	AMIGA
-	  if (dirname[len]==BDC2)
+		if (dirname[len]==BDC2)
 # else
-	  if (dirname[len]==BDC1 || dirname[len]==BDC2)
+		if (dirname[len]==BDC1 || dirname[len]==BDC2)
 # endif
 #else
-	  if (dirname[len] == BDC1)
+	 	if (dirname[len] == BDC1)
 #endif
-	    dirname[len] = '\0';
+		    dirname[len] = '\0';
+	    }
+	  }
 	  ewprintf("Current directory: %s", dirname);
 	}
 #else	/* !EXTD_DIR */
