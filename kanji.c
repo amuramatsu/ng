@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.1 2000/06/27 01:47:55 amura Exp $ */
+/* $Id: kanji.c,v 1.2 2000/06/29 17:52:56 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,8 +8,11 @@
 
 /*
  * $Log: kanji.c,v $
- * Revision 1.1  2000/06/27 01:47:55  amura
- * Initial revision
+ * Revision 1.2  2000/06/29 17:52:56  amura
+ * enable VTCURSOR all input kanji code
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:55  amura
+ * import to CVS
  *
  */
 /* 90.01.29	Created by S.Yoshida */
@@ -857,6 +860,27 @@ reinput:
 	} else if (global_kinput == EUC && iseuc1st(c1)) {
 		savedchar = getkbd();
 		kgetkey_more = TRUE;
+#ifdef VTCURSOR /* 92.03.16 by Gen KUROKI, renamed by amura */
+	} else if (c1 == ESC) {
+		c1 = getkbd();
+		if (c1 == 'O' || c1 == '[') {
+			c2 = getkbd();
+			switch (c2) {
+			  case 'A': c1 = CCHR('P'); break;
+			  case 'B': c1 = CCHR('N'); break;
+			  case 'C': c1 = CCHR('F'); break;
+			  case 'D': c1 = CCHR('B'); break;
+			  default:
+			    ungetkbd(c2);
+			    ungetkbd(c1);
+			    c1 = ESC;
+			    break;
+			}
+		} else {
+			ungetkbd(c1);
+			c1 = ESC;
+		}
+#endif /* VTCURSOR */
 	}
 	return(c1);
 }
