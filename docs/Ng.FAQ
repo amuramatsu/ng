@@ -1,4 +1,4 @@
-# $Id: Ng.FAQ,v 1.1 2000/06/27 01:48:03 amura Exp $
+# $Id: Ng.FAQ,v 1.2 2000/09/04 19:19:32 amura Exp $
 
 Ng Frequently Asking Questions and answers
 
@@ -37,7 +37,7 @@ A : Ngの開発には、非常に多くの人が関わっています。
     * 伊藤栄一郎がWinCE英語版に移植しました。
     * 今井透がWin32日本語版に移植し、いくつかのバグを解消しました。
       また、dir周りを改良しました。
-    * Gen.KUROKIがキーボード周りを改良しました。
+    * 黒木玄がキーボード周りを改良しました。
     * 別所博之がzap-to-char、jump-errorなど便利な機能を付け足しま
       した。
     * 村松篤が、undo機能を付け、C モードを改良し、いくつかの機能を
@@ -49,7 +49,7 @@ A : Ngの開発には、非常に多くの人が関わっています。
 Q : Ngはどのようなコンピューターで使えますか。
 A : 現在 Ng がサポートしているのは
 
-    * AmigaOS    (AMIGA / UAE)
+    * AmigaOS    (AMIGA / UAE) # 現在配布停止中です。
     * BSD        (SunOS, *BSD, BSD/OS, Mach, etc.)
     * Human 68k  (X680x0 / 零式?)
     * MS-DOS     (PC-9801, IBM PC, J-3100, etc.)
@@ -58,30 +58,26 @@ A : 現在 Ng がサポートしているのは
 
     です。また、元となったmg 2aでは AtariST, Primos, VMS, OS-9/68k
     もサポートしていたので、これらの機種には比較的楽に移植できるで
-    しょう。(でもAtariST, Primosは日本語が表示できません)
-    今後、MacOS, Psion, BeOSに移植されるかもしれませんが目処は立っ
-    ていません。
+    しょう。(でも AtariST, Primos は日本語が表示できません)
 
-Q : Ngを友人にコピーして構いませんか。
+Q : Ng を友人にコピーして構いませんか。
 A : はい、どんどんコピーしてください。
-    現在、Ng は General Public License version 2 に従って配布され
-    ています。詳しい配布条件は、同封されている LICENSE.TXT をご覧
-    ください。
-    実際には、Ngのほとんどのソースは PublicDomain、もしくは BSD
-    style copyrightです。もし、何らかの事情でGPLに従えないときは、
-    regex_[ej].[ch] と re_search.c を空のファイルと置き換えて配布、
-    使用してください。
+   現在 Ng のソースのほとんどは Public Domain に置かれており、一部に
+   は BSD-style license が適用されています。また、regex_[ej].[ch] には
+   GNU GPL が適用されていますので注意してください。何らかの事情で GPL
+   に従えないときは、regex_[ej].[ch] と re_search.c を空のファイルと置
+   き換えて配布、使用してください。
 
 Q : なんでこんなへんてこなキーアサインなの？
 A : コンピュータの世界では標準である GNU Emacs に準拠しています。
     たぶん、今まで使っていたエディタが変だったのでしょう ;-(
 
-Q : SKGとは何ですか
-A : Simple Kanji Generator function の略です。Ng専用の簡素な日本語
-    入力で、NEmacs/muleで使われるSKKを参考に開発されました。日本語
-    が簡単に入力できない環境では重宝するでしょう。
-    SKG は小西宏和さんによって開発され、KANgee(Amiga版Ngを元に拡張
-    されたエディタ)に付け加えられました。
+Q : SKG とは何ですか
+A : Simple Kanji Generator function の略です。Ng 専用の簡素な日本語
+    入力で、NEmacs/mule で使われる SKK を参考に開発されました。日本
+    語が簡単に入力できない環境では重宝するでしょう。
+    SKG は小西宏和さんによって開発され、KANgee (Amiga 版 Ng を元に拡
+    張されたエディタ) に付け加えられました。
 
 Q : 非常に大きな Terminal で使うと、Terminal の一部にしか表示してく
     れません。
@@ -102,4 +98,5 @@ A : 要望が多ければ実装されるかもしれません。最も確実に機能を追加さ
 
 Q : このファイルにある質問を、本当によく聞かれますか。
 A : もちろん、このような質問を受けたことはありません。そういうもの
-    です 8-)
+    らしいです 8-)
+
