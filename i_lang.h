@@ -1,4 +1,4 @@
-/* $Id: i_lang.h,v 1.1.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: i_lang.h,v 1.1.2.2 2003/02/28 17:45:11 amura Exp $ */
 /*
  * This file is the language module definition of the NG
  * display editor.
@@ -9,26 +9,34 @@
 
 typedef struct LANGAGE_MODULE {
     char *lm_name;
-    int (*lm_width)(NG_WCHAR_t);
-    CODE_MAP **(*lm_get_codemap)();
-    int (*lm_out_convert_len)(int, NG_WCHAR_t *);
-    int (*lm_out_convert)(int, NG_WCHAR_t *, char *);
-    int (*lm_in_convert_len)(int, NG_WCHAR_t *);
-    int (*lm_in_convert)(int, char *, NG_WCHAR_t *);
-    int (*lm_buffer_name_code)();
-    int (*lm_set_code)(int, int);
-    int (*lm_display_start_code)();
-    int (*lm_get_display_code)(int, int, NG_WCHAR_t, char *);
+    int (*lm_width)_PRO((NG_WCHAR_t));
+    CODEMAP *(*lm_get_codemap)_PRO((void));
+    int (*lm_out_convert_len)_PRO((int, NG_WCHAR_t *));
+    int (*lm_out_convert)_PRO((int, NG_WCHAR_t *, char *));
+    int (*lm_in_convert_len)_PRO((int, NG_WCHAR_t *));
+    int (*lm_in_convert)_PRO((int, char *, NG_WCHAR_t *));
+    int (*lm_in_set_code_subtype)_PRO((int, int, int));
+    int (*lm_buffer_name_code)_PRO((void));
+    int (*lm_set_code)_PRO((int, int));
+    int (*lm_display_start_code)_PRO((void));
+    int (*lm_get_display_code)_PRO((int, NG_WCHAR_t, char**, int *));
 };
 
 typedef struct CODEMAP {
     char *cm_name;
-    char type;
-}
-
+    char cm_type;
 #define NG_CODE_FOR_DISPLAY	0x01
 #define NG_CODE_FOR_FILE	0x02
 #define NG_CODE_FOR_INPUT	0x04
+
+    short cm_code;
+#define NG_CODE_PASCII		-1	/* pretty print ascii: MUST NEED */
+#define NG_CODE_ASCII		0	/* MUST NEED */
+#define NG_CODE_ISO2022		1	/* OPTIONAL */
+#define NG_CODE_UNICODE		2	/* OPTIONAL */
+#define IS_NG_CODE_GLOBAL(n)	((n) < 256)
+#define IS_NG_CODE_LOCAL(n)	(!IS_NG_CODE_GLOBAL(n))
+} CODEMAP;
 
 #endif /* __I_LANG_H__ */
 
