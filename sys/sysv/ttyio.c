@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.2.2.2 2001/01/17 18:36:45 amura Exp $ */
+/* $Id: ttyio.c,v 1.2.2.3 2001/01/23 08:50:29 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		System V terminal I/O.
@@ -19,6 +19,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.2.2.3  2001/01/23 08:50:29  amura
+ * reset terminal polling mode in ttwait()
+ *
  * Revision 1.2.2.2  2001/01/17 18:36:45  amura
  * fix typo POSIXTTY to POSIX_TTY
  *
@@ -59,9 +62,6 @@ int	nobuf;				/* buffer count			*/
 #ifdef POSIXTTY			/* by S.Okamoto 93/03/16 */
 static struct termios	ot;		/* entry state of the terminal	*/
 static struct termios	nt;		/* editor's terminal state	*/
-#ifndef _POSIX_VDISABLE
-#define _POSIX_VDISABLE	0		/* HP-UX and Linux and ...	*/
-#endif
 #else
 static struct termio	ot;		/* entry state of the terminal	*/
 static struct termio	nt;		/* editor's terminal state	*/
@@ -411,6 +411,9 @@ ttwait()
 #else	/* NOT BUGFIX */
 	signal(SIGALRM, alrm); alarm(2);
 #endif	/* BUGFIX */
+	if (kbdpoll && fcntl( 0, F_SETFL, kbdflgs ) < 0)
+		abort();
+	kbdpoll = FALSE;
 	kbdqp = (1 == read(0, &kbdq, 1));
 	alarm(0);
 	return FALSE;			/* successful read if here	*/
