@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.3 2000/07/22 20:46:32 amura Exp $ */
+/* $Id: tools.c,v 1.4 2000/07/25 15:04:21 amura Exp $ */
 /*
  * NG : C library compatible routine for Ng
  *
@@ -12,6 +12,9 @@
 
 /*
  * $Log: tools.c,v $
+ * Revision 1.4  2000/07/25 15:04:21  amura
+ * fix filevisit() args
+ *
  * Revision 1.3  2000/07/22 20:46:32  amura
  * support "Drag&Drop"
  *
@@ -716,7 +719,7 @@ DropEvent(const char *files, int y)
       bufstoe(filename, strlen(filename)+1);
 #endif
       eargset(filename);
-      if (!filevisit(FFARG, 0))
+      if (!filevisit(FFRAND, 0))
         break;
 	  mp += lstrlen(mp)+1;
     } while ( *mp != 0 );

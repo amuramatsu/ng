@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.4 2000/07/22 20:47:32 amura Exp $ */
+/* $Id: jump.c,v 1.5 2000/07/25 15:04:21 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: jump.c,v $
+ * Revision 1.5  2000/07/25 15:04:21  amura
+ * fix filevisit() args
+ *
  * Revision 1.4  2000/07/22 20:47:32  amura
  * do not use excline()
  *
@@ -158,6 +161,7 @@ jumptoerror(f,n)
     char *p=buf;
     int col;
     LINE *dlp;
+    extern int access();
     extern int gotoline();
     extern int filevisit(), poptofile();
 	
@@ -182,9 +186,9 @@ jumptoerror(f,n)
 		    curwp->w_dotp = lforw(dlp);
 		eargset(buf);
 		if (f&FFARG) {
-			if (!filevisit(FFARG,0)) return FALSE;
+			if (!filevisit(FFRAND,0)) return FALSE;
 		} else {
-			if (!poptofile(FFARG,0)) return FALSE;
+			if (!poptofile(FFRAND,0)) return FALSE;
 		}
 		gotoline( FFARG, lineno );
 		return TRUE;
