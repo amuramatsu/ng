@@ -1,10 +1,13 @@
-/* $Id: ttyio.c,v 1.9 2002/04/18 13:49:22 amura Exp $ */
+/* $Id: ttyio.c,v 1.10 2002/11/06 15:13:13 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.10  2002/11/06 15:13:13  amura
+ * with DIRECT_IOCS macro, now you can compile Human68k version
+ *
  * Revision 1.9  2002/04/18 13:49:22  amura
  * HUMAN68K's console output routine is modified for speed
  *
@@ -99,6 +102,7 @@ ttopen()
     register char *tv_stype;
     char tcbuf[TERMCAP_BUF_LEN], err_str[72];
 
+#ifndef DIRECT_IOCS
     /* do this the REAL way */
     if ((tv_stype = getenv("TERM")) == NULL) {
 	puts("Environment variable TERM not defined!");
@@ -110,6 +114,7 @@ ttopen()
 	puts(err_str);
 	exit(1);
     }
+#endif
     if (ttraw() == FALSE)
 	panic("aborting due to terminal initialize failure");
 #ifdef	SIGWINCH	/* 90.02.13  by S.Yoshida */
@@ -325,11 +330,16 @@ int c;
 VOID
 setttysize()
 {
+#ifdef DIRECT_IOCS
+    nrow = 32;
+    ncol = 96;
+#else
     if ((nrow=tgetnum ("li")) <= 0
 	|| (ncol=tgetnum ("co")) <= 0) {
 	nrow = 32;
 	ncol = 96;
     }
+#endif
 }
 
 /*
@@ -540,7 +550,8 @@ int
 fepmode_chg(f, n)
 int f, n;
 {
-    if (fepctrl = !fepctrl) {
+    fepctrl = !fepctrl;
+    if (fepctrl) {
 	fep_init();
 	fepmode = TRUE;
     }
