@@ -1,52 +1,50 @@
-# $Id: Makefile.in,v 1.4.2.1 2003/02/23 14:17:14 amura Exp $
-# Makefile.in for Ng / Mg++
+# $Id: Makefile,v 1.2.4.1 2003/02/23 14:17:14 amura Exp $
+# Makefile for MicroEMACS.
+# Is there a better way to do the rebuilds, other than using
+# the links?
 #
-# $Log: Makefile.in,v $
-# Revision 1.4.2.1  2003/02/23 14:17:14  amura
+# $Log: Makefile,v $
+# Revision 1.2.4.1  2003/02/23 14:17:14  amura
 # move canna.c from sys/default to sys/unix
 #
-# Revision 1.4  2001/02/18 17:07:39  amura
-# append AUTOSAVE feature (but NOW not work)
+# Revision 1.2  2000/09/30 15:59:42  amura
+# add Canna configuration form config.h
 #
-# Revision 1.3  2000/12/21 16:58:28  amura
-# add confclean target
+# Revision 1.1.1.1  2000/06/27 01:47:59  amura
+# import to CVS
 #
-# Revision 1.2  2000/12/01 10:06:16  amura
-# add configure rule and fix strip rule
-#
-# Revision 1.1  2000/11/19 18:34:59  amura
-# support GNU configure system
-#
-#
-# Create from BSD Makefile by MURAMATSU Atsushi
+# Modified for Ng 1.0	by Shigeki Yoshida (shige@csk.CO.JP)	1990.01.29
 
-SYS	= unix
+SYS	= sysv
 
-CC	     = @CC@
-STRIP        = @STRIP@
-INSTALL      = @INSTALL@
-INSTALL_DATA = @INSTALL_DATA@
-
-prefix      = @prefix@
-exec_prefix = @exec_prefix@
-BINDIR      = @bindir@
-SHAREDIR    = @datadir@/ng
+# Canna configurations
+#CANNADEF = -DCANNA
+#CANNALIB = -L/usr/share/lib -lcanna
+#CANNAINC = -I/usr/share/include
+CANNADEF =
+CANNALIB =
+CANNAINC =
 
 # CDEFS gets defines, and gets passed to lint. CFLAGS gets flags, and doesn't
 # get passed to lint.
 #
 # Now, compile time options are defined in a "config.h".
 #
-CDEFS	= @DEFS@
-CFLAGS	= @CFLAGS@ $(CDEFS)
-LDFLAGS = @LDFLAGS@
-LIBS	= @LIBS@
+CDEFS	= $(CANNADEF)
+CFLAGS	= -O $(CDEFS) $(CANNAINC)
+
+# If your machine have an alloca() in a libPW.a, please add -lPW to the LIBS.
+#LIBS	= $(CANNALIB) -lcurses -lPW
+LIBS	= $(CANNALIB) -lcurses 
 
 # If your machine don't have an alloca(), please define ALLOCA.
-ALLOCA	= @ALLOCA@
+#ALLOCA	= alloca.o
+ALLOCA	=
+
+CC	= cc
 
 # Objects which only depend on the "standard" includes
-OBJS	= autosave.o basic.o dir.o dired.o shell.o version.o window.o \
+OBJS	= basic.o dir.o dired.o shell.o version.o window.o \
 	  kinsoku.o jump.o
 
 # Those with unique requirements
@@ -68,30 +66,21 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  kinsoku.c skg.c jump.c undo.c
 
 OINCS =	ttydef.h sysdef.h chrdef.h
-INCS =	config.h def.h sysconfig.h
+INCS =	config.h def.h
 REINCS = regex_e.h regex_j.h regex_j.c regex_e.h kanji_.h kanji_.c
 
 #PROG = mg
 PROG = ng
 
 $(PROG):	$(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROG) $(OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -o $(PROG) $(OBJ) $(LIBS)
 
 # strip mg once you're satisfied it'll run -- makes it much smaller
 strip:
-	$(STRIP) $(PROG)
-
-install:
-	$(INSTALL) -m 755 -o root -g wheel $(PROG) $(BINDIR)
-	mkdir $(SHAREDIR)
-	$(INSTALL_DATA) -o root -g wheel docs/* $(SHAREDIR)
-	$(INSTALL_DATA) -o root -g wheel bin/* $(SHAREDIR)
+	strip $(PROG)
 
 lint: $(SRCS) $(OSRCS) $(INCS) $(OINCS)
 	lint -ahbz $(CDEFS) $(SRCS) $(OSRCS)
-
-sysconfig.h:
-	./configure
 
 $(OBJ):		$(INCS) $(OINCS)
 
@@ -166,15 +155,16 @@ cinfo.c:	sys/default/cinfo.c
 	rm -f cinfo.c
 	ln sys/default/cinfo.c .
 
-canna.c:	sys/$(SYS)/canna.c
+canna.c:	sys/unix/canna.c
 	rm -f canna.c
-	ln sys/$(SYS)/canna.c .
+	ln sys/unix/canna.c .
 
 alloca.c:	sys/default/alloca.c
 	rm -f alloca.c
 	ln sys/default/alloca.c .
 
-clean:;	rm -f $(OBJ) $(OSRCS) $(OINCS) $(PROG)
+port: $(SRCS) $(INCS)
+	rm -f port
+	tar cfb port 1 $?
 
-confclean:	clean
-	rm -f config.log config.cache config.status sysconfig.h Makefile
+clean:;	rm -f $(OBJ) $(OSRCS) $(OINCS)
