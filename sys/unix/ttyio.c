@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.7 2001/02/14 09:22:30 amura Exp $ */
+/* $Id: ttyio.c,v 1.8 2001/02/18 19:28:12 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.8  2001/02/18 19:28:12  amura
+ * ttflush() is modified for Solaris
+ *
  * Revision 1.7  2001/02/14 09:22:30  amura
  * always use select() even if ioctl() does NOT support FIONREAD
  *
@@ -328,9 +331,13 @@ int c;
  * Flush output.
  */
 ttflush() {
+    char *p = obuf;
+    int outlen;
     if (nobuf != 0) {
-	if (write(1, obuf, nobuf) != nobuf)
-	    panic("ttflush write failed");
+	if ((outlen=write(1, p, nobuf)) != nobuf) {
+	    p += nobuf;
+	    nobuf -= outlen;
+	}
 	nobuf = 0;
     }
 }
