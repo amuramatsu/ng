@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.20 2001/11/28 21:31:20 amura Exp $ */
+/* $Id: config.h,v 1.21 2002/04/07 01:00:53 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -153,8 +153,6 @@
 
 #define BACKSLASH	/* Display backslash instead of \ (PC-9801 only) */
 
-#define HOMEDIR		/* Home directory support for MSDOS */
-
 #define FEPCTRL		/* Enable FEP auto control. */
 
 /*................................................*/
@@ -177,8 +175,6 @@
 #define DROPFILES	/* Drag'n Drop file open */
 			/* If defined, ADDFUNC must be also. */
 
-#define HOMEDIR		/* Home directory support */
-
 #define	EMACS_BACKUP_STYLE
 			/* Backup files like as GNU Emacs */
 			/* If you use Win9x, this shold not set */
@@ -197,8 +193,6 @@
 /*................................................*/
 
 #define FEPCTRL		/* Enable FEP auto control. */
-
-#define HOMEDIR		/* Home directory support */
 
 #define	EMACS_BACKUP_STYLE
 			/* Backup files like as GNU Emacs */
@@ -271,16 +265,19 @@
 /************************************************************************/
 
 #ifdef KANJI
-# ifdef NO_KANJI /* in order to use same source for Ng and MG, Tillanosoft */
-#  undef KANJI
-# endif
+#  ifdef NO_KANJI /* in order to use same source for Ng and MG, Tillanosoft */
+#    undef KANJI
+#  endif
 #else /* not KANJI */
-# ifdef HANKANA
-#  undef HANKANA
-# endif
-# ifdef HOJO_KANJI
-#  undef HOJO_KANJI
-# endif
+#  ifdef HANKANA
+#   undef HANKANA
+#  endif
+#  ifdef HOJO_KANJI
+#    undef HOJO_KANJI
+#  endif
+#  ifdef USE_UNICODE
+#    undef USE_UNICODE
+#  endif
 #endif
 
 #ifdef HANKANA
@@ -295,10 +292,10 @@
 #  endif
 #endif
 
-#ifndef KANJI
-# ifdef JAPANESE_KEYBOARD
-#  undef JAPANESE_KEYBOARD
-# endif
+#ifdef JAPANESE_KEYBOARD
+#  ifndef KANJI
+#    undef JAPANESE_KEYBOARD
+#  endif
 #endif
 
 #ifdef CURSOR_POS
@@ -313,152 +310,155 @@
 #  endif
 #endif
 
-#ifdef	NO_DIR
-#   ifndef  NO_STARTUP
-#	define	NO_STARTUP
-#   endif
-#   ifdef   EXTD_DIR
-#	undef EXTD_DIR
+#ifdef CANNA
+#    ifndef KANJI
+#      undef CANNA
 #   endif
 #endif
 
-#ifdef	NO_MACRO
-#   ifndef  NO_STARTUP
-#	define	NO_STARTUP
-#   endif
+#ifdef NO_DIR
+#  ifndef NO_STARTUP
+#    define NO_STARTUP
+#  endif
+#  ifdef EXTD_DIR
+#    undef EXTD_DIR
+#  endif
 #endif
 
-#ifdef	KINSOKU
-#   ifndef  KANJI
-#	undef	KINSOKU
-#   endif
+#ifdef NO_MACRO
+#  ifndef NO_STARTUP
+#    define NO_STARTUP
+#  endif
+#endif
+
+#ifdef KINSOKU
+#  ifndef KANJI
+#    undef KINSOKU
+#  endif
 #endif
 
 #ifdef FEPCTRL
-# ifndef KANJI
-#  undef FEPCTRL
-# endif
+#  ifndef KANJI
+#    undef FEPCTRL
+#  endif
 #endif
 
-#ifdef	TCCONIO
-#   ifndef WITHOUT_TERMCAP
-#	define	WITHOUT_TERMCAP
-#   endif
+#ifdef TCCONIO
+#  ifndef WITHOUT_TERMCAP
+#    define WITHOUT_TERMCAP
+#  endif
 #endif
 
-#ifdef	NEW_COMPLETE
-#   ifndef  ADDFUNC
-#	define	ADDFUNC
-#   endif
+#ifdef NEW_COMPLETE
+#  ifndef ADDFUNC
+#    define ADDFUNC
+#  endif
 #endif
 
 #ifndef	NO_DIRED
-#   ifndef  ADDFUNC
-#	define	ADDFUNC
-#   endif
+#  ifndef ADDFUNC
+#    define ADDFUNC
+#  endif
 #endif
 
-#ifdef	JUMPERR
-#   ifndef  ADDFUNC
-#	define	ADDFUNC
-#   endif
+#ifdef JUMPERR
+#  ifndef ADDFUNC
+#    define ADDFUNC
+#  endif
 #endif
 
-#ifdef	DROPFILES
-#   ifndef  ADDFUNC
-#	define	ADDFUNC
-#   endif
+#ifdef DROPFILES
+#  ifndef ADDFUNC
+#    define ADDFUNC
+#  endif
 #endif
 
-#ifdef	MSDOS
-#   ifdef   IBMPC
-#	ifdef   PC9801
-#	    undef   PC9801
-#	endif
-#   endif
+#ifdef MSDOS
+#  ifdef IBMPC
+#    ifdef PC9801
+#      undef PC9801
+#    endif
+#  endif
 #endif
 
-#ifdef	DO_ICONIFY
-#   ifdef   SAS6
-#	undef	DO_ICONIFY
-#   endif
+#ifdef SAS6
+#  ifdef DO_ICONIFY
+#    undef DO_ICONIFY
+#  endif
+#  ifdef USE_ARP
+#    undef USE_ARP
+#  endif
 #endif
 
-#ifdef	USE_ARP
-#   ifdef   SAS6
-#	undef	USE_ARP
-#   endif
+#ifdef BROWSER
+#  ifndef  DO_MENU
+#    define DO_MENU
+#  endif
 #endif
 
-#ifdef	BROWSER
-#   ifndef  DO_MENU
-#	define	DO_MENU
-#   endif
-#endif
-
-#ifdef	REGEX_JAPANESE
-#   ifndef  REGEX
-#	define	REGEX
-#   endif
-#   ifndef  KANJI
-#	undef   REGEX_JAPANESE
-#   endif
-#endif
-
-#ifndef	SUPPORT_ANSI
-# ifdef __STDC__
-#  define SUPPORT_ANSI
-# endif
-# ifdef WIN32
-#  define SUPPORT_ANSI
-# endif
+#ifdef REGEX_JAPANESE
+#  ifndef REGEX
+#    define REGEX
+#  endif
+#  ifndef KANJI
+#    undef REGEX_JAPANESE
+#  endif
 #endif
 
 #ifdef WIN32
-#define MOUSE
+#  define MOUSE
 #endif
 
 #ifdef CLIPBOARD
-# ifndef WIN32
-#  ifndef AMIGA
-#   undef CLIPBOARD
-#  endif
-# endif
+#  ifndef WIN32
+#    ifndef AMIGA
+#      undef CLIPBOARD
+#     endif
+#   endif
 #endif
 
 #ifdef V2
-# ifdef V11
-#  undef V11
-# endif
+#  ifdef V11
+#    undef V11
+#  endif
 #endif
 
 #ifdef ASL
-# ifndef V2
-#  undef ASL
-# else
-#  ifndef DO_MENU
-#   undef ASL
+#  ifndef V2
+#    undef ASL
+#  else
+#    ifndef DO_MENU
+#      undef ASL
+#    endif
 #  endif
-# endif
 #endif
 
 #ifdef SVR2
-# ifdef SVR3
-#  undef SVR3
-# endif
-# ifdef SVR4
-#  undef SVR4
-# endif
+#  ifdef SVR3
+#    undef SVR3
+#  endif
+#  ifdef SVR4
+#    undef SVR4
+#  endif
 #endif
 
 #ifdef SVR3
-# ifdef SVR4
-#  undef SVR4
-# endif
+#  ifdef SVR4
+#    undef SVR4
+#  endif
 #endif
 
 #ifdef SVR4
-# ifndef POSIXTTY
-#  define POSIXTTY
-# endif
+#  ifndef POSIXTTY
+#    define POSIXTTY
+#  endif
+#endif
+
+#ifndef	SUPPORT_ANSI
+#  ifdef __STDC__
+#    define SUPPORT_ANSI
+#  endif
+#  ifdef WIN32 /* all compilers on Win32 are ANSI-C! */
+#    define SUPPORT_ANSI
+#  endif
 #endif

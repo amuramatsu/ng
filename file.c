@@ -1,10 +1,13 @@
-/* $Id: file.c,v 1.13 2001/11/23 11:56:37 amura Exp $ */
+/* $Id: file.c,v 1.14 2002/04/07 01:00:53 amura Exp $ */
 /*
  *		File commands.
  */
 
 /*
  * $Log: file.c,v $
+ * Revision 1.14  2002/04/07 01:00:53  amura
+ * feature configuration check is more reliable
+ *
  * Revision 1.13  2001/11/23 11:56:37  amura
  * Rewrite all sources
  *
@@ -408,9 +411,9 @@ char *fname, *newname;
     int s, nline;
     BUFFER *bp;
     char line[NLINE];
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
+#if defined(SS_SUPPORT)||defined(USE_UNICODE)
     int leng;
-#endif  /* HANKANA */
+#endif  /* SS_SUPPORT || USE_UNICODE */
     
     bp = curbp;				/* Cheap.		*/
     if (newname != (char *) NULL) {
