@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.9 2001/01/20 18:16:20 amura Exp $ */
+/* $Id: display.c,v 1.10 2001/02/01 16:29:32 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.10  2001/02/01 16:29:32  amura
+ * fix terminal buffer size check
+ *
  * Revision 1.9  2001/01/20 18:16:20  amura
  * fix vtsetsize() bug, and make alignment VIDEO buffer
  *
@@ -182,7 +185,7 @@ vtsetsize(col, row) {
 	register VIDEO	*vp;
 	register int	i;
 
-	if (col<vncol && row<vnrow)
+	if (col<=vncol && row<=vnrow)
 		return;
 	vncol = col;
 	vnrow = row;
