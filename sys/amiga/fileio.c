@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.6 2001/02/18 19:29:03 amura Exp $ */
+/* $Id: fileio.c,v 1.7 2001/03/02 08:47:04 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,6 +14,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.7  2001/03/02 08:47:04  amura
+ * fix some bogus bugs
+ *
  * Revision 1.6  2001/02/18 19:29:03  amura
  * split dir.c to port depend/independ
  *
@@ -540,7 +543,6 @@ char *dirname;
 	ewprintf("Bad directory name");
 	return NULL;
     }
-#ifndef	NO_DIRED	/* Dec.17,1992 by H.Ohkubo */
     if(!ffisdir(dirname)) {
 	ewprintf("Not a directory: %s", dirname);
 	return NULL;
@@ -645,7 +647,6 @@ register char *fn;
     return strncmp(&lp->l_text[n], "Dir", 3) == 0;
 }
 
-#ifndef	NO_DIRED	/* Dec.17,1992 by H.Ohkubo */
 ffisdir(name)
 char *name;
 {
@@ -674,7 +675,7 @@ char *name;
     return result;
 }
 
-#endif
+#endif	/* NO_DIRED */
 
 /* Dec.17,1992 Add by H.Ohkubo */
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
@@ -920,3 +921,26 @@ char	*pathname;
 }
 #endif	/* NEW_COMPLETE */
 #endif	/* USE_ARP */
+
+#ifdef	AUTOSAVE
+VOID
+autosave_name(buff, name, buflen)
+char* buff;
+char* name;
+{
+    strcpy(buff, name);
+    if (strlen(name)) {
+	char *fn = rindex(name, '/');
+	if (fn == NULL)
+	    fn = rindex(name, ':');
+	if (fn == NULL){
+	    fn = buff;
+	} else {
+	    fn++;
+	}
+	strcpy(&buff[strlen(buff)-strlen(fn)], "#");
+	strcat(buff, fn);
+	strcat(buff, "#");
+    }
+}
+#endif	/* AUTOSAVE */
