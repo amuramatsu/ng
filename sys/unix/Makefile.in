@@ -1,7 +1,10 @@
-# $Id: Makefile.in,v 1.4 2001/02/18 17:07:39 amura Exp $
+# $Id: Makefile.in,v 1.5 2001/08/17 19:15:07 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # $Log: Makefile.in,v $
+# Revision 1.5  2001/08/17 19:15:07  amura
+# first try of unicode support (unix only/win32 on the way)
+#
 # Revision 1.4  2001/02/18 17:07:39  amura
 # append AUTOSAVE feature (but NOW not work)
 #
@@ -20,6 +23,7 @@
 SYS	= unix
 
 CC	     = @CC@
+LN_S         = @LN_S@
 STRIP        = @STRIP@
 INSTALL      = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -50,14 +54,15 @@ OBJS	= autosave.o basic.o dir.o dired.o shell.o version.o window.o \
 IND	= buffer.o complt.o display.o cmode.o echo.o extend.o file.o \
 	  help.o kbd.o keymap.o line.o macro.o main.o match.o modes.o \
 	  paragraph.o random.o region.o regex.o re_search.o search.o \
-	  skg.o kanji.o undo.o word.o
+	  skg.o kanji.o undo.o word.o unicode.o
 
 # System dependent objects
 OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o
 
 OBJ = $(OBJS) $(IND) $(OOBJS) fileio.o canna.o $(ALLOCA)
 
-OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c canna.c alloca.c
+OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c canna.c alloca.c \
+	  unicode.c
 SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  random.c region.c search.c shell.c version.c window.c word.c \
 	  buffer.c complt.c display.c echo.c extend.c help.c kbd.c \
@@ -109,7 +114,7 @@ echo.o:		$(INCS) $(OINCS) key.h macro.h complt.h
 extend.o help.o: \
 		$(INCS) $(OINCS) kbd.h macro.h key.h
 
-kanji.o:	$(INCS) $(OINCS) kinit.h
+kanji.o:	$(INCS) $(OINCS) kinit.h kanji.h
 
 kbd.o:		$(INCS) $(OINCS) kbd.h macro.h key.h undo.h
 
@@ -127,49 +132,55 @@ regex.o:	$(INCS) $(OINCS) $(REINCS)
 
 skg.o: 		$(INCS) $(OINCS) macro.h key.h undo.h
 
+unicode.o:	$(INCS) $(OINCS) kanji.h
+
 sysdef.h:	sys/$(SYS)/sysdef.h	# Update links, if needed.
 	rm -f sysdef.h
-	ln sys/$(SYS)/sysdef.h .
+	$(LN_S) sys/$(SYS)/sysdef.h .
 
 ttydef.h:	sys/default/ttydef.h
 	rm -f ttydef.h
-	ln sys/default/ttydef.h .
+	$(LN_S) sys/default/ttydef.h .
 
 chrdef.h:	sys/default/chrdef.h
 	rm -f chrdef.h
-	ln sys/default/chrdef.h .
+	$(LN_S) sys/default/chrdef.h .
 
 fileio.c:	sys/$(SYS)/fileio.c
 	rm -f fileio.c
-	ln sys/$(SYS)/fileio.c .
+	$(LN_S) sys/$(SYS)/fileio.c .
 
 spawn.c:	sys/$(SYS)/spawn.c
 	rm -f spawn.c
-	ln sys/$(SYS)/spawn.c .
+	$(LN_S) sys/$(SYS)/spawn.c .
 
 tty.c:		sys/default/tty.c
 	rm -f tty.c
-	ln sys/default/tty.c .
+	$(LN_S) sys/default/tty.c .
 
 ttyio.c:	sys/$(SYS)/ttyio.c
 	rm -f ttyio.c
-	ln sys/$(SYS)/ttyio.c .
+	$(LN_S) sys/$(SYS)/ttyio.c .
 
 ttykbd.c:	sys/default/ttykbd.c
 	rm -f ttykbd.c
-	ln sys/default/ttykbd.c .
+	$(LN_S) sys/default/ttykbd.c .
 
 cinfo.c:	sys/default/cinfo.c
 	rm -f cinfo.c
-	ln sys/default/cinfo.c .
+	$(LN_S) sys/default/cinfo.c .
 
 canna.c:	sys/default/canna.c
 	rm -f canna.c
-	ln sys/default/canna.c .
+	$(LN_S) sys/default/canna.c .
 
 alloca.c:	sys/default/alloca.c
 	rm -f alloca.c
-	ln sys/default/alloca.c .
+	$(LN_S) sys/default/alloca.c .
+
+unicode.c:	sys/unix/unicode.c
+	rm -f unicode.c
+	$(LN_S) sys/$(SYS)/unicode.c .
 
 clean:;	rm -f $(OBJ) $(OSRCS) $(OINCS) $(PROG)
 

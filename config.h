@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.12 2001/02/18 17:07:27 amura Exp $ */
+/* $Id: config.h,v 1.13 2001/08/17 19:15:06 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -101,8 +101,6 @@
 
 #define	INCLUDE_SKG	/* Enable SKG(Simple Kanji Generator System)	*/
 			/* (by H.Konishi) */ 
-
-#define JISFIX		/* JIS code input fix (by Gen.KUROKI) */
 
 #define VTCURSOR	/* Use DEC vt cursor key on JIS input mode */
 			/* (by Gen.KUROKI) */

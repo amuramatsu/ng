@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.2 2001/02/18 17:07:25 amura Exp $ */
+/* $Id: extend.c,v 1.3 2001/08/17 19:15:05 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: extend.c,v $
+ * Revision 1.3  2001/08/17 19:15:05  amura
+ * first try of unicode support (unix only/win32 on the way)
+ *
  * Revision 1.2  2001/02/18 17:07:25  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -594,7 +597,7 @@ load(fname) char *fname; {
 #endif  /* HANKANA */
 		lineno++;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		nbytes = kcodeconv(excbuf, nbytes, NULL);
+		nbytes = kcodeconv(excbuf, nbytes, NULL, nbytes);
 #endif	/* KANJI */
 		excbuf[nbytes] = '\0';
 		if (excline(excbuf) != TRUE) {

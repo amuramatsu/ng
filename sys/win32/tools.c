@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.9 2000/12/14 18:12:14 amura Exp $ */
+/* $Id: tools.c,v 1.10 2001/08/17 19:15:08 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -31,6 +31,9 @@
 
 /*
  * $Log: tools.c,v $
+ * Revision 1.10  2001/08/17 19:15:08  amura
+ * first try of unicode support (unix only/win32 on the way)
+ *
  * Revision 1.9  2000/12/14 18:12:14  amura
  * use alloca() and more memory secure
  *
@@ -64,25 +67,8 @@
 #include	<tchar.h>
 #include	"config.h"
 #include	"tools.h"
-#include "def.h"
-#define	etos(c1, c2)	\
-{\
-	c1 &= 0x7f;\
-	c2 &= 0x7f;\
-	if(c1 >= 0x5f)\
-		c1 += 0x80;\
-	if((c1 % 2) == 0) {\
-		c1 = (c1 - 0x30) / 2 + 0x88;\
-		c2 += 0x7e;\
-	} else {\
-		if(c2 >= 0x60)\
-			c2 += 0x01;\
-		c1 = (c1 - 0x31) / 2 + 0x89;\
-		c2 += 0x1f;\
-	}\
-	c1 &= 0xff;\
-	c2 &= 0xff;\
-}
+#include	"def.h"
+#include	"kanji.h"
 
 HANDLE		g_hfile1 = INVALID_HANDLE_VALUE ;
 BOOL		g_bEof1 = FALSE ;
@@ -674,6 +660,89 @@ sjis2unicode_char(WORD c)
 }
 #endif	/* KANJI */
 
+#if defined(UNICODE)&&defined(KANJI)
+VOID
+utoe_in(c0, c1, c2)
+     int *c0;
+     int *c1;
+     int *c2;
+{
+    TCHAR uc;
+    WORD sjis;
+    register int a, b;
+    uc = ((*c0) << 8)|(*c1);
+    sjis = unicode2sjis_char(uc);
+    a = (sjis >> 8) & 0xFF;
+    b = sjis & 0xFF;
+    stoe(a, b);
+    *c0 = a;
+    *c1 = b;
+    *c2 = '\0';
+}
+
+VOID
+etou_in(c0, c1, c2)
+     int *c0;
+     int *c1;
+     int c2;
+{
+    register int a, b;
+    TCHAR uc;
+    if (c2) {
+	*c0 = *c1 = '\0';
+	return;
+    }
+    a = *c0;
+    b = *c1;
+    etos(a,b);
+    uc = sjis2unicode_char((a<<8)|b);
+    *c0 = (uc >> 8) & 0xFF;
+    *c1 = uc & 0xFF;
+}
+
+int
+bufu2toe(p, len, buflen)
+    char *p;
+    int len;
+    int buflen;
+{
+    size = WideCharToMultiByte(CP_ACP, 0, (LPCTSTR)p, len,
+			       NULL, 0, NULL, NULL);
+    buffer = alloca(size);
+    size = WideCharToMultiByte(CP_ACP, 0, (LPCTSTR)p, len,
+			       buffer, size, NULL, NULL);
+    bcopy(buffer, p, size);
+    size = bufstoe(p, size);
+    return size;
+}
+
+int
+bufu8toe(p, len, buflen)
+    char *p;
+    int len;
+    int buflen;
+{
+    return 0;
+}
+
+int
+bufetou2(p, len, buflen)
+    char *p;
+    int len;
+    int buflen;
+{
+    return 0;
+}
+
+int
+bufetou8(p, len, buflen)
+    char *p;
+    int len;
+    int buflen;
+{
+    return 0;
+}
+#endif	/* UNICODE */
 
 extern int allow_mouse_event;
 /*

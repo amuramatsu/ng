@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.8 2000/11/05 01:59:20 amura Exp $ */
+/* $Id: undo.c,v 1.9 2001/08/17 19:15:06 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -7,6 +7,9 @@
 
 /*
  * $Log: undo.c,v $
+ * Revision 1.9  2001/08/17 19:15:06  amura
+ * first try of unicode support (unix only/win32 on the way)
+ *
  * Revision 1.8  2000/11/05 01:59:20  amura
  * ploblem with big undo is fixed
  *
@@ -188,7 +191,7 @@ RSIZE size;
 	newbuffer = malloc(size);
 	if (newbuffer == NULL)
 	{
-	    ewprintf("Can't get %ld Bytes / Undo buffer clear");
+	    ewprintf("Can't get %ld Bytes / Undo buffer clear", size);
 	    ttwait();
 	    undo_clean(curbp);
 	    undoptr = NULL;

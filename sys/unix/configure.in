@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.7 2001/02/01 16:33:46 amura Exp $
-AC_REVISION($Revision: 1.7 $)
+dnl $Id: configure.in,v 1.8 2001/08/17 19:15:07 amura Exp $
+AC_REVISION($Revision: 1.8 $)
 AC_INIT(basic.c)
 AC_CONFIG_HEADER(sysconfig.h:sys/unix/sysconfig.h.in)
 AC_CONFIG_AUX_DIR(sys/unix)
@@ -10,6 +10,7 @@ AC_CANONICAL_HOST
 USER_CFLAGS=$CFLAGS
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_PROG_LN_S
 
 dnl Don't strip if we don't have it
 AC_CHECK_PROG(STRIP, strip, strip, :)
@@ -79,6 +80,80 @@ AC_PATH_PROG(ls_cmd, ls)
 AC_DEFINE_UNQUOTED(LS_CMD, "$ls_cmd")
 AC_PATH_PROG(rmdir_cmd, rmdir)
 AC_DEFINE_UNQUOTED(RMDIR_CMD, "$rmdir_cmd")
+
+dnl If the user wants unicode support.
+AC_MSG_CHECKING(if --enable-unicode option specified)
+AC_ARG_ENABLE(unicode,
+	[  --enable-unicode[=DIR]  Build a unicode supported version.],
+	[cv_unicode="yes"; iconvpath=$enableval], [cv_unicode="no"])
+AC_MSG_RESULT($cv_unicode)
+
+if test "$cv_unicode" = "yes"; then
+
+dnl Some operating system include iconv libraries by default
+	if test "$iconvpath" = "yes"; then
+		case "$host_os" in
+			freebsd[[234]]*)
+				iconvpath="/usr/local";;
+			netbsd1.[[345]]*)
+				iconvpath="/usr/pkg";;
+		esac
+	fi
+	OLD_CPPFLAGS=$CPPFLAGS
+	if test "$iconvpath" != "yes"; then
+		CFLAGS="-I$iconvpath/include $CFLAGS"
+		LDFLAGS="-L$iconvpath/lib $LDFLAGS"
+	fi
+
+dnl we use AC_TRY_COMPILE not AC_CHECK_HEADER, to avoid unnecessery
+dnl use of CPPFLAGS. (why?)
+	AC_MSG_CHECKING(for iconv.h)
+	AC_CACHE_VAL(cv_iconvhdrcheck, [dnl
+	AC_TRY_COMPILE([#include <iconv.h>], iconv_t ic;,
+		[cv_iconvhdrcheck="yes"], [cv_iconvhdrcheck="no"])])
+	AC_MSG_RESULT($cv_iconvhdrcheck)
+	if test "$iconvhdrcheck" = "no"; then
+		echo -n "Fatal error: no iconv header in suggested path"
+		if test "$iconvpath" != "yes"; then
+			echo ", $iconvpath/include."
+		else
+			echo "."
+		fi
+		exit 1
+	fi
+
+dnl find iconv library in iconv, dld, giconv etc.
+	AC_MSG_CHECKING(for library containing iconv_open)
+	OLD_LIBS=$LIBS
+	for x_libname in iconv giconv dld ''; do
+		if test "$x_libname" != ""; then
+			LIBS="-l$x_libname $OLD_LIBS"
+		fi
+dnl Damn, Japaneses EUC's IANA official character-set name is EUC-JP,
+dnl But some HP-UX system using EUCjp...
+		for x_euc in EUC-JP EUCjp; do
+			AC_TRY_RUN([
+#include <iconv.h>
+int main(){
+    iconv_t i, j;
+    i = iconv_open("$x_euc", "UTF-8");
+    j = iconv_open("$x_euc", "UCS-2");
+    if (i == (iconv_t)-1 || j == (iconv_t)-1) return 1;
+    return 0;
+}], [iconv_euc_code=$x_euc], [iconv_euc_code="no"], [iconv_euc_code="EUC-JP"])
+			if test "$iconv_euc_code" != "no"; then
+				break 2
+			fi
+		done
+	done
+	if test "$iconv_euc_code" = "no"; then
+		echo "Fatal error: cannot find iconv(3) or iconv(3) cannot convert UTF-8/UCS-2/EUC-jp"
+		exit 1
+	fi
+	AC_MSG_RESULT($x_libname (EUC codename:$iconv_euc_code))
+	AC_DEFINE_UNQUOTED(EUC_CODENAME, "$iconv_euc_code")
+	AC_DEFINE(UNICODE)
+fi
 
 dnl If the user wants canna support.
 AC_MSG_CHECKING(if --enable-canna option specified)

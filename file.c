@@ -1,10 +1,13 @@
-/* $Id: file.c,v 1.8 2001/05/25 15:36:52 amura Exp $ */
+/* $Id: file.c,v 1.9 2001/08/17 19:15:05 amura Exp $ */
 /*
  *		File commands.
  */
 
 /*
  * $Log: file.c,v $
+ * Revision 1.9  2001/08/17 19:15:05  amura
+ * first try of unicode support (unix only/win32 on the way)
+ *
  * Revision 1.8  2001/05/25 15:36:52  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -424,22 +427,21 @@ insertfile(fname, newname) char fname[], newname[]; {
 		++nline;
 		/* and continue */
 	    case FIOEOF:	/* the last line of the file		*/
-#ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
+#if defined(SS_SUPPORT)||defined(UNICODE)
 		leng = kcodecount(line, nbytes);
 		if ((lp1=lalloc(leng > nbytes ? leng : nbytes)) == NULL) {
 			s = FIOERR;		/* Keep message on the	*/
 			goto endoffile;		/* display.		*/
 		}
-#else  /* Not HANKANA */
+#else  /* Not SS_SUPPORT ||UNICODE */
 		if ((lp1=lalloc(nbytes)) == NULL) {
 			s = FIOERR;		/* Keep message on the	*/
 			goto endoffile;		/* display.		*/
 		}
-#endif  /* HANKANA */
+#endif  /* SS_SUPPORT || UNICODE */
 		bcopy(line, &ltext(lp1)[0], nbytes);
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-
-		if ((lp1->l_used = kcodeconv(ltext(lp1), nbytes, bp)) < 0) {
+		if ((lp1->l_used = kcodeconv(ltext(lp1), nbytes, bp, leng)) < 0) {
 		    s = FIOERR;
 		    goto endoffile;
 		}
@@ -499,7 +501,7 @@ lineread:
 				bcopy(line, cp+nbytes, i);
 				free(cp2);
 				cp2 = (char *)NULL;
-#ifdef HANKANA /* 92.11.21  by S.Sasaki */
+#if defined(SS_SUPPORT)||defined(UNICODE)
 				leng = kcodecount(cp, nbytes+i);
 				if((lp1=lalloc(
 				    leng > nbytes+i ? leng : nbytes+i
@@ -510,18 +512,18 @@ lineread:
 				}
 				bcopy(cp, &ltext(lp1)[0], nbytes + i);
 
-#else  /* not HANKANA */
+#else  /* not SS_SUPPORT || UNICODE */
 				if((lp1=lalloc(nbytes+i)) == NULL) {
 				    s = FIOERR;
 				    free(cp);
 				    goto endoffile;
 				}
 				bcopy(cp, &ltext(lp1)[0], llength(lp1));
-#endif  /* HANKANA */
+#endif  /* SS_SUPPORT || UNICODE */
 				free(cp);
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 				if ( (lp1->l_used = kcodeconv(ltext(lp1),
-						nbytes + i, bp)) <0 ) {
+						nbytes + i, bp, leng)) <0 ) {
 				    s =FIOERR;
 				    goto endoffile;
 				}

@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.14 2001/04/15 16:35:45 amura Exp $ */
+/* $Id: fileio.c,v 1.15 2001/08/17 19:15:08 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.15  2001/08/17 19:15:08  amura
+ * first try of unicode support (unix only/win32 on the way)
+ *
  * Revision 1.14  2001/04/15 16:35:45  amura
  * patch for VC 6.0 from Katsuyoshi Ohara
  *
@@ -608,6 +611,11 @@ ffputbuf( BUFFER *bp )
 		if ( lp == lpend ) {
 			break ;		/* no implied newline on last line */
 		}
+#ifdef	UNICODE
+		if ( kfio == UCS2 ) {
+			putc( '\n', NULL) ;
+		}
+#endif
 		putc( '\n', NULL) ;
 	} while( !Ferror() ) ;
 	if ( Ferror() ) {

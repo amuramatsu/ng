@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.12 2001/04/15 16:35:44 amura Exp $ */
+/* $Id: kanji.c,v 1.13 2001/08/17 19:15:05 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.13  2001/08/17 19:15:05  amura
+ * first try of unicode support (unix only/win32 on the way)
+ *
  * Revision 1.12  2001/04/15 16:35:44  amura
  * patch for VC 6.0 from Katsuyoshi Ohara
  *
@@ -26,21 +29,7 @@
  * Revision 1.7  2001/01/05 14:07:03  amura
  * first implementation of Hojo Kanji support
  *
- * Revision 1.6  2000/12/18 17:17:41  amura
- * fix dropped NINPUT
- *
- * Revision 1.5  2000/12/14 18:12:14  amura
- * use alloca() and more memory secure
- *
- * Revision 1.4  2000/11/16 14:31:12  amura
- * fix some typos which cause compile error when using
- * strict ANSI-C compiler (ex ACK, gcc-1.x)
- *
- * Revision 1.3  2000/09/21 17:28:30  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.2  2000/06/29 17:52:56  amura
- * enable VTCURSOR all input kanji code
+ * -- snip --
  *
  * Revision 1.1.1.1  2000/06/27 01:47:55  amura
  * import to CVS
@@ -53,6 +42,7 @@
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 #include	"def.h"
 #include	"kinit.h"
+#include	"kanji.h"
 
 int	global_kfio 	= KFIO;		/* default-kanji-fileio-code	*/
 int	global_kexpect	= KEXPECT;	/* kanji-expected-code		*/
@@ -68,6 +58,29 @@ static int to_kana_display = TO_KANADISPLAY;  /* to-kana-display	*/
 #endif  /* HANKANA */
 static int local_kfin;			/* Buffer local file input code. */
 
+#ifdef	UNICODE
+static char symbol_c[] = {'N', 'S', 'J', 'E', 'U', 'W', '-', 'T'};
+static char *symbol_s[] = {"No-conversion", "Shift-JIS", "JIS", "EUC",
+			   "UTF-8", "UCS-2", "NIL", "T"};
+					/* Symbol chars & strings to	*/
+					/* display a KANJI code info to	*/
+					/* the user.  This order depend	*/
+					/* on the values of KANJI code	*/
+					/* macro defined at def.h.	*/
+
+static char *kcodename_u[] = {"NOCONV", "SHIFT-JIS", "JIS", "EUC",
+			      "UTF-8", "UCS-2", "NIL", "T"};
+static char *kcodename_l[] = {"noconv", "shift-jis", "jis", "euc",
+			      "utf-8", "ucs-2", "nil", "t"};
+#define	NKCODENAME	8
+					/* The strings of KANJI code	*/
+					/* name and the numner of KANJI	*/
+					/* code to determine what KANJI	*/
+					/* code the user want to use.	*/
+					/* This order depend on	the	*/
+					/* values of KANJI code macro	*/
+					/* defined at def.h.		*/
+#else	/* not UNICODE */
 static char symbol_c[] = {'N', 'S', 'J', 'E', '-', 'T'};
 static char *symbol_s[] = {"No-conversion", "Shift-JIS", "JIS", "EUC", "NIL", "T"};
 					/* Symbol chars & strings to	*/
@@ -86,52 +99,10 @@ static char *kcodename_l[] = {"noconv", "shift-jis", "jis", "euc", "nil", "t"};
 					/* This order depend on	the	*/
 					/* values of KANJI code macro	*/
 					/* defined at def.h.		*/
+#endif	/* UNICODE */
 
 #define	ESC	CCHR('[')		/* Escape char.			*/
 
-#define	issjis1st(c)	(((c) >= 0x81 && (c) <= 0x9f) || \
-			 ((c) >= 0xe0 && (c) <= 0xfc))
-#define	iseuc1st(c)	((c) >= 0xa1 && (c) <= 0xfe)
-#ifdef HANKANA
-#define iskana(c)	((c) >= 0xa0 && (c) < 0xe0)
-#endif
-
-
-/* 90.07.25  Change to inline routine  by S.Yoshida (from) */
-#define	jtoe(c1, c2)	{c1 |= 0x80; c2 |= 0x80;}
-#define	etoj(c1, c2)	{c1 &= 0x7f; c2 &= 0x7f;}
-#define	stoe(c1, c2)	\
-{\
-	if (c1 >=0xe0)\
-		c1 -=  0x40;\
-	if (c2 >= 0x9f) {\
-		c1 = (c1 - 0x88) * 2 + 0xb0;\
-		c2 += 0x02;\
-	} else {\
-		if (c2 >= 0x7f)\
-			c2 -= 0x01;\
-		c1 = (c1 - 0x89) * 2 + 0xb1;\
-		c2 = c2 + 0x61;\
-	}\
-}
-#define	etos(c1, c2)	\
-{\
-	c1 &= 0x7f;\
-	c2 &= 0x7f;\
-	if(c1 >= 0x5f)\
-		c1 += 0x80;\
-	if((c1 % 2) == 0) {\
-		c1 = (c1 - 0x30) / 2 + 0x88;\
-		c2 += 0x7e;\
-	} else {\
-		if(c2 >= 0x60)\
-			c2 += 0x01;\
-		c1 = (c1 - 0x31) / 2 + 0x89;\
-		c2 += 0x1f;\
-	}\
-	c1 &= 0xff;\
-	c2 &= 0xff;\
-}
 /* 90.07.25  Change to inline routine  by S.Yoshida (to) */
 
 #define	CAT_NONE	0		/* Category: No category.	*/
@@ -152,6 +123,16 @@ static int kcodecheck pro((char *p, int len));
 static int bufjtoe_c pro((char *j, int len));
 int bufstoe_c pro((char *p, int len));
 
+#ifdef UNICODE
+extern int bufu2toe pro((char *p, int len, int buflen));
+extern int bufu8toe pro((char *p, int len, int buflen));
+extern int bufetou2 pro((char *p, int len, int buflen));
+extern int bufetou8 pro((char *p, int len, int buflen));
+static int bufu2toe_c pro((char *p, int len));
+static int bufu8toe_c pro((char *p, int len));
+#endif /* UNICODE */
+
+
 /*
  * COMMAND: change-default-fileio-code
  * This is a command processor for changing the value of the global
@@ -170,6 +151,12 @@ k_rot_fio(f, n)
 	} else if (global_kfio == JIS) {
 		global_kfio = EUC;
 	} else if (global_kfio == EUC) {
+#ifdef	UNICODE
+		global_kfio = UTF8;
+	} else if (global_kfio == UTF8) {
+		global_kfio = UCS2;
+	} else if (global_kfio == UCS2) {       		
+#endif
 		global_kfio = NIL;
 	}
 	return TRUE;
@@ -216,6 +203,12 @@ k_rot_buffio(f, n)
 	} else if (curbp->b_kfio == JIS) {
 		curbp->b_kfio = EUC;
 	} else if (curbp->b_kfio == EUC) {
+#ifdef	UNICODE
+		curbp->b_kfio = UTF8;
+	} else if (curbp->b_kfio == UTF8) {
+		curbp->b_kfio = UCS2;
+	} else if (curbp->b_kfio == UCS2) {
+#endif
 		curbp->b_kfio = NIL;
 	}
 	upmodes(curbp);			/* Only update cur-buf's modeline. */
@@ -286,6 +279,12 @@ k_rot_input(f, n)
 	} else if (global_kinput == JIS) {
 		global_kinput = EUC;
 	} else if (global_kinput == EUC) {
+#ifdef	UNICODE
+		global_kinput = UTF8;
+	} else if (global_kinput == UTF8) {
+		global_kinput = UCS2;
+	} else if (global_kinput == UCS2) {
+#endif
 		global_kinput = NOCONV;
 	}
 	upmodes(NULL);			/* Update each win's modeline. */
@@ -333,6 +332,12 @@ k_rot_display(f, n)
 	} else if (global_kdisplay == JIS) {
 		global_kdisplay = EUC;
 	} else if (global_kdisplay == EUC) {
+#ifdef	UNICODE
+		global_kdisplay = UTF8;
+	} else if (global_kdisplay == UTF8) {
+		global_kdisplay = UCS2;
+	} else if (global_kdisplay == UCS2) {
+#endif
 		global_kdisplay = NOCONV;
 	}
 	sgarbf = TRUE;			/* Must update full screen. */
@@ -632,7 +637,8 @@ int	num;
 	char	kcode[NINPUT];
 
 	for (n = 0; n < 2; n++) {
-		if ((s = ereply("Kanji Code System : ", kcode, sizeof(kcode))) != TRUE) {
+		if ((s = ereply("Kanji Code System : ", kcode, sizeof(kcode)))
+		    != TRUE) {
 			return (s);
 		}
 		if (ISDIGIT(kcode[0])) {
@@ -757,35 +763,26 @@ register BUFFER	*bp;
 #define SELKANA  2
 #define SELHOJO  3
 
-static	int kgetkey_more  = FALSE;
-#ifdef HOJO_KANJI
-static  int hojo1st = '\0';
-#endif
+static	int kgetkey_more  = 0;
 VOID
 kgetkeyflush()
 {
-	kgetkey_more = FALSE;
-#ifdef HOJO_KANJI
-	hojo1st = '\0';
-#endif
+	kgetkey_more = 0;
 }
 
 kgetkey()
 {
 	static	int kselected = SELROMA;
-	static	int savedchar = '\0';	/* 91.01.15  NULL -> '\0' */
-	register int	c1, c2;		/* 90.07.25  Add "register". */
-					/*		by S.Yoshida */
 #ifdef	HOJO_KANJI
-	if (hojo1st != '\0') {
-	    c1 = hojo1st;
-	    hojo1st = '\0';
-	    return c1;
-	}
+	static	int savedchar[2];
+#else
+	static	int savedchar[1];
 #endif
+	register int	c1, c2;
+
 	if (kgetkey_more) {
-		kgetkey_more = FALSE;
-		return (savedchar);
+		kgetkey_more--;
+		return (savedchar[kgetkey_more]);
 	}
 
 reinput:
@@ -797,12 +794,12 @@ reinput:
  */
 #ifdef notdef /* HANKANA /* 92.11.21  by S.Sasaki */
 	if (global_kinput == JIS && c1 == 0x0e) {
-	  kselected = SELKANA;
-	  goto reinput;
+		kselected = SELKANA;
+		goto reinput;
 	}
 	if (global_kinput == JIS && c1 == 0x0f) {
-	  kselected = SELROMA;
-	  goto reinput;
+		kselected = SELROMA;
+		goto reinput;
 	}
 #endif /* HANKANA */
 	if (global_kinput == JIS && c1 == ESC) {
@@ -848,15 +845,15 @@ reinput:
 		} else if (c1 == 'O' || c1 == '[') {
 			c2 = getkbd();
 			switch (c2) {
-			  case 'A': c1 = CCHR('P'); break;
-			  case 'B': c1 = CCHR('N'); break;
-			  case 'C': c1 = CCHR('F'); break;
-			  case 'D': c1 = CCHR('B'); break;
-			  default:
-			    ungetkbd(c2);
-			    ungetkbd(c1);
-			    c1 = ESC;
-			    break;
+				case 'A': c1 = CCHR('P'); break;
+				case 'B': c1 = CCHR('N'); break;
+				case 'C': c1 = CCHR('F'); break;
+				case 'D': c1 = CCHR('B'); break;
+				default:
+					ungetkbd(c2);
+					ungetkbd(c1);
+					c1 = ESC;
+					break;
 			}
 #endif /* VTCURSOR */
 #ifdef HANKANA /* 92.11.21  by S.Sasaki */
@@ -871,74 +868,95 @@ reinput:
 			}
 #endif /* HANKANA */
 		} else {
-#ifdef JISFIX /* 92.03.16 by Gen KUROKI */
-			savedchar = c1;
-			kgetkey_more = TRUE;
-#else /* not JISFIX */
-			ungetkbd(c1);
-#endif /* JISFIX */
+			savedchar[0] = c1;
+			kgetkey_more = 1;
 			c1 = ESC;
 		}
-#ifdef JISFIX /* 92.03.16 by Gen KUROKI */
 	} else if (global_kinput == JIS && c1 == 0xff ) {
 		c1 = 0x7f;
-#endif /* JISFIX */
 	} else if (global_kinput == JIS && kselected == SELKANJI) {
-#ifdef JISFIX  /* 92.03.16 by Gen KUROKI */
-	  c1 &= 0x7f;
-	  if (!ISCTRL(c1)) {
-#endif /* JISFIX */
-		c2 = getkbd();
-		jtoe(c1, c2);
-		savedchar = c2;
-		kgetkey_more = TRUE;
-#ifdef JISFIX  /* 92.03.16 by Gen KUROKI */
-	  }
-#endif /* JISFIX */
+		c1 &= 0x7f;
+	        if (!ISCTRL(c1)) {
+			c2 = getkbd();
+			jtoe(c1, c2);
+			savedchar[0] = c2;
+			kgetkey_more = 1;
+		}
 #ifdef HOJO_KANJI
 	} else if (global_kinput == JIS && kselected == SELHOJO) {
-	  c1 &= 0x7f;
-	  c2 = getkbd();
-	  jtoe(c1, c2);
-	  hojo1st = c1;
-	  savedchar = c2;
-	  kgetkey_more = TRUE;
-	  c1 = SS3;
+		c1 &= 0x7f;
+		c2 = getkbd();
+		jtoe(c1, c2);
+		savedchar[1] = c1;
+		savedchar[0] = c2;
+		kgetkey_more = 2;
+		c1 = SS3;
 #endif /* HOJO_KANJI */
 #ifdef HANKANA /* 92.11.21  by S.Sasaki */
 	} else if (global_kinput == JIS && kselected == SELKANA) {
-	  savedchar = c1 | 0x80;
-	  kgetkey_more = TRUE;
-	  c1 = SS2;
+		savedchar[0] = c1 | 0x80;
+		kgetkey_more = 1;
+		c1 = SS2;
 	} else if ( (global_kinput == JIS || global_kinput == SJIS)
 		   && iskana(c1 & 0xff)) {
-	  savedchar = c1;
-	  kgetkey_more = TRUE;
-	  c1 = SS2;
+		savedchar[0] = c1;
+		kgetkey_more = 1;
+		c1 = SS2;
 #endif /* HANKANA */
+#ifdef UNICODE
+	} else if (global_kinput == UCS2
+		   || (global_kinput == UTF8 && !isutf1byte(c1))) {
+		int c3;
+		if (global_kinput == UTF8) {
+			if (isutf2byte(c1)) {	/* UTF-8 11bit char */
+				c2 = getkbd();
+				u8tou2(c1, c2, 0);
+			}
+			else {			/* else UTF-8 16bit char */
+				c2 = getkbd();
+				c3 = getkbd();
+				u8tou2(c1, c2, c3);
+			}
+		} else /* if (global_kinput == UCS2) */ {
+			c2 = getkbd();
+		}
+		utoe(c1, c2, c3);
+		kgetkey_more = 0;
+#ifndef HOJO_KANJI
+		if (c1 == SS3)	goto reinput;
+#endif
+#ifndef HANKANA
+		if (c1 == SS2)	goto reinput;
+#endif
+		if (c2) {
+			if (c3)
+				savedchar[kgetkey_more++] = c3;
+			savedchar[kgetkey_more++] = c2;
+		}
+#endif /* UNICODE */
 	} else if (global_kinput == SJIS && issjis1st(c1)) {
 		c2 = getkbd();
 		stoe(c1, c2);
-		savedchar = c2;
-		kgetkey_more = TRUE;
+		savedchar[0] = c2;
+		kgetkey_more = 1;
 	} else if (global_kinput == EUC && iseuc1st(c1)) {
-		savedchar = getkbd();
-		kgetkey_more = TRUE;
+		savedchar[0] = getkbd();
+		kgetkey_more = 1;
 #ifdef VTCURSOR /* 92.03.16 by Gen KUROKI, renamed by amura */
 	} else if (c1 == ESC) {
 		c1 = getkbd();
 		if (c1 == 'O' || c1 == '[') {
 			c2 = getkbd();
 			switch (c2) {
-			  case 'A': c1 = CCHR('P'); break;
-			  case 'B': c1 = CCHR('N'); break;
-			  case 'C': c1 = CCHR('F'); break;
-			  case 'D': c1 = CCHR('B'); break;
-			  default:
-			    ungetkbd(c2);
-			    ungetkbd(c1);
-			    c1 = ESC;
-			    break;
+				case 'A': c1 = CCHR('P'); break;
+				case 'B': c1 = CCHR('N'); break;
+				case 'C': c1 = CCHR('F'); break;
+				case 'D': c1 = CCHR('B'); break;
+				default:
+					ungetkbd(c2);
+					ungetkbd(c1);
+					c1 = ESC;
+					break;
 			}
 		} else {
 			ungetkbd(c1);
@@ -952,7 +970,7 @@ reinput:
 #ifdef WIN32
 extern int ttputkc(int, int);
 #else
-#define ttputkc(a, b) (ttputc(a),ttputc(b))
+#define ttputkc(a, b)		(ttputc(a),ttputc(b))
 #endif
 
 static int	kdselected = SELROMA;
@@ -977,50 +995,47 @@ register int	c;	/* 90.07.25  Add "register". by S.Yoshida */
 		if (global_kdisplay == JIS) {
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 			if (ISHANKANA(c1)) {
-			    if (!kanadselected) {
-				kanadselected = TRUE;
-				switch (to_kana_display) {
-				    case '7':
-					ttputc(0x0e);
-					break;
-				    case '8':
-					break;
-				    case 'I':
-					ttputc(ESC);
-					ttputc('(');
-					ttputc(to_kana_display);
-					kdselected = SELKANA;
-					break;
+				if (!kanadselected) {
+					kanadselected = TRUE;
+					switch (to_kana_display) {
+						case '7':
+							ttputc(0x0e);
+						break;
+						case '8':
+						break;
+						case 'I':
+							ttputc(ESC);
+							ttputc('(');
+							ttputc(to_kana_display);
+							kdselected = SELKANA;
+						break;
+					}
+					ttputc(to_kana_display == '8' ?
+					       c : c & 0x7f);
 				}
-				ttputc(to_kana_display=='8' ? c : c&0x7f);
-			    }
-			    c1 = '\0';
-			    return 1;
+				c1 = '\0';
+				return 1;
 			}
 			else if ( kanadselected && to_kana_display == '7')
-			    ttputc(0x0f);
+				ttputc(0x0f);
 			kanadselected = FALSE;
 #endif  /* HANKANA */
 #ifdef	HOJO_KANJI
 			if (ISHOJO(c1)) {
-			    if (c2 == '\0') {
-				c2 = c;
-				return 0;
-			    }
-			    if (kdselected != SELHOJO) {
-				ttputc(ESC);
-				ttputc('$');
-				ttputc('(');
-				ttputc('D');
-				kdselected = SELHOJO;
-			    }
-			    etoj(c2, c);
-			    ttputc(c2);
-			    ttputc(c);
-			    c2 = '\0';
-			    c1 = '\0';
-			    return 2;
-			}
+			    	if (c2 == '\0') {
+					c2 = c;
+					return 0;
+				}
+				if (kdselected != SELHOJO) {
+					ttputc(ESC);
+					ttputc('$');
+					ttputc('(');
+					ttputc('D');
+					kdselected = SELHOJO;
+				}
+				c1 = c2;
+				c2 = '\0';
+			} else
 #endif	/* HOJO_KANJI */
 			if (kdselected != SELKANJI) {
 			        ttputc(ESC);
@@ -1035,48 +1050,69 @@ register int	c;	/* 90.07.25  Add "register". by S.Yoshida */
 		} else if (global_kdisplay == SJIS) {
 #ifdef HANKANA /* 92.11.21  by S.Sasaki */
 			if (ISHANKANA(c1)) {
-			    ttputc(c);
-			    c1 = '\0';	/* 91.01.15  NULL -> '\0' */
-			    return 1;
+				ttputc(c);
+				c1 = '\0';	/* 91.01.15  NULL -> '\0' */
+				return 1;
 			}
 #endif /* HANKANA */
 #ifdef HOJO_KANJI
 			if (ISHOJO(c1)) {
-			    if (c2 == '\0') {
-				c2 = c;
-				return 0;
-			    }
-			    /* print TOUFU */
-			    c1 = TOUFU1ST;
-			    c2 = TOUFU2ND;
-			    etos(c1, c2);
-			    ttputkc(c1, c2);
-			    c1 = '\0';
-			    c2 = '\0';
-			    return 2;
+				if (c2 == '\0') {
+					c2 = c;
+					return 0;
+				}
+				/* print TOUFU */
+				c1 = TOUFU1ST;
+				c  = TOUFU2ND;
+				c2 = '\0';
 			}
 #endif /* HOJO_KANJI */
 			etos(c1, c);
 			ttputkc(c1, c);
 			c1 = '\0';	/* 91.01.15  NULL -> '\0' */
+#ifdef UNICODE
+		} else if (global_kdisplay == UTF8
+			   || global_kdisplay == UCS2) {
+#ifdef HOJO_KANJI
+			if (ISHOJO(c1)) {
+				if (c2 == '\0') {
+					c2 = c;
+					return 0;
+				}
+				etou(c1, c2, c);
+				c = c2;
+				c2 = '\0';
+			}
+			else
+#endif /* HOJO_KANJI */
+			etou(c1, c, 0);
+			if (global_kdisplay == UTF8)
+			    u2tou8(c1, c, c2);
+			res = 1;
+			ttputc(c1);
+			if (c) {
+			    res = 2;
+			    ttputc(c);
+			    if (c2)	ttputc(c2);
+			}
+			c1 = c2 = '\0';
+#endif
 		} else {		/* May be EUC. */
 #ifdef HANKANA
 			if (ISHANKANA(c1)) {
-			    res = 1;
+				res = 1;
 			}
 #endif
 #ifdef HOJO_KANJI
 			if (ISHOJO(c1)) {
-			    if (c2 == '\0') {
-				c2 = c;
-				return 0;
-			    }
-			    ttputc(c1);
-			    ttputc(c2);
-			    ttputc(c);
-			    c1 = '\0';
-			    c2 = '\0';
-			    return 2;
+				if (c2 == '\0') {
+					c2 = c;
+					return 0;
+				}
+				res = 2;
+				ttputc(c1);
+				c1 = c2;
+				c2 = '\0';
 			}
 #endif /* HOJO_KANJI */
 			ttputc(c1);
@@ -1090,18 +1126,23 @@ register int	c;	/* 90.07.25  Add "register". by S.Yoshida */
 		if (global_kdisplay == JIS) {
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 			if (kanadselected) {
-			    kanadselected = FALSE;
-			    if (to_kana_display == '7')
-				ttputc(0x0f);
+				kanadselected = FALSE;
+				if (to_kana_display == '7')
+					ttputc(0x0f);
 			}
 #endif  /* HANKANA */
 			if (kdselected != SELROMA) {
-			    ttputc(ESC);
-			    ttputc('(');
-			    ttputc(to_a_display);
-			    kdselected = SELROMA;
+				ttputc(ESC);
+				ttputc('(');
+				ttputc(to_a_display);
+				kdselected = SELROMA;
 			}
 		}
+#ifdef	UNICODE
+		else if (global_kdisplay == UCS2) {
+			ttputc(0);
+		}
+#endif	/* UNICODE */
 		ttputc(c);
 	        res = 1;
 	}
@@ -1129,18 +1170,18 @@ register int	next_is_k;		/* Is next code KANJI ? */
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 	} else if (kanadselected && !next_is_k) { 
 	  				   /* Now KANJI && next is ASCII */
-	  kanadselected = FALSE;	   /* Select ASCII code.	*/
-	  if (to_kana_display == '7')
-	      ttputc(0x0f);
-	  if (kdselected != SELROMA) {
-	      ttputc(ESC);
-	      ttputc('(');
-	      ttputc(to_a_display);
-	  }
+		kanadselected = FALSE;	   /* Select ASCII code.	*/
+		if (to_kana_display == '7')
+			ttputc(0x0f);
+		if (kdselected != SELROMA) {
+			ttputc(ESC);
+			ttputc('(');
+			ttputc(to_a_display);
+		}
 	} else if (kanadselected && next_is_k) { 
 	        kanadselected = FALSE;
 		if (to_kana_display == '7')
-		    ttputc(0x0f);
+			ttputc(0x0f);
 		ttputc(ESC);
 		ttputc('$');
 		ttputc(to_k_display);
@@ -1169,38 +1210,58 @@ register FILE	*fp;
 register int	kfio;
 {
 	static	int	c1 = '\0';	/* 91.01.15  NULL -> '\0' */
+#if defined(HOJO_KANJI)||defined(UNICODE)
+	static	int	c2 = '\0';
+#endif
 
 	if (c1 != '\0') {		/* KANJI 1st byte exists. */
 		/* 91.01.15  NULL -> '\0' */
 		if (kfio == JIS) {
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 			if (ISHANKANA(c1)) {
-			    if (!kanafselected) {
-				kanafselected = TRUE;
-				switch (to_kana_fio) {
-				    case '7':
-					putc(0x0e, fp);
-					break;
-				    case '8':
-					break;
-				    case 'I':
-					putc(ESC, fp);
-					putc('(', fp);
-					putc(to_kana_fio, fp);
-					kfselected = SELKANA;
-					break;
-				}
-			    } 
-			    putc( to_kana_fio == '8' ? c : c & 0x7f, fp);
-			    c1 ='\0';
-			    return;
+				if (!kanafselected) {
+					kanafselected = TRUE;
+					switch (to_kana_fio) {
+						case '7':
+							putc(0x0e, fp);
+							break;
+						case '8':
+							break;
+						case 'I':
+							putc(ESC, fp);
+							putc('(', fp);
+							putc(to_kana_fio, fp);
+							kfselected = SELKANA;
+							break;
+					}
+				} 
+				putc( to_kana_fio == '8' ? c : c & 0x7f, fp);
+				c1 ='\0';
+				return;
 			}
 #endif  /* HANKANA */
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
 			if (kanafselected && to_kana_fio == '7')
-			    putc(0x0f, fp);
+				putc(0x0f, fp);
 			kanafselected = FALSE;
 #endif  /* HANKANA */
+#ifdef HOJO_KANJI
+			if (ISHOJO(c1)) {
+				if (c2 == '\0') {
+					c2 = c;
+					return;
+				}
+				if (kfselected != SELHOJO) {
+					putc(ESC, fp);
+					putc('$', fp);
+					putc('(', fp);
+					putc('D', fp);
+					kfselected = SELHOJO;
+				}
+				c1 = c2;
+				c2 = '\0';
+			} else
+#endif /* HOJO_KANJI */
 			if (kfselected != SELKANJI) {
 				putc(ESC, fp);
 				putc('$', fp);
@@ -1214,21 +1275,63 @@ register int	kfio;
 		} else if (kfio == SJIS) {
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
 		    	if (ISHANKANA(c1)) {
-			    putc(c, fp);
-			    c1 = '\0';	/* 91.01.15  NULL -> '\0' */
-			} else {
-			    etos(c1, c);
-			    putc(c1, fp);
-			    putc(c, fp);
-			    c1 = '\0';	/* 91.01.15  NULL -> '\0' */
+				putc(c, fp);
+				c1 = '\0';	/* 91.01.15  NULL -> '\0' */
+				return;
 			}
-#else  /* not HANKANA */
+#endif /* HANKANA */
+#ifdef HOJO_KANJI
+			if (ISHOJO(c1)) {
+				if (c2 == '\0') {
+					c2 = c;
+					return;
+				}
+				c1 = TOUFU1ST;
+				c  = TOUFU2ND;
+				c2 = '\0';
+			}
+#endif
 			etos(c1, c);
 			putc(c1, fp);
 			putc(c, fp);
 			c1 = '\0';	/* 91.01.15  NULL -> '\0' */
-#endif /* HANKANA */
+#ifdef UNICODE
+		} else if (kfio == UTF8 || kfio == UCS2) {
+#ifdef HOJO_KANJI
+			if (ISHOJO(c1)) {
+				if (c2 == '\0') {
+					c2 = c;
+					return;
+				}
+				etou(c1, c2, c);
+				c = c2;
+			} else
+#endif
+			etou(c1, c, 0);
+			c2 = '\0';
+			if (kfio == UTF8 && c1 != '\0')
+				u2tou8(c1, c, c2);
+			if (c1) {
+			    putc(c1, fp);
+			    if (c) {
+				putc(c, fp);
+				if (c2)	putc(c2, fp);
+			    }
+			}
+			c1 = c2 = '\0';
+#endif /* UNICODE */
 		} else {		/* May be EUC. */
+#ifdef HOJO_KANJI
+			if (ISHOJO(c1)) {
+				if (c2 == '\0')	{
+					c2 = c;
+					return;
+				}
+				putc(c1, fp);
+				c1 = c2;
+				c2 = '\0';
+			}
+#endif
 			putc(c1, fp);
 			putc(c, fp);
 			c1 = '\0';	/* 91.01.15  NULL -> '\0' */
@@ -1239,16 +1342,20 @@ register int	kfio;
 		if (kfio == JIS) {
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
 			if (kanafselected && to_kana_fio == '7')
-			    putc(0x0f, fp);
+				putc(0x0f, fp);
 			kanafselected = FALSE;
 #endif  /* HANKANA */
 			if (kfselected != SELROMA) {
-			    putc(ESC, fp);
-			    putc('(', fp);
-			    putc(to_a_fio, fp);
-			    kfselected = SELROMA;
+				putc(ESC, fp);
+				putc('(', fp);
+				putc(to_a_fio, fp);
+				kfselected = SELROMA;
 			}
 		}
+#ifdef UNICODE
+		else if (kfio == UCS2)
+			putc(0, fp);
+#endif /* UNICODE */
 		putc(c, fp);
 	}
 }
@@ -1273,12 +1380,12 @@ register int	next_is_k;		/* Is next code KANJI ? */
 	} else if (kanafselected && !next_is_k) {
 		kanafselected = FALSE;
 	        if (to_kana_fio == 'I') {
-		    putc(ESC, fp);
-		    putc('(', fp);
-		    putc(to_a_fio, fp);
-		    kfselected = SELROMA;
+			putc(ESC, fp);
+			putc('(', fp);
+			putc(to_a_fio, fp);
+			kfselected = SELROMA;
 		} else if (to_kana_fio == '7') {
-		    putc(0x0f, fp);
+			putc(0x0f, fp);
 		}
 	} else if (kanafselected && next_is_k) {
 	        kanafselected = FALSE;
@@ -1318,10 +1425,11 @@ register BUFFER	*bp;
  * When file KANJI code is not decided, we check and determine it
  * to see a text line.
  */
-kcodeconv(buf, len, bp)
+kcodeconv(buf, len, bp, buflen)
 register char	*buf;
 register int	len;
 register BUFFER	*bp;
+int		buflen;
 {
 	if (local_kfin == NIL) {	/* Not decided.	*/
 		local_kfin = kcodecheck(buf, len);
@@ -1332,9 +1440,15 @@ register BUFFER	*bp;
 		} else if (local_kfin == SJIS) {
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 			len = bufstoe(buf, len);
-#else  /* Not HANKANA */
+#else	/* Not HANKANA */
 			bufstoe(buf, len);
 #endif  /* HANKANA */
+#ifdef	UNICODE
+		} else if (local_kfin == UTF8) {
+			len = bufu8toe(buf, len, buflen);
+		} else if (local_kfin == UCS2) {
+			len = bufu2toe(buf, len, buflen);
+#endif	/* UNICODE */
 		}			/* EUC need not convert. */
 		if (bp != NULL &&
 		    bp->b_kfio == NIL) { /* set buffer local code. */
@@ -1343,13 +1457,14 @@ register BUFFER	*bp;
 	}
 	return(len);
 }
+
 /*
  * Count after converting KANJI code form a file code (JIS/Shift-JIS/EUC) to
  * a buffer code (EUC) in the text line.
  * When file KANJI code is not decided, we check and determine it
  * to see a text line.
  */
-#ifdef  SS_SUPPORT /* 92.11.21  by S.Sasaki */
+#if defined(SS_SUPPORT) || defined(UNICODE)
 kcodecount(buf, len)
 register char	*buf;
 register int	len;
@@ -1362,11 +1477,17 @@ register int	len;
 			len = bufjtoe_c(buf, len);
 		} else if (local_kfin == SJIS) {
 			len = bufstoe_c(buf, len);
+#ifdef UNICODE
+		} else if (local_kfin == UTF8) {
+			len = bufu8toe_c(buf, len);
+		} else if (local_kfin == UCS2) {
+			len = bufu2toe_c(buf, len);
+#endif
 		}
 	}
 	return(len);
 }
-#endif  /* SS_SUPPORT */
+#endif  /* SS_SUPPORT || UNICODE */
 
 /*
  * Check and determine what kind of KANJI code exists.
@@ -1390,11 +1511,11 @@ int	len;
 		if (c == ESC && ( *p == '$' || *p == '(' ) && !notjis) {
 			return (JIS);
 		} else if (c >= 0x80) {
-		        if (!iskana(c))
-			  notjis = TRUE;
+			if (!iskana(c))
+				notjis = TRUE;
 			if (c < 0xa0 && c != SS2 && c != SS3) {
 				return (SJIS);
-	 		} else if (c > 0xef) {
+			} else if (c > 0xef) {
 				return (EUC);
 			}
 			c = *p++;
@@ -1476,30 +1597,30 @@ int	len;
 		c1 = *j++;
 		if (c1 == ESC) {
 			if (*j == '$' && (j[1] == '@' || j[1] == 'B')) {
-			    kselected = SELKANJI;
-			    j += 2;
+				kselected = SELKANJI;
+				j += 2;
 			} else if (*j == '(' &&
 				   (j[1] == 'B' || j[1] == 'J' || j[1] == 'H')) {
-			  kselected = SELROMA;
-			  j += 2;
+				kselected = SELROMA;
+				j += 2;
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 			} else if (*j == '(' && j[1] == 'I') {
-			    kselected = SELKANA;
-			    j += 2;
+				kselected = SELKANA;
+				j += 2;
 #endif  /* HANKANA */
 #ifdef	HOJO_KANJI
 			} else if (*j == '$' && j[1] == '(' && j[2] == 'D') {
-			    kselected = SELHOJO;
-			    j += 3;
+				kselected = SELHOJO;
+				j += 3;
 #endif
 			} else {
 				*e++ = c1;
 			}
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 		} else if (c1 == 0x0e) {
-		    kselected = SELKANA;
+			kselected = SELKANA;
 		} else if (c1 == 0x0f) {
-		    kselected = SELROMA;
+			kselected = SELROMA;
 #endif  /* HANKANA */
 		} else if (kselected == SELKANJI) {
 			c2 = *j++;
@@ -1508,19 +1629,19 @@ int	len;
 			*e++ = c2;
 #ifdef	HOJO_KANJI
 		} else if (kselected == SELHOJO) {
-		    *e++ = (char)SS3;
-		    c2 = *j++;
-		    jtoe(c1, c2);
-		    *e++ = c1;
-		    *e++ = c2;
+			*e++ = (char)SS3;
+			c2 = *j++;
+			jtoe(c1, c2);
+			*e++ = c1;
+			*e++ = c2;
 #endif
 #ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
 		} else if (kselected == SELKANA) {
-		    *e++ = (char)SS2;
-		    *e++ = (char)(c1 | 0x80);
+			*e++ = (char)SS2;
+			*e++ = (char)(c1 | 0x80);
 		} else if (iskana(c1 & 0xff)) {
-		    *e++ = (char)SS2;
-		    *e++ = (char)c1;
+			*e++ = (char)SS2;
+			*e++ = (char)c1;
 #endif  /* HANKANA */
 		} else {
 			*e++ = (char)c1;
@@ -1558,8 +1679,8 @@ int	len;
 	while (cp < endcp) {
 		c1 = *cp++ & 0xff;
 		if (iskana(c1)) {
-		    *p++ = (char)SS2;
-		    *p++ = (char)c1;
+			*p++ = (char)SS2;
+			*p++ = (char)c1;
 		} else if (issjis1st(c1)) {
 			c2 = *cp++ & 0xff;
 			stoe(c1, c2);
@@ -1611,12 +1732,12 @@ int	len;
 #endif  /* HANKANA */
 #ifdef	HOJO_KANJI
 			if (ISHOJO(c1)) {
-			    c1 = TOUFU1ST;
-			    c2 = TOUFU2ND;
-			    etos(c1,c2);
-			    *q++ = c1;
-			    *q++ = c2;
-			    p += 2;
+				c1 = TOUFU1ST;
+				c2 = TOUFU2ND;
+				etos(c1,c2);
+				*q++ = c1;
+				*q++ = c2;
+				p += 2;
 			} else
 #endif
 			{
@@ -1635,59 +1756,59 @@ bufjtoe_c(j, len)
 char	*j;				/* JIS code text.	*/
 int	len;
 {
-	register int	c1, c2;		/* 90.07.25  Add "register". */
+    register int	c1, c2;		/* 90.07.25  Add "register". */
 					/*		by S.Yoshida */
-	register int	leng;
-	register char	*endj = j + len;
-	register int	kselected = SELROMA;
+    register int	leng;
+    register char	*endj = j + len;
+    register int	kselected = SELROMA;
 
-	leng = 0;
-	while (j < endj) {
-		c1 = *j++;
-		if (c1 == ESC) {
-		    if (*j == '$' && (j[1] == '@' || j[1] == 'B')) {
-			kselected = SELKANJI;
-			j += 2;
-		    } else if (*j == '(' &&
-			       (j[1] == 'B' || j[1] == 'J' || j[1] == 'H')) {
-			kselected = SELROMA;
-			j += 2;
+    leng = 0;
+    while (j < endj) {
+	c1 = *j++;
+	if (c1 == ESC) {
+	    if (*j == '$' && (j[1] == '@' || j[1] == 'B')) {
+		kselected = SELKANJI;
+		j += 2;
+	    } else if (*j == '(' &&
+		       (j[1] == 'B' || j[1] == 'J' || j[1] == 'H')) {
+		kselected = SELROMA;
+		j += 2;
 #ifdef	HANKANA
-		    } else if (*j == '(' && j[1] == 'I') {
-			kselected = SELKANA;
-			j += 2;
+	    } else if (*j == '(' && j[1] == 'I') {
+		kselected = SELKANA;
+		j += 2;
 #endif
 #ifdef	HOJO_KANJI
-		    } else if (*j == '$' && j[1] == '(' && j[2] == 'D') {
-			kselected = SELHOJO;
-			j += 3;
+	    } else if (*j == '$' && j[1] == '(' && j[2] == 'D') {
+		kselected = SELHOJO;
+		j += 3;
 #endif
-		    } else {
-			leng++;
-		    }
-		} else if (c1 == 0x0e) {
-		    kselected = SELKANA;
-		} else if (c1 == 0x0f) {
-		    kselected = SELROMA;
-		} else if (kselected == SELKANJI) {
-		    j++;
-		    leng += 2;
+	    } else {
+		leng++;
+	    }
+	} else if (c1 == 0x0e) {
+	    kselected = SELKANA;
+	} else if (c1 == 0x0f) {
+	    kselected = SELROMA;
+	} else if (kselected == SELKANJI) {
+	    j++;
+	    leng += 2;
 #ifdef	HOJO_KANJI
-		} else if (kselected == SELHOJO) {
-		    j++;
-		    leng += 3;
+	} else if (kselected == SELHOJO) {
+	    j++;
+	    leng += 3;
 #endif
 #ifdef	HANKANA
-		} else if (kselected == SELKANA) {
-		    leng += 2;
-		} else if (iskana(c1 & 0xff)) {
-		    leng += 2;
+	} else if (kselected == SELKANA) {
+	    leng += 2;
+	} else if (iskana(c1 & 0xff)) {
+	    leng += 2;
 #endif
-		} else {
-		    leng++;
-		}
+	} else {
+	    leng++;
 	}
-	return (leng);
+    }
+    return (leng);
 }
 
 int
@@ -1695,30 +1816,91 @@ bufstoe_c(p, len)
 char	*p;
 int	len;
 {
-	register int	c1;		/* 90.07.25  Add "register". */
+    register int	c1;		/* 90.07.25  Add "register". */
 					/*              by S.Yoshida */
-	register char	*endp;
+    register char	*endp;
 
-	endp = p + len;
+    endp = p + len;
 
-	len=0;
-	while (p < endp) {
-		c1 = *p++ & 0xff;
+    len=0;
+    while (p < endp) {
+	c1 = *p++ & 0xff;
 #ifdef	HANKANA
-		if (iskana(c1)) {
-		    len += 2;
-		} else
+	if (iskana(c1)) {
+	    len += 2;
+	} else
 #endif
-		if (issjis1st(c1)) {
-			p++;
-			len += 2;
-		} else {
-			len++;
-		}
+	if (issjis1st(c1)) {
+	    p++;
+	    len += 2;
+	} else {
+	    len++;
 	}
-	return(len);
+    }
+    return(len);
 }
 #endif /* SS_SUPPORT */
+
+#ifdef	UNICODE
+int
+bufu2toe_c(p, len)
+    register char *p;
+    int len;
+{
+    register char *end_p = p + len;
+    int c1, c2, c3;
+
+    len = 0;
+    while (p < end_p) {
+	c1 = *p++;
+	c2 = *p++;
+	if (c1 == 0 && c2 <= 0x7F) {
+	    len++;
+	} else {
+	    utoe(c1, c2, c3);
+	    if (c3)		    len += 3;
+	    else if (c2)	    len += 2;
+	    else if (c1)	    len++;
+	}
+    }
+    return len;
+}
+
+int
+bufu8toe_c(p, len)
+    register char *p;
+    int len;
+{
+    register char *end_p = p + len;
+    int c1, c2, c3;
+
+    len = 0;
+    while (p < end_p) {
+	if (isutf1byte(*p)) {
+	    len++;
+	    p++;
+	}
+	else {
+	    if (isutf2byte(*p)) {
+		c1 = *p++;
+		c2 = *p++;
+		u8tou2(c1, c2, 0);
+	    }
+	    else {
+		c1 = *p++;
+		c2 = *p++;
+		c3 = *p++;
+		u8tou2(c1, c2, c3);
+	    }
+	    utoe(c1, c2, c3);
+	    if (c3)		    len += 3;
+	    else if (c2)	    len += 2;
+	    else if (c1)	    len++;
+	}
+    }
+    return len;
+}
+#endif	/* UNICODE */
 
 /*
  * Is current position char KANJI ?
@@ -1849,4 +2031,3 @@ register int	c2;
 }
 
 #endif	/* KANJI */
-

@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.15 2001/05/25 15:36:52 amura Exp $ */
+/* $Id: def.h,v 1.16 2001/08/17 19:15:06 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.16  2001/08/17 19:15:06  amura
+ * first try of unicode support (unix only/win32 on the way)
+ *
  * Revision 1.15  2001/05/25 15:36:52  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -29,29 +32,7 @@
  * Revision 1.10  2001/01/05 14:07:00  amura
  * first implementation of Hojo Kanji support
  *
- * Revision 1.9  2000/12/27 16:56:00  amura
- * change d_makename() params for conservative reason, and bugfix in dires_()
- *
- * Revision 1.8  2000/12/14 18:12:13  amura
- * use alloca() and more memory secure
- *
- * Revision 1.7  2000/09/21 17:28:29  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.6  2000/07/22 20:50:54  amura
- * redefine NFILEN macro
- *
- * Revision 1.5  2000/07/20 12:45:17  amura
- * support undo with auto-fill mode
- *
- * Revision 1.4  2000/06/27 01:49:42  amura
- * import to CVS
- *
- * Revision 1.3  2000/06/01 05:25:06  amura
- * Undo support
- *
- * Revision 1.2  2000/05/01  23:04:38  amura
- * undo test version
+ * -- snip --
  *
  * Revision 1.1  1999/05/19  03:52:32  amura
  * Initial revision
@@ -353,8 +334,16 @@ typedef struct	BUFFER {
 #define	SJIS	1			/* KANJI code is Shift-JIS.	*/
 #define	JIS	2			/* KANJI code is JIS.		*/
 #define	EUC	3			/* KANJI code is EUC.		*/
+#ifdef	UNICODE
+#define	UTF8	4			/* KANJI code is UTF-8		*/
+#define	UCS2	5			/* KANJI code is Unicode(BE)	*/
+#define	UCS2LE	6			/* KANJI code is Unicode(LE)	*/
+#define	NIL	7			/* Not decided.			*/
+#define	T	8			/* Guess.			*/
+#else	/* !UNICODE */
 #define	NIL	4			/* Not decided.			*/
 #define	T	5			/* Guess.			*/
+#endif	/* UNICODE */
 #endif	/* KANJI */
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
 #define	BFRONLY	0x20			/* Read only mode.		*/
@@ -515,7 +504,7 @@ extern int load pro((char *));
 extern int ffropen pro((char *));
 extern VOID ksetfincode pro((BUFFER *));
 extern int ffgetline pro((char *, int, int *));
-extern int kcodeconv pro((char *, int, BUFFER *));
+extern int kcodeconv pro((char *, int, BUFFER *, int));
 extern int ffclose pro((void));
 extern int insertfile pro((char *, char *));
 extern int ffisdir pro((char *));

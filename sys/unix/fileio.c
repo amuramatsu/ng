@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.12 2001/03/02 08:48:32 amura Exp $ */
+/* $Id: fileio.c,v 1.13 2001/08/17 19:15:07 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.13  2001/08/17 19:15:07  amura
+ * first try of unicode support (unix only/win32 on the way)
+ *
  * Revision 1.12  2001/03/02 08:48:32  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -131,6 +134,11 @@ BUFFER *bp;
 #endif	/* KANJI */
 	lp = lforw(lp);
 	if(lp == lpend) break;		/* no implied newline on last line */
+#ifdef	UNICODE
+	if (kfio == UCS2) {
+		putc(0, ffp);
+	}
+#endif	/* UNICODE */
 	putc('\n', ffp);
     } while(!ferror(ffp));
     if(ferror(ffp)) {
