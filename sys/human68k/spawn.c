@@ -1,10 +1,13 @@
-/* $Id: spawn.c,v 1.2 2001/11/23 11:56:48 amura Exp $ */
+/* $Id: spawn.c,v 1.3 2002/04/17 18:02:44 amura Exp $ */
 /*
  *		Spawn CLI for Human68k
  */
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.3  2002/04/17 18:02:44  amura
+ * can use UN*X style path to SHELL environment variable
+ *
  * Revision 1.2  2001/11/23 11:56:48  amura
  * Rewrite all sources
  *
@@ -22,6 +25,7 @@
 #include <signal.h>
 #include <process.h>
 
+char *toh68kfn _PRO((char *));
 static char *shellp = NULL;		/* Saved "SHELL" name.		*/
 
 /*
@@ -44,10 +48,14 @@ int f, n;
 #endif
     
     if (shellp == NULL) {
-	shellp = getenv("SHELL");
-	if (shellp == NULL)
-	    shellp = getenv("shell");
-	if (shellp == NULL)
+	char *p = getenv("SHELL");
+	if (p == NULL)
+	    p = getenv("shell");
+	if (p != NULL) {
+	    shellp = strdup(p);
+	    shellp = toh68kfn(shellp);
+	}
+	else /*	if (p == NULL) */
 	    shellp = "command.x";	/* Safer.		*/
     }
     ttcolor(CTEXT);
