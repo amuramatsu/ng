@@ -1,4 +1,4 @@
-/* $Id: dosutil.c,v 1.2 2001/11/23 11:56:47 amura Exp $ */
+/* $Id: dosutil.c,v 1.3 2002/04/06 22:59:25 amura Exp $ */
 /*
  *		UNIX like functions for Human68k.
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: dosutil.c,v $
+ * Revision 1.3  2002/04/06 22:59:25  amura
+ * now Human68k port is validated
+ *
  * Revision 1.2  2001/11/23 11:56:47  amura
  * Rewrite all sources
  *
@@ -18,6 +21,8 @@
 /* 90.02.11	Created for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
+
+#include <iocslib.h>
 #include <time.h>
 
 /* Sleep (busily) for n seconds */
@@ -34,8 +39,10 @@ int n;
 	    return 1;
     }
     for (s = n*100, start = ONTIME(); n;) {
+	if (kbhit())
+	    return 1;
 	if ((laps = ONTIME() - start) < 0)
-	    laps += 8640000;
+	    laps += (100 * 60 * 60 * 24);
 	if (laps >= s)
 	    return 0;
     }

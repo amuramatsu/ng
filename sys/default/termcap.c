@@ -1,4 +1,4 @@
-/* $Id: termcap.c,v 1.3 2001/11/28 19:02:10 amura Exp $ */
+/* $Id: termcap.c,v 1.4 2002/04/06 22:59:25 amura Exp $ */
 /*
  * termcap.c - termcap library routines for MS-DOS and OS/2
  *
@@ -12,6 +12,9 @@
 
 /*
  * $Log: termcap.c,v $
+ * Revision 1.4  2002/04/06 22:59:25  amura
+ * now Human68k port is validated
+ *
  * Revision 1.3  2001/11/28 19:02:10  amura
  * Small fixes arount termcap library.
  *
@@ -40,7 +43,6 @@ static char *tcbuf;
  */
 extern char PC;
 extern short ospeed;
-extern char *getenv _PRO((char*));
 
 /*
  * error exit

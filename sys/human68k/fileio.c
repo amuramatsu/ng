@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.11 2001/11/23 11:56:47 amura Exp $ */
+/* $Id: fileio.c,v 1.12 2002/04/06 22:59:26 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.12  2002/04/06 22:59:26  amura
+ * now Human68k port is validated
+ *
  * Revision 1.11  2001/11/23 11:56:47  amura
  * Rewrite all sources
  *
@@ -353,6 +356,8 @@ char *fn;
  * directory.  Human68k's path delimiter character '\' is
  * converted to minsh's '/'.
  */
+char *getcwd _PRO((char *, int));
+
 char *
 getcwd(cwd, len)
 char *cwd;
@@ -478,51 +483,34 @@ register char *fn;
 {
     register char *cp;
     static char fnb[NFILEN];
-    char    *p;
-    char    *endp;
+    char *endp;
 
-    if (fn[0] == '\0') {
-        strcpy (fnb, wdir);
-        if (fnb[strlen (fnb) - 1] != '/'
-	        && fnb[strlen (fnb) - 1] != '\\')
-	    strcat (fnb, "/");
-	return (fnb);
-    }
-#ifdef HOMEDIR
-    else if (fn[0]=='~' && (fn[1]=='/' || fn[1]=='\\')) {
-    	strcpy(fnb, getenv("HOME"));
-    	while (*cp) {
-	    if (*cp == '\\')
-		*cp = '/';
-	    cp++;
-    	}
-    	fn++;
-    }
-#endif
-    endp = fn + strlen (fn) - 1;
+    fnb[NFILEN-1] = '\0';
     cp = fnb;
-    for (p = endp; p > fn; p--) {
-        if (*p == ':') {
-	    *cp++ = *(p - 1);
-	    *cp++ = *p;
-	    fn = p + 1;
-	    break;
-        }
+    if ((ISUPPER(fn[0]) || ISLOWER(fn[0])) && fn[1] == ':') {
+	*cp++ = *fn++;
+	*cp++ = *fn++;
     }
-    if (p == fn) {
-#ifndef NO_DIR	/* 91.01.22  NODIR -> NO_DIR. by S.Yoshida */
-        *cp++ = wdir[0];
-	*cp++ = wdir[1];
-#else
-        return (fn);    /* punt */
-#endif
-    }
-    for (p = endp; p > fn; p--) {
-        if ((*p == '/' || *p == '\\')
-	        && (*(p - 1) == '/' || *(p - 1) == '\\')) {
-	    fn = p;
-	    break;
+    else if (fn[0] == '/' || fn[0] == '\\') {
+	char *sysroot = getenv("SYSROOT");
+	if (sysroot != NULL) {
+	    strncpy(cp, sysroot, NFILEN-1);
+	    while (*cp)
+		cp++;
 	}
+    }
+    else if (fn[0] == '~' && (fn[0] == '/' || fn[1] == '\\')) {
+	char *home = getenv("HOME");
+	if (home != NULL) {
+	    strncpy(cp, home, NFILEN-1);
+	    while (*cp)
+		cp++;
+	    fn++;
+	}
+    }
+    else {
+	*cp++ = wdir[0];
+	*cp++ = wdir[1];
     }
     switch (*fn) {
     case '/':
@@ -538,7 +526,6 @@ register char *fn;
 	else {			/* change drives to get default directory */
 	    int drive;
 	    int ndrive;
-	    char *getcwd _PRO((void));
 	    drive = fnb[0];
 	    if (ISUPPER(drive))
 		drive = TOLOWER(drive);
@@ -666,7 +653,7 @@ char *suffix;
 	    return home;
 	}
 #if 0
-	strcat(home, "\\");
+	strcat(home, "/");
 	strcat(home, ngrcfile);
 	if (access(home, 0) == 0) {
 #ifdef	KANJI
@@ -679,9 +666,9 @@ char *suffix;
     }
 #endif
 #ifdef	KANJI	/* 90.02.10  by S.Yoshida */
-    strcat(home, "\\ng.ini");
+    strcat(home, "/ng.ini");
 #else	/* NOT KANJI */
-    strcat(home, "\\mg.ini");
+    strcat(home, "/mg.ini");
 #endif	/* KANJI */
     if (suffix != NULL) {
 	strcat(home, "-");
@@ -734,7 +721,7 @@ char *frname, *toname;
 #endif
 
     sprintf(cmd, "copy %s %s > NUL", frnames, tonames);
-    toh68kfn (cmd);
+    toh68kfn(cmd);
     return (system(cmd) == 0);
 }
 
@@ -824,8 +811,8 @@ char *dirname;
 #ifdef KANJI
     char filenames[NFILEN];
 #endif
-    int filelinecmp _PRO((char *, struct FILBUF *));
-    VOID mkfileline _PRO((char **, char **));
+    int filelinecmp _PRO((char *, char *));
+    VOID mkfileline _PRO((char *, struct FILBUF *));
 
     if (strlen(dirname) + 4 > NFILEN)
 	return (NULL);
@@ -988,16 +975,16 @@ char *name, **buf;
     struct FILBUF    fileinfo;
     int n, len, size, dirpartlen, nampartlen;
     char *buffer;
-#ifdef	HOMEDIR
     char *home;
     int homelen;
     
     if (name[0] == '~' && (name[1]=='/' || name[1]=='\\') &&
-	(home = getenv("HOME"))) {
-	homelen = strlen(home) - 1;
+	  (home = getenv("HOME"))) {
+	homelen = strlen(home);
 	strncpy(pathbuf, home, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
 	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
+	name++;
     }
     else {
 	home = NULL;
@@ -1005,10 +992,6 @@ char *name, **buf;
 	strncpy(pathbuf, name, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
     }
-#else
-    strncpy(pathbuf, name, sizeof(pathbuf));
-    pathbuf[NFILEN-1] = '\0';
-#endif
     dirpart = NULL;
     for (cp = pathbuf; *cp; cp++) {
         if (*cp == '/' || *cp == '\\' || *cp == ':')
@@ -1022,11 +1005,7 @@ char *name, **buf;
         *pathbuf = '\0';
         dirpartlen = 0;
     }
-#ifdef	HOMEDIR
-    nampart = name + dirpartlen - homelen + 1;
-#else
-    nampart = name + dirpartlen;
-#endif
+    nampart = name + dirpartlen - homelen;
     nampartlen = strlen(nampart);
 
     buffer = malloc(MALLOC_STEP);
@@ -1035,8 +1014,8 @@ char *name, **buf;
     size = MALLOC_STEP;
     len = 0;
     n = 0;
-
-    strcat(pathbuf, "*.*");
+  
+    strncat(pathbuf, "*.*", sizeof(pathbuf)-strlen(pathbuf)-1);
 #ifdef KANJI
     strcpy(pathbufs, pathbuf);
     bufetos(pathbufs, strlen(pathbufs)+1);
@@ -1073,16 +1052,15 @@ char *name, **buf;
             if ((buffer = realloc(buffer, size += MALLOC_STEP)) == NULL)
                 return(-1);
         }
-#ifdef HOMEDIR
 	if (home) {
-	    strcpy(buffer+len, "~");
-	    strcat(buffer+len, tmpnam+homelen+1);
-	    l -= homelen;
+	    strcpy(buffer + len, "~");
+	    strcat(buffer + len, tmpnam + homelen);
+	    len += l - homelen + 1;
 	}
-	else
-#endif
-        strcpy(buffer + len, tmpnam);
-        len += l;
+	else {
+	    strcpy(buffer + len, tmpnam);
+	    len += l;
+	}
         n++;
     } while (NFILES(&fileinfo) >= 0);
 
@@ -1114,7 +1092,7 @@ char *name;
 }
 
 char *
-toh68kfn (name)
+toh68kfn(name)
 char *name;
 {
     register char *p;
@@ -1140,7 +1118,7 @@ register char *s;
 {
     register int i;
     
-    for (i = strlen (s); i > 0; i--) {
+    for (i = strlen(s); i > 0; i--) {
 	if (s[i - 1] == '/' || s[i - 1] == '\\' || s[i - 1] == ':')
 	    break;
     }

@@ -1,10 +1,13 @@
-/* $Id: ttyio.c,v 1.7 2001/11/23 11:56:49 amura Exp $ */
+/* $Id: ttyio.c,v 1.8 2002/04/06 22:59:27 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.8  2002/04/06 22:59:27  amura
+ * now Human68k port is validated
+ *
  * Revision 1.7  2001/11/23 11:56:49  amura
  * Rewrite all sources
  *
@@ -33,8 +36,13 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+
 #include <doslib.h>
+#include <iocslib.h>
 #include <time.h>
+#ifdef FEPCTRL
+#include "fepctrl.h"
+#endif
 
 #define	RAW_MODE	0x20
 #define	COOKED_MODE	0x00
@@ -63,7 +71,16 @@ static unsigned char fnckeybuf[9][6];	/* buffer for function keys */
 static int fepctrl = FALSE;		/* FEP control enable flag	*/
 static int fepmode = TRUE;		/* now FEP mode			*/
 static int fepforce = 0;		/* force FEP to mode		*/
+VOID fepmode_init _PRO((void));
+VOID fepmode_term _PRO((void));
+VOID fepmode_on _PRO((void));
+VOID fepmode_off _PRO((void));
+int fepmode_toggle _PRO((void));
 #endif
+
+static VOID assignkey _PRO((void));
+static VOID cancelkey _PRO((void));
+VOID setttysize _PRO((void));
 
 /*
  * This function gets called once, to set up
@@ -221,8 +238,8 @@ ttflush()
 
     for (i = 0; i < nobuf; i++) {
         if (obuf[i] == 0x0a)
-	    B_PUTC (0x0d);
-        B_PUTC (obuf[i] & 0xff);
+	    B_PUTC(0x0d);
+        B_PUTC(obuf[i] & 0xff);
     }
     nobuf = 0;
 }
@@ -248,7 +265,7 @@ ttgetc()
     register int shifts;
 #ifdef DO_METAKEY
     extern int use_metakey;		/* set in the generic kbd.c */
-    
+#endif    
 #ifndef CTRL
 #  define SHIFT		(0x01)
 #  define CTRL		(0x02)
@@ -271,16 +288,16 @@ ttgetc()
     while (!kbhit())
 	autosave_handler();	/* this is polling */
 #endif
-    c = FGETC (1);
+    c = FGETC(1);
     shifts = K_SFTSNS() & 0xFFFF;
     shifts |= K_KEYBIT(XF1_3GROUP)<<16;
     if (c == ' ' && (shifts & CTRL))
 	c = 0;
 #ifdef DO_METAKEY
     else if (use_metakey == TRUE && (shifts & (OPT1|OPT2|XF1|XF2)))
-	return ((KCHAR)(c | METABIT));
+	return (KCHAR)(c | METABIT);
 #endif /* DO_METAKEY */
-    return ((KCHAR)c);
+    return (KCHAR)c;
 }
 
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
@@ -361,9 +378,9 @@ ttwait()
 	    return(FALSE);
 	lap = ONTIME() - start;
 	if (lap < 0)
-	    lap += 8640000;
+	    lap += (100 * 60 * 60 * 24);
     }
-    return(TRUE);
+    return TRUE;
 }
 #endif
 
@@ -418,9 +435,9 @@ fepmode_toggle()
 	    fepforce = -1;
 	else
 	    fepforce = 1;
-	return (TRUE);
+	return TRUE;
     }
-    return (FALSE);
+    return FALSE;
 }
 
 int
@@ -451,7 +468,7 @@ int f, n;
 	fep_term();
     fepctrl = n;
     
-    return (TRUE);
+    return TRUE;
 }
 
 int
@@ -464,7 +481,7 @@ int f, n;
     }
     else
 	fep_term();
-    return (TRUE);
+    return TRUE;
 }
 #endif /* FEPCTRL */
 

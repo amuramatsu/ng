@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.4 2001/11/23 11:56:48 amura Exp $ */
+/* $Id: sysdef.h,v 1.5 2002/04/06 22:59:26 amura Exp $ */
 /*
  *		Human68k system definitions
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.5  2002/04/06 22:59:26  amura
+ * now Human68k port is validated
+ *
  * Revision 1.4  2001/11/23 11:56:48  amura
  * Rewrite all sources
  *
@@ -56,14 +59,17 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 
 #define MALLOCROUND(m)	(m+=7,m&=~7)	/* round up to 8 byte boundry	*/
 
+#ifndef bcopy 
 #define	bcopy(s,d,n)	memcpy(d,s,n)	/* copy memory area.		*/
+#endif
+#ifndef bzero
 #define bzero(s,n)	memset(s,0,n)	/* 91.01.21  Add by H.Kaneko.	*/
+#endif
 #define bcmp(s,d,n)	memcmp(s,d,n)	/* 91.02.04  Add by Y.Nimura.	*/
 					/* 91.02.04  strncmp -> memcmp	*/
 					/*		by S.Yoshida	*/
 #define	fncmp		h68kfncmp	/* file name comparison		*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
-char *getenv();
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
 
 #ifdef __GNUC__

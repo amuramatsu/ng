@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.6 2001/11/25 19:52:04 amura Exp $ */
+/* $Id: search.c,v 1.7 2002/04/06 22:59:24 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -12,6 +12,9 @@
 
 /*
  * $Log: search.c,v $
+ * Revision 1.7  2002/04/06 22:59:24  amura
+ * now Human68k port is validated
+ *
  * Revision 1.6  2001/11/25 19:52:04  amura
  * change for compiler warnings reducing
  *
@@ -499,10 +502,10 @@ register int *dir;
 #endif		
     case SRCH_ACCM:
 	*pptr -= 1;
-#ifdef HUMAN68K	/* 90.11.16    Sawayanagi Yosirou */
+#if defined(HUMAN68K) && defined(KANJI)	/* 90.11.16    Sawayanagi Yosirou */
 	if (ISKANJI(pat[*pptr]))
 	    *pptr -= 1;
-#endif /* HUMAN68K */
+#endif /* HUMAN68K && KANJI */
 	if (*pptr < 0)
 	    *pptr = 0;
 	pat[*pptr] = '\0';
