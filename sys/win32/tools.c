@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.2 2000/07/18 12:40:35 amura Exp $ */
+/* $Id: tools.c,v 1.3 2000/07/22 20:46:32 amura Exp $ */
 /*
  * NG : C library compatible routine for Ng
  *
@@ -12,6 +12,9 @@
 
 /*
  * $Log: tools.c,v $
+ * Revision 1.3  2000/07/22 20:46:32  amura
+ * support "Drag&Drop"
+ *
  * Revision 1.2  2000/07/18 12:40:35  amura
  * for Win32, enable to handle japanese directory
  *
@@ -564,8 +567,8 @@ sjis2unicode_char(WORD c)
 }
 
 #else	/* !KANJI */
-DWORD
-unicode2sjis(LPCTSTR src, BYTE *dst, DWORD max)
+int
+unicode2sjis(const char *src, unsigned char *dst, int max)
 {
   BYTE *p = dst, *ep = p + max - 1;
   LPCTSTR sp = src;
@@ -582,8 +585,8 @@ unicode2sjis(LPCTSTR src, BYTE *dst, DWORD max)
   }
 }
 
-DWORD
-sjis2unicode(const BYTE *src, LPTSTR dst, DWORD max)
+int
+sjis2unicode(const unsigned char *src, char *dst, int max)
 {
   LPTSTR p = dst, ep = p + max - 1;
   const BYTE *sp = src;
@@ -682,6 +685,46 @@ MouseEvent(int fn, int x, int y)
     update();
   }
 }
+
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+VOID
+DropEvent(const char *files, int y)
+{
+  if (allow_mouse_event) {
+    WINDOW *wp = wheadp;
+    const char *mp;
+    char filename[NFILEN];
+    int  startrow;
+    extern int filevisit pro((int,int));
+
+    /* change current window to drag'n drop */
+    while (wp) {
+      startrow = wp->w_toprow;
+      if (startrow <= y && y < startrow + wp->w_ntrows + 1) {
+        curwp = wp;
+        curbp = wp->w_bufp;
+        break;
+      }
+      wp = wp->w_wndp;
+    }
+ 
+    /* 各ファイル名について find_file() 実行 */
+    mp = files;
+    do {
+      unicode2sjis(mp, filename, NFILEN-1);
+#ifdef	KANJI
+      bufstoe(filename, strlen(filename)+1);
+#endif
+      eargset(filename);
+      if (!filevisit(FFARG, 0))
+        break;
+	  mp += lstrlen(mp)+1;
+    } while ( *mp != 0 );
+
+    update();
+  }
+}
+#endif	/* DROPFILES */
 
 #ifdef	CLIPBOARD
 int

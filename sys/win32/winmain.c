@@ -1,4 +1,4 @@
-/* $Id: winmain.c,v 1.2 2000/07/18 12:42:34 amura Exp $ */
+/* $Id: winmain.c,v 1.3 2000/07/22 20:46:33 amura Exp $ */
 /*
  * NG : NG program main routine
  *
@@ -8,6 +8,9 @@
 
 /*
  * $Log: winmain.c,v $
+ * Revision 1.3  2000/07/22 20:46:33  amura
+ * support "Drag&Drop"
+ *
  * Revision 1.2  2000/07/18 12:42:34  amura
  * support IME convertion on the spot
  *
@@ -399,7 +402,7 @@ GetChar( void )
 
 	while ( 1 ) {
 	        while (1) {
-		  extern MouseEvent(int, int, int);
+		  extern VOID MouseEvent pro((int, int, int));
 		  c = SendMessage(g_hwndTty, TTYM_GETWINDOWEVENT, 0, 0);
 		  if (c < 0) {
 		    break;
@@ -418,6 +421,22 @@ GetChar( void )
 		      }
 		      break;
 #endif
+
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+		    case TTY_WM_DROPFILES:
+		      {
+			HLOCAL hMemory;
+			extern VOID DropEvent pro((const char *, int));
+			/* hMemory got filename buffer address... */
+			c = SendMessage( g_hwndTty, TTYM_DROPFILES, 0, (LPARAM)&hMemory );
+			if ( c == -1 ) {
+			  break ;
+			}
+			DropEvent((const char *)hMemory, c);
+			LocalFree(hMemory);	/* allocated in ttyctrl.cpp */
+		      }
+		    break;
+#endif	/* DROPFILES */
 		    }
 		  }
 		}

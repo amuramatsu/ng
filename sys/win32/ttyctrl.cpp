@@ -1,7 +1,10 @@
-/* $Id: ttyctrl.cpp,v 1.2 2000/07/18 12:42:33 amura Exp $ */
+/* $Id: ttyctrl.cpp,v 1.3 2000/07/22 20:46:33 amura Exp $ */
 
 /*
  * $Log: ttyctrl.cpp,v $
+ * Revision 1.3  2000/07/22 20:46:33  amura
+ * support "Drag&Drop"
+ *
  * Revision 1.2  2000/07/18 12:42:33  amura
  * support IME convertion on the spot
  *
@@ -21,6 +24,9 @@
 #define		is_kanji(x)		(((x)>=0x81 && (x)<=0x9F)||((x)>=0xE0 && (x)<=0xFC))
 #define		MAX_KEYBUF		256
 #define MAX_WINEVENTBUF 32
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+#define		MAX_DROPBUF		32
+#endif	/* DROPFILES */
 
 static LOGFONT lfont = {
 #ifdef KANJI
@@ -79,8 +85,17 @@ protected:
 	int m_szWinEventBuf[MAX_WINEVENTBUF]; /* Window Event buffer */
 	DWORD m_dwWinEventOut; /* Window Event output pointer */
 	DWORD m_dwWinEventIn;  /* Window Event input pointer */
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+	HLOCAL	m_szDropBuf[ MAX_DROPBUF ] ;	/* Drag And Drop 情報バッファ */
+	int m_iDropLine[ MAX_DROPBUF ] ;	/* Drag and Drop point saver */
+	DWORD	m_dwDropIn ;
+	DWORD	m_dwDropOut ;
+#endif	/* DROPFILES */
 
 	HFONT	m_hFont; /* handle for font */
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+	int		GetDropFiles( HLOCAL *lphMemory ) ;
+#endif	/* DROPFILES */
 
 	void	SetupEvent( HANDLE hEvent ) ;
 	void	ClearScreen() ;
@@ -110,6 +125,9 @@ public:
 	~TtyView() ;
 
 	BOOL	Create() { return FALSE ; }
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+	void	WMDropFiles( HDROP hDrop ) ;
+#endif	/* DROPFILES */
 
 	void	WMCreate( HWND hWnd, LPCREATESTRUCT lpcs ) ;
 	void	WMPaint() ;
@@ -153,6 +171,9 @@ TtyView::TtyView()
 	m_dwKeyIn = 0 ;
 	m_dwKeyOut = 0 ;
 	m_dwWinEventIn = m_dwWinEventOut = 0;
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+	m_dwDropIn = m_dwDropOut = 0;
+#endif	/* DROPFILES */
 
 	m_hFont = (HFONT)0;
 }
@@ -498,6 +519,30 @@ TtyView::AddChar( TCHAR c )
 		::SetEvent( m_hevtKey ) ;
 	}
 }
+
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+/*
+ * Get Drag & Drop files (from main thread)
+ */
+
+int
+TtyView::GetDropFiles( HLOCAL *lphMemory )
+{
+    int line;
+
+    if ( lphMemory == NULL )
+	return -1;
+    
+    if (m_dwDropIn == m_dwDropOut) {
+	return -1;
+    }
+    *lphMemory = m_szDropBuf[m_dwDropOut];
+    line = m_iDropLine[m_dwDropOut];
+    m_dwDropOut = (m_dwDropOut + 1) % MAX_DROPBUF;
+    
+    return line;
+}
+#endif	/* DROPFILES */
 
 /*
  * Put a window event onto a queue.
@@ -868,6 +913,81 @@ TtyView::WMLButtonDown(int x, int y)
   AddWindowEvent((yy << 18) | (xx << 4) | TTY_WM_MOUSE);
 }
 
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+void
+TtyView::WMDropFiles( HDROP hDrop )
+{
+    UINT	iFile ;
+    HLOCAL	hMemory ;
+	POINT	sDropPoint ;
+
+    /* ファイル名を格納するためのメモリを確保 */
+    hMemory = LocalAlloc(LPTR, 16) ;
+
+    /* ドロップされたファイル数を得る */
+    iFile = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0) ;
+    if( iFile && hMemory) {
+	UINT	iMemSize ;	/* 確保されたメモリサイズ */
+	UINT	iMemPos ;
+
+	DragQueryPoint(hDrop, &sDropPoint);
+	iMemSize = LocalSize( hMemory ) ;
+	iMemPos = 0 ;
+	while( iFile-- ) {
+	    UINT bufsz ;	/* 個々のファイル名の長さ（単位：バイト） */
+	    UINT newsize ;	/* 追加格納するために必要な容量（要求量） */
+	    char *fname ;
+
+	    /* 個々のファイル名の長さ(必要なバッファサイズ)を得る  */
+	    bufsz = DragQueryFile(hDrop, iFile, NULL, 0) ;
+	    ++bufsz ;
+	    bufsz *= sizeof(TCHAR) ;	/* 文字数 -> バイト数 */
+
+	    /* hMemory の空き容量をチェック！ */
+	    newsize = iMemPos + bufsz + sizeof(TCHAR) ;
+	    if ( iMemSize < newsize ) {
+		HLOCAL	hNewMem ;
+		/* 足りなければ追加確保 */
+		hNewMem = LocalAlloc(LPTR, newsize) ;
+		if ( hNewMem == NULL ) {
+		    LocalFree( hMemory );  hMemory = NULL;
+		    break ;
+		}
+		CopyMemory(hNewMem, hMemory, iMemSize);
+		LocalFree(hMemory);
+		hMemory = hNewMem;
+		iMemSize = LocalSize( hMemory ) ;
+	    }
+
+	    /* 読み取りのバッファ(fname)は hMemory から iMemPos バイト目 */
+	    fname = (char *) hMemory ;
+	    fname += iMemPos ;
+	    iMemPos += bufsz ;
+	    fname[bufsz] = 0;
+
+	    /* ファイル名を読み取る */
+	    DragQueryFile(hDrop, iFile, (LPTSTR) fname, bufsz) ;
+	}
+    }
+
+    DragFinish(hDrop);
+
+    if ( hMemory ) {
+	DWORD		next1 ;
+	
+	next1 = (m_dwDropIn + 1) % MAX_DROPBUF ;
+	if ( next1 == m_dwDropOut ) {
+	    return ;
+	}
+	m_szDropBuf[ m_dwDropIn ] = hMemory ;
+	m_iDropLine[ m_dwDropIn ] = sDropPoint.y / m_dwFontH ;
+	m_dwDropIn = next1 ;
+    }
+    
+    AddWindowEvent(TTY_WM_DROPFILES);
+}
+#endif	/* DROPFILES */
+
 #if 0
 /*
  * TABのサイズを設定する
@@ -956,6 +1076,9 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 		pWindow = new TtyView() ;
 		SetWindowLong( hWnd, 0, (LONG) pWindow ) ;
 		pWindow->WMCreate( hWnd, lpStruct ) ;
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+		DragAcceptFiles(hWnd, TRUE) ;
+#endif	/* DROPFILES */
 		return 0 ;
 	}
 	pWindow = (PTtyView) GetWindowLong( hWnd, 0 ) ;
@@ -963,6 +1086,9 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 		return DefWindowProc( hWnd, msg, wParam, lParam ) ;
 	switch ( msg ) {
 	case WM_DESTROY:
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+		DragAcceptFiles( hWnd, FALSE ) ;
+#endif	/* DROPFILES */
 		delete pWindow ;
 		SetWindowLong( hWnd, 0, (LONG) 0 ) ;
 		break ;
@@ -1002,6 +1128,11 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 		pWindow->WMLButtonDown((int)(lParam & 0xffff),
 				       (int)((lParam >> 16) & 0xffff));
 		break;
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+	case WM_DROPFILES:
+		pWindow->WMDropFiles( (HDROP) wParam ) ;
+		break ;
+#endif	/* DROPFILES */
 #if 0
 	case TTYM_SETTAB:		pWindow->SetTab( (DWORD) wParam, (BOOL) lParam ) ;		break ;
 	case TTYM_SETHMARGIN:	pWindow->SetHMargin( (DWORD) wParam, (BOOL) lParam ) ;	break ;
@@ -1023,6 +1154,9 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 	case TTYM_GETCHAR:		return pWindow->GetChar() ;
 	case TTYM_GETWINDOWEVENT:	return pWindow->GetWindowEvent() ;
 	case TTYM_GETWH:		return pWindow->GetWH() ;
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+	case TTYM_DROPFILES:	return  pWindow->GetDropFiles( (LPHANDLE) lParam ) ;
+#endif	/* DROPFILES */
 
 	default:
 		return DefWindowProc( hWnd, msg, wParam, lParam ) ;

@@ -1,9 +1,12 @@
-/* $Id: ttyctrl.h,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: ttyctrl.h,v 1.2 2000/07/22 20:46:33 amura Exp $ */
 
 /*
  * $Log: ttyctrl.h,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2000/07/22 20:46:33  amura
+ * support "Drag&Drop"
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 
@@ -143,6 +146,9 @@ typedef struct {
 #define		TTYM_GETWH			(WM_USER+0x10C)
 #define		TTYM_GETWINDOWEVENT	(WM_USER+0x10D)
 #define		TTYM_FONTCHANGED	(WM_USER+0x10E)
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+#define		TTYM_DROPFILES		(WM_USER+0x10F)
+#endif	/* DROPFILES */
 
 #define		IDM_FEPOK			(41260)
 #define		IDM_FEPACTIVE		(41261)
@@ -154,6 +160,9 @@ typedef struct {
 #define TTY_WM_MASK 0x0f
 #define TTY_WM_MOUSE  1
 #define TTY_WM_RESIZE 2
+#ifdef	DROPFILES	/* 00.07.07  by sahf */
+#define TTY_WM_DROPFILES 3
+#endif	/* DROPFILES */
 
 #ifdef	__cplusplus
 extern "C" {
