@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.3 2001/11/23 11:56:45 amura Exp $ */
+/* $Id: ttydef.h,v 1.4 2001/11/28 17:51:48 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Amiga console device virtual terminal header file
@@ -9,6 +9,9 @@
 
 /*
  * $Log: ttydef.h,v $
+ * Revision 1.4  2001/11/28 17:51:48  amura
+ * little modifies for support VBCC. (but not work yet)
+ *
  * Revision 1.3  2001/11/23 11:56:45  amura
  * Rewrite all sources
  *
@@ -182,8 +185,8 @@ struct MenuInfo {
 #else
 #ifdef	BROWSER
 #define	DO_MENU
-#endif	BROWSER
-#endif	MENU
+#endif	/* BROWSER */
+#endif	/* MENU */
 
 /*
  * MODE_RENDITION and TEXT_RENDITION determine the way the mode line and

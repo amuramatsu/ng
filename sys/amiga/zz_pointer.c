@@ -1,4 +1,4 @@
-/* $Id: zz_pointer.c,v 1.2 2001/11/23 11:56:46 amura Exp $ */
+/* $Id: zz_pointer.c,v 1.3 2001/11/28 17:51:48 amura Exp $ */
 /**************************************
 *  ZZ_POINTER.C  08/05/90
 *  Written by Timm Martin
@@ -7,6 +7,9 @@
 
 /*
  * $Log: zz_pointer.c,v $
+ * Revision 1.3  2001/11/28 17:51:48  amura
+ * little modifies for support VBCC. (but not work yet)
+ *
  * Revision 1.2  2001/11/23 11:56:46  amura
  * Rewrite all sources
  *
@@ -22,7 +25,7 @@
 
 #include <exec/memory.h>
 #include <exec/types.h>
-#if !(defined(SAS6)||defined(__GNUC__)||defined(_DCC))
+#if !(defined(SAS6)||defined(__GNUC__)||defined(_DCC)||defined(VBCC))
 #  include <functions.h>
 #endif
 #ifdef INLINE_PRAGMAS

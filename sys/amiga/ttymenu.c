@@ -1,4 +1,4 @@
-/* $Id: ttymenu.c,v 2.4 2001/11/23 11:56:46 amura Exp $ */
+/* $Id: ttymenu.c,v 2.5 2001/11/28 17:51:48 amura Exp $ */
 /*
  * ttymenu.c
  *   Amiga intuition menu handling routine for Ng 1.x
@@ -30,6 +30,9 @@
 
 /*
  * $Log: ttymenu.c,v $
+ * Revision 2.5  2001/11/28 17:51:48  amura
+ * little modifies for support VBCC. (but not work yet)
+ *
  * Revision 2.4  2001/11/23 11:56:46  amura
  * Rewrite all sources
  *
@@ -319,7 +322,7 @@ adjustItems(struct RastPort *textRPort, struct MenuItem *first_item,
  * This set of routines does NOT check/correct if the menu runs off
  * the screen due to large fonts, too many items, lo-res screen.
  */
-VOID
+static VOID
 adjustMenus(struct Menu *first_menu, struct Window *win)
 {
     struct Menu      *cur_menu;

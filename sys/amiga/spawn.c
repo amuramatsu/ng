@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.3 2001/11/23 11:56:45 amura Exp $ */
+/* $Id: spawn.c,v 1.4 2001/11/28 17:51:48 amura Exp $ */
 /*
  * Name:	MG
  * Version:	2x
@@ -9,6 +9,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.4  2001/11/28 17:51:48  amura
+ * little modifies for support VBCC. (but not work yet)
+ *
  * Revision 1.3  2001/11/23 11:56:45  amura
  * Rewrite all sources
  *
@@ -82,13 +85,13 @@ char *input;
 {
     char *tmp;
     BPTR in, out;
-    extern char *mktemp();
+    extern char *mktemp _PRO((char *));
     
     if ((tmp = mktemp("RAM:ngXXX.XXX")) == NULL)
 	return NULL;
-    if ((in = Open(input ? input : "NIL:", MODE_NEWFILE)) == NULL)
+    if ((in = Open(input ? input : "NIL:", MODE_NEWFILE)) == 0L)
 	return NULL;
-    if ((out = Open(tmp, MODE_NEWFILE)) == NULL) {
+    if ((out = Open(tmp, MODE_NEWFILE)) == 0L) {
 	Close(in);
 	return NULL;
     }

@@ -1,7 +1,10 @@
-# $Id: Makefile,v 1.4 2001/11/23 11:56:43 amura Exp $
+# $Id: Makefile,v 1.5 2001/11/28 17:51:47 amura Exp $
 # Makefile for MicroEMACS. using Aztec small model
 #
 # $Log: Makefile,v $
+# Revision 1.5  2001/11/28 17:51:47  amura
+# little modifies for support VBCC. (but not work yet)
+#
 # Revision 1.4  2001/11/23 11:56:43  amura
 # Rewrite all sources
 #
@@ -161,7 +164,7 @@ ttyio.o:	$(S)/ttyio.c
 ttykbd.o:	$(S)/ttykbd.c kbd.h
 		cc $(CFLAGS) -o ttykbd.o $(S)/ttykbd.c
 
-ttymenu.o:	$(S)/ttymenu.c macro.h $(S)/KgMenus.h $(S)/KgMenus.c $(S)/menumap.h
+ttymenu.o:	$(S)/ttymenu.c macro.h $(S)/menumap.h
 		cc $(CFLAGS) -o ttymenu.o $(S)/ttymenu.c
 
 ttymouse.o:	$(S)/ttymouse.c macro.h

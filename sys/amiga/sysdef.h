@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.6 2001/11/23 11:56:45 amura Exp $ */
+/* $Id: sysdef.h,v 1.7 2001/11/28 17:51:48 amura Exp $ */
 /*
  * Name:	MicroEMACS
  * Version:	MG 2a
@@ -7,6 +7,9 @@
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.7  2001/11/28 17:51:48  amura
+ * little modifies for support VBCC. (but not work yet)
+ *
  * Revision 1.6  2001/11/23 11:56:45  amura
  * Rewrite all sources
  *
@@ -36,16 +39,17 @@ extern char *offset_dummy;		/* Manx 3.2 can't handle 0->	*/
 #define OFFSET(type,member) \
  ((char *)&(((type *)offset_dummy)->member)-(char *)((type *)offset_dummy))
 
-#ifdef	_DCC
+#if defined(_DCC)
 #include <alloca.h>
+#elif defined(SAS6) || defined(VBCC)
+void *alloca(int);
 #endif
 
 #ifdef SAS6
 # define LATTICE	1
 #endif
-
 #ifndef SUPPORT_ANSI
-# if defined(LATTICE) || defined(_DCC) || defined(__GNUC__)
+# if defined(LATTICE) || defined(_DCC) || defined(__GNUC__) || defined(VBCC)
 #  define SUPPORT_ANSI	1
 # endif
 #endif
@@ -94,7 +98,7 @@ typedef short	KCHAR;	/* type used to represent Emacs characters */
 typedef	long	RSIZE;	/* size of a region	*/
 
 #ifndef __GNUC__
-#define	bcopy(src,dest,len)	movmem(src,dest,len)
+#define	bcopy(s,d,l)		memcpy(d,s,l)
 #define	bzero(s,n)		memset(s,0,n)
 #define	bcmp(s,d,n)		memcmp(s,d,n)
 #endif

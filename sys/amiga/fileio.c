@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.9 2001/11/23 11:56:44 amura Exp $ */
+/* $Id: fileio.c,v 1.10 2001/11/28 17:51:47 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,6 +14,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.10  2001/11/28 17:51:47  amura
+ * little modifies for support VBCC. (but not work yet)
+ *
  * Revision 1.9  2001/11/23 11:56:44  amura
  * Rewrite all sources
  *
@@ -334,10 +337,10 @@ char *fn;
     struct FileInfoBlock *fib;
     int retval = -1;
     
-    if ((lock = Lock(fn, SHARED_LOCK)) != NULL) {
+    if ((lock = Lock(fn, SHARED_LOCK)) != 0L) {
 	if ((fib = (struct FileInfoBlock *)
 	     AllocMem(sizeof(struct FileInfoBlock), MEMF_CHIP)) != NULL) {
-	    if (Examine(lock, fib) != NULL)
+	    if (Examine(lock, fib) != 0L)
 		retval = fib->fib_Protection;
 	    FreeMem(fib, sizeof(struct FileInfoBlock));
 	}
@@ -356,7 +359,7 @@ int mode;
 {
     BPTR lock;
     
-    if ((lock = Lock(fn, EXCLUSIVE_LOCK)) != NULL) {
+    if ((lock = Lock(fn, EXCLUSIVE_LOCK)) != 0L) {
 	SetProtection(fn, mode);
 	UnLock(lock);
     }
@@ -376,10 +379,10 @@ char *fn;
     struct FileInfoBlock *fib;
     int retval = FALSE;
     
-    if ((lock = Lock(fn, SHARED_LOCK)) != NULL) {
+    if ((lock = Lock(fn, SHARED_LOCK)) != 0L) {
 	if ((fib = (struct FileInfoBlock *)
 	     AllocMem(sizeof(struct FileInfoBlock), MEMF_CHIP)) != NULL) {
-	    if (Examine(lock, fib) != NULL)
+	    if (Examine(lock, fib) != 0L)
 		retval = (fib->fib_Protection & FIBF_DELETE);
 	    FreeMem(fib, sizeof(struct FileInfoBlock));
 	}
@@ -618,7 +621,7 @@ char *dirname;
     return bp;
 }
 
-#if defined(LATTICE)||defined(_DCC)
+#if defined(LATTICE)||defined(_DCC)||defined(VBCC)
 char *
 mktemp(pattern)
 char *pattern;
@@ -638,7 +641,26 @@ char *pattern;
 	panic("Manx _really_ sucks!") ;
     return name;
 }
-#endif
+#endif /* LATTICE || _DCC || VBCC */
+
+#ifdef VBCC
+int
+access(file, mode)
+char *file;
+int mode;
+{
+    BPTR lock;
+    if (mode == 0) {
+	if ((lock=Lock(file, ACCESS_WRITE)) == 0L)
+	    return 1;
+	UnLock(lock);
+    }
+    if ((lock=Lock(file, ACCESS_READ)) == 0L)
+	return 1;
+    UnLock(lock);
+    return 0;
+}
+#endif /* VBCC */
 
 #define LIST_LINE_LENGTH	58		/* Size of line from List */
 int
@@ -686,7 +708,7 @@ char *name;
     struct FileInfoBlock *fib;
     int result;
 
-    if ((lock = Lock(name, ACCESS_READ)) == NULL)
+    if ((lock = Lock(name, ACCESS_READ)) == 0L)
 	return FALSE;
     if ((fib = (struct FileInfoBlock *)
 	 AllocMem((long)sizeof(struct FileInfoBlock), MEMF_CHIP))==NULL) {
@@ -694,7 +716,7 @@ char *name;
 	return FALSE;
     }
     result = FALSE;
-    if (Examine(lock, fib) != NULL)
+    if (Examine(lock, fib) != 0L)
 	result = (fib->fib_DirEntryType > 0L) ? TRUE : FALSE;
     FreeMem(fib, (long)sizeof(struct FileInfoBlock));
     UnLock(lock);
@@ -705,6 +727,9 @@ char *name;
 
 /* Dec.17,1992 Add by H.Ohkubo */
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
+#ifdef VBCC
+#define stricmp(s,d)	Strcmp(s,d)
+#endif
 
 /* 89.11.20	Original code is for X68K (Human68K).
  * 90.04.08	Modified for MS-DOS by S.Yoshida.
@@ -747,11 +772,11 @@ char *name, **buf;
     nampartlen = strlen(nampart);
     dirpartlen = nampart - name;
     
-    if ((lock = Lock(pathbuf, SHARED_LOCK)) == NULL) {
+    if ((lock = Lock(pathbuf, SHARED_LOCK)) == 0L) {
 	FreeMem(fib, sizeof(struct FileInfoBlock));
 	return -1;
     }
-    if (Examine(lock, fib) == NULL) {
+    if (Examine(lock, fib) == 0L) {
 	UnLock(lock);
 	FreeMem(fib, sizeof(struct FileInfoBlock));
 	return -1;

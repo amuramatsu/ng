@@ -1,7 +1,10 @@
-# $Id: DMakefile,v 1.4 2001/11/23 11:56:43 amura Exp $
+# $Id: DMakefile,v 1.5 2001/11/28 17:51:47 amura Exp $
 # Makefile for MicroEMACS. using DICE
 #
 # $Log: DMakefile,v $
+# Revision 1.5  2001/11/28 17:51:47  amura
+# little modifies for support VBCC. (but not work yet)
+#
 # Revision 1.4  2001/11/23 11:56:43  amura
 # Rewrite all sources
 #
@@ -225,7 +228,7 @@ ttyio.o: $(S)/ttyio.c $(INCS) $(OINCS)
 ttykbd.o: $(S)/ttykbd.c $(INCS) $(OINCS) kbd.h
 	$(CC) $(CFLAGS) -c -o ttykbd.o $(S)/ttykbd.c
 
-ttymenu.o: $(S)/ttymenu.c $(INCS) $(OINCS) macro.h $(S)/KgMenus.c $(S)/KgMenus.h $(S)/menumap.h
+ttymenu.o: $(S)/ttymenu.c $(INCS) $(OINCS) macro.h $(S)/menumap.h
 	$(CC) $(CFLAGS) -c -o ttymenu.o $(S)/ttymenu.c
 
 ttymouse.o: $(S)/ttymouse.c $(INCS) $(OINCS) macro.h

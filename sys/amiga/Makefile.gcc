@@ -1,7 +1,10 @@
-# $Id: Makefile.gcc,v 1.4 2001/11/23 11:56:43 amura Exp $
+# $Id: Makefile.gcc,v 1.5 2001/11/28 17:51:47 amura Exp $
 # Makefile for MicroEMACS. using Gnu CC
 #
 # $Log: Makefile.gcc,v $
+# Revision 1.5  2001/11/28 17:51:47  amura
+# little modifies for support VBCC. (but not work yet)
+#
 # Revision 1.4  2001/11/23 11:56:43  amura
 # Rewrite all sources
 #
@@ -162,7 +165,7 @@ ttyio.o: $(S)/ttyio.c
 ttykbd.o: $(S)/ttykbd.c kbd.h
 	$(CC) $(CFLAGS) -c -o ttykbd.o $(S)/ttykbd.c
 
-ttymenu.o: $(S)/ttymenu.c macro.h $(S)/KgMenus.h $(S)/KgMenus.c $(S)/menumap.h
+ttymenu.o: $(S)/ttymenu.c macro.h $(S)/menumap.h
 	$(CC) $(CFLAGS) -c -o ttymenu.o $(S)/ttymenu.c
 
 ttymouse.o: $(S)/ttymouse.c macro.h
