@@ -1,27 +1,38 @@
-# $Id: Makefile,v 1.1 2000/06/27 01:47:59 amura Exp $
+# $Id: Makefile,v 1.2 2000/09/30 15:59:42 amura Exp $
 # Makefile for MicroEMACS.
 # Is there a better way to do the rebuilds, other than using
 # the links?
 #
 # $Log: Makefile,v $
-# Revision 1.1  2000/06/27 01:47:59  amura
-# Initial revision
+# Revision 1.2  2000/09/30 15:59:42  amura
+# add Canna configuration form config.h
+#
+# Revision 1.1.1.1  2000/06/27 01:47:59  amura
+# import to CVS
 #
 # Modified for Ng 1.0	by Shigeki Yoshida (shige@csk.CO.JP)	1990.01.29
 
 SYS	= sysv
+
+# Canna configurations
+#CANNADEF = -DCANNA
+#CANNALIB = -L/usr/share/lib -lcanna
+#CANNAINC = -I/usr/share/include
+CANNADEF =
+CANNALIB =
+CANNAINC =
 
 # CDEFS gets defines, and gets passed to lint. CFLAGS gets flags, and doesn't
 # get passed to lint.
 #
 # Now, compile time options are defined in a "config.h".
 #
-CDEFS	=
-CFLAGS	= -O $(CDEFS)
+CDEFS	= $(CANNADEF)
+CFLAGS	= -O $(CDEFS) $(CANNAINC)
 
 # If your machine have an alloca() in a libPW.a, please add -lPW to the LIBS.
-#LIBS	= -lcurses -lcanna -lPW
-LIBS	= -lcurses -lcanna
+#LIBS	= $(CANNALIB) -lcurses -lPW
+LIBS	= $(CANNALIB) -lcurses 
 
 # If your machine don't have an alloca(), please define ALLOCA.
 #ALLOCA	= alloca.o

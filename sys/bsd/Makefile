@@ -1,21 +1,33 @@
-# $Id: Makefile,v 1.1 2000/06/27 01:48:02 amura Exp $
+# $Id: Makefile,v 1.2 2000/09/30 15:59:42 amura Exp $
 # Makefile for Mg 2a
 #
 # $Log: Makefile,v $
-# Revision 1.1  2000/06/27 01:48:02  amura
-# Initial revision
+# Revision 1.2  2000/09/30 15:59:42  amura
+# add Canna configuration form config.h
+#
+# Revision 1.1.1.1  2000/06/27 01:48:02  amura
+# import to CVS
 #
 # Modified for Ng 1.0	by Shigeki Yoshida (shige@csk.CO.JP)	1990.01.29
 
 SYS	= bsd
-LIBS	= -L/usr/pkg/lib -lcanna -ltermcap
+
+# Canna configurations (ex. for NetBSD)
+#CANNADEF = -DCANNA
+#CANNALIB = -L/usr/pkg/lib -lcanna
+#CANNAINC = -I/usr/pkg/include
+CANNADEF =
+CANNALIB =
+CANNAINC =
+
 # CDEFS gets defines, and gets passed to lint. CFLAGS gets flags, and doesn't
 # get passed to lint.
 #
 # Now, compile time options are defined in a "config.h".
 #
-CDEFS	= 
-CFLAGS	= -O2 -I/usr/pkg/include $(CDEFS)
+CDEFS	= $(CANNADEF)
+CFLAGS	= -O2 $(CDEFS) $(CANNAINC)
+LIBS	= $(CANNALIB) -ltermcap
 
 # If your machine don't have an alloca(), please define ALLOCA.
 #ALLOCA	= alloca.o
