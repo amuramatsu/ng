@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.8 2002/11/06 16:05:23 amura Exp $ */
+/* $Id: ttyio.c,v 1.9 2002/11/06 18:19:26 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga terminal window I/O, with all kinds o' trimmings.
@@ -9,6 +9,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.9  2002/11/06 18:19:26  amura
+ * compile with newstyle source when enable KANJI feature
+ *
  * Revision 1.8  2002/11/06 16:05:23  amura
  * compile with newstyle source
  *
@@ -86,7 +89,7 @@ extern struct GfxBase *GfxBase;
 extern struct SysBase *SysBase;
 extern struct IntuitionBase *IntuitionBase;
 extern struct Library *DiskfontBase;
-
+extern struct Device *InputBase;
 
 #ifdef DO_METAKEY
 #define	IEQUALIFIER_ALT		(IEQUALIFIER_RALT | IEQUALIFIER_LALT)
