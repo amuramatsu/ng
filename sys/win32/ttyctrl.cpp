@@ -1,7 +1,10 @@
-/* $Id: ttyctrl.cpp,v 1.4 2000/07/24 15:34:55 amura Exp $ */
+/* $Id: ttyctrl.cpp,v 1.5 2000/09/21 17:19:30 amura Exp $ */
 
 /*
  * $Log: ttyctrl.cpp,v $
+ * Revision 1.5  2000/09/21 17:19:30  amura
+ * TtyView::PutLine is replaced by old code for speed reason
+ *
  * Revision 1.4  2000/07/24 15:34:55  amura
  * rewrite PutLine()
  *
@@ -419,7 +422,7 @@ TtyView::EraseEOP()
 void
 TtyView::PutLine( WORD y, WORD color, LPCSTR sjis )
 {
-#if 1
+#if 0
 	WORD	x ;
 	RECT	rect ;
 	HGDIOBJ	hOldObj ;
