@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.5 2001/05/25 15:36:53 amura Exp $ */
+/* $Id: paragraph.c,v 1.6 2001/06/19 15:23:19 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: paragraph.c,v $
+ * Revision 1.6  2001/06/19 15:23:19  amura
+ * to make uniform all indent
+ *
  * Revision 1.5  2001/05/25 15:36:53  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -438,7 +441,7 @@ fillpara(f, n)
 #ifdef	UNDO
 				    if (undoptr != NULL) {
 					if (*undoptr != NULL)
-					    (*undoptr)->u_type = UDNONE;
+						(*undoptr)->u_type = UDNONE;
 					if (*cp)
 						if (linsert(1, *cp++) == FALSE)
 							return FALSE;
@@ -464,17 +467,17 @@ fillpara(f, n)
 
 			/* and add the word in in either case */
 #ifdef	UNDO
-		    if (undoptr != NULL) {
-			if (*undoptr != NULL)
-			    (*undoptr)->u_type = UDNONE;
-			if (wordlen > 0) {
-				(VOID) linsert(1, wbuf[0]);
-			}
-			for (i=1; i<wordlen; i++) {
-				undoptr = undobefore;
-				(VOID) linsert(1, wbuf[i]);
-			}
-		    } else
+			if (undoptr != NULL) {
+				if (*undoptr != NULL)
+					*undoptr)->u_type = UDNONE;
+				if (wordlen > 0) {
+					(VOID) linsert(1, wbuf[0]);
+				}
+				for (i=1; i<wordlen; i++) {
+					undoptr = undobefore;
+					(VOID) linsert(1, wbuf[i]);
+				}
+			} else
 #endif
 			for (i=0; i<wordlen; i++) {
 				(VOID) linsert(1, wbuf[i]);
@@ -721,20 +724,20 @@ fillword(f, n)
 		char	*cp = fillprefix;
 
 #ifdef	UNDO
-	    if (isundo()) {
-		if (*undoptr != NULL)
-		    (*undoptr)->u_type = UDNONE;
-		if (*cp) {
-			if (linsert(1, *cp++) == FALSE)
-				return FALSE;
-		}
-		while (*cp) {
-			undoptr = undobefore;
-			if (linsert(1, *cp) == FALSE)
-				return FALSE;
-			cp++;
-		}
-	    } else
+		if (isundo()) {
+			if (*undoptr != NULL)
+				(*undoptr)->u_type = UDNONE;
+			if (*cp) {
+				if (linsert(1, *cp++) == FALSE)
+					return FALSE;
+			}
+			while (*cp) {
+				undoptr = undobefore;
+				if (linsert(1, *cp) == FALSE)
+					return FALSE;
+				cp++;
+			}
+		} else
 #endif
 		while (*cp) {
 			if (linsert(1, *cp) == FALSE)

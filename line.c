@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.15 2001/05/25 15:36:52 amura Exp $ */
+/* $Id: line.c,v 1.16 2001/06/19 15:23:19 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.16  2001/06/19 15:23:19  amura
+ * to make uniform all indent
+ *
  * Revision 1.15  2001/05/25 15:36:52  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -256,15 +259,15 @@ int n;
 #ifdef UNDO
 		undo_setup(undo);
 		if (isundo()) {
-		    if (undo_type(undo) != UDINS) {
-			undo_bfree(undo);
-			undo->u_dotlno = get_lineno(curbp, lp2);
-			undo->u_doto = 0;
-			undo->u_used = 0;
-			undo->u_type = UDINS;
-		    }
-		    undo->u_used += n;
-		    undo_finish(&(undo->u_next));
+			if (undo_type(undo) != UDINS) {
+				undo_bfree(undo);
+				undo->u_dotlno = get_lineno(curbp, lp2);
+				undo->u_doto = 0;
+				undo->u_used = 0;
+				undo->u_type = UDINS;
+			    }
+			undo->u_used += n;
+			undo_finish(&(undo->u_next));
 		}
 #endif
 		for(wp = wheadp; wp != NULL; wp = wp->w_wndp) {
@@ -314,15 +317,15 @@ int n;
 #ifdef UNDO
 	undo_setup(undo);
 	if (isundo()) {
-	    if (undo_type(undo) != UDINS) {
-		undo_bfree(undo);
-		undo->u_dotlno = get_lineno(curbp, lp2);
-		undo->u_doto = doto;
-		undo->u_used = 0;
-		undo->u_type = UDINS;
-	    }
-	    undo->u_used += n;
-	    undo_finish(&(undo->u_next));
+		if (undo_type(undo) != UDINS) {
+			undo_bfree(undo);
+			undo->u_dotlno = get_lineno(curbp, lp2);
+			undo->u_doto = doto;
+			undo->u_used = 0;
+			undo->u_type = UDINS;
+		}
+		undo->u_used += n;
+		undo_finish(&(undo->u_next));
 	}
 #endif
 
@@ -383,8 +386,8 @@ lnewline()
 		curwp->w_dotp = lp1 = lp2;
 	}
 #endif
-	if(doto == 0) {				/* avoid unnessisary copying */
-		if((lp2 = lallocx(0)) == NULL)	/* new first part	*/
+	if (doto == 0) {		/* avoid unnessisary copying */
+		if ((lp2 = lallocx(0)) == NULL)	/* new first part	*/
 			return FALSE;
 		lp2->l_bp = lp1->l_bp;
 		lp1->l_bp->l_fp = lp2;
@@ -393,12 +396,12 @@ lnewline()
 #ifdef UNDO
 		undo_setup(undo);
 		if (isundo()) {
-		    undo_bfree(undo);
-		    undo->u_dotlno = get_lineno(curbp,lp2);
-		    undo->u_doto = 0;
-		    undo->u_type = UDINSNL;
-		    undo->u_used = 1;
-		    undo_finish(&(undo->u_next));
+			undo_bfree(undo);
+			undo->u_dotlno = get_lineno(curbp,lp2);
+			undo->u_doto = 0;
+			undo->u_type = UDINSNL;
+			undo->u_used = 1;
+			undo_finish(&(undo->u_next));
 		}
 #endif
 		for(wp = wheadp; wp!=NULL; wp = wp->w_wndp)
@@ -414,15 +417,16 @@ lnewline()
 #ifdef UNDO
 	undo_setup(undo);
 	if (isundo()) {
-	    undo_bfree(undo);
-	    undo->u_dotlno = get_lineno(curbp,lp1);
-	    undo->u_doto = doto;
-	    undo->u_type = UDINSNL;
-	    undo->u_used = 1;
-	    undo_finish(&(undo->u_next));
+		undo_bfree(undo);
+		undo->u_dotlno = get_lineno(curbp,lp1);
+		undo->u_doto = doto;
+		undo->u_type = UDINSNL;
+		undo->u_used = 1;
+		undo_finish(&(undo->u_next));
 	}
 #endif
-	if(nlen!=0) bcopy(&lp1->l_text[doto], &lp2->l_text[0], nlen);
+	if (nlen != 0)
+		bcopy(&lp1->l_text[doto], &lp2->l_text[0], nlen);
 	lp1->l_used = doto;
 	lp2->l_bp = lp1;
 	lp2->l_fp = lp1->l_fp;
@@ -471,24 +475,26 @@ ldelete(n, kflag) RSIZE n; {
 	int		char_num = 0;
 
 	if (n != 0) {
-	    undo_setup(undo);
-	    if (isundo()) {
-		if (n == 1) {
-		    char_num = 1;
-		    undo_bfree(undo);
-		    undo->u_used = 0;
-		    undo->u_doto = curwp->w_doto;
-		    undo->u_dotlno = get_lineno(curbp, curwp->w_dotp);
-		    undo->u_type = (kflag==KBACK) ? UDBS : UDDEL;
+	undo_setup(undo);
+		if (isundo()) {
+			if (n == 1) {
+				char_num = 1;
+				undo_bfree(undo);
+				undo->u_used = 0;
+				undo->u_doto = curwp->w_doto;
+				undo->u_dotlno =
+					get_lineno(curbp, curwp->w_dotp);
+				undo->u_type = (kflag==KBACK) ? UDBS : UDDEL;
+			}
+			else if (undo_balloc(undo, n)) {
+				char_num = 2;
+				undo->u_used = 0;
+				undo->u_doto = curwp->w_doto;
+				undo->u_dotlno =
+					get_lineno(curbp, curwp->w_dotp);
+				undo->u_type = (kflag==KBACK) ? UDBS : UDDEL;
+			}
 		}
-		else if (undo_balloc(undo, n)) {
-		    char_num = 2;
-		    undo->u_used = 0;
-		    undo->u_doto = curwp->w_doto;
-		    undo->u_dotlno = get_lineno(curbp, curwp->w_dotp);
-		    undo->u_type = (kflag==KBACK) ? UDBS : UDDEL;
-		}
-	    }
 	}
 #endif
 
@@ -520,15 +526,13 @@ ldelete(n, kflag) RSIZE n; {
 #ifdef	UNDO
 			if (isundo())
 			{
-			    if (char_num == 1) {
-				undo->u_code[0] = '\n';
-				undo->u_code[1] = 0;
-			    } else {
-				if (undo_bgrow(undo, 1)) {
-				    undo->u_buffer[undo->u_used] = '\n';
-				    undo->u_used++;
+				if (char_num == 1) {
+					undo->u_code[0] = '\n';
+					undo->u_code[1] = 0;
+				} else if (undo_bgrow(undo, 1)) {
+					undo->u_buffer[undo->u_used] = '\n';
+					undo->u_used++;
 				}
-			    }
 			}
 #endif
 			--n;
@@ -560,21 +564,19 @@ ldelete(n, kflag) RSIZE n; {
 #endif	/* KANJI */
 #ifdef	UNDO
 		if (isundo()) {
-		    if (char_num == 1) {
-			if (chunk == 1) {
-			    undo->u_code[0] = *cp1;
-			    undo->u_code[1] = 0;
-			} else {
-			    undo->u_code[0] = *cp1;
-			    undo->u_code[1] = *(cp1+1);
-			}			    
-		    } else {
-			if (undo_bgrow(undo, chunk)) {
-			    bcopy(cp1, &(undo->u_buffer[undo->u_used]),
-				  (int)chunk);
-			    undo->u_used += chunk;
+			if (char_num == 1) {
+				if (chunk == 1) {
+					undo->u_code[0] = *cp1;
+					undo->u_code[1] = 0;
+				} else {
+					undo->u_code[0] = *cp1;
+					undo->u_code[1] = *(cp1+1);
+				}			    
+			} else if (undo_bgrow(undo, chunk)) {
+				bcopy(cp1, &(undo->u_buffer[undo->u_used]),
+				      (int)chunk);
+				undo->u_used += chunk;
 			}
-		    }
 		}
 #endif
 		if (kflag == KFORW) {
@@ -611,9 +613,8 @@ ldelete(n, kflag) RSIZE n; {
 	send_clipboard();
 #endif
 #ifdef	UNDO
-	if (isundo() && char_num!=0) {
-	    undo_finish(&(undo->u_next));
-	}
+	if (isundo() && char_num!=0)
+		undo_finish(&(undo->u_next));
 #endif
 	return TRUE;
 }
@@ -744,21 +745,22 @@ int		f;			/* case hack disable		*/
 #ifdef	UNDO
 	undo_setup(undo);
 	if (isundo()) {
-	    /*
-	     * In only this case, u_buffer is terminated by \0. 
-	     * Because do_undo() use this function 'lreplace',
-	     */
-	    if (undo_balloc(undo, plen+1)) {
-		bcopy(&(curwp->w_dotp)->l_text[doto], undo->u_buffer, plen);
-		undo->u_buffer[plen] = '\0';
-		undo->u_dotlno = get_lineno(curbp,curwp->w_dotp);
-		undo->u_doto = doto;
-		undo->u_type = UDREPL;
-		undo->u_used = rlen;
-	    
-		undoptr_save = undoptr;
-		undoptr = NULL;
-	    }
+		/*
+		 * In only this case, u_buffer is terminated by \0. 
+		 * Because do_undo() use this function 'lreplace',
+		 */
+		if (undo_balloc(undo, plen+1)) {
+			bcopy(&(curwp->w_dotp)->l_text[doto], undo->u_buffer,
+			      plen);
+			undo->u_buffer[plen] = '\0';
+			undo->u_dotlno = get_lineno(curbp,curwp->w_dotp);
+			undo->u_doto = doto;
+			undo->u_type = UDREPL;
+			undo->u_used = rlen;
+			
+			undoptr_save = undoptr;
+			undoptr = NULL;
+		}
 	}
 #endif
 	if (plen > rlen)
@@ -797,8 +799,8 @@ int		f;			/* case hack disable		*/
 	lchange(WFHARD);
 #ifdef	UNDO
 	if (undoptr_save != NULL) {
-	    undobefore = undoptr_save;
-	    undoptr = &(undo->u_next);
+		undobefore = undoptr_save;
+		undoptr = &(undo->u_next);
 	}
 #endif
 	return (TRUE);
