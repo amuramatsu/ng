@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.22 2003/03/07 23:59:15 amura Exp $ */
+/* $Id: line.c,v 1.23 2003/03/08 00:02:15 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -522,6 +522,7 @@ int kflag;
 	if (kanji2nd < 0) /* ignore KANJI */
 	    cp2 = cp1 + chunk;
 	else {
+	    kanji2nd = 0;
 	    cp2 = cp1;
 	    for (i = 0; i < chunk; i++, cp2++) {
 		if (kanji2nd) {
