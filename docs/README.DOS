@@ -1,14 +1,14 @@
-# $Id: README.DOS,v 1.1 2000/06/27 01:48:03 amura Exp $
+# $Id: README.DOS,v 1.2 2001/11/24 09:13:46 amura Exp $
 ==============================================================================
     README.DOS for Ng 1.3 MS-DOS version.			  1991.01.25
 						 吉田茂樹 (shige@iamas.ac.jp)
-                      1.4 (修正加筆)                              2000.04.20
-                                           村松  篤 (amura@ma3.seikyou.ne.jp)
+                      1.9 (修正加筆)                              2001.11.24
+                                         村松  篤 (amura@tomato.sakura.ne.jp)
 ==============================================================================
 
 1. Ng MS-DOS version
 
-    Ng 1.4 MS-DOS バージョンは、Ng 1.4 を MS-DOS へ移植したものです。Ng 1.4
+    Ng 1.9 MS-DOS バージョンは、Ng 1.9 を MS-DOS へ移植したものです。Ng 1.9
     については、README.Ng をお読み下さい。このドキュメントには、MS-DOS 版に
     固有の注意事項等が書かれています。
 
@@ -47,6 +47,10 @@
     センブラを必要とするソースの .obj ファイルが含まれていますので、アセンブ
     ラがなくてもコンパイルできます。
 
+    アセンブラソースとして nasm 用の物 (*.nsm) も用意しました。しかし、
+    makefile* に make rule を記述していませんので、手動でアセンブルする必要
+    があります。
+
 
 2. Manifest
 
@@ -66,10 +70,12 @@
 	linkfile.tc	link 時に参照される link 用記述ファイル (Turbo-C 用)
 	*.c		C 言語のソース。
 	*.h		ヘッダファイル。
-	*.asm		アセンブラのソース。
+	*.asm,*.nsm	アセンブラのソース。
 	*.obj		アセンブラソースのオブジェクト。
-	rawget31.obj	rawgetc.asm のオブジェクト (J-3100 用)。
-	rawget98.obj	rawgetc.asm のオブジェクト (PC-9801 用)。
+	alloca.obj	alloca.asm のオブジェクト。
+	rawget.obj	rawgetc.asm のオブジェクト (MSDOS Generic)。
+	rawg_ibm.obj	rawgetc.asm のオブジェクト (IBM PC 用)。
+	rawg_98.obj	rawgetc.asm のオブジェクト (PC-9801 用)。
 	termcap		実行時に必要となる termcap (端末機能記述) ファイル。
 	ng.ini		初期設定ファイルのサンプル。
 	COPYING		GNU EMACS GENERAL PUBLIC LICENSE
@@ -111,6 +117,12 @@
     に、MS-DOS 版の実行モジュールを利用するだけの場合は、1) から 8) の手順は
     必要ありません。なお、以下では UNIX マシン上の Ng のソースがあるディレク
     トリを $NG とします。
+
+    1) から 5) までの手順と、改行コード変換、アセンブラソースのアセンブル、
+    アーカイブ作成までを自動でおこなうシェルスクリプト、mk_dos_archive を
+    $NG/sys/msdos に用意してあります。このスクリプトを使うと、$NG に
+    ng_dos.lzh という MSDOS 版専用ソースファイルのアーカイブが生成されます。
+	[ このシェルスクリプトの実行には、nkf、LHA、nasm が必要です ]
 
     1)	UNIX マシン上で $NG の下に MS-DOS 用の作業ディレクトリ doswork を作
 	ります。
@@ -180,9 +192,8 @@
 
     [コンパイルに失敗する時:コンパイラ、config.h の設定によっては、Segment
      Overflow (もしくは、Fixup Overflow) が起こってリンクに失敗する事がある
-     かもしれません。そのときは、お手数ですが、sys/default/ttydef.h 内のマ
-     クロ NROW と NCOL を減らすとリンクできるようになります。ただし、NROW は
-     25 以上、NCOL は 80以上にしないと問題を起こすかもしれません。]
+     かもしれません。そのときは、お手数ですが、config.h から、いらない機能
+     を undef してください。]
 
     9) できた ng を PATH 環境変数に設定されているディレクトリのいずれかにコ
        ピーします。
@@ -381,7 +392,8 @@
     Turbo-C/C++、Borland C++ の direct console I/O を使う事ができます。
     コンパイル時にオプション TCCONIO を設定してください。このとき、termcap
     ライブラリは使わなくなります。(環境変数 TERM、TERMCAP の設定は不要です。
-    もちろん、direct console I/O を使うと機種依存しますので注意してください。
+    もちろん、direct console I/O を使うと使用するコンパイラによって機種依存
+    しますので注意してください。
     MS-C で TCCONIO を設定してもコンパイルエラーを起こすだけなので、設定しな
     いでください。
 
