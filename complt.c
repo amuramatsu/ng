@@ -1,10 +1,13 @@
-/* $Id: complt.c,v 1.4 2000/09/05 01:04:54 amura Exp $ */
+/* $Id: complt.c,v 1.5 2000/11/04 13:43:30 amura Exp $ */
 /*
  *	Complete completion functions.
  */
 
 /*
  * $Log: complt.c,v $
+ * Revision 1.5  2000/11/04 13:43:30  amura
+ * estrlen definition is changed to K&R style
+ *
  * Revision 1.4  2000/09/05 01:04:54  amura
  * support HANKANA file and buffer
  *
@@ -609,7 +612,8 @@ complete_scroll_down ()
 
 #ifdef	HANKANA
 static int
-estrlen(char *str)
+estrlen(str)
+char *str;
 {
     int i = 0;
     while (*str)
