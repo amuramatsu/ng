@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.8 2001/01/20 15:48:45 amura Exp $ */
+/* $Id: display.c,v 1.9 2001/01/20 18:16:20 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.9  2001/01/20 18:16:20  amura
+ * fix vtsetsize() bug, and make alignment VIDEO buffer
+ *
  * Revision 1.8  2001/01/20 15:48:45  amura
  * very big terminal supported
  *
@@ -89,11 +92,12 @@ typedef struct	{
 #endif
 }	VIDEO;
 
+#define	MEM_ROUND(n)	(((n)+7)&~7)	/* Memory round bound for 8 bytes*/
 #ifdef	SS_SUPPORT
-#define SIZEOF_VIDEO	(sizeof(VIDEO) + vncol*2)
+#define SIZEOF_VIDEO	MEM_ROUND(sizeof(VIDEO) + vncol*2)
 #define	v_sub(n) v_text[(n)+vncol]	/* 2nd Character of HANKANA	*/
 #else	/* SS_SUPPORT */
-#define SIZEOF_VIDEO	(sizeof(VIDEO) + vncol)
+#define SIZEOF_VIDEO	MEM_ROUND(sizeof(VIDEO) + vncol)
 #endif
 
 #define VFCHG	0x0001			/* Changed.			*/
@@ -186,7 +190,7 @@ vtsetsize(col, row) {
 	if (vscreen != NULL) free(vscreen);
 	if (pscreen != NULL) free(pscreen);
 	if (video != NULL)   free(video);
-	if (blanks != NULL)  free(video);
+	if (blanks != NULL)  free(blanks);
 	
 	vscreen = malloc(sizeof(VIDEO*)*(vnrow-1));
 	pscreen = malloc(sizeof(VIDEO*)*(vnrow-1));
@@ -233,9 +237,14 @@ vtsetsize(col, row) {
  */
 VOID
 vtinit() {
+	int col, row;
 	ttopen();
 	ttinit();
-	vtsetsize(ncol, nrow);
+	col = ncol;
+	row = nrow;
+	if (col < NCOL) col = NCOL;
+	if (row < NROW) row = NROW;
+	vtsetsize(col, row);
 }
 
 /*
