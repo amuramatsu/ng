@@ -1,10 +1,13 @@
-/* $Id: kbd.c,v 1.11 2001/11/23 11:56:39 amura Exp $ */
+/* $Id: kbd.c,v 1.12 2001/11/24 08:24:28 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
 
 /*
  * $Log: kbd.c,v $
+ * Revision 1.12  2001/11/24 08:24:28  amura
+ * Rewrite all sources (for msdos port)
+ *
  * Revision 1.11  2001/11/23 11:56:39  amura
  * Rewrite all sources
  *
@@ -66,6 +69,7 @@ int allow_mouse_event = FALSE; /* allow mouse event */
 #endif
 
 #ifdef DO_METAKEY
+
 int use_metakey = TRUE;
 /*
  * Toggle the value of use_metakey
@@ -74,12 +78,17 @@ int
 do_meta(f, n)
 int f, n;
 {
+#if defined(MSDOS)&&defined(PC9801)
+    extern VOID setezkey _PRO((void));
+    extern VOID resetezkey _PRO((void));
+#endif
+
     if (f & FFARG)
 	use_metakey = n > 0;
     else
 	use_metakey = !use_metakey;
     ewprintf("Meta keys %sabled", use_metakey ? "en" : "dis");
-#ifdef PC9801
+#if defined(MSDOS)&&defined(PC9801)
     if (use_metakey)
 	setezkey();
     else

@@ -1,4 +1,4 @@
-/* $Id: extern.h,v 1.1 2001/11/23 19:55:24 amura Exp $ */
+/* $Id: extern.h,v 1.2 2001/11/24 08:24:28 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: extern.h,v $
+ * Revision 1.2  2001/11/24 08:24:28  amura
+ * Rewrite all sources (for msdos port)
+ *
  * Revision 1.1  2001/11/23 19:55:24  amura
  * Rewrite all sources
  *
@@ -117,6 +120,7 @@ extern int rmdir _PRO((const char *));
 extern int rename _PRO((const char *, const char *));
 #endif
 extern int copy _PRO((char *, char *));
+extern VOID kputc _PRO((int, FILE *, int));
 
 /* define in tty.c */
 extern VOID ttopen _PRO((void));
@@ -141,6 +145,10 @@ extern int typeahead _PRO((void));
 extern VOID panic _PRO((char *));
 extern int ttgetc _PRO((void));
 extern VOID ttungetc _PRO((int));
+#ifdef FEPCTRL
+extern VOID fepmode_off _PRO((void));
+extern VOID fepmode_on _PRO((void));
+#endif
 
 #ifdef HANKANA
 extern VOID putline _PRO((int, int, unsigned char *, unsigned char *, short));
@@ -149,7 +157,6 @@ extern VOID putline _PRO((int, int, unsigned char *, short));
 #endif
 extern int vtputs _PRO((char *));
 extern int kdispbufcode _PRO((BUFFER *));
-extern int fepmode_off _PRO((void));
 extern int getkey _PRO((int));
 extern VOID ungetkey _PRO((int));
 extern int ctrlg _PRO((int, int));
@@ -190,7 +197,6 @@ extern VOID kfselectcode _PRO((FILE *, int));
 extern VOID initcategory _PRO((int));
 extern int ttwait _PRO((void));
 extern int kgetkey _PRO((void));
-extern int fepmode_on _PRO((void));
 extern int negative_argument _PRO((int, int));
 extern int digit_argument _PRO((int, int));
 extern int fillword _PRO((int, int));

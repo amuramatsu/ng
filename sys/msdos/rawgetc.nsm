@@ -1,4 +1,4 @@
-; $Id: rawgetc.asm,v 1.3 2001/11/24 08:24:29 amura Exp $
+; $Id: rawgetc.nsm,v 1.1 2001/11/24 08:24:29 amura Exp $
 ;
 ;	int rawgetc();	Get one char from keyboard. If no keyin, return -1.
 ;
@@ -6,25 +6,19 @@
 ;			With original idea from K.Takano.
 ;	1990.03.15	Modified for C-SPC by K.Takano & S.Yoshida
 ;	1990.03.31	Modified for Turbo-C by A.Shirahashi
+;	2001.11.24	Modified for NASM by MURAMATASU Atsushi
 ;
-;	A> masm [-DPC9801|-DIBMPC] -Mx rawgetc.asm,rawgetc.obj,nul,nul
+;	% nasm [-DPC9801|-DIBMPC] -f obj -o rawget.obj rawgetc.nsm
 ;
-; $Log: rawgetc.asm,v $
-; Revision 1.3  2001/11/24 08:24:29  amura
+; $Log: rawgetc.nsm,v $
+; Revision 1.1  2001/11/24 08:24:29  amura
 ; Rewrite all sources (for msdos port)
 ;
-; Revision 1.2  2001/11/23 11:56:50  amura
-; Rewrite all sources
-;
-; Revision 1.1.1.1  2000/06/27 01:47:58  amura
-; import to CVS
-; 
 
 RAWGETC_TEXT	segment	byte public 'CODE'
-	public	_rawgetc
+	global	_rawgetc
 
-	assume	cs:RAWGETC_TEXT,ds:NOTHING
-_rawgetc	proc	far
+_rawgetc:
 		mov	ah, 06h
 		mov	dl, 0ffh
 		int     21h
@@ -32,7 +26,7 @@ _rawgetc	proc	far
 		jnz	L1
 		mov	ax, -1
 
-ifdef	PC9801	; 1990.03.15  by K.Takano
+%ifdef	PC9801	; 1990.03.15  by K.Takano
 		jmp	short done
 
 	L1:	cmp	al, ' '
@@ -51,9 +45,9 @@ ifdef	PC9801	; 1990.03.15  by K.Takano
 		jz	L2
 		or	ax, 0100h ; METABIT
 	L2:
-endif		; 1990.03.15  by K.Takano
+%endif		; 1990.03.15  by K.Takano
 
-ifdef	IBMPC	; 1990.03.15  by S.Yoshida
+%ifdef	IBMPC	; 1990.03.15  by S.Yoshida
 		jmp	short done
 
 	L1:	cmp	al, ' '
@@ -65,15 +59,13 @@ ifdef	IBMPC	; 1990.03.15  by S.Yoshida
 		jz	done
 		mov	al, ' '
 	done:
-endif		; 1990.03.15  by S.Yoshida.
+%endif		; 1990.03.15  by S.Yoshida.
 
-ifndef	PC9801
-ifndef	IBMPC
+%ifndef	PC9801
+%ifndef	IBMPC
 	L1:
-endif
-endif
-		ret
-_rawgetc	endp
-RAWGETC_TEXT	ends
+%endif
+%endif
+		retf
 
 end

@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.4 2001/11/23 11:56:50 amura Exp $ */
+/* $Id: tty.c,v 1.5 2001/11/24 08:24:29 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,6 +28,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.5  2001/11/24 08:24:29  amura
+ * Rewrite all sources (for msdos port)
+ *
  * Revision 1.4  2001/11/23 11:56:50  amura
  * Rewrite all sources
  *
@@ -410,7 +413,7 @@ int row, bot, nchunk;
  */
 VOID
 ttdell(row, bot, nchunk)
-int row, bot, nchunk
+int row, bot, nchunk;
 {
     register int i, nl;
     

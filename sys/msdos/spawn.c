@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.2 2001/11/23 11:56:50 amura Exp $ */
+/* $Id: spawn.c,v 1.3 2001/11/24 08:24:29 amura Exp $ */
 /*
  *		Spawn CLI for MS-DOS. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.3  2001/11/24 08:24:29  amura
+ * Rewrite all sources (for msdos port)
+ *
  * Revision 1.2  2001/11/23 11:56:50  amura
  * Rewrite all sources
  *
@@ -21,7 +24,7 @@
 
 #include <signal.h>
 #include <process.h>
-#inlcude <stdlib.h>
+#include <stdlib.h>
 
 #if defined(__TURBOC__) && __TURBOC__ < 0x0200	/* 90.12.28  by Junn Ohta */
 						/* For Turbo-C 1.5	  */
@@ -115,6 +118,9 @@ int f, n;
 #if !defined(__TURBOC__) || __TURBOC__ >= 0x0200
 #include <sys/types.h>
 #endif	/* __TURBOC__ */
+#ifdef __TURBOC__
+#include <dir.h>
+#endif
 #include <sys/stat.h>
 #include <io.h>
 

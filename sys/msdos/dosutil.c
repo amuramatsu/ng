@@ -1,4 +1,4 @@
-/* $Id: dosutil.c,v 1.2 2001/11/23 11:56:49 amura Exp $ */
+/* $Id: dosutil.c,v 1.3 2001/11/24 08:24:28 amura Exp $ */
 /*
  *		UNIX like functions for MS-DOS.
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: dosutil.c,v $
+ * Revision 1.3  2001/11/24 08:24:28  amura
+ * Rewrite all sources (for msdos port)
+ *
  * Revision 1.2  2001/11/23 11:56:49  amura
  * Rewrite all sources
  *
@@ -55,27 +58,3 @@ syssec()
     intdos(&regs, &regs);
     return(regs.h.dh * 100 + regs.h.dl);
 }
-
-#ifdef	REGEX
-int
-bcmp(s1, s2, len)
-register char *s1;
-register char *s2;
-register int len;
-{
-    while (len--) {
-	if (*s1++ != *s2++)
-	    return(1);
-    }
-    return(0);
-}
-
-int
-bzero(s, len)
-register char *s;
-register int len;
-{
-    while (len--)
-	*s++ = 0;
-}
-#endif	/* REGEX */

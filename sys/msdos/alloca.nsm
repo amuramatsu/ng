@@ -1,30 +1,25 @@
-; $Id: alloca.asm,v 1.3 2001/11/24 08:24:28 amura Exp $
+; $Id: alloca.nsm,v 1.1 2001/11/24 08:24:28 amura Exp $
 ;-------------------------------------------------------------
-; alloca.asm: void * alloca(int) for Turbo-C 2.0 (large model)
+; alloca.nsm: void * alloca(int) for Turbo-C 2.0 (large model)
+;	<nasm version>
 ;
 ; CAUTION:
 ;	* Standard stack frame is required in caller function
 ;	  You had better use -k (Standard stack frame) option.
 ;
 ;-------------------------------------------------------------
-; $Log: alloca.asm,v $
-; Revision 1.3  2001/11/24 08:24:28  amura
+; $Log: alloca.nsm,v $
+; Revision 1.1  2001/11/24 08:24:28  amura
 ; Rewrite all sources (for msdos port)
 ;
-; Revision 1.2  2001/11/23 11:56:49  amura
-; Rewrite all sources
 ;
-; Revision 1.1.1.1  2000/06/27 01:47:58  amura
-; import to CVS
-; 
 
-	extrn	__stklen:word
+	extern	__stklen
 
 ALLOCA_TEXT	segment byte public 'CODE'
-	public	_alloca
+	global	_alloca
 
-	assume	cs:ALLOCA_TEXT,ds:NOTHING
-_alloca		proc	far
+_alloca:
 		pop	cx		;retrun address
 		pop	dx		;;return segment
 		pop	ax		;argument
@@ -40,27 +35,24 @@ _alloca		proc	far
 		jc	eret		;;
 		mov	ax, seg __stklen
 		mov	es, ax
-		mov	ax, word ptr es:__stklen
+		mov	ax, [es:__stklen]
 		cmp	ax, bx		;;
 		jb	eret		;;
 
 		mov	ax, bx		; <- pointer to allocated memory
 		xchg	sp, bx		; sp <- new pos / bx <- old pos
-		push	ss:[bx+4]	; for safe..
-		push	ss:[bx+2]	; for DI (may be)
-		push	ss:[bx+0]	; for SI (may be)
+		push	word [ss:bx+4]	; for safe..
+		push	word [ss:bx+2]	; for DI (may be)
+		push	word [ss:bx+0]	; for SI (may be)
 		mov	bx, dx
 		mov	dx, ss		;;allocated mem segment address
 goback:		push	ax		; restore argument space
 		push	bx		;;restor return segment
 		push	cx		; restore return address
-		ret			; bye-be
+		retf			; bye-be
 
 eret:		xor	ax, ax		; NULL
 		mov	bx, dx		;;save return segment
 		mov	dx, ax		;;NULL
 		jmp	short goback	;
-
-_alloca		endp
-ALLOCA_TEXT	ends	
 end

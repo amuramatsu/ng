@@ -1,0 +1,65 @@
+#! /bin/sh
+
+if [ -f rawgetc.asm ]; then
+  cd ../..
+fi
+if [ ! -f main.c ]; then
+  echo error!
+  exit 1
+fi
+
+NG_ROOT=`pwd`
+NG_WORK=/tmp/ng.work.$$
+NG_OTHER_SYS='W32 Ami E32 H68'
+
+mkdir $NG_WORK
+
+echo -n "Copying source files... "
+cd $NG_ROOT
+for f in *.c *.h; do
+  nkf -c $f > $NG_WORK/$f
+done
+cd $NG_ROOT/sys/default
+for f in *.c *.h; do
+  nkf -c $f > $NG_WORK/$f
+done
+cp README $NG_WORK/README.TER
+cd $NG_ROOT/sys/msdos
+for f in *.c *.h *.asm *.nsm makefile* linkfile* ng.ini; do
+  nkf -c $f > $NG_WORK/$f
+done
+mv $NG_WORK/paragraph.c $NG_WORK/parag.c
+mv $NG_WORK/re_search.c $NG_WORK/research.c
+echo "done"
+
+echo -n "Assemble some source files... "
+nasm -f obj -o $NG_WORK/alloca.obj $NG_WORK/alloca.nsm
+nasm -f obj -o $NG_WORK/rawgetc.obj $NG_WORK/rawgetc.nsm
+nasm -f obj -DIBMPC -o $NG_WORK/rawg_IBM.obj $NG_WORK/rawgetc.nsm
+nasm -f obj -DPC9801 -o $NG_WORK/rawg_98.obj $NG_WORK/rawgetc.nsm
+echo "done"
+
+echo -n "Copying document files... "
+cd $NG_ROOT
+cp MANIFEST LICENSE $NG_WORK
+
+mkdir $NG_WORK/BIN
+cp bin/SKG-ROMAN $NG_WORK/BIN/SKGROMAN
+cp bin/SKG-JISYO $NG_WORK/BIN/SKGJISYO
+cp bin/SKG-JISYO.S $NG_WORK/BIN/SKGJISYO.S
+
+mkdir $NG_WORK/DOCS
+cp docs/CHANGES* docs/Ng.* docs/README* $NG_WORK/DOCS
+cp docs/mg* $NG_WORK/DOCS
+
+for ext in $NG_OTHER_SYS; do
+  rm $NG_WORK/DOCS/*.$ext > /dev/null 2>&1
+done
+echo "done"
+
+echo -n "Creating archive... "
+cd $NG_WORK
+rm -f $NG_ROOT/ng_dos.lzh
+lha ago5 $NG_ROOT/ng_dos.lzh * > /dev/null
+rm -rf $NG_WORK
+echo "done"

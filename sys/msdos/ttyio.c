@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.4 2001/11/23 11:56:51 amura Exp $ */
+/* $Id: ttyio.c,v 1.5 2001/11/24 08:24:29 amura Exp $ */
 /*
  *		MS-DOS terminal I/O. (Tested only at MS-DOS 3.1)
  *		I make this file from BSD UNIX ttyio.c.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.5  2001/11/24 08:24:29  amura
+ * Rewrite all sources (for msdos port)
+ *
  * Revision 1.4  2001/11/23 11:56:51  amura
  * Rewrite all sources
  *
@@ -66,7 +69,16 @@ static int ezkey = FALSE;		/* EZkey flag */
 static int fepctrl = FALSE;		/* FEP control enable flag	*/
 static int fepmode = TRUE;		/* now FEP mode			*/
 static int fepforce = 0;		/* force FEP to mode	*/
+VOID fepmode_init   _PRO((void));
+VOID fepmode_term   _PRO((void));
+int  fepmode_toggle _PRO((void));
 #endif
+
+VOID setttysize _PRO((void));
+int ttraw _PRO((void));
+int ttcooked _PRO((void));
+extern int rawgetc _PRO((void));
+extern int syssec _PRO((void));
 
 #if defined(PC9801) || defined(IBMPC)
 static VOID assignkey _PRO((void));
@@ -75,8 +87,8 @@ static VOID cancelkey _PRO((void));
 static VOID setcursor _PRO((int, int, int));
 static VOID resetcursor _PRO((void));
 # else /* defined(PC9801) */
-static VOID setezksy _PRO((void));
-static VOID resetezksy _PRO((void));
+VOID setezkey _PRO((void));
+VOID resetezkey _PRO((void));
 # endif
 #endif
 
@@ -402,7 +414,7 @@ int f, n;
 /*
  * Assign PC-9801 special keys to use Ng.
  */
-staic VOID
+static VOID
 assignkey()
 {
     static char keytbl[10][6] = {
@@ -454,7 +466,7 @@ cancelkey()
 /*
  * Set EZ-key mode to VZ-mode
  */
-static VOID
+VOID
 setezkey()
 {
     union REGS regs;
@@ -477,7 +489,7 @@ setezkey()
 /*
  * Unset EZ-key mode to VZ-mode
  */
-static VOID
+VOID
 resetezkey()
 {
     union REGS regs;
@@ -577,7 +589,9 @@ int
 ttgetc()
 {
     int	c;
+#ifndef __TURBOC__
     union REGS regs;
+#endif
     
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0) {

@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.11 2001/11/23 11:56:49 amura Exp $ */
+/* $Id: fileio.c,v 1.12 2001/11/24 08:24:28 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.12  2001/11/24 08:24:28  amura
+ * Rewrite all sources (for msdos port)
+ *
  * Revision 1.11  2001/11/23 11:56:49  amura
  * Rewrite all sources
  *
@@ -200,7 +203,6 @@ fbackupfile(fn)
 char *fn;
 {
     register char *nname;
-    char *dotp;		/* 90.07.26  Add by N.Kamei */
     char fns[NFILEN];
     char nnames[NFILEN];
     VOID strmfe _PRO((char *, char *, char *));	/* 90.07.26  Add by N.Kamei */
@@ -257,6 +259,7 @@ char *newname, *oldname, *ext;
 }
 
 #ifndef	_SYS_STAT_H_
+#include <io.h>
 #if !defined(__TURBOC__) || __TURBOC__ >= 0x0200
 	/* 90.12.28  For Turbo-C 1.5 by Junn Ohta */
 #include <sys/types.h>
@@ -336,6 +339,9 @@ char *fn;
 
 #ifndef NO_DIR
 #include <dos.h>
+#ifdef __TURBOC__
+#include <dir.h>
+#endif
 
 extern char *wdir;
 extern char *startdir;
@@ -348,7 +354,7 @@ VOID
 dirinit()
 {
     /* 90.07.01  Add fftolower() by S.Yoshida */
-    if (!(wdir = fftolower(getcwd(cwd, NFILEN - 1))))
+    if (!(wdir = fftolower((char *)getcwd(cwd, NFILEN - 1))))
 	panic("Can't get current directory!");
     if (wdir[1]==':' && ISUPPER(wdir[0]))
 	wdir[0] = TOLOWER(wdir[0]);
@@ -372,6 +378,7 @@ dirinit()
 VOID
 dirend()
 {
+    int rchdir _PRO((char *));
     rchdir(startdir);
 }
 
@@ -496,7 +503,7 @@ register char *fn;
 	    _dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
 #endif	/* __TURBOC__ */
 	    /* 90.07.01  Add fftolower() by S.Yoshida */
-	    if (!fftolower(getcwd(fnb, NFILEN - 1))) {
+	    if (!fftolower((char *)getcwd(fnb, NFILEN - 1))) {
 		cp = fnb;
 		/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
 		*cp++ = drive + 'a' - 1;
@@ -694,7 +701,7 @@ int
 copy(frname, toname)
 char *frname, *toname;
 {
-    char cmd[CMDLINELINELENGTH];
+    char cmd[CMDLINELENGTH];
     char frnames[NFILEN];
     char tonames[NFILEN];
 
@@ -844,7 +851,7 @@ char *dirname;
 	    mkfileline(files[*numfiles], &fileinfo);
 	    (*numfiles)++;
 	}
-	qsort(files, *numfiles, sizeof (char *), filelinecmp);
+	qsort(files, *numfiles, sizeof (char *), (int (*)())filelinecmp);
 	return(files);
     }
     return(NULL);

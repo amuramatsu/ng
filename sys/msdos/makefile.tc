@@ -1,7 +1,10 @@
-# $Id: makefile.tc,v 1.4 2001/11/23 11:56:50 amura Exp $
+# $Id: makefile.tc,v 1.5 2001/11/24 08:24:29 amura Exp $
 # Makefile for Ng at MS-DOS with Turbo C 1.5 / 2.0 / ++
 #
 # $Log: makefile.tc,v $
+# Revision 1.5  2001/11/24 08:24:29  amura
+# Rewrite all sources (for msdos port)
+#
 # Revision 1.4  2001/11/23 11:56:50  amura
 # Rewrite all sources
 #
@@ -149,7 +152,7 @@ rawgetc.obj:	rawgetc.asm
 	$(AS) /D__TURBOC__ $(MACHINE) rawgetc.asm,rawgetc.obj,nul,nul;
 
 alloca.obj:	alloca.asm
-	$(AS) /D__CDECL__ /D__LARGE__ alloca.asm;
+	$(AS) /D__TURBOC__ alloca.asm,alloca.obj,nul,nul;
 
 #sysdef.h:	sys/$(SYS)/sysdef.h	# Update links, if needed.
 #	rm -f sysdef.h

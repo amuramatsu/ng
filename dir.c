@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.14 2001/11/23 11:56:35 amura Exp $ */
+/* $Id: dir.c,v 1.15 2001/11/24 08:24:28 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -8,6 +8,9 @@
 
 /*
  * $Log: dir.c,v $
+ * Revision 1.15  2001/11/24 08:24:28  amura
+ * Rewrite all sources (for msdos port)
+ *
  * Revision 1.14  2001/11/23 11:56:35  amura
  * Rewrite all sources
  *
@@ -38,6 +41,7 @@
 #include "def.h"
 
 #ifndef NO_DIR
+extern int rchdir _PRO((char *));			/* fileio.c */
 #ifdef EXTD_DIR
 extern VOID makepath _PRO((char *dname, char *fname, int len)); /* file.c */
 #endif

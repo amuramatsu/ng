@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.6 2001/11/23 11:56:50 amura Exp $ */
+/* $Id: sysdef.h,v 1.7 2001/11/24 08:24:29 amura Exp $ */
 /*
  *		MS-DOS based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.7  2001/11/24 08:24:29  amura
+ * Rewrite all sources (for msdos port)
+ *
  * Revision 1.6  2001/11/23 11:56:50  amura
  * Rewrite all sources
  *
@@ -29,6 +32,7 @@
 #include <stdlib.h>
 #ifdef	__TURBOC__	/* 90.03.23  by A.Shirahashi */
 #include <mem.h>
+#include <dir.h>
 extern void *alloca(int);		/* defind in alloca.asm		*/
 #else	/* NOT __TURBOC__ */
 #include <memory.h>			/* need to use memmove().	*/
@@ -63,6 +67,8 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #define MALLOCROUND(m)	(m+=7,m&=~7)	/* round up to 8 byte boundry	*/
 
 #define	bcopy(s,d,n)	memmove(d,s,n)	/* copy memory area.		*/
-#define	fncmp		strcmp		/* file name comparison		*/
+#define	bcmp(s,d,n)	memcmp(s,d,n)	/* compare memory area.		*/
+#define	bzero(s,n)	memset(s,0,n)	/* zero fill memory area.	*/
+#define	fncmp(s,d)	strcmp(s,d)	/* file name comparison		*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
