@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.1 2001/09/30 15:59:12 amura Exp $ */
+/* $Id: tty.c,v 1.2 2001/11/28 21:45:12 amura Exp $ */
 /*
  * Epoc32 Tty display driver
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.2  2001/11/28 21:45:12  amura
+ * Rewrite to new source code style
+ *
  * Revision 1.1  2001/09/30 15:59:12  amura
  * Initial EPOC32 commit.
  *
@@ -14,30 +17,32 @@
  *
  */
 
-#include	"config.h"
-#include	"def.h"
+#include "config.h"
+#include "def.h"
 
 #define BEL	0x07			/* BEL character.		*/
 
-extern	int	ttrow;
-extern	int	ttcol;
-extern	int	tttop;
-extern	int	ttbot;
-extern	int	tthue;
+extern int ttrow;
+extern int ttcol;
+extern int tttop;
+extern int ttbot;
+extern int tthue;
 
 #ifdef NO_RESIZE
-static	setttysize();
+static void setttysize(void);
 #endif
 
-int	ttputc();
+void ttputc(int);
 
 /* These are dummy variables */
-int	tceeol = 1;			/* Costs are set later */
-int	tcinsl = 1;
-int	tcdell = 1;
-int	SG = -1;/* number of glitches, 0 for invisible, -1 for none	*/
+int tceeol = 1;			/* Costs are set later */
+int tcinsl = 1;
+int tcdell = 1;
+int SG = -1;/* number of glitches, 0 for invisible, -1 for none	*/
 
-ttinit() {
+void
+ttinit(void)
+{
     ttresize();			/* set nrow & ncol	*/
 }
 
@@ -49,7 +54,9 @@ ttinit() {
  * query the display for the increment, and put it
  * back to what it was.
  */
-tttidy() {
+void
+tttidy()
+{
 }
 
 /*
@@ -59,7 +66,9 @@ tttidy() {
  * have left the cursor in the right
  * location last time!
  */
-ttmove(row, col) {
+void
+ttmove(int row, int col)
+{
     epoc_ttmove(row, col);
     ttrow = row;
     ttcol = col;
@@ -68,7 +77,9 @@ ttmove(row, col) {
 /*
  * Erase to end of line.
  */
-tteeol() {
+void
+tteeol(void)
+{
     ttflush();
     epoc_tteeol();
 }
@@ -76,7 +87,9 @@ tteeol() {
 /*
  * Erase to end of page.
  */
-tteeop() {
+void
+tteeop(void)
+{
     register int line;
     ttflush();
     epoc_tteeol();
@@ -90,7 +103,9 @@ tteeop() {
 /*
  * Make a noise.
  */
-ttbeep() {
+void
+ttbeep(void)
+{
     ttputc(BEL);
     ttflush();
 }
@@ -103,7 +118,9 @@ ttbeep() {
  * If no scrolling region, use a set
  * of insert and delete line sequences
  */
-ttinsl(row, bot, nchunk) {
+void
+ttinsl(int row, int bot, int nchunk)
+{
     register int	i, nl;
     
     if (row == bot) {		/* Case of one line insert is	*/
@@ -131,7 +148,8 @@ ttinsl(row, bot, nchunk) {
  * lines.  The presence of the echo area makes a
  * boundry condition go away.
  */
-ttdell(row, bot, nchunk)
+void
+ttdell(int row, int bot, int nchunk)
 {
     register int	i, nl;
     
@@ -164,7 +182,8 @@ ttdell(row, bot, nchunk)
  * moves the cursor).
  *
  */
-ttwindow(top, bot)
+void
+ttwindow(int top, int bot)
 {
 }
 
@@ -178,7 +197,8 @@ ttwindow(top, bot)
  * This behavior seems to work right on systems
  * where you can set your terminal size.
  */
-ttnowindow()
+void
+ttnowindow(void)
 {
 }
 
@@ -191,7 +211,9 @@ ttnowindow()
  * line by line basis, so don't bother sending
  * out the color shift.
  */
-ttcolor(color) register int color; {
+void
+ttcolor(register int color)
+{
     if (color != tthue) {
 	ttflush();
 	epoc_ttattr(color);
@@ -208,7 +230,9 @@ ttcolor(color) register int color; {
  * with a screen NROW by NCOL. Look in "window.c" to
  * see how the caller deals with a change.
  */
-ttresize() {
+void
+ttresize(void)
+{
     setttysize();			/* found in "ttyio.cpp",*/
 					/* ask OS for tty size	*/
     if (nrow < 1)			/* Check limits.	*/
@@ -219,7 +243,9 @@ ttresize() {
 }
 
 #ifdef NO_RESIZE
-static setttysize() {
+static void
+setttysize(void)
+{
     nrow = 80;
     ncol = 25;
 }

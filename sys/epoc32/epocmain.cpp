@@ -1,4 +1,4 @@
-/* $Id: epocmain.cpp,v 1.1 2001/09/30 15:59:12 amura Exp $ */
+/* $Id: epocmain.cpp,v 1.2 2001/11/28 21:45:11 amura Exp $ */
 /*
  *		Epoc32 supplemental functions for ng
  */
@@ -23,50 +23,32 @@ epoc_cleanup(void)
 
 #ifdef USE_UNICODE
 VOID
-utoe_in(c0, c1, c2)
-     int *c0;
-     int *c1;
-     int *c2;
+utoe_in(int *c0, int *c1, int *c2)
 {
 }
 
 VOID
-etou_in(c0, c1, c2)
-     int *c0;
-     int *c1;
-     int c2;
+etou_in(int *c0, int *c1, int c2)
 {
 }
 
 int
-bufu2toe(p, len, buflen)
-    char *p;
-    int len;
-    int buflen;
+bufu2toe(char *p, int len, int buflen)
 {
 }
 
 int
-bufu8toe(p, len, buflen)
-    char *p;
-    int len;
-    int buflen;
+bufu8toe(char *p, int len, int buflen)
 {
 }
 
 int
-bufetou2(p, len, buflen)
-    char *p;
-    int len;
-    int buflen;
+bufetou2(char *p, int len, int buflen)
 {
 }
 
 int
-bufetou8(p, len, buflen)
-    char *p;
-    int len;
-    int buflen;
+bufetou8(char *p, int len, int buflen)
 {
 }
 #endif /* USE_UNICODE */

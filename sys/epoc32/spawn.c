@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.1 2001/09/30 15:59:12 amura Exp $ */
+/* $Id: spawn.c,v 1.2 2001/11/28 21:45:12 amura Exp $ */
 /*
  *		Spawn CLI for EPOC32. (Tested only at Psion S5mx)
  *		!ALMOST FUNCTIONS ARE NOT IMPLEMENTED!
@@ -6,6 +6,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.2  2001/11/28 21:45:12  amura
+ * Rewrite to new source code style
+ *
  * Revision 1.1  2001/09/30 15:59:12  amura
  * Initial EPOC32 commit.
  *
@@ -13,16 +16,15 @@
  *
  */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
-#include	"def.h"
+#include "config.h"	/* 90.12.20  by S.Yoshida */
+#include "def.h"
 
-#include	<signal.h>
-#include	<process.h>
+#include <signal.h>
+#include <process.h>
+#include <errno.h>
+#include <stdlib.h>
 
-#include	<errno.h>
-char	*shellp = NULL;			/* Saved "SHELL" name.		*/
-
-extern	char	*getenv();
+static char *shellp = NULL;		/* Saved "SHELL" name.		*/
 
 /*
  * On EPOC32
@@ -30,6 +32,7 @@ extern	char	*getenv();
 /*ARGSUSED*/
 spawncli(f, n)
 {
+    /* IMPLEMENT ME */
     return FALSE;
 }
 
@@ -37,7 +40,7 @@ spawncli(f, n)
 #include <sys/types.h>
 #include <sys/stat.h>
 
-char tempfile[128];
+static char tempfile[CMDLINELENGTH];
 
 /*
  *	Call process in subshell.
@@ -54,6 +57,7 @@ call_process(command, input)
 char *command;
 char *input;
 {
+    /* IMPLEMENT ME */
     return NULL;
 }
 #endif	/* NO_SHELL */

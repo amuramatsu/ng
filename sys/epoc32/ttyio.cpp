@@ -1,4 +1,4 @@
-/* $Id: ttyio.cpp,v 1.1 2001/09/30 15:59:12 amura Exp $ */
+/* $Id: ttyio.cpp,v 1.2 2001/11/28 21:45:12 amura Exp $ */
 /*
  *		Epoc32 terminal I/O. (Tested only at Psion S5mx)
  *		I make this file from MSDOS ttyio.c.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: ttyio.cpp,v $
+ * Revision 1.2  2001/11/28 21:45:12  amura
+ * Rewrite to new source code style
+ *
  * Revision 1.1  2001/09/30 15:59:12  amura
  * Initial EPOC32 commit.
  *
@@ -13,18 +16,18 @@
  *
  */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
-#include	"def.h"
-#include	<e32base.h>
-#include	<e32cons.h>
+#include "config.h"	/* 90.12.20  by S.Yoshida */
+#include "def.h"
 
-#include	"epoctty.h"
+#include <e32base.h>
+#include <e32cons.h>
+#include "epoctty.h"
 
 extern CTrapCleanup* cleanup;
 
-int	nrow;				/* Terminal size, rows.		*/
-int	ncol;				/* Terminal size, columns.	*/
-int	setttysize();
+int nrow;				/* Terminal size, rows.		*/
+int ncol;				/* Terminal size, columns.	*/
+void setttysize(void);
 
 #ifdef	DO_METAKEY
 extern int use_metakey;
@@ -36,14 +39,13 @@ static EpocTty* epoctty;
  * This function gets called once, to set up
  * the terminal channel. 
  */
-int
-ttopen()
+void
+ttopen(void)
 {
     epoctty = EpocTty::NewL(_L("Ng for Epoc32 test implement"),
 			    TSize(80, 25));
     CleanupStack::PushL(epoctty);
     setttysize();
-    return 0;
 }
 
 /*
@@ -53,13 +55,12 @@ ttopen()
  * Under MS-DOS this just calls ttcooked(), but the ttclose() hook is in
  * because vttidy() in display.c expects it for portability reasons.
  */
-int
-ttclose()
+void
+ttclose(void)
 {
     ttflush();
     CleanupStack::Pop();
     delete epoctty;
-    return 0;
 }
 
 #define TTFLUSH	/* 90.06.08  enable ttflush()  by A.Shirahashi */
@@ -73,7 +74,7 @@ static int nobuf = 0;
 /*
  * Write character to the display without ^C check.
  */
-int
+void
 ttputc(int c)
 {
 #ifdef	TTFLUSH	/* 90.06.08  by A.Shirahashi */
@@ -83,24 +84,21 @@ ttputc(int c)
 #else
     epoctty->Putch(c);
 #endif	/* TTFLUSH */
-    return 0;
 }
 
 /*
  * Now ttflush() isn't needed. But some function call this,
  * so here is dummy.
  */
-int
+void
 ttflush() 
 {
 #ifdef	TTFLUSH	/* 90.06.08  by A.Shirahashi */
     int i;
-    for (i = 0; i < nobuf; i++) {
+    for (i = 0; i < nobuf; i++)
 	epoctty->Putch(obuf[i]);
-    }
     nobuf = 0;
 #endif	/* TTFLUSH */
-    return 0;
 }
 
 static	int	ahead = -1;		/* Typeahead charactor.		*/
@@ -115,18 +113,19 @@ static	char	keybuf[4];		/* Ungetc charactors.		*/
  * a multi-national terminal.
  */
 int
-ttgetc() {
+ttgetc(void)
+{
     int c;
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
 	return(keybuf[--nkey]);
     } else
 #endif	/* KANJI */
-   if (ahead != -1) {
-       c = ahead;
-       ahead = -1;
-       return(c);
-   }
+    if (ahead != -1) {
+	c = ahead;
+	ahead = -1;
+	return(c);
+    }
     while ((c = epoctty->Getch()) == -1) {
 #ifdef	AUTOSAVE
 	autosave_handler();
@@ -139,24 +138,22 @@ ttgetc() {
 /*
  * Save pre-readed char to read again.
  */
-int
+void
 ttungetc(int c)
 {
     keybuf[nkey++] = c;
-    return 0;
 }
 #endif	/* KANJI */
 
 /*
  * set the tty size.
  */
-int
-setttysize()
+void
+setttysize(void)
 {
     TSize size = epoctty->ScreenSize();
     ncol = size.iWidth;
     nrow = size.iHeight;
-    return 0;
 }
 
 /*
@@ -164,15 +161,14 @@ setttysize()
  * in.
  */
 int
-typeahead() {
+typeahead(void)
+{
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
-    if (nkey > 0) {
+    if (nkey > 0)
 	return(TRUE);
-    }
 #endif	/* KANJI */
-    if (ahead != -1) {
+    if (ahead != -1)
 	return(TRUE);
-    }
     ahead = epoctty->Getch();
     return (ahead != -1);
 }
@@ -180,15 +176,14 @@ typeahead() {
 /*
  * panic - just exit, as quickly as we can.
  */
-int
+void
 panic(char *s)
 {
-    (void) fputs("panic: ", stderr);
-    (void) fputs(s, stderr);
-    (void) fputc('\n', stderr);
-    (void) fflush(stderr);
+    fputs("panic: ", stderr);
+    fputs(s, stderr);
+    fputc('\n', stderr);
+    fflush(stderr);
     abort();		/* To leave a core image. */
-    return 0;
 }
 
 #ifndef NO_DPROMPT
@@ -197,19 +192,18 @@ panic(char *s)
  * happening, else return FALSE.
  */
 int
-ttwait() {
+ttwait(void)
+{
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
-    if (nkey > 0) {
+    if (nkey > 0)
 	return(FALSE);
-    }
 #endif	/* KANJI */
     TTime nowTime;
     nowTime.UniversalTime();
     TTime endTime = nowTime + TTimeIntervalSeconds(1);
     do {
-	if (typeahead()) {
+	if (typeahead())
 	    return(FALSE);
-	}
 	nowTime.UniversalTime();
     } while (nowTime < endTime);
     return(TRUE);
@@ -229,7 +223,7 @@ epoc_ttmove(int x, int y)
 }
 
 void
-epoc_tteeol()
+epoc_tteeol(void)
 {
     epoctty->ClearToEndOfLine();
 }

@@ -15,7 +15,7 @@ PROJECT_TYPE = Epoc EXE
 
 CPPFILES = epocmain.cpp epoctty.cpp tty.c ttyio.cpp fileio.cpp spawn.c cinfo.c ttykbd.c autosave.c basic.c buffer.c cmode.c complt.c dir.c dired.c display.c echo.c extend.c file.c help.c jump.c kanji.c kbd.c keymap.c kinsoku.c line.c macro.c main.c match.c modes.c paragraph.c random.c re_search.c regex.c region.c search.c shell.c skg.c undo.c version.c window.c word.c
 
-HFILES = chrdef.h complt.h config.h def.h epoctty.h kanji.h kanji_.h kbd.h key.h kinit.h macro.h regex_e.h regex_j.h sysdef.h ttydef.h undo.h varargs.h
+HFILES = chrdef.h complt.h config.h def.h epoctty.h kanji.h kanji_.h kbd.h key.h kinit.h macro.h regex_e.h regex_j.h sysdef.h ttydef.h undo.h varargs.h exterh.h
 
 OTHERLINKED = 
 

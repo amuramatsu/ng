@@ -1,4 +1,4 @@
-/* $Id: fileio.cpp,v 1.3 2001/10/29 04:30:43 amura Exp $ */
+/* $Id: fileio.cpp,v 1.4 2001/11/28 21:45:12 amura Exp $ */
 /*
  *	Epoc32 file I/O. (Tested only at Psion 5mx)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.cpp,v $
+ * Revision 1.4  2001/11/28 21:45:12  amura
+ * Rewrite to new source code style
+ *
  * Revision 1.3  2001/10/29 04:30:43  amura
  * let BUGFIX code enable always
  *
@@ -20,12 +23,12 @@
  *
  */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
-#include	"def.h"
-#include	<ctype.h>	/* 90.05.30  Add by A.Shirahashi */
-#include	<string.h>	/* 90.07.26  Add by N.Kamei */
+#include "config.h"	/* 90.12.20  by S.Yoshida */
+#include "def.h"
+#include <ctype.h>	/* 90.05.30  Add by A.Shirahashi */
+#include <string.h>	/* 90.07.26  Add by N.Kamei */
 
-static	FILE	*ffp;
+static FILE *ffp;
 extern "C" void kputc(int, FILE*, int);
 
 /*
@@ -67,7 +70,7 @@ ffwopen(char *fn)
 int
 ffclose()
 {
-    (VOID) fclose(ffp);
+    fclose(ffp);
     return (FIOSUC);
 }
 
@@ -165,9 +168,9 @@ int
 fbackupfile(char *fn)
 {
     char nnames[NFILEN];
-    (VOID) strcpy(nnames, fn);
-    (VOID) strcat(nnames, "~");
-    (VOID) unlink(nnames);			/* Ignore errors.	*/
+    strcpy(nnames, fn);
+    strcat(nnames, "~");
+    unlink(nnames);			/* Ignore errors.	*/
     if (rename(fn, nnames) < 0)
 	return (FALSE);
     return (TRUE);
@@ -186,11 +189,10 @@ fgetfilemode(char *fn)
 
     strcpy(fns, fn);
 
-    if (stat(fns, &filestat) == 0) {
+    if (stat(fns, &filestat) == 0)
 	return(filestat.st_mode & 0x0fff);
-    } else {
+    else
 	return(-1);
-    }
 }
 
 /*
@@ -203,7 +205,7 @@ fsetfilemode(char *fn, int mode)
     char fns[NFILEN];
 
     strcpy(fns, fn);
-    (VOID) chmod(fns, mode);
+    chmod(fns, mode);
 }
 #endif
 
@@ -220,11 +222,10 @@ fchkreadonly(char *fn)
     char fns[NFILEN];
 
     strcpy(fns, fn);
-    if (stat(fns, &filestat) == 0) {
+    if (stat(fns, &filestat) == 0)
 	return(!(filestat.st_mode & S_IWRITE));
-    } else {
+    else
 	return FALSE;
-    }
 }
 #endif	/* READONLY */
 
@@ -233,8 +234,8 @@ extern char *wdir;
 extern char *startdir;
 static char cwd[NFILEN];
 extern "C" {
-void dirinit();
-void dirend();
+void dirinit(void);
+void dirend(void);
 int rchdir(char *);
 } 
 
@@ -242,7 +243,7 @@ int rchdir(char *);
  * Initialize anything the directory management routines need
  */
 void
-dirinit()
+dirinit(void)
 {
     /* 90.07.01  Add fftolower() by S.Yoshida */
     if (!(wdir = getcwd(cwd, NFILEN - 1)))
@@ -264,7 +265,7 @@ dirinit()
  * dirend routine
  */
 void
-dirend()
+dirend(void)
 {
 }
 
@@ -305,7 +306,8 @@ rchdir(char *newdir)
 	    return 0;
 	} else if (chdir(dir+2) == -1)
 	    return -1;
-    } else if (chdir(dir) == -1)
+    }
+    else if (chdir(dir) == -1)
 	return -1;
     dirinit();
     return 0;
@@ -341,63 +343,63 @@ adjustname(register char *fn)
     }
 #endif
     switch(*fn) {
-	case '/':
-	    *fn = '\\';
-    	case '\\':
-	    /* 91.01.21  Add following if() for bug fix. by S.Yoshida	*/
-	    /* 		 This fix can consider that when current drive	*/
-	    /*		 is "a:", "\file" and "a:\file" are same.	*/
-	    if (cp == fnb) {
-		*cp++ = wdir[0];	/* Current drive name.	*/
-		*cp++ = wdir[1];	/* ':'			*/
-	    }
-	    *cp++ = *fn++;
-	    break;
-	default:
+    case '/':
+	*fn = '\\';
+    case '\\':
+	/* 91.01.21  Add following if() for bug fix. by S.Yoshida	*/
+	/* 		 This fix can consider that when current drive	*/
+	/*		 is "a:", "\file" and "a:\file" are same.	*/
+	if (cp == fnb) {
+	    *cp++ = wdir[0];	/* Current drive name.	*/
+	    *cp++ = wdir[1];	/* ':'			*/
+	}
+	*cp++ = *fn++;
+	break;
+    default:
 #ifndef	NO_DIR
-	    (VOID) strcpy(fnb, wdir);
-	    cp = fnb + strlen(fnb);
-	    break;
+	strcpy(fnb, wdir);
+	cp = fnb + strlen(fnb);
+	break;
 #else
-	    return fn;				/* punt */
+	return fn;				/* punt */
 #endif
     }
     if (cp != fnb && cp[-1] != '\\')
 	*cp++ = '\\';
     while (*fn) {
     	switch (*fn) {
-	    case '.':
-		switch (fn[1]) {
-	            case '\0':
-		    	*--cp = '\0';
-		    	return fnb;
-		    case '/':
-	    	    case '\\':
-	    	    	fn += 2;
-		    	continue;
-		    case '.':
-		    	if(fn[2]=='\\' || fn[2] == '/' || fn[2] == '\0') {
-			    --cp;
-			    while (cp > fnb && *--cp != '\\') {}
-			    ++cp;
-			    if (fn[2]=='\0') {
-			        *--cp = '\0';
-			        return fnb;
-			    }
-		            fn += 3;
-		            continue;
-		        }
-		        break;
-		    default:
-		    	break;
-	        }
-		break;
+	case '.':
+	    switch (fn[1]) {
+	    case '\0':
+		*--cp = '\0';
+		return fnb;
 	    case '/':
 	    case '\\':
-	    	fn++;
-	    	continue;
+		fn += 2;
+		continue;
+	    case '.':
+		if (fn[2]=='\\' || fn[2] == '/' || fn[2] == '\0') {
+		    --cp;
+		    while (cp > fnb && *--cp != '\\') {}
+		    ++cp;
+		    if (fn[2]=='\0') {
+			*--cp = '\0';
+			return fnb;
+		    }
+		    fn += 3;
+		    continue;
+		}
+		break;
 	    default:
-	    	break;
+		break;
+	    }
+	    break;
+	case '/':
+	case '\\':
+	    fn++;
+	    continue;
+	default:
+	    break;
 	}
 	while (*fn && (*cp++ = *fn++) != '\\') {
 	    if (ISUPPER(cp[-1])) {
@@ -409,11 +411,10 @@ adjustname(register char *fn)
 	    }
 	}
     }
-    if(cp[-1]=='\\') {
+    if (cp[-1]=='\\') {
 	/* 91.01.16  bug fix for case only "a:\". by S.Yoshida */
-	if (cp != &fnb[3] || fnb[1] != ':') {
+	if (cp != &fnb[3] || fnb[1] != ':')
 	    --cp;
-	}
     }
     *cp = '\0';
     return fnb;
@@ -443,59 +444,54 @@ startupfile(char *suffix)
 	if ((file = getenv("HOME")) == NULL) goto notfound;
     }
     if (strlen(file)+7 >= NFILEN - 1) goto notfound;
-    (VOID) strcpy(home, file);
+    strcpy(home, file);
     
 #ifdef	ADDOPT
     if (!ngrcfile)
 	ngrcfile = getenv("NGRC");
-    if (ngrcfile)
-    {
+    if (ngrcfile) {
 	if (access(ngrcfile, 0) == 0) {
 	    strncpy(home, ngrcfile, NFILEN);
 	    home[NFILEN-1] = '\0';
 	    return home;
 	}
-	/*
+#if 0
 	strcat(home, "\\");
 	strcat(home, ngrcfile);
-	if (access(home, 0) == 0) {
+	if (access(home, 0) == 0)
 	     return home;
-	}
-	(VOID)strcpy(home, file);
-	*/
+	strcpy(home, file);
+#endif
     }
 #endif
 
 #ifdef	KANJI	/* 90.02.10  by S.Yoshida */
-    (VOID) strcat(home, "\\ng.ini");
+    strcat(home, "\\ng.ini");
 #else	/* NOT KANJI */
-    (VOID) strcat(home, "\\mg.ini");
+    strcat(home, "\\mg.ini");
 #endif	/* KANJI */
     if (suffix != NULL) {
-	(VOID) strcat(home, "-");
-	(VOID) strcat(home, suffix);
+	strcat(home, "-");
+	strcat(home, suffix);
     }
-    if (access(home, 0) == 0) {
+    if (access(home, 0) == 0)
 	return home;
-    }
 
 notfound:
 #ifdef	STARTUPFILE
     strcpy(home, STARTUPFILE);
     if (suffix != NULL) {
-	(VOID) strcat(home, "-");
-	(VOID) strcat(home, suffix);
+	strcat(home, "-");
+	strcat(home, suffix);
     }
-    if (access(home, 0) == 0) {
+    if (access(home, 0) == 0)
 	return home;
-    }
 #endif
     return NULL;
 }
 #endif
 
 #ifndef NO_DIRED
-
 int
 copy(char *frname, char *toname)
 {
@@ -509,6 +505,7 @@ BUFFER *dired_(char *dirname);
 BUFFER *findbuffer(char *);
 }
 static char **getfilelist(int *numfiles, char *dirname);
+
 BUFFER *
 dired_(char *dirname)
 {
@@ -521,27 +518,31 @@ dired_(char *dirname)
 	ewprintf("Bad directory name");
 	return NULL;
     }
-    if (dirname[strlen(dirname)-1] != '\\') (VOID) strcat(dirname, "\\");
+    if (dirname[strlen(dirname)-1] != '\\')
+	strcat(dirname, "\\");
     if ((bp = findbuffer(dirname)) == NULL) {
 	ewprintf("Could not create buffer");
 	return NULL;
     }
-    if (bclear(bp) != TRUE) return FALSE;
+    if (bclear(bp) != TRUE)
+	return FALSE;
     if ((files = getfilelist(&numfiles, dirname)) == NULL) {
 	ewprintf("Could not get directory info");
 	return NULL;
     }
     for (i = 0; i < numfiles; i++) {
-	(VOID) addline(bp, files[i]);
+	addline(bp, files[i]);
 	free(files[i]);
     }
     free(files);
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    if (bp->b_fname != NULL) free(bp->b_fname);
+    if (bp->b_fname != NULL)
+	free(bp->b_fname);
     if ((bp->b_fname=(char*)malloc(strlen(dirname)+1)) != NULL)
-	(VOID) strcpy(bp->b_fname, dirname);
+	strcpy(bp->b_fname, dirname);
 #ifdef EXTD_DIR
-    if (bp->b_cwd != NULL) free(bp->b_cwd);
+    if (bp->b_cwd != NULL)
+	free(bp->b_cwd);
     bp->b_cwd = NULL;
 #endif
     if ((bp->b_modes[0] = name_mode("dired")) == NULL) {
@@ -573,6 +574,7 @@ d_makename(register LINE *lp, register char *fn, int buflen)
 
 #include <f32file.h>
 static void mkfileline(char *line, const TEntry &entry);
+
 static char **
 getfilelist(int *numfiles, char *dirname)
 {
@@ -581,7 +583,8 @@ getfilelist(int *numfiles, char *dirname)
     CDir* dirList;
     char fname[NFILEN];
 
-    if (strlen(dirname)+1 > NFILEN-1) return NULL;
+    if (strlen(dirname)+1 > NFILEN-1)
+	return NULL;
     strcpy(fname, dirname);
     strcat(fname, "*");
 
@@ -594,7 +597,8 @@ getfilelist(int *numfiles, char *dirname)
     
     for (int i=0; i<dirList->Count(); i++) {
 	files[i] = (char *)calloc(80, 1);
-	if (files[i] == NULL) goto error_end;
+	if (files[i] == NULL)
+	    goto error_end;
 	mkfileline(files[i], (*dirList)[i]);
 	(*numfiles)++;
     }
@@ -640,11 +644,10 @@ ffisdir(char *dn)
     
     strcpy(dns, dn);
 
-    if (stat(dns, &filestat) == 0) {
+    if (stat(dns, &filestat) == 0)
 	return ((filestat.st_mode & S_IFMT) == S_IFDIR);
-    } else {
+    else
 	return FALSE;
-    }
 }
 #endif /* NO_DIRED */
 
@@ -662,6 +665,7 @@ ffisdir(char *dn)
 
 #define	MALLOC_STEP	256
 extern "C" int fffiles(char *, char **);
+
 int
 fffiles(char *name, char **buf)
 {
@@ -681,7 +685,8 @@ fffiles(char *name, char **buf)
 	strncpy(pathbuf, home, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
 	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
-    } else {
+    }
+    else {
 	home = NULL;
 	homelen = 0;
 	strncpy(pathbuf, name, sizeof(pathbuf));
@@ -705,7 +710,8 @@ fffiles(char *name, char **buf)
     if (dirpart) {
 	*++dirpart = '\0';
 	dirpartlen = dirpart - pathbuf;
-    } else {
+    }
+    else {
 	strcpy(pathbuf, ".\\");	/* 90.05.30  by A.Shirahashi */
 	dirpartlen = 0;
     }
@@ -725,15 +731,16 @@ fffiles(char *name, char **buf)
     }
 
     buffer = (char*)malloc(MALLOC_STEP);
-    if (buffer == NULL) {
+    if (buffer == NULL)
 	return (-1);
-    }
+
     size = MALLOC_STEP;
     len = 0;
     n = 0;
     
     fsSession.Connect();
-    fsSession.GetDir(_L(pathbuf), KEntryAttMaskSupported, ESortByName, dirList);
+    fsSession.GetDir(_L(pathbuf), KEntryAttMaskSupported,
+		     ESortByName, dirList);
     fsSession.Close();
     
     for (int i=0; i<dirList->Count(); i++) {
@@ -747,15 +754,13 @@ fffiles(char *name, char **buf)
 	strncpy(tmpnam, pathbuf, dirpartlen);
 	
 	strcpy(tmpnam + dirpartlen, ff_namee);
-	if ((*dirList)[i].IsDir()) {
+	if ((*dirList)[i].IsDir())
 	    strcat(tmpnam, "\\");
-	}
 	l = strlen(tmpnam)+1;
 	if (l + len >= size) {
 	    /* make room for double null */
-	    if ((buffer=(char*)realloc(buffer, size += MALLOC_STEP)) == NULL) {
+	    if ((buffer=(char*)realloc(buffer, size += MALLOC_STEP)) == NULL)
 		return(-1);
-	    }
 	}
 	/* 90.06.08  by A.Shirahashi: to */
 	/* 00.12.28  by amura.. contributed by sahf */
@@ -764,7 +769,8 @@ fffiles(char *name, char **buf)
 	    strcpy(buffer+len, "~");
 	    strcat(buffer+len, tmpnam+homelen+1);
 	    l -= homelen;
-	} else
+	}
+	else
 #endif
 	strcpy(buffer + len, tmpnam);
 	len += l;
@@ -779,6 +785,7 @@ fffiles(char *name, char **buf)
 
 #ifdef	NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
 extern "C" char *file_name_part(char *);
+
 char *
 file_name_part (char *s)
 {
@@ -807,11 +814,10 @@ autosave_name(char *buff, char *name, int buflen)
     strcpy(buff, name);
     if (strlen(name)) {
 	char *fn = rindex(name, '/');
-	if (fn == NULL){
+	if (fn == NULL)
 	    fn = buff;
-	} else {
+	else
 	    fn++;
-	}
 	strcpy(&buff[strlen(buff)-strlen(fn)], "#");
 	strcat(buff, fn);
 	strcat(buff, "#");

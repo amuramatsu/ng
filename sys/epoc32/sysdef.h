@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.2 2001/11/28 19:02:10 amura Exp $ */
+/* $Id: sysdef.h,v 1.3 2001/11/28 21:45:12 amura Exp $ */
 /*
  *		Epoc32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.3  2001/11/28 21:45:12  amura
+ * Rewrite to new source code style
+ *
  * Revision 1.2  2001/11/28 19:02:10  amura
  * Small fixes arount termcap library.
  *
@@ -26,7 +29,7 @@
 #define	CMDLINELENGTH	128		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	NO_RESIZE			/* Screen size is constant.	*/
-#define	BSMAP	TRUE			/* Bs map feature can use.	*/
+#define	BSMAP		TRUE		/* Bs map feature can use.	*/
 					/* (default mode is bsmap on)	*/
 #define	MAKEBACKUP	TRUE		/* Making backup file is off.	*/
 #define WITHOUT_TERMCAP	TRUE		/* This port unused termcap lib */
@@ -44,15 +47,15 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
  */
 #define	BDC1	'\\'			/* Buffer names.		*/
 
-#define SYSINIT epoc_init()
-#define SYSCLEANUP epoc_cleanup()
+#define SYSINIT		epoc_init()
+#define SYSCLEANUP	epoc_cleanup()
 
 #define MALLOCROUND(m)	(m+=7,m&=~7)	/* round up to 8 byte boundry	*/
 
-#define	bcopy(s,d,n)	memmove(d,s,n)	/* copy memory area.		*/
+#define	bcopy(s,d,n)	memcpy(d,s,n)	/* copy memory area.		*/
 #define	bzero(s,n)	memset(s,0,n)	/* fill zero memory area.	*/
 #define	bcmp(s,d,n)	memcmp(s,d,n)	/* compare memory area.		*/
-#define	fncmp		strcmp		/* file name comparison		*/
+#define	fncmp(s,d)	strcmp(s,d)	/* file name comparison		*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
 
 /*

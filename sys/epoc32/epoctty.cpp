@@ -1,4 +1,4 @@
-/* $Id: epoctty.cpp,v 1.2 2001/10/06 14:34:40 amura Exp $ */
+/* $Id: epoctty.cpp,v 1.3 2001/11/28 21:45:12 amura Exp $ */
 /*
  *		Epoc32 Tty support class (Tested only at Psion S5mx)
  */
@@ -33,7 +33,8 @@ EpocTty::PutLine(int row, int column, unsigned char *s, unsigned char *t,
 	if (ISKANA(*t)) {
 	    *ptr++ = *t++;
 	    *ptr++ = *s++;
-	} else
+	}
+	else
 #endif
 #ifdef HOJO_KANJI
 	if (ISHOJO(*t)) {
@@ -41,7 +42,8 @@ EpocTty::PutLine(int row, int column, unsigned char *s, unsigned char *t,
 	    *ptr++ = *s++;
 	    *ptr++ = *s++;
 	    t += 2;
-	} else
+	}
+	else
 #endif
 	if (ISKANJI(*s)) {
 	    *ptr++ = *s++;
