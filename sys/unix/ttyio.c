@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.13 2001/11/28 19:02:11 amura Exp $ */
+/* $Id: ttyio.c,v 1.9.2.1 2002/02/10 12:34:38 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,17 +11,8 @@
 
 /*
  * $Log: ttyio.c,v $
- * Revision 1.13  2001/11/28 19:02:11  amura
- * Small fixes arount termcap library.
- *
- * Revision 1.12  2001/11/25 19:52:05  amura
- * change for compiler warnings reducing
- *
- * Revision 1.11  2001/11/23 11:56:51  amura
- * Rewrite all sources
- *
- * Revision 1.10  2001/10/29 04:30:44  amura
- * let BUGFIX code enable always
+ * Revision 1.9.2.1  2002/02/10 12:34:38  amura
+ * cannot compile problem with Cygwin is fixed
  *
  * Revision 1.9  2001/03/02 08:48:32  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
@@ -52,67 +43,71 @@
  *
  */
 
-#include "config.h"
-#include "def.h"
+#include	"config.h"
+#include	"def.h"
 
-#include <sys/types.h>
-#if defined(HAVE_TERMIOS_H)
-#include <termios.h>
-#elif defined(HAVE_TERMIO_H)
-#include <termio.h>
-#elif defined(HAVE_SGTTY_H)
-#include <sgtty.h>
+#include	<sys/types.h>
+#ifdef	HAVE_TERMIOS_H
+#include	<termios.h>
+#else
+#ifdef	HAVE_TERMIO_H
+#include	<termio.h>
+#else
+#ifdef	HAVE_SGTTY_H
+#include	<sgtty.h>
 #else
 #error "What tty do you use?"
+#endif	/* HAVE_SGTTY_H */
+#endif	/* HAVE_TERMIO_H */
+#endif	/* HAVE_SGTTY_H */
+#ifdef	HAVE_FCNTL_H
+#include	<fcntl.h>
 #endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
+#ifdef	HAVE_SYS_TIME_H
+#include <sys/time.h>
 #endif
 
-#include <signal.h>		/* 90.02.13: For SIGWINCH.	*/
-#include <sys/ioctl.h>		/* 00.04.03: amura		*/
+#ifdef	ADDFUNC	/* 90.02.14  by S.Yoshida */
+#include	<signal.h>		/* 90.02.13: For SIGWINCH.	*/
+#include	<sys/ioctl.h>		/* 00.04.03: amura		*/
+#endif	/* ADDFUNC */
 
 #define NOBUF	512			/* Output buffer size.		*/
 
 char	obuf[NOBUF];			/* Output buffer.		*/
 int	nobuf;
-VOID setttysize _PRO((void));
-int ttraw _PRO((void));
-int ttcooked _PRO((void));
-int refresh _PRO((int, int));
-#ifdef CANNA
-VOID canna_width _PRO((void));
-#endif
 
 #if defined(HAVE_TERMIO_H)||defined(HAVE_TERMIOS_H)
 static int ttyactivep = FALSE;		/* terminal in editor mode?	*/
 static int ttysavedp = FALSE;		/* terminal state saved?	*/
 #ifdef	HAVE_TERMIOS_H
-static struct termios ot;		/* entry state of the terminal	*/
-static struct termios nt;		/* editor's terminal state	*/
+static struct termios	ot;		/* entry state of the terminal	*/
+static struct termios	nt;		/* editor's terminal state	*/
 #else
-static struct termio  ot;		/* entry state of the terminal	*/
-static struct termio  nt;		/* editor's terminal state	*/
+static struct termio	ot;		/* entry state of the terminal	*/
+static struct termio	nt;		/* editor's terminal state	*/
 #endif
 #else	/* not HAVE_TERMIO_H || HAVE_TERMIOS_H */
-struct sgttyb oldtty;			/* V6/V7 stty data.		*/
-struct sgttyb newtty;
-struct tchars oldtchars;		/* V7 editing.			*/
-struct tchars newtchars;
-struct ltchars oldltchars;		/* 4.2 BSD editing.		*/
-struct ltchars newltchars;
+struct	sgttyb	oldtty;			/* V6/V7 stty data.		*/
+struct	sgttyb	newtty;
+struct	tchars	oldtchars;		/* V7 editing.			*/
+struct	tchars	newtchars;
+struct	ltchars oldltchars;		/* 4.2 BSD editing.		*/
+struct	ltchars newltchars;
 #endif	/* HAVE_TERMIO_H || HAVE_TERMIOS_H */
 
 #ifdef	TIOCGWINSZ
 struct	winsize winsize;		/* 4.3 BSD window sizing	*/
 #endif
 
-int nrow;				/* Terminal size, rows.		*/
-int ncol;				/* Terminal size, columns.	*/
+int	nrow;				/* Terminal size, rows.		*/
+int	ncol;				/* Terminal size, columns.	*/
 
+#ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
 #ifdef	SIGWINCH	/* 90.02.13  by S.Yoshida */
 RETSIGTYPE ttwinch();
 #endif	/* SIGWINCH */
+#endif	/* ADDFUNC */
 
 #ifndef HAVE_SELECT
 /* These are used to implement typeahead on System V */
@@ -132,22 +127,22 @@ char kbdq;			/* char we've already read	*/
  * stolen to send signals. Use CBREAK mode, and set all
  * characters but start and stop to 0xFF.
  */
-VOID
-ttopen()
-{
+ttopen() {
     register char *tv_stype;
-    char tcbuf[TERMCAP_BUF_LEN], err_str[72];
+    char *getenv(), *tgetstr(), tcbuf[2048], err_str[72];
 #ifndef	SUPPORT_ANSI
     int sprintf();
 #endif
 
     /* do this the REAL way */
-    if ((tv_stype = getenv("TERM")) == NULL) {
+    if ((tv_stype = getenv("TERM")) == NULL)
+    {
 	puts("Environment variable TERM not defined!");
 	exit(1);
     }
-    
-    if ((tgetent(tcbuf, tv_stype)) != 1) {
+
+    if((tgetent(tcbuf, tv_stype)) != 1)
+    {
 	(void) sprintf(err_str, "Unknown terminal type %s!", tv_stype);
 	puts(err_str);
 	exit(1);
@@ -155,9 +150,11 @@ ttopen()
     if (ttraw() == FALSE)
 	panic("aborting due to terminal initialize failure");
 
+#ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
 #ifdef	SIGWINCH	/* 90.02.13  by S.Yoshida */
-    signal(SIGWINCH, ttwinch);
-#endif
+    (void) signal(SIGWINCH, ttwinch);
+#endif	/* SIGWINCH */
+#endif	/* ADDFUNC */
 }
 
 /*
@@ -167,20 +164,19 @@ ttopen()
  * mg expects.	Thus, stty changes done while spawncli() is in effect
  * will be reflected in mg.
  */
-int
-ttraw()
-{
+ttraw() {
 #if defined(HAVE_TERMIO_H)||defined(HAVE_TERMIOS_H)
     if (ttyactivep)
 	return TRUE;
-    if (!ttysavedp) {
+    if( !ttysavedp )
+    {
 #ifdef HAVE_TERMIOS_H
 	if (tcgetattr(0, &ot) < 0) {
 #else
 	if (ioctl(0, TCGETA, &ot) < 0) {
 #endif
 	    ewprintf("ttopen can't get termio/termios");
-	    return FALSE;
+	    return(FALSE);
 	}
 	
 	nt = ot;		/* save entry state		*/
@@ -211,13 +207,15 @@ ttraw()
     if (ioctl(0, TCSETAF, &nt) < 0) {
 #endif
 	ewprintf("ttopen can't set termio/termios");
-	return FALSE;
+	return(FALSE);
     }
     ttyactivep = TRUE;
 #else	/* not HAVE_TERMIO_H || HAVE_TERMIOS_H */
+    extern short ospeed;
+    
     if (ioctl(0, TIOCGETP, (char *) &oldtty) < 0) {
 	ewprintf("ttopen can't get sgtty");
-	return FALSE;
+	return(FALSE);
     }
     newtty.sg_ospeed = ospeed = oldtty.sg_ospeed;
     newtty.sg_ispeed = oldtty.sg_ispeed;
@@ -232,11 +230,11 @@ ttraw()
 #endif
     if (ioctl(0, TIOCSETP, (char *) &newtty) < 0) {
 	ewprintf("ttopen can't set sgtty");
-	return FALSE;
+	return(FALSE);
     }
     if (ioctl(0, TIOCGETC, (char *) &oldtchars) < 0) {
 	ewprintf("ttopen can't get chars");
-	return FALSE;
+	return(FALSE);
     }
     newtchars.t_intrc  = 0xFF;		/* Interrupt.		*/
     newtchars.t_quitc  = 0xFF;		/* Quit.		*/
@@ -265,11 +263,11 @@ ttraw()
     newltchars.t_lnextc = 0xFF;		/* Literal next.	*/
     if (ioctl(0, TIOCSLTC, (char *) &newltchars) < 0) {
 	ewprintf("ttopen can't set ltchars");
-	return FALSE;
+	return(FALSE);
     }
 #endif	/* HAVE_TERMIO_H || HAVE_TERMIOS_H */
-    setttysize();
-    return TRUE;
+    setttysize() ;
+    return(TRUE);
 }
 
 /*
@@ -279,9 +277,7 @@ ttraw()
  *    Under UN*X this just calls ttcooked(), but the ttclose() hook is in
  * because vttidy() in display.c expects it for portability reasons.
  */
-VOID
-ttclose()
-{
+ttclose() {
     if (ttcooked() == FALSE)
 	panic("");		/* ttcooked() already printf'd */
 }
@@ -290,11 +286,10 @@ ttclose()
  * This function restores all terminal settings to their default values,
  * in anticipation of exiting or suspending the editor.
  */
-int
-ttcooked()
-{
+
+ttcooked() {
 #if defined(HAVE_TERMIO_H)||defined(HAVE_TERMIOS_H)
-    if (!ttysavedp || !ttyactivep)
+    if(!ttysavedp || !ttyactivep)
 	return(TRUE);
     ttflush();
 #ifdef	HAVE_TERMIOS_H
@@ -307,25 +302,25 @@ ttcooked()
 #endif
 	) {
 	ewprintf("ttclose can't set termio/termios");
-	return FALSE;
+	return(FALSE);
     }
     ttyactivep = FALSE;
 #else	/* not HAVE_TERMIO_H || HAVE_TERMIOS_H */
     ttflush();
     if (ioctl(0, TIOCSLTC, (char *) &oldltchars) < 0) {
 	ewprintf("ttclose can't set ltchars");
-	return FALSE;
+	return(FALSE);
     }
     if (ioctl(0, TIOCSETC, (char *) &oldtchars) < 0) {
 	ewprintf("ttclose can't set chars");
-	return FALSE;
+	return(FALSE);
     }
     if (ioctl(0, TIOCSETP, (char *) &oldtty) < 0) {
 	ewprintf("ttclose can't set sgtty");
-	return FALSE;
+	return(FALSE);
     }
 #endif	/* HAVE_TERMIO_H || HAVE_TERMIOS_H */
-    return TRUE;
+    return(TRUE);
 }
 
 /*
@@ -333,7 +328,6 @@ ttcooked()
  * Characters are buffered up, to make things
  * a little bit more efficient.
  */
-VOID
 ttputc(c)
 int c;
 {
@@ -345,9 +339,7 @@ int c;
 /*
  * Flush output.
  */
-VOID
-ttflush()
-{
+ttflush() {
     char *p = obuf;
     int outlen;
     if (nobuf != 0) {
@@ -360,8 +352,8 @@ ttflush()
 }
 
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
-static int nkey = 0;		/* The number of ungetc charactor. */
-static int keybuf[4];		/* Ungetc charactors.		*/
+static	int	nkey = 0;		/* The number of ungetc charactor. */
+static	int	keybuf[4];		/* Ungetc charactors.		*/
 #endif	/* KANJI */
 
 /*
@@ -369,9 +361,7 @@ static int keybuf[4];		/* Ungetc charactors.		*/
  * All 8 bits are returned, so that you can use
  * a multi-national terminal.
  */
-int
-ttgetc()
-{
+ttgetc() {
 #ifdef	HAVE_SELECT
     char buf[1];
 #endif
@@ -379,7 +369,7 @@ ttgetc()
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
 	return (keybuf[--nkey]);
-    }
+	}
 #endif	/* KANJI */
 
 #ifdef	HAVE_SELECT
@@ -387,10 +377,11 @@ ttgetc()
 	;
     return (buf[0] & 0xFF);
 #else	/* not HAVE_SELECT */
-    if (kbdqp)
+    if( kbdqp )
 	kbdqp = FALSE;
-    else {
-	if( kbdpoll && fcntl( 0, F_SETFL, kbdflgs ) < 0)
+    else
+    {
+	if( kbdpoll && fcntl( 0, F_SETFL, kbdflgs ) < 0 )
 	    abort();
 	kbdpoll = FALSE;
 	while (read(0, &kbdq, 1) != 1)
@@ -404,9 +395,8 @@ ttgetc()
 /*
  * Save pre-readed char to read again.
  */
-VOID
 ttungetc(c)
-int c;
+int	c;
 {
     keybuf[nkey++] = c;
 }
@@ -415,25 +405,22 @@ int c;
 /*
  * set the tty size. Functionized for 43BSD.
  */
-VOID
-setttysize()
-{
+setttysize() {
 #ifdef	TIOCGWINSZ
     if (ioctl(0, TIOCGWINSZ, (char *) &winsize) != -1) {
 	nrow = winsize . ws_row;
 	ncol = winsize . ws_col;
-    }
-    else
-	nrow = 0;
-    if (nrow<=0 || ncol<=0)
+    } else nrow = 0;
+    if(nrow<=0 || ncol<=0)
 #endif
-    if ((nrow=tgetnum ("li")) <= 0
-	|| (ncol=tgetnum ("co")) <= 0) {
-	nrow = 24;
-	ncol = 80;
-    }
+	if ((nrow=tgetnum ("li")) <= 0
+	    || (ncol=tgetnum ("co")) <= 0) {
+	    nrow = 24;
+	    ncol = 80;
+	}
 }
 
+#ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
 #ifdef	SIGWINCH	/* 90.02.13  by S.Yoshida */
 /*
  * Signal handler when window size has changed.
@@ -448,14 +435,13 @@ ttwinch()
     (void) signal(SIGWINCH, ttwinch);	/* for old scheme */
 }
 #endif	/* SIGWINCH */
+#endif	/* ADDFUNC */
 
 /*
  * typeahead returns TRUE if there are characters available to be read
  * in.
  */
-int
-typeahead()
-{
+typeahead() {
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
 	return (TRUE);
@@ -480,8 +466,9 @@ typeahead()
     }
 #endif	/* FIONREAD */
 #else	/* not HAVE_SELECT */
-    if (!kbdqp) {
-	if (!kbdpoll && fcntl( 0, F_SETFL, kbdflgs | O_NONBLOCK) < 0)
+    if( !kbdqp )
+    {
+	if( !kbdpoll && fcntl( 0, F_SETFL, kbdflgs | O_NONBLOCK) < 0 )
 	    abort();
 	kbdpoll = TRUE;
 	kbdqp = (1 == read( 0, &kbdq, 1 ));
@@ -493,28 +480,21 @@ typeahead()
 /*
  * panic - just exit, as quickly as we can.
  */
-VOID
-panic(s)
-char *s;
-{
-    fputs("panic: ", stderr);
-    fputs(s, stderr);
-    fputc('\n', stderr);
-    fflush(stderr);
-    abort();		/* To leave a core image. */
+panic(s) char *s; {
+	(void) fputs("panic: ", stderr);
+	(void) fputs(s, stderr);
+	(void) fputc('\n', stderr);
+	(void) fflush(stderr);
+	abort();		/* To leave a core image. */
 }
 
 #ifndef NO_DPROMPT
 #ifdef	HAVE_SELECT
-#include <sys/time.h>
-
 /*
  * A program to return TRUE if we wait for 2 seconds without anything
  * happening, else return FALSE.  Cribbed from mod.sources xmodem.
  */
-int
-ttwait()
-{
+int ttwait() {
     fd_set readfd;
     struct timeval tmout;
 
@@ -523,7 +503,11 @@ ttwait()
 	return (FALSE);
     }
 #endif	/* KANJI */
+#ifdef	BUGFIX	/* 90.02.07  by S.Yoshida */
     tmout.tv_sec = 1;
+#else	/* NOT BUGFIX */
+    tmout.tv_sec = 2;
+#endif	/* BUGFIX */
     tmout.tv_usec = 0;
 
     FD_ZERO(&readfd);
@@ -539,8 +523,8 @@ ttwait()
 #include <setjmp.h>
 
 static jmp_buf tohere;
-static VOID
-alrm()
+
+static VOID alrm()
 {
     longjmp(tohere, -1);
 }
@@ -548,9 +532,9 @@ alrm()
 /*
  * Return TRUE if we wait without doing anything, else return FALSE.
  */
-int
 ttwait()
 {
+    VOID alrm();
     VOID (*old_alrm)();
     unsigned int old_time;
 
@@ -584,7 +568,8 @@ time_t sec;
 {
     if (sec == 0)
 	alarm(0);
-    else {
+    else
+    {
 	signal(SIGALRM, func);
 	alarm(sec);
     }
