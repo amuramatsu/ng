@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.3 2000/11/16 14:21:32 amura Exp $ */
+/* $Id: ttyio.c,v 1.4 2001/01/20 15:48:47 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -24,6 +24,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.4  2001/01/20 15:48:47  amura
+ * very big terminal supported
+ *
  * Revision 1.3  2000/11/16 14:21:32  amura
  * merge Ng for win32 0.5
  *
@@ -155,10 +158,4 @@ void
 setttysize()
 {
   GetWH(&ncol, &nrow);
-  if (NROW < nrow) {
-    nrow = NROW;
-  }
-  if (NCOL < ncol) {
-    ncol = NCOL;
-  }
 }

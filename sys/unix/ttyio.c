@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.4 2000/12/18 17:20:41 amura Exp $ */
+/* $Id: ttyio.c,v 1.5 2001/01/20 15:48:47 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.5  2001/01/20 15:48:47  amura
+ * very big terminal supported
+ *
  * Revision 1.4  2000/12/18 17:20:41  amura
  * edit for cygwin
  *
@@ -399,10 +402,6 @@ setttysize() {
 	    nrow = 24;
 	    ncol = 80;
 	}
-    if (nrow > NROW)			/* Don't crash if the	*/
-	nrow = NROW;			/* termcap entry is	*/
-    if (ncol > NCOL)			/* too big.		*/
-	ncol = NCOL;
 }
 
 #ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */

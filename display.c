@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.7 2001/01/05 14:07:01 amura Exp $ */
+/* $Id: display.c,v 1.8 2001/01/20 15:48:45 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.8  2001/01/20 15:48:45  amura
+ * very big terminal supported
+ *
  * Revision 1.7  2001/01/05 14:07:01  amura
  * first implementation of Hojo Kanji support
  *
@@ -64,6 +67,9 @@
 extern int SG;				/* number of standout glitches	*/
 # endif /* TCCONIO */
 #endif /* STANDOUT_GLITCH */
+#ifdef GOSLING
+# undef GOSLING				/* GOSLING too slow?		*/
+#endif
 
 /*
  * A video structure always holds
@@ -76,11 +82,19 @@ typedef struct	{
 	short	v_flag;			/* Flag word.			*/
 	short	v_color;		/* Color of the line.		*/
 	XSHORT	v_cost;			/* Cost of display.		*/
-	char	v_text[NCOL];		/* The actual characters.	*/
-#ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
-	char	v_sub[NCOL];		/* 2nd Character of HANKANA	*/
+#ifndef ZEROARRAY
+	char	v_text[1];		/* The actual characters.	*/
+#else
+	char	v_text[];		/* The actual characters.	*/
 #endif
 }	VIDEO;
+
+#ifdef	SS_SUPPORT
+#define SIZEOF_VIDEO	(sizeof(VIDEO) + vncol*2)
+#define	v_sub(n) v_text[(n)+vncol]	/* 2nd Character of HANKANA	*/
+#else	/* SS_SUPPORT */
+#define SIZEOF_VIDEO	(sizeof(VIDEO) + vncol)
+#endif
 
 #define VFCHG	0x0001			/* Changed.			*/
 #define VFHBAD	0x0002			/* Hash and cost are bad.	*/
@@ -109,10 +123,15 @@ int	ttcol	= HUGE;			/* Physical cursor column.	*/
 int	tttop	= HUGE;			/* Top of scroll region.	*/
 int	ttbot	= HUGE;			/* Bottom of scroll region.	*/
 
-VIDEO	*vscreen[NROW-1];		/* Edge vector, virtual.	*/
-VIDEO	*pscreen[NROW-1];		/* Edge vector, physical.	*/
-VIDEO	video[2*(NROW-1)];		/* Actual screen data.		*/
-VIDEO	blanks;				/* Blank line image.		*/
+extern int	ncol;
+extern int	nrow;
+static int	vncol   = 0;
+static int	vnrow	= 0;
+
+VIDEO	**vscreen = NULL;		/* Edge vector, virtual.	*/
+VIDEO	**pscreen = NULL;		/* Edge vector, physical.	*/
+VIDEO	*video    = NULL;		/* Actual screen data.		*/
+VIDEO	*blanks   = NULL;		/* Blank line image.		*/
 
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 #define	ASCII	0
@@ -148,11 +167,58 @@ VOID	traceback();
  * This matrix is written as an array because
  * we do funny things in the "setscores" routine, which
  * is very compute intensive, to make the subscripts go away.
- * It would be "SCORE	score[NROW][NROW]" in old speak.
+ * It would be "SCORE	score[vnrow][vnrow]" in old speak.
  * Look at "setscores" to understand what is up.
  */
-SCORE	score[NROW*NROW];
+SCORE	*score = NULL;
 #endif
+
+VOID
+vtsetsize(col, row) {
+	register VIDEO	*vp;
+	register int	i;
+
+	if (col<vncol && row<vnrow)
+		return;
+	vncol = col;
+	vnrow = row;
+
+	if (vscreen != NULL) free(vscreen);
+	if (pscreen != NULL) free(pscreen);
+	if (video != NULL)   free(video);
+	if (blanks != NULL)  free(video);
+	
+	vscreen = malloc(sizeof(VIDEO*)*(vnrow-1));
+	pscreen = malloc(sizeof(VIDEO*)*(vnrow-1));
+	video   = malloc(SIZEOF_VIDEO*2*(vnrow-1));
+	blanks  = malloc(SIZEOF_VIDEO);
+	if (vscreen==NULL || pscreen==NULL || video==NULL || blanks==NULL)
+		panic("Cannot allocate video buffer");
+	bzero(video, SIZEOF_VIDEO*2*(vnrow-1));
+	bzero(blanks, SIZEOF_VIDEO);
+#ifdef	GOSLING
+	if (score != NULL) free(score);
+	score   = malloc(sizeof(SCORE)*vnrow*vnrow);
+	if (score == NULL)
+		panic("Cannot allocate video buffer");
+	bzero(score, sizeof(SCORE)*vnrow*vnrow);
+#endif
+	
+	vp = video;
+	for (i=0; i<vnrow-1; ++i) {
+		vscreen[i] = (VIDEO*)vp;
+		vp = (VIDEO*)((char*)vp +SIZEOF_VIDEO);
+		pscreen[i] = (VIDEO*)vp;
+		vp = (VIDEO*)((char*)vp +SIZEOF_VIDEO);
+	}
+	blanks->v_color = CTEXT;
+	for (i=0; i<vncol; ++i) {
+#ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
+		blanks->v_sub(i) = 0;
+#endif  /* SS_SUPPORT */
+		blanks->v_text[i] = ' ';
+	}
+}
 
 /*
  * Initialize the data structures used
@@ -167,24 +233,9 @@ SCORE	score[NROW*NROW];
  */
 VOID
 vtinit() {
-	register VIDEO	*vp;
-	register int	i;
-
 	ttopen();
 	ttinit();
-	vp = &video[0];
-	for (i=0; i<NROW-1; ++i) {
-		vscreen[i] = vp;
-		++vp;
-		pscreen[i] = vp;
-		++vp;
-	}
-	blanks.v_color = CTEXT;
-	for (i=0; i<NCOL; ++i)
-#ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
-		blanks.v_sub[i] = 0;
-#endif  /* SS_SUPPORT */
-		blanks.v_text[i] = ' ';
+	vtsetsize(ncol, nrow);
 }
 
 /*
@@ -241,12 +292,12 @@ vtputc(c) register int c; {
 	int tab = curwp->w_bufp->b_tabwidth;
 #endif
 
-	/* vtrow sometimes over-runs the NROW -1.  In the case, vp at
+	/* vtrow sometimes over-runs the vnrow -1.  In the case, vp at
 	   following line becomes an uninitialized pointer.  Then core
 	   dump or system error may occur.  To avoid the error.  Some
 	   range confirmation should be needed. 
 	   By Tillanosoft Sep 9, 2000.  */
-	if (NROW - 1 <= vtrow) {
+	if (vnrow - 1 <= vtrow) {
 	  return;
 	}
 
@@ -283,21 +334,21 @@ vtputc(c) register int c; {
 		vtputc(CCHR(c));
 #ifdef	HANKANA  /* 92.11.21  by S.Sasaki */
 	} else if (vtkattr == HAN1ST) {
-		vp->v_sub[vtcol-1] = c;
+		vp->v_sub(vtcol-1) = c;
 		vtkattr = ASCII;
 #endif  /* HANKANA */
 #ifdef	HOJO_KANJI
 	} else if (vtkattr == HOJO1ST) {
-		vp->v_sub[vtcol-1] = c;
+		vp->v_sub(vtcol-1) = c;
 		vtkattr = HOJO2ND;
 	} else if (vtkattr == HOJO2ND) {
 		vp->v_text[vtcol++] = SS3;
-		vp->v_sub[vtcol]    = c;
+		vp->v_sub(vtcol)    = c;
 		vtkattr = ASCII;
 #endif	/* HOJO_KANJI */
 	} else {
 #ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
-		vp->v_sub[vtcol] = 0;
+		vp->v_sub(vtcol) = 0;
 #endif
 		vp->v_text[vtcol++] = c;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
@@ -379,11 +430,12 @@ char	fillchar;
 
 	vp = vscreen[vtrow];
 	if (vtcol > 0) {
-		while (vtcol < ncol)
-			vp->v_text[vtcol++] = fillchar;
+		while (vtcol < ncol) {
 #ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
-		vp->v_sub[vtcol]=0;
+			vp->v_sub(vtcol)=0;
 #endif  /* SS_SUPPORT */
+			vp->v_text[vtcol++] = fillchar;
+		}
 	}
 }
 
@@ -399,11 +451,12 @@ vteeol() {
 	register VIDEO	*vp;
 
 	vp = vscreen[vtrow];
-	while (vtcol < ncol)
-		vp->v_text[vtcol++] = ' ';
+	while (vtcol < ncol) {
 #ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
-	vp->v_sub[vtcol]=0;
+		vp->v_sub(vtcol)=0;
 #endif  /* SS_SUPPORT */
+		vp->v_text[vtcol++] = ' ';
+	}
 }
 
 /* Calculate offset to col and row
@@ -903,7 +956,7 @@ out:
 	ttmove(0, 0);
 	tteeop();
 	for (i=0; i<nrow-1; ++i) {
-	    uline(i, vscreen[i], &blanks);
+	    uline(i, vscreen[i], blanks);
 	    ucopy(vscreen[i], pscreen[i]);
 	}
 	ttmove(currow, curcol);
@@ -986,9 +1039,9 @@ ucopy(vvp, pvp) register VIDEO *vvp; register VIDEO *pvp; {
 	pvp->v_cost  = vvp->v_cost;
 	pvp->v_color = vvp->v_color;
 	bcopy(vvp->v_text, pvp->v_text, ncol);
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	bcopy(vvp->v_sub, pvp->v_sub, ncol);
-#endif  /* HANKANA */
+#ifdef SS_SUPPORT
+	bcopy(&vvp->v_sub(0), &pvp->v_sub(0), ncol);
+#endif
 }
 
 /*
@@ -1002,25 +1055,25 @@ ucopy(vvp, pvp) register VIDEO *vvp; register VIDEO *pvp; {
  */
 VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 #if defined(WIN32)
-#ifdef	HANKANA
-	putline( row, 0, &vvp->v_text[0], &vvp->v_sub[0], vvp->v_color ) ;
+#ifdef	SS_SUPPORT
+	putline( row, 0, &vvp->v_text[0], &vvp->v_sub(0), vvp->v_color ) ;
 #else
 	putline( row, 0, &vvp->v_text[0], vvp->v_color ) ;
 #endif
 #elif defined(MEMMAP)
 	ttflush();	/* 90.06.09  by A.Shirahashi */
 #ifdef	PC9801	/* 90.03.24  by A.Shirahashi */
-#ifdef	HANKANA  /* 92.11.21  by S.Sasaki */
-	putline(row+1, 1, &vvp->v_text[0], &vvp->v_sub[0], vvp->v_color);
-#else  /* not HANKANA */
+#ifdef	SS_SUPPORT  /* 92.11.21  by S.Sasaki */
+	putline(row+1, 1, &vvp->v_text[0], &vvp->v_sub(0), vvp->v_color);
+#else  /* not SS_SUPPORT */
 	putline(row+1, 1, &vvp->v_text[0], vvp->v_color);
-#endif  /* HANKANA */
+#endif  /* SS_SUPPORT */
 #else	/* NOT PC9801 */
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	putline(row+1, 1, &vvp->v_text[0], &vvp->v_sub[0]);
-#else  /* not HANKANA */
+#ifdef	SS_SUPPORT  /* 92.11.21  by S.Sasaki */
+	putline(row+1, 1, &vvp->v_text[0], &vvp->v_sub(0));
+#else  /* not SS_SUPPORT */
 	putline(row+1, 1, &vvp->v_text[0]);
-#endif  /* HANKANA */
+#endif  /* SS_SUPPORT */
 #endif	/* PC9801 */
 #else   /* not WIN32 && MEMMAP */
 	register char	*cp1;
@@ -1045,7 +1098,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 #ifdef	STANDOUT_GLITCH
 		cp1 = &vvp->v_text[SG > 0 ? SG : 0];
 #ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
-		ccp1 = &vvp->v_sub[SG > 0 ? SG : 0];
+		ccp1 = &vvp->v_sub(SG > 0 ? SG : 0);
 #endif	/* SS_SUPPORT */
 		/* the odd code for SG==0 is to avoid putting the invisable
 		 * glitch character on the next line.
@@ -1056,7 +1109,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 		cp1 = &vvp->v_text[0];
 		cp2 = &vvp->v_text[ncol];
 #ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
-		ccp1 = &vvp->v_sub[0];
+		ccp1 = &vvp->v_sub(0);
 #endif	/* SS_SUPPORT */
 #endif	/* STANDOUT_GLITCH */
 		while (cp1 != cp2) {
@@ -1095,8 +1148,8 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 	cp1 = &vvp->v_text[0];			/* Compute left match.	*/
 	cp2 = &pvp->v_text[0];
 #ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
-	ccp1 = &vvp->v_sub[0];
-	ccp2 = &pvp->v_sub[0];
+	ccp1 = &vvp->v_sub(0);
+	ccp2 = &pvp->v_sub(0);
 #endif  /* SS_SUPPORT */
 	while (cp1!=&vvp->v_text[ncol] && cp1[0]==cp2[0]) {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
@@ -1201,7 +1254,7 @@ VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 #ifdef	SS_SUPPORT /* 92.11.21  by S.Sasaki */
 		if(cp1 < &vvp->v_text[SG]) {
 			cp1 = &vvp->v_text[SG];
-			ccp1 = &vvp->v_sub[SG];
+			ccp1 = &vvp->v_sub(SG);
 		}
 #else	/* not SS_SUPPORT */
 		if(cp1 < &vvp->v_text[SG]) cp1 = &vvp->v_text[SG];
@@ -1518,16 +1571,16 @@ setscores(offs, size) {
 		++vp;
 		++sp;
 	}
-	sp = &score[NROW];			/* Column 0, deletes.	*/
+	sp = &score[vnrow];			/* Column 0, deletes.	*/
 	tempcost = 0;
 	for (i=1; i<=size; ++i) {
 		sp->s_itrace = i-1;
 		sp->s_jtrace = 0;
 		tempcost  += tcdell;
 		sp->s_cost = tempcost;
-		sp += NROW;
+		sp += vnrow;
 	}
-	sp1 = &score[NROW+1];			/* [1, 1].		*/
+	sp1 = &score[vnrow+1];			/* [1, 1].		*/
 	pp = &pbase[1];
 	for (i=1; i<=size; ++i) {
 		sp = sp1;
@@ -1535,7 +1588,7 @@ setscores(offs, size) {
 		for (j=1; j<=size; ++j) {
 			sp->s_itrace = i-1;
 			sp->s_jtrace = j;
-			bestcost = (sp-NROW)->s_cost;
+			bestcost = (sp-vnrow)->s_cost;
 			if (j != size)		/* Cd(A[i])=0 @ Dis.	*/
 				bestcost += tcdell;
 			tempcost = (sp-1)->s_cost;
@@ -1547,7 +1600,7 @@ setscores(offs, size) {
 				sp->s_jtrace = j-1;
 				bestcost = tempcost;
 			}
-			tempcost = (sp-NROW-1)->s_cost;
+			tempcost = (sp-vnrow-1)->s_cost;
 			if ((*pp)->v_color != (*vp)->v_color
 			||  (*pp)->v_hash  != (*vp)->v_hash)
 				tempcost += (*vp)->v_cost;
@@ -1561,7 +1614,7 @@ setscores(offs, size) {
 			++vp;
 		}
 		++pp;
-		sp1 += NROW;			/* Next row.		*/
+		sp1 += vnrow;			/* Next row.		*/
 	}
 }
 
@@ -1587,17 +1640,17 @@ VOID traceback(offs, size, i, j) {
 
 	if (i==0 && j==0)			/* End of update.	*/
 		return;
-	itrace = score[(NROW*i) + j].s_itrace;
-	jtrace = score[(NROW*i) + j].s_jtrace;
+	itrace = score[(vnrow*i) + j].s_itrace;
+	jtrace = score[(vnrow*i) + j].s_jtrace;
 	if (itrace == i) {			/* [i, j-1]		*/
 		ninsl = 0;			/* Collect inserts.	*/
 		if (i != size)
 			ninsl = 1;
 		ndraw = 1;
 		while (itrace!=0 || jtrace!=0) {
-			if (score[(NROW*itrace) + jtrace].s_itrace != itrace)
+			if (score[(vnrow*itrace) + jtrace].s_itrace != itrace)
 				break;
-			jtrace = score[(NROW*itrace) + jtrace].s_jtrace;
+			jtrace = score[(vnrow*itrace) + jtrace].s_jtrace;
 			if (i != size)
 				++ninsl;
 			++ndraw;
@@ -1609,7 +1662,7 @@ VOID traceback(offs, size, i, j) {
 		}
 		do {				/* B[j], A[j] blank.	*/
 			k = offs+j-ndraw;
-			uline(k, vscreen[k], &blanks);
+			uline(k, vscreen[k], blanks);
 		} while (--ndraw);
 		return;
 	}
@@ -1618,9 +1671,9 @@ VOID traceback(offs, size, i, j) {
 		if (j != size)
 			ndell = 1;
 		while (itrace!=0 || jtrace!=0) {
-			if (score[(NROW*itrace) + jtrace].s_jtrace != jtrace)
+			if (score[(nrow*itrace) + jtrace].s_jtrace != jtrace)
 				break;
-			itrace = score[(NROW*itrace) + jtrace].s_itrace;
+			itrace = score[(vnrow*itrace) + jtrace].s_itrace;
 			if (j != size)
 				++ndell;
 		}

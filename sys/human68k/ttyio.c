@@ -1,10 +1,13 @@
-/* $Id: ttyio.c,v 1.3 2001/01/05 14:07:07 amura Exp $ */
+/* $Id: ttyio.c,v 1.4 2001/01/20 15:48:46 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.4  2001/01/20 15:48:46  amura
+ * very big terminal supported
+ *
  * Revision 1.3  2001/01/05 14:07:07  amura
  * first implementation of Hojo Kanji support
  *
@@ -309,10 +312,6 @@ setttysize() {
 		nrow = 32;
 		ncol = 96;
 	}
-	if (nrow > NROW)			/* Don't crash if the	*/
-		nrow = NROW;			/* termcap entry is	*/
-	if (ncol > NCOL)			/* too big.		*/
-		ncol = NCOL;
 }
 
 /*

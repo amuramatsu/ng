@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.1 2000/06/27 01:47:58 amura Exp $ */
+/* $Id: ttyio.c,v 1.2 2001/01/20 15:48:47 amura Exp $ */
 /*
  *		MS-DOS terminal I/O. (Tested only at MS-DOS 3.1)
  *		I make this file from BSD UNIX ttyio.c.
@@ -6,8 +6,11 @@
 
 /*
  * $Log: ttyio.c,v $
- * Revision 1.1  2000/06/27 01:47:58  amura
- * Initial revision
+ * Revision 1.2  2001/01/20 15:48:47  amura
+ * very big terminal supported
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:58  amura
+ * import to CVS
  *
  */
 /* 90.02.11	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
@@ -615,10 +618,6 @@ setttysize() {
 		nrow = 24;
 		ncol = 80;
 	}
-	if (nrow > NROW)			/* Don't crash if the	*/
-		nrow = NROW;			/* termcap entry is	*/
-	if (ncol > NCOL)			/* too big.		*/
-		ncol = NCOL;
 #endif
 }
 

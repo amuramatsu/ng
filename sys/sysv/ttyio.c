@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.4 2001/01/17 18:31:53 amura Exp $ */
+/* $Id: ttyio.c,v 1.5 2001/01/20 15:48:47 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		System V terminal I/O.
@@ -19,6 +19,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.5  2001/01/20 15:48:47  amura
+ * very big terminal supported
+ *
  * Revision 1.4  2001/01/17 18:31:53  amura
  * fix typo POSIXTTY to POSIX_TTY
  *
@@ -351,10 +354,6 @@ setttysize()
 		nrow = 24;
 		ncol = 80;
 	}
-	if (nrow > NROW)			/* Don't crash if the	*/
-		nrow = NROW;			/* termcap entry is	*/
-	if (ncol > NCOL)			/* too big.		*/
-		ncol = NCOL;
 }
 
 #ifdef	ADDFUNC		/* 93.07.08  by S.Yoshida */

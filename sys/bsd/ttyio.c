@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: ttyio.c,v 1.2 2001/01/20 15:48:46 amura Exp $ */
 /*
  *		Ultrix-32 and Unix terminal I/O.
  * The functions in this file
@@ -9,8 +9,11 @@
 
 /*
  * $Log: ttyio.c,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.2  2001/01/20 15:48:46  amura
+ * very big terminal supported
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 /* 90.02.05	Modified for Ng 1.0 by S.Yoshida */
@@ -276,10 +279,6 @@ setttysize() {
 		nrow = 24;
 		ncol = 80;
 	}
-	if (nrow > NROW)			/* Don't crash if the	*/
-		nrow = NROW;			/* termcap entry is	*/
-	if (ncol > NCOL)			/* too big.		*/
-		ncol = NCOL;
 }
 
 #ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */

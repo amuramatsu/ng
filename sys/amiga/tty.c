@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: tty.c,v 1.2 2001/01/20 15:48:46 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga console device virtual terminal display
@@ -16,8 +16,11 @@
 
 /*
  * $Log: tty.c,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2001/01/20 15:48:46  amura
+ * very big terminal supported
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
 
@@ -509,4 +512,5 @@ register int	color;
 ttresize()
 {
  	setttysize();
+	vtsetsize(ncol, nrow);
 }

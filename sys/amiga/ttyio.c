@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.4 2000/12/21 16:54:20 amura Exp $ */
+/* $Id: ttyio.c,v 1.5 2001/01/20 15:48:46 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga terminal window I/O, with all kinds o' trimmings.
@@ -9,6 +9,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.5  2001/01/20 15:48:46  amura
+ * very big terminal supported
+ *
  * Revision 1.4  2000/12/21 16:54:20  amura
  * fix usage of strncat()
  *
@@ -1031,9 +1034,7 @@ setttysize()
 	ncol = (EmW->Width - EmW->BorderLeft
 			- EmW->BorderRight) / FontWidth(EmW);
 	if (nrow < 1)		nrow = 1;
-	if (nrow > NROW)	nrow = NROW;
 	if (ncol < 1)		ncol = 1;
-	if (ncol > NCOL)	ncol = NCOL;
 }
 
 /*
