@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.4 2000/07/20 12:45:18 amura Exp $ */
+/* $Id: undo.h,v 1.5 2000/07/22 20:49:38 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: undo.h,v $
+ * Revision 1.5  2000/07/22 20:49:38  amura
+ * more secure run insert
+ *
  * Revision 1.4  2000/07/20 12:45:18  amura
  * support undo with auto-fill mode
  *
@@ -48,7 +51,7 @@ typedef struct UNDO_DATA {
 
 extern UNDO_DATA** undoptr;
 extern UNDO_DATA** undostart;
-#define undobefore (curbp->b_ulast)
+extern UNDO_DATA** undobefore;
 
 /* undo support functions */
 

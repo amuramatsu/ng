@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.4 2000/07/18 18:59:57 amura Exp $ */
+/* $Id: undo.c,v 1.5 2000/07/22 20:49:38 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -7,6 +7,9 @@
 
 /*
  * $Log: undo.c,v $
+ * Revision 1.5  2000/07/22 20:49:38  amura
+ * more secure run insert
+ *
  * Revision 1.4  2000/07/18 18:59:57  amura
  * fixed never end loop on do_undo with arguments
  *
@@ -28,6 +31,7 @@
 
 UNDO_DATA **undoptr;
 UNDO_DATA **undostart;
+UNDO_DATA **undobefore;
 static int undofirst;
 
 VOID
@@ -37,6 +41,7 @@ register BUFFER *bp;
     if (undoptr != NULL)
 	panic("bug: ublock openning error");
     undoptr = undostart = &bp->b_ustack[bp->b_utop];
+    undobefore = bp->b_ulast;
     if ((curbp->b_flag&BFCHG) == 0)	/* First change	*/
 	undofirst = TRUE;
     else
@@ -51,6 +56,7 @@ register BUFFER *bp;
 	return; 
     if (undoptr != undostart)
     {
+        bp->b_ulast = undobefore;
 	ublock_clear(undoptr);
 	if (undofirst && *undostart!=NULL)
 	    (*undostart)->u_type |= UDFIRST;
