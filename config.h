@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.10 2001/01/05 18:10:28 amura Exp $ */
+/* $Id: config.h,v 1.11 2001/02/14 09:16:59 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -373,6 +373,9 @@
 #ifdef	REGEX_JAPANESE
 #   ifndef  REGEX
 #	define	REGEX
+#   endif
+#   ifndef  KANJI
+#	undef   REGEX_JAPANESE
 #   endif
 #endif
 
