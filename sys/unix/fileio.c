@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.3 2000/12/14 18:16:50 amura Exp $ */
+/* $Id: fileio.c,v 1.4 2000/12/21 16:56:25 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.4  2000/12/21 16:56:25  amura
+ * filename length become flexible
+ *
  * Revision 1.3  2000/12/14 18:16:50  amura
  * filename length become flexible and
  * expand HOME directory in completion
@@ -464,7 +467,7 @@ BUFFER *dired_(dirname)
 char *dirname;
 {
     register BUFFER *bp;
-    char line[256];
+    char line[CMDLINELENGTH];
     BUFFER *findbuffer();
     FILE *dirpipe;
     FILE *popen();
@@ -486,9 +489,11 @@ char *dirname;
 	strcpy(bp->b_cwd, dirname);
     ensurecwd();
 #endif
-#ifdef	BUGFIX	/* 91.02.04  by M.Oki */
-    (VOID) strcpy(line, LS_CMD " -al ");
-    (VOID) strcat(line, dirname);
+#ifdef	BUGFIX	/* 91.02.04  by M.Oki / 2000.12.xx amura */
+    (VOID) strncpy(line, LS_CMD " -al '", sizeof(line));
+    line[sizeof(line)-1] = '\0';
+    (VOID) strncat(line, dirname, sizeof(line)-strlen(line)-1);
+    (VOID) strncat(line, "' 2>&1", sizeof(line)-strlen(line)-1);
 #else	/* ORIGINAL */
     (VOID) strcpy(line, "ls -al ");
     (VOID) strcpy(&line[7], dirname);
@@ -707,8 +712,7 @@ char *name, **buf;
 	homelen = strlen(home);
 	strncpy(pathbuf, home, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
-	strncat(pathbuf, &name[1], sizeof(pathbuf));
-	pathbuf[NFILEN-1] = '\0';
+	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
 	cp = pathbuf + homelen;
     } else {
 	home = NULL;
