@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.9 2001/01/05 14:07:05 amura Exp $ */
+/* $Id: version.c,v 1.10 2001/01/20 18:17:13 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: version.c,v $
+ * Revision 1.10  2001/01/20 18:17:13  amura
+ * edit to 1.5alpha1
+ *
  * Revision 1.9  2001/01/05 14:07:05  amura
  * first implementation of Hojo Kanji support
  *
@@ -44,7 +47,7 @@
 #define TRUE	1	/* include "def.h" when things get more complicated */
 #endif	/* ADDFUNC */
 
-#define	VERSION		"1.5alpha0"
+#define	VERSION		"1.5alpha1"
 
 #ifdef	KANJI
 # define PROGNAME	"Ng"
@@ -396,6 +399,10 @@ int f, n;
 	strcpy(line, dropfiles_msg);
 	if (addline(bp, line) == FALSE) return FALSE;
 #endif
+#ifdef	HOJO_KANJI
+	strcpy(line, hojokan_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
 
 #ifdef	AMIGA	/* Dec.20,1992 By H.Ohkubo */
 #ifndef	V2
@@ -568,6 +575,9 @@ printoptions()
 #endif
 #ifdef	DROPFILES
 	printf("%s\n", dropfiles_msg);
+#endif
+#ifdef	HOJO_KANJI
+	printf("%s\n", hojokan_msg);
 #endif
 
 #ifdef	AMIGA	/* Dec.20,1992 By H.Ohkubo */
