@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.4 2000/12/18 17:20:41 amura Exp $ */
+/* $Id: spawn.c,v 1.5 2000/12/21 16:58:06 amura Exp $ */
 /*
  *	Spawn. (for configure)
  * This interracts with the job control stuff
@@ -10,6 +10,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.5  2000/12/21 16:58:06  amura
+ * suspend support can enable most of OS
+ *
  * Revision 1.4  2000/12/18 17:20:41  amura
  * edit for cygwin
  *
@@ -37,11 +40,8 @@
 #endif
 
 /* some system don't have job-control even if SIGTSTP is defined... */
-#ifdef	SIGTSTP
-# ifndef HAVE_SIGSETMASK
-#  define sigsetmask(n) (n)
-# endif
-# ifdef	_MINIX	/* Minix don't have suspend yet ... */
+#ifdef	UNDEF_SIGTSTP
+# ifdef SIGTSTP
 #  undef SIGTSTP
 # endif
 #endif
@@ -71,7 +71,13 @@ extern	char	*getenv();
 /*ARGSUSED*/
 spawncli(f, n) {
     register pid_t	pid, wpid;
+#ifdef	SIGTSTP
+#ifdef	HAVE_SIGPROCMASK
+    sigset_t		omask,newmask;
+#else
     register int	omask;
+#endif
+#endif	/* SIGTSTP */
     register RETSIGTYPE	(*oqsig)(),(*oisig)();
 #ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
 #ifdef	SIGWINCH	/* 90.02.14  by S.Yoshida */
@@ -114,9 +120,16 @@ spawncli(f, n) {
     if (strcmp(shellp, "/bin/sh")!=0 ||
 	getenv("BASH_VERSION") || getenv("BASH")) {
 	/* C shell, ksh	or bash	*/
+#ifdef	HAVE_SIGPROCMASK
+	sigfillset(&newmask);
+	sigprocmask(SIG_UNBLOCK, &newmask, &omask);
+	(void) kill(0, SIGTSTP);
+	sigprocmask(SIG_SETMASK, &omask, NULL);
+#else
 	omask = sigsetmask(0);
 	(void) kill(0, SIGTSTP);
 	(void) sigsetmask(omask);
+#endif
 #ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
 #ifdef	SIGWINCH	/* 90.02.14  by S.Yoshida */
 	refresh(FFRAND, 0);		/* May be resized.	*/

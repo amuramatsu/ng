@@ -24,3 +24,6 @@
 #undef MV_CMD
 #undef CP_CMD
 #undef RMDIR_CMD
+
+/* Undefing force SIGTSTP because this OS don't have suspend... */
+#undef UNDEF_SIGTSTP

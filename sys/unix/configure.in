@@ -1,4 +1,4 @@
-AC_REVISION($Id: configure.in,v 1.3 2000/12/18 17:20:41 amura Exp $)
+AC_REVISION($Id: configure.in,v 1.4 2000/12/21 16:58:06 amura Exp $)
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(basic.c)
 AC_CONFIG_HEADER(sysconfig.h:sys/unix/sysconfig.h.in)
@@ -51,8 +51,13 @@ AC_HEADER_TIME
 
 dnl CYGWIN has fd_set, but cannot detect AC_CHECK_TYPE
 if test "$host_os" != "cygwin"; then
- AC_CHECK_TYPE(fd_set, int)
+  AC_CHECK_TYPE(fd_set, int)
 fi
+dnl Minix define SIGTSTP but don't have suspend yet...
+case "$host_os" in
+  Minix*)
+    AC_DEFINE(UNDEF_SIGTSTP, 1);;
+esac
 
 dnl Checks for library functions.
 AC_FUNC_ALLOCA
@@ -60,7 +65,7 @@ AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
 AC_FUNC_VFORK
-AC_CHECK_FUNCS(getcwd rmdir rename opendir select mkstemp bcopy bzero bcmp rindex symlink dup2 sigsetmask)
+AC_CHECK_FUNCS(getcwd rmdir rename opendir select mkstemp bcopy bzero bcmp rindex symlink dup2 sigprocmask)
 
 dnl Checks for commands called from dired
 AC_PATH_PROG(cp_cmd, cp)
