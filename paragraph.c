@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.6 2001/06/19 15:23:19 amura Exp $ */
+/* $Id: paragraph.c,v 1.7 2001/07/18 14:56:09 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: paragraph.c,v $
+ * Revision 1.7  2001/07/18 14:56:09  amura
+ * fix silly bug
+ *
  * Revision 1.6  2001/06/19 15:23:19  amura
  * to make uniform all indent
  *
@@ -469,7 +472,7 @@ fillpara(f, n)
 #ifdef	UNDO
 			if (undoptr != NULL) {
 				if (*undoptr != NULL)
-					*undoptr)->u_type = UDNONE;
+					(*undoptr)->u_type = UDNONE;
 				if (wordlen > 0) {
 					(VOID) linsert(1, wbuf[0]);
 				}
