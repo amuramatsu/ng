@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.9.2.1 2002/02/10 12:34:38 amura Exp $ */
+/* $Id: ttyio.c,v 1.9.2.2 2003/02/23 13:58:14 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.9.2.2  2003/02/23 13:58:14  amura
+ * canna_init() must be called after setttysize() on ttyio.c
+ *
  * Revision 1.9.2.1  2002/02/10 12:34:38  amura
  * cannot compile problem with Cygwin is fixed
  *
@@ -155,6 +158,9 @@ ttopen() {
     (void) signal(SIGWINCH, ttwinch);
 #endif	/* SIGWINCH */
 #endif	/* ADDFUNC */
+#ifdef CANNA
+    canna_init();
+#endif
 }
 
 /*
@@ -280,6 +286,9 @@ ttraw() {
 ttclose() {
     if (ttcooked() == FALSE)
 	panic("");		/* ttcooked() already printf'd */
+#ifdef	CANNA
+    canna_end();
+#endif
 }
 
 /*
