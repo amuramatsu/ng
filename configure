@@ -1663,7 +1663,7 @@ EOF
 fi
 
 
-if test "$host_os" != "cygwin"; then
+if test "$host_os" != "cygwin" -a "$host_os" != "interix3"; then
   echo $ac_n "checking for fd_set""... $ac_c" 1>&6
 echo "configure:1669: checking for fd_set" >&5
 if eval "test \"`echo '$''{'ac_cv_type_fd_set'+set}'`\" = set"; then

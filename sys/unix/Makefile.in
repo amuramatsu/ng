@@ -1,7 +1,10 @@
-# $Id: Makefile.in,v 1.4.2.1 2003/02/23 14:17:14 amura Exp $
+# $Id: Makefile.in,v 1.4.2.2 2004/02/14 14:28:13 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # $Log: Makefile.in,v $
+# Revision 1.4.2.2  2004/02/14 14:28:13  amura
+# support Windows Service for Unix 3.5 (from obara's patch)
+#
 # Revision 1.4.2.1  2003/02/23 14:17:14  amura
 # move canna.c from sys/default to sys/unix
 #
@@ -82,10 +85,10 @@ strip:
 	$(STRIP) $(PROG)
 
 install:
-	$(INSTALL) -m 755 -o root -g wheel $(PROG) $(BINDIR)
+	$(INSTALL) -m 755 $(PROG) $(BINDIR)
 	mkdir $(SHAREDIR)
-	$(INSTALL_DATA) -o root -g wheel docs/* $(SHAREDIR)
-	$(INSTALL_DATA) -o root -g wheel bin/* $(SHAREDIR)
+	$(INSTALL_DATA) docs/* $(SHAREDIR)
+	$(INSTALL_DATA) bin/* $(SHAREDIR)
 
 lint: $(SRCS) $(OSRCS) $(INCS) $(OINCS)
 	lint -ahbz $(CDEFS) $(SRCS) $(OSRCS)
