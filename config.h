@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: config.h,v 1.2 2000/07/23 22:43:09 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -69,6 +69,7 @@
 #undef	ZAPTOC_A	/* zap to char (GNU Emacs compatible) (by bsh) */
 
 #define JUMPERR		/* jump to error function (by bsh)	*/
+			/* If defined, ADDFUNC must be also. */
 
 #define	MINIBUF_EDIT	/* minibuffer edit like GNU emacs (by Kakugawa)	*/
 
@@ -171,6 +172,9 @@
 
 #define CLIPBOARD	/* Enable Clipboard cut & paste */
 
+#define DROPFILES	/* Drag'n Drop file open */
+			/* If defined, ADDFUNC must be also. */
+
 /*................................................*/
 #endif			/* Do not edit this line. */
 /*................................................*/
@@ -184,8 +188,8 @@
 
 #define FEPCTRL		/* Enable FEP auto control. */
 
-#undef	EMACS_BACKUP_STYLE
-			/* Backup files renamed like GNU Emacs */
+#define	EMACS_BACKUP_STYLE
+			/* Backup files like as GNU Emacs */
 
 /*................................................*/
 #endif			/* Do not edit this line. */
@@ -297,6 +301,18 @@
 #endif
 
 #ifndef	NO_DIRED
+#   ifndef  ADDFUNC
+#	define	ADDFUNC
+#   endif
+#endif
+
+#ifdef	JUMPERR
+#   ifndef  ADDFUNC
+#	define	ADDFUNC
+#   endif
+#endif
+
+#ifdef	DROPFILES
 #   ifndef  ADDFUNC
 #	define	ADDFUNC
 #   endif

@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.3 2000/06/27 01:49:45 amura Exp $ */
+/* $Id: version.c,v 1.4 2000/07/23 22:43:10 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: version.c,v $
+ * Revision 1.4  2000/07/23 22:43:10  amura
+ * edit to beta6
+ *
  * Revision 1.3  2000/06/27 01:49:45  amura
  * import to CVS
  *
@@ -30,33 +33,33 @@
 # ifdef	MSDOS			/* 90.02.11  by S.Yoshida */
 #  ifdef TCCONIO
 #   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4beta5 for IBM PC/TCCONIO [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta6 for IBM PC/TCCONIO [Nihongo Mg 2a] ";
 #   else /* NOT IBMPC */
 #    ifdef PC9801		/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4beta5 for PC-9801/TCCONIO [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta6 for PC-9801/TCCONIO [Nihongo Mg 2a] ";
 #    else /* NOT PC9801 */
-char version[] = "Ng 1.4beta5 for MS-DOS/TCCONIO [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta6 for MS-DOS/TCCONIO [Nihongo Mg 2a] ";
 #    endif /* PC9801 */
 #   endif /* IBMPC */
 #  else /* NOT TCCONIO */
 #   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4beta5 for IBM PC [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta6 for IBM PC [Nihongo Mg 2a] ";
 #   else /* NOT IBMPC */
 #    ifdef PC9801		/* 90.03.10  by S.Yoshida */
-char version[] = "Ng 1.4beta5 for PC-9801 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta6 for PC-9801 [Nihongo Mg 2a] ";
 #    else /* NOT PC9801 */
-char version[] = "Ng 1.4beta5 for MS-DOS [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta6 for MS-DOS [Nihongo Mg 2a] ";
 #    endif /* PC9801 */
 #   endif /* IBMPC */
 #  endif /* TCCONIO */
 # else /* NOT MSDOS */
 #  ifdef AMIGA			/* by H.Ohkubo / H.Konishi */
-char version[] = "Ng 1.4beta5 / KANgee ver 4.3 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta6 / KANgee ver 4.3 [Nihongo Mg 2a] ";
 #  else /* NOT AMIGA */
 #   ifdef _WIN32
-char version[] = "Ng 1.4beta5 / Win32 v0.4.7 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta6 / Win32 v0.4.7 [Nihongo Mg 2a] ";
 #   else
-char version[] = "Ng 1.4beta5 [Nihongo Mg 2a] ";
+char version[] = "Ng 1.4beta6 [Nihongo Mg 2a] ";
 #   endif /* _WIN32 */
 #  endif /* AMIGA */
 # endif /* MSDOS */
@@ -180,6 +183,9 @@ static	char *nextline_msg = "\tNEXTLINE\t(Enable \"next-line-add-newlines\")";
 #endif
 #ifdef	UNDO
 static	char *undo_msg = "\tUNDO\t\t(Enable undo)";
+#endif
+#ifdef	DROPFILES
+static	char *dropfiles_msg = "\tDROPFILES\t(Enable Drag&Drop)";
 #endif
 
 /* Dec.20,1992 Add by H.Ohkubo */
@@ -365,6 +371,10 @@ int f, n;
 	strcpy(line, undo_msg);
 	if (addline(bp, line) == FALSE) return FALSE;
 #endif
+#ifdef	DROPFILES
+	strcpy(line, dropfiles_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
 
 #ifdef	AMIGA	/* Dec.20,1992 By H.Ohkubo */
 #ifndef	V2
@@ -530,6 +540,9 @@ printoptions()
 #endif
 #ifdef	UNDO
 	printf("%s\n", undo_msg);
+#endif
+#ifdef	DROPFILES
+	printf("%s\n", dropfiles_msg);
 #endif
 
 #ifdef	AMIGA	/* Dec.20,1992 By H.Ohkubo */
