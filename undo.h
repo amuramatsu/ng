@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.3 2000/07/16 15:50:32 amura Exp $ */
+/* $Id: undo.h,v 1.4 2000/07/20 12:45:18 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: undo.h,v $
+ * Revision 1.4  2000/07/20 12:45:18  amura
+ * support undo with auto-fill mode
+ *
  * Revision 1.3  2000/07/16 15:50:32  amura
  * undo bug on autofill fixed
  * rewrite macro functions
@@ -24,7 +27,7 @@
 #define	UDDEL		1
 #define UDBS		2
 #define UDINS		3
-#define	UDINSNL		3
+#define	UDINSNL		3	/* this is backward compatibirity */
 #define UDOVER		5
 #define UDTWIDDLE	6
 #define	UDREPL		7
@@ -44,7 +47,8 @@ typedef struct UNDO_DATA {
 } UNDO_DATA;
 
 extern UNDO_DATA** undoptr;
-extern UNDO_DATA** undobefore;
+extern UNDO_DATA** undostart;
+#define undobefore (curbp->b_ulast)
 
 /* undo support functions */
 
@@ -58,12 +62,10 @@ VOID undo_bgrow  pro((register UNDO_DATA*, register int));
 /* undo support functions (implemented by macro for SPEED) */
 
 #define isundo() (undoptr  != NULL)
-#define undo_check(_bp)	(_bp->b_utop != _bp->b_ubottom)
-#define undo_reset(_bp)	((void)(_bp->b_ubottom = _bp->b_utop = 0))
+#define undo_check(_bp)	((_bp)->b_utop != (_bp)->b_ubottom)
+#define undo_reset(_bp)	((void)((_bp)->b_ubottom = (_bp)->b_utop = 0, \
+				(_bp)->b_ulast = NULL))
 #define undo_setup(_u) do {				\
-  /* if rewrite to function, this prototype is		\
-   * UNDO_DATA* undo_setup(UNDO_DATA*);			\
-   */							\
     if (undoptr != NULL) {				\
 	if (*undoptr == NULL) {				\
 	    *undoptr = malloc(sizeof(UNDO_DATA));	\

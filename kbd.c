@@ -1,10 +1,13 @@
-/* $Id: kbd.c,v 1.3 2000/07/16 15:44:41 amura Exp $ */
+/* $Id: kbd.c,v 1.4 2000/07/20 12:45:17 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
 
 /*
  * $Log: kbd.c,v $
+ * Revision 1.4  2000/07/20 12:45:17  amura
+ * support undo with auto-fill mode
+ *
  * Revision 1.3  2000/07/16 15:44:41  amura
  * undo bug on autofill fixed
  *
@@ -448,14 +451,15 @@ int f, n;
 #ifdef	UNDO
 	    if (isundo()) {
 		if (lastflag & CFINS2) {
-		    curbp->b_utop--;
-		    if (curbp->b_utop < 0)
-			curbp->b_utop = UNDOSIZE;
-		    undoptr = &curbp->b_ustack[curbp->b_utop];
-		    while (*undoptr != NULL) {
-			undobefore = undoptr;
-			undoptr = &((*undoptr)->u_next);
+		    if (undostart == undoptr) {
+			curbp->b_utop--;
+			if (curbp->b_utop < 0)
+			    curbp->b_utop = UNDOSIZE;
+			undostart = &curbp->b_ustack[curbp->b_utop];
 		    }
+		    if (undobefore == NULL)
+			panic("selfinsert: Run insert error");
+		    undoptr = undobefore;
 		}
 	    }
 #endif
@@ -520,21 +524,15 @@ int f, n;
 	if(curbp->b_flag & BFOVERWRITE) {	/* Overwrite mode	*/
 	    UNDO_DATA *undo;
 	    if (lastflag & CFINS2) {
-		if (undobefore != NULL) {
-		    undoptr = undobefore;
-		    undobefore = NULL;
-		} else {
+		if (!inkfill && undostart==undoptr) {
 		    curbp->b_utop--;
 		    if (curbp->b_utop < 0)
 			curbp->b_utop = UNDOSIZE;
-		    undoptr = &curbp->b_ustack[curbp->b_utop];
-		    if (*undoptr != NULL) {
-			while ((*undoptr)->u_next != NULL) {
-			    undobefore = undoptr;
-			    undoptr = &((*undoptr)->u_next);
-			}
-		    }
-		}
+		    undostart = &curbp->b_ustack[curbp->b_utop];
+		}			
+		if (undobefore == NULL)
+		    panic("selfinsert: Run insert error");
+		undoptr = undobefore;
 		undo = *undoptr;
 	    } else {
 		undo_setup(undo);
@@ -586,21 +584,15 @@ int f, n;
 	    }
 	    if (n<=0) return TRUE;
 	} else if (lastflag & CFINS2) {/* not Overwrite mode */
-	    if (undobefore != NULL) {
-		undoptr = undobefore;
-		undobefore = NULL;
-	    } else {
+	    if (!inkfill && undostart==undoptr) {
 		curbp->b_utop--;
 		if (curbp->b_utop < 0)
 		    curbp->b_utop = UNDOSIZE;
-		undoptr = &curbp->b_ustack[curbp->b_utop];
-	    }
-	    if (*undoptr != NULL) {
-		while ((*undoptr)->u_next != NULL) {
-		    undobefore = undoptr;
-		    undoptr = &((*undoptr)->u_next);
-		}
-	    }
+		undostart = &curbp->b_ustack[curbp->b_utop];
+	    }			
+	    if (undobefore == NULL)
+		panic("selfinsert: Run insert error");
+	    undoptr = undobefore;
 	}
 	/* if this is NOT, somecase linsert() panic */
 	  else if (*undoptr != NULL)

@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.5 2000/06/27 01:49:41 amura Exp $ */
+/* $Id: buffer.c,v 1.6 2000/07/20 12:45:17 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.6  2000/07/20 12:45:17  amura
+ * support undo with auto-fill mode
+ *
  * Revision 1.5  2000/06/27 01:49:41  amura
  * import to CVS
  *
@@ -454,7 +457,7 @@ bfind(bname, cflag) register char *bname; {
 	}
 #ifdef	UNDO
 	bzero(bp->b_ustack, sizeof(UNDO_DATA *)*(UNDOSIZE+1));
-	bp->b_utop = bp->b_ubottom = 0;
+	undo_reset(bp);
 #endif
 	bp->b_altb = bp->b_bufp	 = NULL;
 	bp->b_dotp  = lp;

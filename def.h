@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.4 2000/06/27 01:49:42 amura Exp $ */
+/* $Id: def.h,v 1.5 2000/07/20 12:45:17 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.5  2000/07/20 12:45:17  amura
+ * support undo with auto-fill mode
+ *
  * Revision 1.4  2000/06/27 01:49:42  amura
  * import to CVS
  *
@@ -294,6 +297,7 @@ typedef struct	BUFFER {
 					/* Undo stack data		*/
 	short	b_utop;			/* Undo stack top		*/
 	short	b_ubottom;		/* Undo stack bottom		*/
+	struct	UNDO_DATA **b_ulast;	/* Last edited undo data	*/
 #endif	/* UNDO */
 }	BUFFER;
 #define b_bufp	b_list.l_p.x_bp
