@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.19 2001/11/28 19:00:43 amura Exp $ */
+/* $Id: config.h,v 1.20 2001/11/28 21:31:20 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -76,7 +76,7 @@
 /*	Features for Ng/KANgee (KANJI version Mg2a).			*/
 /*----------------------------------------------------------------------*/
 
-#define	KANJI		/* Create KANJI handling version.	*/
+#undef	KANJI		/* Create KANJI handling version.	*/
 
 #define	HANKANA		/* Create Hankaku KANA  handling version. */
 
@@ -304,6 +304,12 @@
 #ifdef CURSOR_POS
 #  ifndef KANJI
 #    undef CURSOR_POS
+#  endif
+#endif
+
+#ifdef INCLUDE_SKG
+#  ifndef KANJI
+#    undef INCLUDE_SKG
 #  endif
 #endif
 

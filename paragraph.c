@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.10 2001/11/25 19:52:03 amura Exp $ */
+/* $Id: paragraph.c,v 1.11 2001/11/28 21:31:20 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: paragraph.c,v $
+ * Revision 1.11  2001/11/28 21:31:20  amura
+ * Some bugs are fixed without KANJI option
+ *
  * Revision 1.10  2001/11/25 19:52:03  amura
  * change for compiler warnings reducing
  *
@@ -615,9 +618,9 @@ int f, n;
     }
     else {
         nce = 0;
-#ifndef	KANJI	/* 90.01.29  by S.Yoshida */
+#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	if (inkfill)    /* To check KINSOKU char, we need KANJI 2nd byte. */
-	    (VOID) selfinsert(f, n); /* Insert KANJI 2nd byte. */
+	    selfinsert(f, n); /* Insert KANJI 2nd byte. */
 #endif /* KANJI */
     }
 
