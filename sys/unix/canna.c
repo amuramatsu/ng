@@ -1,4 +1,4 @@
-/* $Id: canna.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: canna.c,v 1.1 2003/02/23 14:17:04 amura Exp $ */
 /*
  * Canna Kana-Kanji Henkan server support routine.
  *       original code written by ENDO Yasuhiro 

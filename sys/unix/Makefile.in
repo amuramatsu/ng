@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.7 2003/02/22 08:09:47 amura Exp $
+# $Id: Makefile.in,v 1.8 2003/02/23 14:17:04 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # Create from BSD Makefile by MURAMATSU Atsushi
@@ -145,6 +145,10 @@ ttyio.c:	sys/$(SYS)/ttyio.c
 	rm -f ttyio.c
 	$(LN_S) sys/$(SYS)/ttyio.c .
 
+canna.c:	sys/$(SYS)/canna.c
+	rm -f canna.c
+	$(LN_S) sys/$(SYS)/canna.c .
+
 ttykbd.c:	sys/default/ttykbd.c
 	rm -f ttykbd.c
 	$(LN_S) sys/default/ttykbd.c .
@@ -152,10 +156,6 @@ ttykbd.c:	sys/default/ttykbd.c
 cinfo.c:	sys/default/cinfo.c
 	rm -f cinfo.c
 	$(LN_S) sys/default/cinfo.c .
-
-canna.c:	sys/default/canna.c
-	rm -f canna.c
-	$(LN_S) sys/default/canna.c .
 
 alloca.c:	sys/default/alloca.c
 	rm -f alloca.c
