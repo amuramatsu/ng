@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.8 2001/06/19 15:15:32 amura Exp $ */
+/* $Id: random.c,v 1.9 2001/07/22 20:46:58 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.9  2001/07/22 20:46:58  amura
+ * before checkin has bug. now mark handling is fixed
+ *
  * Revision 1.8  2001/06/19 15:15:32  amura
  * add correcting mark position when yank empty line
  *
@@ -716,45 +719,50 @@ yank(f, n)
 		isetmark();			/* mark around last yank */
 		i = 0;
 #ifdef	UNDO
-	    if (isundo()) {
-		extern int get_lineno pro((BUFFER*,LINE*));
-		extern int set_lineno;
-		set_lineno = get_lineno(curbp, curwp->w_dotp);
-		while ((c=kremove(i)) >= 0) {
-			if (c == '\n') {
-				if (newline(FFRAND, 1) == FALSE) {
-					set_lineno = -1;
-					return FALSE;
+		if (isundo()) {
+			extern int get_lineno pro((BUFFER*,LINE*));
+			extern int set_lineno;
+			set_lineno = get_lineno(curbp, curwp->w_dotp);
+			while ((c=kremove(i)) >= 0) {
+				if (c == '\n') {
+					if (newline(FFRAND, 1) == FALSE) {
+						set_lineno = -1;
+						return FALSE;
+					}
+					/* Mark position correction.	*/
+					if (i == 0) {
+						LINE *lp=lback(curwp->w_dotp);
+						curbp->b_markp  = lp;
+						curbp->b_marko  = llength(lp);
+					}
+					++nline; set_lineno++;
+					run_insert = FALSE;
+				} else {
+					if (run_insert)
+						undoptr = undobefore;
+					else if (*undoptr != NULL)
+						(*undoptr)->u_type = UDNONE;
+					if (linsert(1, c) == FALSE) {
+						set_lineno = -1;
+						return FALSE;
+					}
+					run_insert = TRUE;
 				}
-				/* Mark position correction.	*/
-				if (curbp->b_marko == 0)
-					curbp->b_markp=lforw(curbp->b_linep);
-
-				++nline; set_lineno++;
-				run_insert = FALSE;
-			} else {
-				if (run_insert)
-					undoptr = undobefore;
-				else if (*undoptr != NULL)
-					(*undoptr)->u_type = UDNONE;
-				if (linsert(1, c) == FALSE) {
-					set_lineno = -1;
-					return FALSE;
-				}
-				run_insert = TRUE;
+				++i;
 			}
-			++i;
-		}
-		set_lineno = -1;
-	    } else
+			set_lineno = -1;
+		} else
 #endif
 		while ((c=kremove(i)) >= 0) {
 			if (c == '\n') {
 				if (newline(FFRAND, 1) == FALSE)
 					return FALSE;
 				/* Mark position correction.	*/
-				if (curbp->b_marko == 0)
-					curbp->b_markp=lforw(curbp->b_linep);
+				if (i == 0) {
+					LINE *lp=lback(curwp->w_dotp);
+					curbp->b_markp  = lp;
+					curbp->b_marko  = llength(lp);
+				}
 
 				++nline;
 			} else {
