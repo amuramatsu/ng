@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.1 2000/11/19 18:35:00 amura Exp $ */
+/* $Id: sysdef.h,v 1.2 2000/12/01 10:07:09 amura Exp $ */
 /*
  *	unix based systems (for configure)
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.2  2000/12/01 10:07:09  amura
+ * edit for Minix
+ *
  * Revision 1.1  2000/11/19 18:35:00  amura
  * support GNU configure system
  *
@@ -12,10 +15,12 @@
 
 #include <stdio.h>
 #ifdef HAVE_UNISTD_H
+#include <sys/types.h>
 #include <unistd.h>
 #endif
-#include <sys/types.h>
+#ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
+#endif
 
 /* for use alloca() */
 #ifndef	__GNUC__
@@ -34,7 +39,6 @@ char *alloca ();
 
 #define	KBLOCK		8192		/* Kill grow.			*/
 #define	GOOD		0		/* Good exit status.		*/
-#define	SYMBLINK	1		/* Handle symbolic links	*/
 #define	MAXPATH		256		/* Maximum length of path for chdir */
 #ifndef	NO_SHELL
 #define	CMDLINELENGTH	128		/* Maximum length of shell command. */
