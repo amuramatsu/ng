@@ -1,4 +1,4 @@
-/* $Id: canna.c,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: canna.c,v 1.2 2000/07/16 15:43:00 amura Exp $ */
 
 /*
  * Canna Kana-Kanji Henkan server support routine.
@@ -7,8 +7,11 @@
 
 /*
  * $Log: canna.c,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.2  2000/07/16 15:43:00  amura
+ * undo support
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 
@@ -19,6 +22,9 @@
 #include "key.h"
 #ifndef NO_MACRO
 #include "macro.h"
+#endif
+#ifdef	UNDO
+#include "undo.h"
 #endif
 
 #include <canna/jrkanji.h>
@@ -88,7 +94,13 @@ int c;
 #endif
 			key.k_chars[0] = kakutei[i];
 			key.k_count = 1;
+#ifdef	UNDO
+			ublock_open(curbp);
+#endif
 			selfinsert(FFRAND,1);
+#ifdef	UNDO	
+			ublock_close(curbp);
+#endif
 			lastflag = thisflag;
 		}
 		oldlength = 0 ;
