@@ -1,10 +1,13 @@
-/* $Id: kbd.c,v 1.4 2000/07/20 12:45:17 amura Exp $ */
+/* $Id: kbd.c,v 1.5 2000/09/13 21:03:53 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
 
 /*
  * $Log: kbd.c,v $
+ * Revision 1.5  2000/09/13 21:03:53  amura
+ * can compile option UNDO without KANJI
+ *
  * Revision 1.4  2000/07/20 12:45:17  amura
  * support undo with auto-fill mode
  *
@@ -524,7 +527,11 @@ int f, n;
 	if(curbp->b_flag & BFOVERWRITE) {	/* Overwrite mode	*/
 	    UNDO_DATA *undo;
 	    if (lastflag & CFINS2) {
+#ifdef	KANJI
 		if (!inkfill && undostart==undoptr) {
+#else
+		if (undostart==undoptr) {
+#endif
 		    curbp->b_utop--;
 		    if (curbp->b_utop < 0)
 			curbp->b_utop = UNDOSIZE;
@@ -584,7 +591,11 @@ int f, n;
 	    }
 	    if (n<=0) return TRUE;
 	} else if (lastflag & CFINS2) {/* not Overwrite mode */
+#ifdef	KANJI
 	    if (!inkfill && undostart==undoptr) {
+#else
+	    if (undostart==undoptr) {
+#endif
 		curbp->b_utop--;
 		if (curbp->b_utop < 0)
 		    curbp->b_utop = UNDOSIZE;
