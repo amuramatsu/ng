@@ -1,4 +1,4 @@
-/* $Id: sysinit.c,v 1.4 2000/12/14 18:08:35 amura Exp $ */
+/* $Id: sysinit.c,v 1.5 2000/12/22 19:48:17 amura Exp $ */
 /*
  * Name:	MG 2a
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: sysinit.c,v $
+ * Revision 1.5  2000/12/22 19:48:17  amura
+ * change "sysdef.h" to "def.h" for get NFILEN
+ *
  * Revision 1.4  2000/12/14 18:08:35  amura
  * filename length become flexible
  *
@@ -32,8 +35,8 @@
 #include "zz_pointer.h"
 
 #include <libraries/dosextens.h>
-#include	"config.h"	/* Dec. 16, 1992 by H.Ohkubo */
-#include "sysdef.h"
+#include "config.h"	/* Dec. 16, 1992 by H.Ohkubo */
+#include "def.h"
 
 #undef	FALSE
 #undef	TRUE

@@ -1,4 +1,4 @@
-/* $Id: dirio.c,v 1.2 2000/12/14 18:07:51 amura Exp $ */
+/* $Id: dirio.c,v 1.3 2000/12/22 19:48:17 amura Exp $ */
 /*
  * Name:	MG 2x
  *		Directory I/O routines, by Stephen Walton
@@ -7,6 +7,9 @@
 
 /*
  * $Log: dirio.c,v $
+ * Revision 1.3  2000/12/22 19:48:17  amura
+ * change "sysdef.h" to "def.h" for get NFILEN
+ *
  * Revision 1.2  2000/12/14 18:07:51  amura
  * filename length become flexible
  *
@@ -15,11 +18,11 @@
  *
  */
 
-#include	"config.h"	/* Dec. 15, 1992 by H.Ohkubo */
+#include "config.h"	/* Dec. 15, 1992 by H.Ohkubo */
 
 #ifndef NO_DIR
 
-#include "sysdef.h"
+#include "def.h"
 #include <libraries/dosextens.h>
 #include <exec/memory.h>
 
