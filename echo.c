@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.14 2003/02/23 20:12:10 amura Exp $ */
+/* $Id: echo.c,v 1.15 2003/02/23 20:21:10 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -2299,11 +2299,13 @@ char *hist_buf[];
 char *buf;
 {
     int i;
+    if (hist_buf[MB_NHISTS] != NULL)
+	free(hist_buf[MB_NHISTS]);
     /* rotate history */
     for (i = MB_NHISTS; i > 1; i--)
 	hist_buf[i] = hist_buf[i-1];
     /* and insert new history to head */
-    hist_buf[1] = realloc(hist_buf[MB_NHISTS], strlen(buf)+1);
+    hist_buf[1] = malloc(strlen(buf)+1);
     strcpy(hist_buf[1], buf);
     hist_buf[0] = NULL;
 }
