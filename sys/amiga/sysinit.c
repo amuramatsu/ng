@@ -1,4 +1,4 @@
-/* $Id: sysinit.c,v 1.2 2000/09/29 17:25:15 amura Exp $ */
+/* $Id: sysinit.c,v 1.3 2000/10/31 07:08:14 amura Exp $ */
 /*
  * Name:	MG 2a
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: sysinit.c,v $
+ * Revision 1.3  2000/10/31 07:08:14  amura
+ * fix bug around input.device
+ *
  * Revision 1.2  2000/09/29 17:25:15  amura
  * small patch for new iconify()
  *
@@ -49,6 +52,7 @@ struct Library 	*WorkbenchBase;
 # ifdef V2
 struct Library  *InputBase;
 static struct IOStdReq *InputIO;
+static struct MsgPort  *InputMP;
 # endif
 #endif
 
@@ -115,10 +119,17 @@ sysinit()
 #endif
 #ifdef	KANJI
 # ifdef V2
-	if (OpenDevice("input.device", NULL,
-		       (struct IORequest *)InputIO, NULL))
-		panic("Cannot open input device");
-	InputBase = (struct Library *)InputIO->io_Device;
+	InputBase = NULL;
+	if (InputMP=CreatePort(0L,0L)) {
+		if (InputIO = (struct IOStdReq*)
+		    CreateExtIO(InputMP, sizeof(struct IOStdReq))) {
+			if (!OpenDevice("input.device", NULL,
+				       (struct IORequest *)InputIO, NULL))
+			InputBase = (struct Library *)InputIO->io_Device;
+		}
+	}
+    	if (InputBase == NULL)
+		panic("cannot open input device");
 # endif /* V2 */
 #endif
 #ifdef	REXX	/* Dec.20,1992 by H.Ohkubo */
@@ -141,7 +152,11 @@ syscleanup()
 #endif
 #ifdef KANJI
 # ifdef V2
-	CloseDevice(InputIO);
+	if (InputIO) {
+		CloseDevice(InputIO);
+		DeleteExtIO(InputIO);
+	}
+	if (InputMP)		DeletePort(InputMP);
 # endif
 #endif
 	/* from ttyio.c by H.Ohkubo Dec.20,1992 */
