@@ -3,19 +3,27 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: buffer.c,v 1.1 1999/05/19 03:47:59 amura Exp $ */
+/* $Id: buffer.c,v 1.2 1999/05/21 01:57:23 amura Exp $ */
 
 /* $Log: buffer.c,v $
-/* Revision 1.1  1999/05/19 03:47:59  amura
-/* Initial revision
+/* Revision 1.2  1999/05/21 01:57:23  amura
+/* some change for variable tab, expect-file-kcode
 /*
+ * Revision 1.1  1999/05/19  03:47:59  amura
+ * Initial revision
+ *
 */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
 #include	"kbd.h"			/* needed for modes */
 
+#ifdef  VARIABLE_TAB
+int defb_tab = 8;
+#endif  /* VARIABLE_TAB */
 static RSIZE	itor();
+#define	GETNUMLEN	6
+
 
 /*
  * Attach a buffer to a window. The values of dot and mark come
@@ -372,6 +380,7 @@ bfind(bname, cflag) register char *bname; {
 	extern int defb_nmodes;
 	extern MAPS *defb_modes[PBMODES];
 	extern int defb_flag;
+	extern int defb_tab;
 
 	bp = bheadp;
 	while (bp != NULL) {
@@ -405,8 +414,12 @@ bfind(bname, cflag) register char *bname; {
 	bp->b_linep = lp;
 	bp->b_nmodes = defb_nmodes;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	ksetbufcode(bp);		/* Set buffer local KANJI code.	*/
+	bp->b_kfio = NIL;	/* changed by amura */
+				/* set in fileio.c  */
 #endif	/* KANJI */
+#ifdef  VARIABLE_TAB
+	bp->b_tabwidth = defb_tab;
+#endif  /* VARIABLE_TAB */
 	i = 0;
 	do {
 	    bp->b_modes[i] = defb_modes[i];
@@ -660,3 +673,61 @@ register BUFFER *bp;
     return popbuf(bp) != NULL;
 }
 #endif
+
+#ifdef	CMODE
+#define		USING_GETNUM	1
+#else
+#ifdef	VARIABLE_TAB
+#define		USING_GETNUM	1
+#endif	/* VARIABLE_TAB */
+#endif	/* CMODE */
+
+#ifdef USING_GETNUM
+getnum(prompt, num)
+char *prompt;
+int *num;
+{
+	char numstr[GETNUMLEN];
+
+	if (ereply("%s : ", numstr, GETNUMLEN, prompt) == FALSE)
+		return (FALSE);
+	*num = atoi(numstr);
+	return (TRUE);
+}
+#undef USING_GETNUM
+#endif  /* USING_GETNUM */
+
+#ifdef  VARIABLE_TAB
+set_default_tabwidth(f, n)
+int f, n;
+{
+    if ((f & FFARG) == 0)
+	{
+	if (getnum("default-tab-width", &n) == FALSE)
+	    return (FALSE);
+	}
+    if (n>64 || n<=2)
+    	return (FALSE);
+    defb_tab = n;
+    return (TRUE);
+}
+
+set_tabwidth(f, n)
+int f, n;
+{
+    extern int refresh();
+    if ((f & FFARG) == 0)
+	{
+	if (getnum("tab-width", &n) == FALSE)
+	    return (FALSE);
+	}
+	if (n == 0)
+		n = defb_tab;
+    else if (n>64 || n<=2)
+    	return (FALSE);
+    curbp->b_tabwidth = n;
+    if (f >= 0)
+	    refresh(0, 0);
+    return (TRUE);
+}
+#endif  /* VARIABLE_TAB */
