@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.2 2001/01/20 15:48:47 amura Exp $ */
+/* $Id: ttyio.c,v 1.3 2001/03/02 08:48:32 amura Exp $ */
 /*
  *		MS-DOS terminal I/O. (Tested only at MS-DOS 3.1)
  *		I make this file from BSD UNIX ttyio.c.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.3  2001/03/02 08:48:32  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.2  2001/01/20 15:48:47  amura
  * very big terminal supported
  *
@@ -562,7 +565,12 @@ ttgetc() {
 	    ahead = -1;
 	    return(c);
 	}
-    while ((c = rawgetc()) == -1) {}
+    while ((c = rawgetc()) == -1)
+    {
+#ifdef	AUTOSAVE
+	autosave_handler();
+#endif	
+    }
 
 #ifdef	DO_METAKEY
 #ifdef	PC9801

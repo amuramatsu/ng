@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.5 2001/01/20 15:48:46 amura Exp $ */
+/* $Id: ttyio.c,v 1.6 2001/03/02 08:48:30 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga terminal window I/O, with all kinds o' trimmings.
@@ -9,6 +9,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.6  2001/03/02 08:48:30  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.5  2001/01/20 15:48:46  amura
  * very big terminal supported
  *
@@ -704,7 +707,10 @@ ttgetc()
 		return(keybuf[--nkey]);
 	}	/* 91.01.14  by K.Maeda ---remove else */
 #endif	/* KANJI */
-
+#ifdef	AUTOSAVE
+	while (handle_kbd(TRUE))
+		autosave_handler();
+#endif	/* AUTOSAVE */
 	return handle_kbd(FALSE);
 }
 

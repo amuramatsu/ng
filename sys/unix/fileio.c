@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.11 2001/02/18 19:29:04 amura Exp $ */
+/* $Id: fileio.c,v 1.12 2001/03/02 08:48:32 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.12  2001/03/02 08:48:32  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.11  2001/02/18 19:29:04  amura
  * split dir.c to port depend/independ
  *
@@ -923,7 +926,7 @@ char* name;
 {
     strcpy(buff, name);
     if (strlen(name)) {
-	char *fn = index(name, BDC1);
+	char *fn = rindex(name, '/');
 	if (fn == NULL){
 	    fn = buff;
 	} else {

@@ -1,7 +1,10 @@
-# $Id: Makefile,v 1.2 2000/10/02 13:59:28 amura Exp $
+# $Id: Makefile,v 1.3 2001/03/02 08:48:30 amura Exp $
 # Makefile for MicroEMACS. using Aztec small model
 #
 # $Log: Makefile,v $
+# Revision 1.3  2001/03/02 08:48:30  amura
+# now AUTOSAVE feature implemented almost all (except for WIN32
+#
 # Revision 1.2  2000/10/02 13:59:28  amura
 # edit for new ttymenu.c
 #
@@ -41,7 +44,7 @@ CFLAGS = -I$(S) -Isys/default -DAMIGA -DMANX -wos -su
 
 # Objects which only depend on the "standard" includes
 OBJS	= basic.o dir.o dired.o shell.o version.o window.o \
-	  kinsoku.o jump.o
+	  kinsoku.o jump.o autosave.o
 
 # Those with unique requirements
 IND	= buffer.o complt.o display.o cmode.o echo.o extend.o file.o \
@@ -61,7 +64,7 @@ SRCS = basic.c dir.c dired.c file.c line.c match.c paragraph.c \
    random.c region.c search.c version.c window.c word.c \
    buffer.c display.c echo.c extend.c help.c kbd.c keymap.c \
    macro.c main.c modes.c regex.c re_search.c \
-   cmode.c shell.c kinsoku.c complt.c kanji.c skg.c jump.c undo.c
+   cmode.c shell.c kinsoku.c complt.c kanji.c skg.c jump.c undo.c autosave.c
 
 OINCS = $(S)/ttydef.h $(S)/sysdef.h sys/default/chrdef.h
 INCS = def.h config.h

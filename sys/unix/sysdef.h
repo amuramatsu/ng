@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.4 2001/02/18 19:29:04 amura Exp $ */
+/* $Id: sysdef.h,v 1.5 2001/03/02 08:48:32 amura Exp $ */
 /*
  *	unix based systems (for configure)
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.5  2001/03/02 08:48:32  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.4  2001/02/18 19:29:04  amura
  * split dir.c to port depend/independ
  *
@@ -51,6 +54,7 @@ char *alloca ();
 #define	BSMAP		FALSE		/* Bs map feature can use.	*/
 					/* (default mode is bsmap off)	*/
 #define	MAKEBACKUP	TRUE		/* Making backup file is on.	*/
+#define ITIMER		TRUE		/* Interval timer support	*/
 
 typedef long	RSIZE;			/* Type for file/region sizes	*/
 typedef short	KCHAR;			/* Type for internal keystrokes	*/

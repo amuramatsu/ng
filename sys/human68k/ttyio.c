@@ -1,10 +1,13 @@
-/* $Id: ttyio.c,v 1.4 2001/01/20 15:48:46 amura Exp $ */
+/* $Id: ttyio.c,v 1.5 2001/03/02 08:48:31 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.5  2001/03/02 08:48:31  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.4  2001/01/20 15:48:46  amura
  * very big terminal supported
  *
@@ -462,3 +465,11 @@ fepmode_chg(f, n)
 	return (TRUE);
 }
 #endif /* FEPCTRL */
+
+#ifdef	AUTOSAVE
+VOID
+itimer(func, sec)
+{
+    VDISPST
+}
+#endif	/* AUTOSAVE */

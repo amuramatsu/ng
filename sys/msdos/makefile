@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2000/06/27 01:47:59 amura Exp $
+# $Id: makefile,v 1.2 2001/03/02 08:48:31 amura Exp $
 # Makefile for Ng at MS-DOS with MSC 5.1 / 6.0 & UNIX like make.
 #
 # This "makefile" is made for MS-C 5.1 / 6.0 and UNIX like "make" command
@@ -9,8 +9,11 @@
 # 5.1 / 6.0, please use "makefile.msc" file. 
 #
 # $Log: makefile,v $
-# Revision 1.1  2000/06/27 01:47:59  amura
-# Initial revision
+# Revision 1.2  2001/03/02 08:48:31  amura
+# now AUTOSAVE feature implemented almost all (except for WIN32
+#
+# Revision 1.1.1.1  2000/06/27 01:47:59  amura
+# import to CVS
 #
 
 # CDEFS gets defines, and gets passed to lint. CFLAGS gets flags, and doesn't
@@ -36,7 +39,7 @@ CC	= cl
 
 # Objects which only depend on the "standard" includes
 OBJS	= basic.obj dir.obj dired.obj shell.obj version.obj window.obj \
-	  kinsoku.obj jump.obj
+	  kinsoku.obj jump.obj autosave.obj
 
 # Those with unique requirements
 IND	= buffer.obj complt.obj display.obj cmode.obj echo.obj extend.obj \
@@ -60,9 +63,9 @@ TSRCS	= termcap.c
 DSRCS	= dosutil.c fepctrl.c rawgetc.asm putline.c
 SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c parag.c \
 	  random.c region.c search.c shell.c version.c window.c word.c \
-	  buffer.c complt.c display.c echo.c extend.c help.c kbd.c
-	  keymap.c macro.c main.c modes.c regex.c research.c kanji.c
-	  kinsoku.c skg.c jump.c undo.c
+	  buffer.c complt.c display.c echo.c extend.c help.c kbd.c \
+	  keymap.c macro.c main.c modes.c regex.c research.c kanji.c \
+	  kinsoku.c skg.c jump.c undo.c autosave.c
 
 OINCS =	ttydef.h sysdef.h chrdef.h
 INCS =	config.h def.h

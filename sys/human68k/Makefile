@@ -1,9 +1,12 @@
-# $Id: Makefile,v 1.1 2000/06/27 01:47:58 amura Exp $
+# $Id: Makefile,v 1.2 2001/03/02 08:48:31 amura Exp $
 # Makefile for Ng on Human68k (SHARP X68000)
 #
 # $Log: Makefile,v $
-# Revision 1.1  2000/06/27 01:47:58  amura
-# Initial revision
+# Revision 1.2  2001/03/02 08:48:31  amura
+# now AUTOSAVE feature implemented almost all (except for WIN32
+#
+# Revision 1.1.1.1  2000/06/27 01:47:58  amura
+# import to CVS
 #
 
 SYS	= human68k
@@ -26,7 +29,7 @@ LK	= lk
 
 # Objects which only depend on the "standard" includes
 OBJS	= basic.o dir.o dired.o shell.o version.o window.o \
-	  kinsoku.o jump.o
+	  kinsoku.o jump.o autosave.o
 
 # Those with unique requirements
 IND	= buffer.o complt.o display.o cmode.o echo.o extend.o file.o \
@@ -48,7 +51,7 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  random.c region.c search.c shell.c version.c window.c word.c \
 	  buffer.c complt.c display.c echo.c extend.c help.c kbd.c \
 	  keymap.c macro.c main.c modes.c regex.c re_search.c kanji.c \
-	  kinsoku.c skg.c jump.c undo.c
+	  kinsoku.c skg.c jump.c undo.c autosave.c
 
 OINCS =	ttydef.h sysdef.h chrdef.h
 INCS =	config.h def.h

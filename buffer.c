@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.13 2001/02/28 17:06:05 amura Exp $ */
+/* $Id: buffer.c,v 1.14 2001/03/02 08:49:04 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.14  2001/03/02 08:49:04  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.13  2001/02/28 17:06:05  amura
  * buffer size to use eread() is more secure
  *
@@ -808,13 +811,9 @@ register BUFFER *bp;
 }
 #endif
 
-#ifdef	CMODE
+#if defined(CMODE)||defined(VARIABLE_TAB)||defined(AUTOSAVE)
 #define		USING_GETNUM	1
-#else
-#ifdef	VARIABLE_TAB
-#define		USING_GETNUM	1
-#endif	/* VARIABLE_TAB */
-#endif	/* CMODE */
+#endif
 
 #ifdef USING_GETNUM
 getnum(prompt, num)

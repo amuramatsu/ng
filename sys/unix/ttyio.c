@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.8 2001/02/18 19:28:12 amura Exp $ */
+/* $Id: ttyio.c,v 1.9 2001/03/02 08:48:32 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.9  2001/03/02 08:48:32  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.8  2001/02/18 19:28:12  amura
  * ttflush() is modified for Solaris
  *
@@ -528,6 +531,8 @@ static VOID alrm()
 ttwait()
 {
     VOID alrm();
+    VOID (*old_alrm)();
+    unsigned int old_time;
 
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
@@ -538,17 +543,31 @@ ttwait()
 	return FALSE;		/* already pending input	*/
     if (setjmp(tohere))
 	return TRUE;		/* timeout on read if here	*/
-#ifdef	BUGFIX	/* 90.02.07  by S.Yoshida */
-    signal(SIGALRM, alrm); alarm(1);
-#else	/* NOT BUGFIX */
-    signal(SIGALRM, alrm); alarm(2);
-#endif	/* BUGFIX */
+    old_alrm = signal(SIGALRM, alrm);
+    old_time = alarm(1);
     if (kbdpoll && fcntl( 0, F_SETFL, kbdflgs ) < 0)
 	abort();
     kbdpoll = FALSE;
     kbdqp = (1 == read(0, &kbdq, 1));
-    alarm(0);
+    signal(SIGALRM, old_alrm);
+    alarm(old_time);
     return FALSE;		/* successful read if here	*/
 }
 #endif	/* HAVE_SELECT */
 #endif	/* NO_DPROMPT */
+
+#ifdef	AUTOSAVE
+VOID
+itimer(func, sec)
+VOID (*func)();
+time_t sec;
+{
+    if (sec == 0)
+	alarm(0);
+    else
+    {
+	signal(SIGALRM, func);
+	alarm(sec);
+    }
+}
+#endif	/* AUTOSAVE */

@@ -1,7 +1,10 @@
-# $Id: ngbc.mak,v 1.4 2001/01/17 18:34:53 amura Exp $
+# $Id: ngbc.mak,v 1.5 2001/03/02 08:48:32 amura Exp $
 # Makefile for Ng at Win32 with Borland C++ 5.2/5.5
 #
 # $Log: ngbc.mak,v $
+# Revision 1.5  2001/03/02 08:48:32  amura
+# now AUTOSAVE feature implemented almost all (except for WIN32
+#
 # Revision 1.4  2001/01/17 18:34:53  amura
 # now compile successfull on VC++ and BC++
 #
@@ -46,7 +49,7 @@ LIB = import32.lib cw32.lib
 
 # Objects which only depend on the "standard" includes
 OBJS	= basic.obj dir.obj dired.obj shell.obj version.obj window.obj \
-	  kinsoku.obj jump.obj
+	  kinsoku.obj jump.obj autosave.obj
 
 # Those with unique requirements
 IND	= buffer.obj complt.obj display.obj cmode.obj echo.obj extend.obj \
@@ -68,7 +71,7 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  random.c region.c search.c version.c window.c word.c \
 	  buffer.c display.c echo.c extend.c help.c kbd.c keymap.c \
 	  macro.c main.c modes.c regex.c re_search.c kanji.c kinsoku.c \
-	  skg.c jump.c undo.c
+	  skg.c jump.c undo.c autosave.c
 
 OINCS =	sys/default/ttydef.h sys/default/chrdef.h sys/$(SYS)/sysdef.h
 INCS =	config.h def.h

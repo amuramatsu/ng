@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.7 2001/02/18 19:29:04 amura Exp $ */
+/* $Id: fileio.c,v 1.8 2001/03/02 08:48:31 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.8  2001/03/02 08:48:31  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.7  2001/02/18 19:29:04  amura
  * split dir.c to port depend/independ
  *
@@ -1122,3 +1125,32 @@ char	*s;
 	return (d);
 }
 #endif	/* NEW_COMPLETE */
+
+#ifdef	AUTOSAVE
+VOID
+autosave_name(buff, name, buflen)
+char* buff;
+char* name;
+{
+    strcpy(buff, name);
+    if (strlen(name)) {
+	char *dot;
+	char *fn = rindex(name, '/');
+	if (fn == NULL)
+	    fn = rindex(name, '\\');
+	if (fn == NULL)
+	    fn = rindex(name, ':');
+	if (fn == NULL)
+	    fn = name;
+	else
+	    fn++;
+	dot = rindex(name, '.');
+	if (dot == NULL || dot < fn)
+	    dot = name + strlen(name);
+	if (dot - name < 8)
+	    buff[dot]
+	if (
+    }
+}
+#endif	/* AUTOSAVE */
+

@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.8 2001/02/18 19:29:03 amura Exp $ */
+/* $Id: fileio.c,v 1.9 2001/03/02 08:48:31 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.9  2001/03/02 08:48:31  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.8  2001/02/18 19:29:03  amura
  * split dir.c to port depend/independ
  *
@@ -1160,3 +1163,28 @@ char	*s;
 	return (d);
 }
 #endif	/* NEW_COMPLETE */
+
+#ifdef	AUTOSAVE
+VOID
+autosave_name(buff, name, buflen)
+char* buff;
+char* name;
+{
+    strcpy(buff, name);
+    if (strlen(name)) {
+	char *fn = rindex(name, '/');
+	if (fn == NULL)
+	    fn = rindex(name, '\\');
+	if (fn == NULL)
+	    fn = rindex(name, ':');
+	if (fn == NULL){
+	    fn = buff;
+	} else {
+	    fn++;
+	}
+	strcpy(&buff[strlen(buff)-strlen(fn)], "#");
+	strcat(buff, fn);
+	strcat(buff, "#");
+    }
+}
+#endif	/* AUTOSAVE */

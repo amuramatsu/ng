@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.12 2001/02/18 19:29:04 amura Exp $ */
+/* $Id: fileio.c,v 1.13 2001/03/02 08:48:32 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.13  2001/03/02 08:48:32  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.12  2001/02/18 19:29:04  amura
  * split dir.c to port depend/independ
  *
@@ -1188,3 +1191,28 @@ fbackupfile( char *fn )
 	return TRUE ;
 }
 #endif	/* NO_BACKUP */
+
+#ifdef	AUTOSAVE
+VOID
+autosave_name(buff, name, buflen)
+char* buff;
+char* name;
+{
+    strcpy(buff, name);
+    if (strlen(name)) {
+	char *fn = rindex(name, '/');
+	if (fn == NULL)
+	    fn = rindex(name, '\\');
+	if (fn == NULL)
+	    fn = rindex(name, ':');
+	if (fn == NULL){
+	    fn = buff;
+	} else {
+	    fn++;
+	}
+	strcpy(&buff[strlen(buff)-strlen(fn)], "#");
+	strcat(buff, fn);
+	strcat(buff, "#");
+    }
+}
+#endif	/* AUTOSAVE */

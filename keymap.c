@@ -1,4 +1,4 @@
-/* $Id: keymap.c,v 1.7 2000/11/16 14:31:12 amura Exp $ */
+/* $Id: keymap.c,v 1.8 2001/03/02 08:49:04 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
@@ -7,6 +7,9 @@
 
 /*
  * $Log: keymap.c,v $
+ * Revision 1.8  2001/03/02 08:49:04  amura
+ * now AUTOSAVE feature implemented almost all (except for WIN32
+ *
  * Revision 1.7  2000/11/16 14:31:12  amura
  * fix some typos which cause compile error when using
  * strict ANSI-C compiler (ex ACK, gcc-1.x)
@@ -440,6 +443,13 @@ extern	int showngversion _PF();	/* Show ng version verbose	*/
 extern	int	skginput _PF();		/* Get Kanji strings.		*/
 extern	int	skg_set_romanname _PF();/* Set Roman->Kana dict name	*/
 extern	int	skg_set_dicname _PF();	/* Set Kana->Kanji dict name	*/
+#endif
+
+/*
+ * Defined by "autosave.c".
+ */
+#ifdef AUTOSAVE
+extern	int	as_set_interval _PF();	/* Autosave interval time	*/
 #endif
 
 #ifdef	WIN32
@@ -1618,6 +1628,9 @@ FUNCTNAMES	functnames[] = {
 	{backsearch,	"search-backward"},
 	{forwsearch,	"search-forward"},
 	{selfinsert,	"self-insert-command"},
+#ifdef	AUTOSAVE
+	{as_set_interval,"set-auto-save-interval"},
+#endif
 #ifdef	C_MODE	/* 90.07.24  by K.Takano */
 	{cm_set_arg,	"set-c-argdecl-indent"},
 	{cm_set_newl,	"set-c-auto-newline"},
