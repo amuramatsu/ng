@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: basic.c,v 1.12 2003/03/08 01:27:05 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -418,11 +418,7 @@ register LINE *dlp;
 	    continue;
 	}
 #endif	/* HOJO_KANJI */
-	if (c == '\t'
-#ifdef	NOTAB
-	    && !(curbp->b_flag & BFNOTAB)
-#endif
-	    )
+	if (c == '\t' && !(curbp->b_flag & BFNOTAB))
 #ifdef VARIABLE_TAB
 	    newcol = (newcol/tab + 1)*tab -1;
 #else

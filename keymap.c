@@ -1,4 +1,4 @@
-/* $Id: keymap.c,v 1.11 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: keymap.c,v 1.12 2003/03/08 01:27:05 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
@@ -251,9 +251,7 @@ extern	int	gotomatch _PF();	/* goto-matching-fence a la kemacs */
 extern	int	indentmode _PF();	/* set auto-indent mode		*/
 extern	int	fillmode _PF();		/* set word-wrap mode		*/
 extern	int	blinkparen _PF();	/* Fake blink-matching-paren var */
-#ifdef	NOTAB
 extern	int	notabmode _PF();	/* no tab mode			*/
-#endif
 extern	int	overwrite _PF();	/* overwrite mode		*/
 #ifdef	C_MODE	/* 90.07.24  by K.Takano */
 extern	int	cmode _PF();		/* set c-mode			*/
@@ -290,9 +288,7 @@ extern	int	backdel _PF();		/* Backward delete in		*/
 extern	int	killline _PF();		/* Kill forward			*/
 extern	int	killoneline _PF();	/* Kill current line		*/
 extern	int	yank _PF();		/* Yank back from killbuffer.	*/
-#ifdef NOTAB
 extern	int	space_to_tabstop _PF();
-#endif
 #ifdef	ZAPTOC_A
 # define ZAPTOCHAR
 #endif
@@ -934,7 +930,6 @@ static struct KEYMAPE(1+IMAPEXT) blinkmap = {
 };
 
 
-#ifdef	NOTAB
 static PF notab_tab[] = {
     space_to_tabstop,	/* ^I */
 };
@@ -946,7 +941,6 @@ static struct KEYMAPE(1+IMAPEXT) notabmap = {
 	{CCHR('I'),CCHR('I'),	notab_tab,	(KEYMAP *)NULL},
     }
 };
-#endif
 
 static struct KEYMAPE(1+IMAPEXT) overwmap = {
     0,
@@ -1201,9 +1195,7 @@ MAPS map_table[] = {
     {(KEYMAP *)&fillmap,	"fill"},
     {(KEYMAP *)&indntmap,	"indent"},
     {(KEYMAP *)&blinkmap,	"blink"},
-#ifdef	NOTAB
     {(KEYMAP *)&notabmap,	"notab"},
-#endif
     {(KEYMAP *)&overwmap,	"overwrite"},
     {(KEYMAP *)&metamap,	"esc prefix"},
     {(KEYMAP *)&cXmap,		"c-x prefix"},
@@ -1535,9 +1527,7 @@ FUNCTNAMES functnames[] = {
     {showngversion,	"ng-version"},
 #endif
 #endif
-#ifdef	NOTAB
     {notabmode,		"no-tab-mode"},
-#endif
     {notmodified,	"not-modified"},
     {openline,		"open-line"},
     {nextwind,		"other-window"},
@@ -1649,9 +1639,7 @@ FUNCTNAMES functnames[] = {
 #ifdef	INCLUDE_SKG  /* 93.09.07  by H.Konishi */
     {skginput,		"skg-input"},
 #endif  /* INCLUDE_SKG */
-#ifdef	NOTAB
     {space_to_tabstop,	"space-to-tabstop"},
-#endif
     {splitwind,		"split-window-vertically"},
 #ifndef NO_MACRO
     {definemacro,	"start-kbd-macro"},

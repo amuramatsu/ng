@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.22 2003/03/07 23:59:15 amura Exp $ */
+/* $Id: def.h,v 1.23 2003/03/08 01:27:05 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -300,9 +300,7 @@ typedef struct	BUFFER {
 
 #define BFCHG	0x01			/* Changed.			*/
 #define BFBAK	0x02			/* Need to make a backup.	*/
-#ifdef	NOTAB
 #define BFNOTAB 0x04			/* no tab mode			*/
-#endif
 #define BFOVERWRITE 0x08		/* overwrite mode		*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 #define	BFAUTOFILL 0x10			/* autofill mode with KANJI.	*/

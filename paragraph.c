@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.12 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: paragraph.c,v 1.13 2003/03/08 01:27:05 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -202,11 +202,7 @@ int f, n;
 	;
     for (clength = 0, i = 0; i < curwp->w_doto; i++) {
 	c = lgetc(curwp->w_dotp, i);
-	if (c == '\t'
-#ifdef	NOTAB
-	    && !(curbp->b_flag & BFNOTAB)
-#endif
-	    )
+	if (c == '\t' && !(curbp->b_flag & BFNOTAB))
 #ifdef	VARIABLE_TAB
 	    clength = (clength/tab + 1)*tab - 1;
 #else
@@ -328,11 +324,7 @@ int f, n;
 #endif /* KANJI */
 	    if (wordlen < MG_MAXWORD - 1) {
 		wbuf[wordlen++] = c;
-		if (c == '\t'
-#ifdef	NOTAB
-		    && !(curbp->b_flag & BFNOTAB)
-#endif
-		    )
+		if (c == '\t' && !(curbp->b_flag & BFNOTAB))
 #ifdef VARIABLE_TAB
 		    wordcol = (wordcol/tab + 1)*tab -1;
 #else
@@ -554,11 +546,7 @@ int f, n;
 	if (i == curwp->w_doto)
 	    return selfinsert(f, n) ;
 	c = lgetc(curwp->w_dotp, i);
-	if (c == '\t'
-#ifdef	NOTAB
-	    && !(curbp->b_flag & BFNOTAB)
-#endif
-	    )
+	if (c == '\t' && !(curbp->b_flag & BFNOTAB))
 #ifdef	VARIABLE_TAB
 	    col = (col/tab + 1)*tab - 1;
 #else
@@ -764,11 +752,7 @@ int f, n;
     else {
 	for (i = col = 0; col < fillprefix_col; ++i, ++col) {
 	    c = lgetc(curwp->w_dotp, i);
-	    if (c == '\t'
-#ifdef	NOTAB
-		&& !(curbp->b_flag & BFNOTAB)
-#endif
-		)
+	    if (c == '\t' && !(curbp->b_flag & BFNOTAB))
 #ifdef	VARIABLE_TAB
 
 		col = (col/tab + 1)*tab - 1;

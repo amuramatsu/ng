@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: display.c,v 1.21 2003/03/08 01:27:05 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -293,11 +293,7 @@ register int c;
 	return;
 
     vp = vscreen[vtrow];
-    if (c == '\t'
-#ifdef NOTAB
-	&& !(curwp->w_bufp->b_flag & BFNOTAB)
-#endif
-	) {
+    if (c == '\t' && !(curwp->w_bufp->b_flag & BFNOTAB)) {
 	if (
 #ifdef VARIABLE_TAB
 	    (vtcol/tab +1)*tab
@@ -524,11 +520,7 @@ int	*lines;
 	if (ISHANKANA(c) && c1 == 1)
 	    --(*curcol); 
 #endif
-	if (c == '\t'
-#ifdef NOTAB
-	    && !(curbp->b_flag & BFNOTAB)
-#endif
-	    ) {
+	if (c == '\t' && !(curbp->b_flag & BFNOTAB)) {
 #ifdef VARIABLE_TAB
 	    *curcol = ((*curcol)/tab +1)*tab -1;
 #else
@@ -617,11 +609,7 @@ int row, col;
 	}
 #endif /* HANKANA */
 #endif /* KANJI */
-	if (c == '\t'
-#ifdef NOTAB
-	    && !(curbp->b_flag & BFNOTAB)
-#endif
-	    ) {
+	if (c == '\t' && !(curbp->b_flag & BFNOTAB)) {
 #ifdef VARIABLE_TAB
 	    width = (curcol/tab + 1)*tab - curcol;
 #else
@@ -693,11 +681,7 @@ int lines;
 	if (ISHANKANA(c) && c1 == 1)
 	    --curcol; 
 #endif /* HANKANA */
-	if (c == '\t'
-#ifdef NOTAB
-	    && !(curbp->b_flag & BFNOTAB)
-#endif
-	    ) {
+	if (c == '\t' && !(curbp->b_flag & BFNOTAB)) {
 #ifdef VARIABLE_TAB
 	    curcol = (curcol/tab + 1)*tab - 1;
 #else
@@ -764,11 +748,7 @@ LINE *lp;
 	if (ISHANKANA(c) && c1 == 1)
 	    --curcol; 
 #endif /* HANKANA */
-	if (c == '\t'
-#ifdef NOTAB
-	    && !(curbp->b_flag & BFNOTAB)
-#endif
-	    ) { 
+	if (c == '\t' && !(curbp->b_flag & BFNOTAB)) { 
 #ifdef VARIABLE_TAB
 	    curcol = (curcol/tab + 1)*tab - 1;
 #else
@@ -817,11 +797,7 @@ int c;
 #endif /* KANJI */
 	vp->v_text[ncol - 1] = '$';
     }
-    else if (c == '\t'
-#ifdef NOTAB
-	       && !(curbp->b_flag & BFNOTAB)
-#endif
-	       ) {
+    else if (c == '\t' && !(curbp->b_flag & BFNOTAB)) {
 	do {
 	    vtpute(' ');
 	}

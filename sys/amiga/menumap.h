@@ -1,4 +1,4 @@
-/* $Id: menumap.h,v 2.3 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: menumap.h,v 2.4 2003/03/08 01:27:05 amura Exp $ */
 /*
  * menumap.h
  *   Amiga intuition menu mapping header for Ng 1.x
@@ -106,9 +106,7 @@ extern	int	quit _PF();		/* Quit				*/
  */
 extern	int	indentmode _PF();	/* set auto-indent mode		*/
 extern	int	fillmode _PF();		/* set word-wrap mode		*/
-#ifdef	NOTAB
 extern	int	notabmode _PF();	/* no tab mode			*/
-#endif
 extern	int	overwrite _PF();	/* overwrite mode		*/
 #ifdef	C_MODE	/* 90.07.24  by K.Takano */
 extern	int	cmode _PF();		/* set c-mode			*/
