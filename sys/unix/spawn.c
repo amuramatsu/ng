@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.1 2000/11/19 18:35:00 amura Exp $ */
+/* $Id: spawn.c,v 1.2 2000/11/23 14:10:33 amura Exp $ */
 /*
  *	Spawn. (for configure)
  * This interracts with the job control stuff
@@ -10,6 +10,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.2  2000/11/23 14:10:33  amura
+ * small fixes on spawncli()
+ *
  * Revision 1.1  2000/11/19 18:35:00  amura
  * support GNU configure system
  *
@@ -26,13 +29,25 @@
 #include	<sys/wait.h>
 #endif
 
-#ifndef _MINIX
-# ifdef SIGTSTP
-#  define HAVE_JOB_CONTROL 1
-# endif
+#ifdef	SIGTSTP
+# ifdef __CYGWIN__
+#  undef SIGTSTP
+# else	/* not __CYGWIN__ */
+#  ifndef HAVE_SETPGID
+#  ifndef HAVE_SETPGRP
+#  ifndef HAVE_SETSID
+#   undef SIGTSTP
+#  endif
+#  endif
+#  endif
+# endif /* __CYGWIN__ */
 #endif
 
+#ifndef HAVE_RINDEX
+#define rindex(s,c)	strrchr(s,c)
+#endif
 char	*shellp = NULL;			/* Saved "SHELL" name.		*/
+char	*shname;
 
 extern	char	*getenv();
 
@@ -71,6 +86,8 @@ spawncli(f, n) {
 	    shellp = getenv("shell");
 	if (shellp == NULL)
 	    shellp = "/bin/sh";	/* Safer.		*/
+	shname = rindex( shellp, '/' ); 
+	shname = shname ? shname+1 : shellp;
     }
     ttcolor(CTEXT);
     ttnowindow();
@@ -90,7 +107,7 @@ spawncli(f, n) {
     }
     if (ttcooked() == FALSE)
 	return (FALSE);
-#ifdef HAVE_JOB_CONTROL
+#ifdef SIGTSTP
     if (strcmp(shellp, "/bin/sh")!=0 ||
 	getenv("BASH_VERSION") || getenv("BASH")) {
 	/* C shell, ksh	or bash	*/
@@ -103,7 +120,7 @@ spawncli(f, n) {
 #endif	/* SIGWINCH */
 #endif	/* ADDFUNC */
     } else {				/* Bourne shell.	*/
-#endif	/* HAVE_JOB_CONTROL */
+#endif	/* SIGTSTP */
 	oqsig = signal(SIGQUIT, SIG_IGN);
 	oisig = signal(SIGINT,	SIG_IGN);
 #ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
@@ -126,7 +143,7 @@ spawncli(f, n) {
 #ifdef	EXTD_DIR
 	    dirend();
 #endif
-	    execl(shellp, "???", "-i", NULL);
+	    execl(shellp, shname, "-i", NULL);
 	    _exit(0);		/* Should do better!	*/
 	}
 	while ((wpid=wait((int*)&status))>=0 && wpid!=pid)
@@ -139,7 +156,7 @@ spawncli(f, n) {
 	refresh(FFRAND, 0);		/* May be resized.	*/
 #endif	/* SIGWINCH */
 #endif	/* ADDFUNC */
-#ifdef	HAVE_JOB_CONTROL
+#ifdef	SIGTSTP
     }
 #endif
     sgarbf = TRUE;				/* Force repaint.	*/
