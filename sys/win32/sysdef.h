@@ -1,12 +1,15 @@
-/* $Id: sysdef.h,v 1.1 2000/06/27 01:47:59 amura Exp $ */
+/* $Id: sysdef.h,v 1.2 2000/09/18 10:22:39 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
- * Revision 1.1  2000/06/27 01:47:59  amura
- * Initial revision
+ * Revision 1.2  2000/09/18 10:22:39  amura
+ * some macro definition is changed
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:59  amura
+ * import to CVS
  *
  */
 
@@ -40,12 +43,11 @@
 /* #define TARGET_WCEVER_IS_100 */ /* define this if appropriate */
 
 #ifndef TARGET_WCEVER_IS_100
-#define CTRLMAP FALSE	/* Build ctrlmap feature in as default off */
+#ifdef	CTRLMAP
+#undef	CTRLMAP			/* Build ctrlmap feature in as default off */
+#endif
 #endif
 #define	MAKEBACKUP	FALSE		/* Making backup file is off.	*/
-#ifdef	__TURBOC__	/* 90.03.23  by A.Shirahashi */
-#define	LOCAL_VARARGS
-#endif	/* __TURBOC__ */
 
 typedef long	RSIZE;			/* Type for file/region sizes	*/
 typedef short	KCHAR;			/* Type for internal keystrokes	*/
