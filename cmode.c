@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: cmode.c,v 1.2 2000/09/18 10:19:52 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -8,8 +8,11 @@
 
 /*
  * $Log: cmode.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2000/09/18 10:19:52  amura
+ * calc_indent() is fixed
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  * Revision 1.2  2000/03/10  21:25:51  amura
  * Almost Rewrite calc_indent.
@@ -83,20 +86,20 @@ int	flag_use_c_mode	= TRUE;
 /*ARGSUSED*/
 cm_use_c_mode(f, n)
 {
-	register int	s;
-	char	buf[NFILEN];
+    register int	s;
+    char	buf[NFILEN];
 
-	if ((f & FFARG) == 0) {
-		if ((s = ereply("use-c-mode : ", buf, NFILEN)) != TRUE)
-			return (s);
-		if (ISDIGIT(buf[0]) || buf[0] == '-')
-			n = (atoi(buf) > 0);
-		else if (buf[0] == 't' || buf[0] == 'T')
-			n = TRUE;
-		else	n = FALSE;
-	}
-	flag_use_c_mode = n;
-	return (TRUE);
+    if ((f & FFARG) == 0) {
+	if ((s = ereply("use-c-mode : ", buf, NFILEN)) != TRUE)
+	    return (s);
+	if (ISDIGIT(buf[0]) || buf[0] == '-')
+	    n = (atoi(buf) > 0);
+	else if (buf[0] == 't' || buf[0] == 'T')
+	    n = TRUE;
+	else	n = FALSE;
+    }
+    flag_use_c_mode = n;
+    return (TRUE);
 }
 
 /*
@@ -234,7 +237,7 @@ cm_indent(f, n)
 
     if (i < 0 && !(f&FFRAND))
 	return (selfinsert(FFRAND, n));
-    else if (i <= 0)
+    else if (i < 0)
 	return (TRUE);
 
     return (adjust_spc(i));
@@ -319,7 +322,8 @@ static calc_indent()
 
 
 /*-- Label check --*/	
-    if (ISWORD(lgetc(lp, cbo)))
+    c = lgetc(lp, cbo);
+    if (ISWORD(c) || c=='_')
     {
 	for (bo = cbo+1; bo < llength(lp); bo++)
 	{
@@ -330,7 +334,7 @@ static calc_indent()
 		with_colon = TRUE;
 		break;
 	    }
-	    if (!ISWORD(c) && c != ' ' && c != '\t' && c != '\''
+	    if (!ISWORD(c) && c!=' ' && c!='\t' && c!='\'' && c!='_'
 		&& c != '(' && c != ')')
 		break;
 	}
@@ -355,7 +359,7 @@ static calc_indent()
 		    with_colon = FALSE;
 		    indent += continued_statement_offset;
 #ifdef	CMODE_DEBUG
-		    if (state[1] == 'C')
+		    if (state[1]=='C' || state[1]=='2')
 			state[1] = '2';
 		    else
 			state[1] = 'C';
@@ -372,7 +376,6 @@ static calc_indent()
 		    firstcheck = FALSE;
 	    }
 	    null_line = TRUE;
-	    has_semi = FALSE;
 	    
 	    lp = lback(lp);
 	    if (lp == curbp->b_linep)		/* beginning of buffer	*/
@@ -382,7 +385,10 @@ static calc_indent()
 	    {
 		c = lgetc(lp, s);
 		if (c == '#')
+		{
 		    bo = 0;
+		    continue;
+		}
 		else if (c != ' ' || c != '\t')
 		    break;
 	    }
@@ -500,10 +506,11 @@ static calc_indent()
     {
 	c = lgetc(lp, bo);
 	if (c != ' ' && c != '\t')
+	{
+	    indent += brace_imaginary_offset;
 	    break;
+	}
     }
-    if (++bo > 0)
-	indent += brace_imaginary_offset;
     
 /*-- Before left parrenthesis columns --*/
     s = 0;
@@ -532,49 +539,47 @@ static calc_indent()
 	with_colon = FALSE;
 	indent += brace_offset + indent_level;
     }
-    else
+    
+    indent += indent_level;
+    
+    for (bo = cbo; bo < llength(lp); bo++)
     {
-	indent -= brace_offset + indent_level;
-
-	for (bo = cbo; bo < llength(lp); bo++)
+	depth = 0;
+	c = lgetc(lp, bo);
+	/* 91.01.13  Modify & add to consider strings.  by S.Yoshida */
+	if (c == '}' && !in_strings)
 	{
-	    depth = 0;
-	    c = lgetc(lp, bo);
-	    /* 91.01.13  Modify & add to consider strings.  by S.Yoshida */
-	    if (c == '}' && !in_strings)
+	    if (depth == 0)		/* include close parenthesis	*/
 	    {
-		if (depth == 0)		/* include close parenthesis	*/
-		{
-		    indent += brace_offset;
-		    break;
-		}
-		depth--;
-	    } 
-	    else if (c == '{' && !in_strings)
-		depth++;
-	    else if (in_strings)
+		indent = 0;
+		break;
+	    }
+	    depth--;
+	} 
+	else if (c == '{' && !in_strings)
+	    depth++;
+	else if (in_strings)
+	{
+	    if (c == '"' || c == '\'')
 	    {
-		if (c == '"' || c == '\'')
-		{
-		    if (c == termchar && (numesc % 2) == 0)
-			in_strings = FALSE;
-		    else
-			numesc = 0;
-		} 
-		else if (c == '\\')
-		    numesc++;
+		if (c == termchar && (numesc % 2) == 0)
+		    in_strings = FALSE;
 		else
 		    numesc = 0;
 	    } 
-	    else if (c == '"' || c == '\'')	/* Not in_strings. */
-	    {
-		in_strings = TRUE;
-		termchar = c;
+	    else if (c == '\\')
+		numesc++;
+	    else
 		numesc = 0;
-	    }
+	} 
+	else if (c == '"' || c == '\'')	/* Not in_strings. */
+	{
+	    in_strings = TRUE;
+	    termchar = c;
+	    numesc = 0;
 	}
     }
-
+    
     if (with_colon)
     {
 	indent += label_offset;
@@ -583,10 +588,10 @@ static calc_indent()
 #endif
     }
 #ifdef	CMODE_DEBUG
-    ewprintf("%s before:%d append:%d+%d '%c'", state, s, indent, indent_level,
+    ewprintf("%s before:%d append:%d '%c'", state, s, indent,
 	     lgetc(tlp, tbo));
 #endif
-    return (s + indent_level + indent);
+    return (s+indent)>=0 ? (s+indent) : 0;
 }
 
 
