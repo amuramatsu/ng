@@ -1,4 +1,4 @@
-/* $Id: skg.c,v 1.7 2001/05/04 17:52:02 amura Exp $ */
+/* $Id: skg.c,v 1.8 2001/05/04 19:15:31 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
@@ -7,6 +7,9 @@
 
 /*
  * $Log: skg.c,v $
+ * Revision 1.8  2001/05/04 19:15:31  amura
+ * correct handling of this/lastflag
+ *
  * Revision 1.7  2001/05/04 17:52:02  amura
  * Make skg_init() and skg_finish(), and rewrite some routine for secure issue
  *
@@ -431,7 +434,9 @@ skg_text_insert(insert_str, mode)
 #ifdef	UNDO
 	ublock_close(curbp);
 #endif
+	/* Flag reset */
 	lastflag = thisflag;
+	thisflag = 0;
     }
 
     update();
@@ -512,6 +517,9 @@ skg_input_string(mode, istr)
 #endif
 		    ttwait();
 		}
+		/* Flag reset */
+		lastflag = thisflag;
+		thisflag = 0;
 	    }
 	    else
 	    {
