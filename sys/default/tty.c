@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: tty.c,v 1.2 2001/01/20 18:10:22 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,8 +28,11 @@
 
 /*
  * $Log: tty.c,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.2  2001/01/20 18:10:22  amura
+ * very big terminal supported
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 
@@ -421,12 +424,9 @@ ttresize() {
 					/* ask OS for tty size	*/
 	if (nrow < 1)			/* Check limits.	*/
 		nrow = 1;
-	else if (nrow > NROW)
-		nrow = NROW;
 	if (ncol < 1)
 		ncol = 1;
-	else if (ncol > NCOL)
-		ncol = NCOL;
+	vtsetsize(ncol, nrow);
 }
 
 #ifdef NO_RESIZE
