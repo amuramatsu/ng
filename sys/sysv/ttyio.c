@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.6 2001/01/23 08:43:50 amura Exp $ */
+/* $Id: ttyio.c,v 1.7 2001/01/23 08:54:31 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		System V terminal I/O.
@@ -19,6 +19,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.7  2001/01/23 08:54:31  amura
+ * remove terminal size check all
+ *
  * Revision 1.6  2001/01/23 08:43:50  amura
  * reset terminal polling mode in ttwait()
  *
@@ -177,10 +180,6 @@ ttopen()
 		nrow = 24;
 		ncol = 80;
 	}
-	if (nrow > NROW)			/* Don't crash if the	*/
-		nrow = NROW;			/* termcap entry is	*/
-	if (ncol > NCOL)			/* too big.		*/
-		ncol = NCOL;
 #ifdef  ADDFUNC		/* 93.07.08  by S.Yoshida */
 #ifdef	SIGWINCH	/* 93.07.08  by S.Yoshida */
 	(void) signal(SIGWINCH, ttwinch);
