@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.14 2001/03/02 08:49:04 amura Exp $ */
+/* $Id: buffer.c,v 1.15 2001/05/08 17:52:43 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.15  2001/05/08 17:52:43  amura
+ * display buffer size in bufferlist
+ *
  * Revision 1.14  2001/03/02 08:49:04  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -62,8 +65,8 @@ int defb_tab = 8;
 int cmode_tab = 0;
 #endif  /* VARIABLE_TAB */
 #define	GETNUMLEN	6
-static RSIZE	itor pro((char*,int,RSIZE));
 static BUFFER *makelist pro((void));
+static long buffersize pro((BUFFER*));
 
 #ifdef	MOVE_BUFFER		/* 95.08.29 by M.Suzuki	*/
 /* Move to the next buffer	*/
@@ -330,7 +333,6 @@ makelist() {
 	register int	c;
 	register BUFFER *bp;
 	LINE		*lp;
-	register RSIZE	nbytes;
 	BUFFER		*blp;
 	char		b[6+1];
 	char		line[4+NBUFN+7+NFILEN+4];
@@ -358,7 +360,7 @@ makelist() {
 	if (addline(blp, line) == FALSE) return NULL;
 	bp = bheadp;				/* For all buffers	*/
 	while (bp != NULL) {
-		sprintf(line,"%c%c%c %-32s %7d %s",
+		sprintf(line,"%c%c%c %-30.30s %7ld %s",
 				(bp == curbp) ? '.' : ' ',
 				(bp->b_flag & BFCHG) ? '*' : ' ',
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
@@ -366,7 +368,7 @@ makelist() {
 #else
 				' ',
 #endif
-				bp->b_bname, nbytes,
+				bp->b_bname, buffersize(bp),
 				(bp->b_fname != NULL) ? bp->b_fname : "" );
 		if (addline(blp, line) == FALSE)
 			return NULL;
@@ -381,24 +383,22 @@ makelist() {
 }
 
 /*
- * Used above.
+ * Calculate buffer size
  */
-static RSIZE itor(buf, width, num)
-register char buf[]; register int width; register RSIZE num; {
-	register RSIZE r;
-
-	if (num / 10 == 0) {
-		buf[0] = (num % 10) + '0';
-		for (r = 1; r < width; buf[r++] = ' ')
-			;
-		buf[width] = '\0';
-		return 1;
-	} else {
-		buf[r = itor(buf, width, num / (RSIZE)10)] =
-				(num % (RSIZE)10) + '0';
-		return r + 1;
-	}
-	/*NOTREACHED*/
+static long
+buffersize(bp)
+    BUFFER *bp;
+{
+    long size = 0;
+    LINE *line;
+    line = bp->b_linep;
+    line = lforw(line);
+    while (line != bp->b_linep) {
+	size += llength(line);
+	size++;
+	line = lforw(line);
+    }
+    return size;
 }
 
 /*
