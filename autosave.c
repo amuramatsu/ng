@@ -5,6 +5,9 @@
 */
 /*
  * $Log: autosave.c,v $
+ * Revision 1.2  2001/02/18 19:27:35  amura
+ * fix del_autosave_file()
+ *
  * Revision 1.1  2001/02/18 17:07:23  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -100,7 +103,7 @@ char* name;
 {
     char fname[NFILEN];
     
-    if (strlen(name) && name[0] != '*' ){	/* Not internal buffer ? */
+    if (name!=NULL && name[0] != '*' ){	/* Not internal buffer ? */
 	autosave_name(fname, name, NFILEN);
 	unlink(fname);
 	/* ewprintf("Unlink ... [%s]",fname); */
