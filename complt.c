@@ -1,10 +1,13 @@
-/* $Id: complt.c,v 1.8 2001/05/25 15:36:52 amura Exp $ */
+/* $Id: complt.c,v 1.9 2001/07/23 17:09:02 amura Exp $ */
 /*
  *	Complete completion functions.
  */
 
 /*
  * $Log: complt.c,v $
+ * Revision 1.9  2001/07/23 17:09:02  amura
+ * fix raise segmentation fault when completion after shell-command
+ *
  * Revision 1.8  2001/05/25 15:36:52  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -349,8 +352,10 @@ complete_list_names (buf, flags)
 	    prev_bp = curwp->w_bufp;
 	    prev_window.w_dotp = curwp->w_dotp;
 	    prev_window.w_doto = curwp->w_doto;
-	    prev_window.w_bufp->b_markp = prev_bp->b_markp;
-	    prev_window.w_bufp->b_marko = prev_bp->b_marko;
+	    if (prev_window.w_bufp) {
+	      prev_window.w_bufp->b_markp = prev_bp->b_markp;
+	      prev_window.w_bufp->b_marko = prev_bp->b_marko;
+	    }
 	  }
       }
     for (wp = wheadp; wp != NULL; wp = wp->w_wndp)
@@ -576,8 +581,10 @@ complete_del_list ()
 	curwp->w_flag |= WFMOVE;
 	curwp = prev_wp;
 	curbp = curwp->w_bufp;
-	curbp->b_markp = prev_window.w_bufp->b_markp;
-	curbp->b_marko = prev_window.w_bufp->b_marko;
+	if (prev_window.w_bufp) {
+	  curbp->b_markp = prev_window.w_bufp->b_markp;
+	  curbp->b_marko = prev_window.w_bufp->b_marko;
+	}
       }      
     bp = NULL;
     prev_wp = NULL;
