@@ -1,4 +1,4 @@
-/* $Id: winmain.c,v 1.6 2000/11/16 14:21:32 amura Exp $ */
+/* $Id: winmain.c,v 1.7 2001/01/20 15:47:23 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -27,6 +27,9 @@
 
 /*
  * $Log: winmain.c,v $
+ * Revision 1.7  2001/01/20 15:47:23  amura
+ * putline() support Hojo Kanji now
+ *
  * Revision 1.6  2000/11/16 14:21:32  amura
  * merge Ng for win32 0.5
  *
@@ -1334,7 +1337,7 @@ fepmode_toggle( int f, int n )
 #endif
 
 void
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
+#ifdef SS_SUPPORT  /* 92.11.21  by S.Sasaki */
 putline( int row, int column, unsigned char *s, unsigned char *t, short color )
 #else
 putline(int row, int column, unsigned char *s, short color)
@@ -1342,7 +1345,7 @@ putline(int row, int column, unsigned char *s, short color)
 {
 #ifdef KANJI
         int c1 = 0, c2;
-#ifdef HANKANA
+#ifdef SS_SUPPORT
 	unsigned char *ccp1;
 #endif
 #endif
@@ -1352,13 +1355,13 @@ putline(int row, int column, unsigned char *s, short color)
 	dst = sjis ;
 	cp1 = &s[0] ;
 	cp2 = &s[ncol] ;
-#ifdef HANKANA
+#ifdef SS_SUPPORT
 	ccp1 = &t[0] ;
 #endif
 	while ( cp1 != cp2 ) {
 		c = *cp1 ++ ;
 #ifdef KANJI
-#ifdef HANKANA
+#ifdef SS_SUPPORT
 		c2 = *ccp1 ++ ;
 #endif
 		if ( c1 ) {
@@ -1367,7 +1370,11 @@ putline(int row, int column, unsigned char *s, short color)
 			*dst++ = c ;
 			c1 = 0 ;
 #ifdef HANKANA
-		} else if ( (c & 0xFF) == 0x8E && c2 != 0 ) {
+		} else if (ISHANKANA(c) && c2 != 0 ) {
+			*dst++ = c2 ;
+#endif
+#ifdef HOJO_KANJI
+		} else if (ISHOJO(c) && c2 != 0 ) {
 			*dst++ = c2 ;
 #endif
 		} else if ( ISKANJI( c ) ) {

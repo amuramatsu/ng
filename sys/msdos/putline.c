@@ -6,8 +6,11 @@
 
 /*
  * $Log: putline.c,v $
- * Revision 1.1  2000/06/27 01:47:58  amura
- * Initial revision
+ * Revision 1.2  2001/01/20 15:47:23  amura
+ * putline() support Hojo Kanji now
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:58  amura
+ * import to CVS
  *
  */
 /*
@@ -54,12 +57,16 @@
 extern char *SO;
 #endif
 
+#ifdef HOJO_KANJI
+#include "kinit.h"	/* for TOUFU charactor */
+#endif
+
 VOID
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
+#ifdef SS_SUPPORT  /* 92.11.21  by S.Sasaki */
 putline(int row, int column, unsigned char *s, unsigned char *t, short color)
-#else  /* not  HANKANA */
+#else  /* not  SS_SUPPORT */
 putline(int row, int column, unsigned char *s, short color)
-#endif /* HANKANA */    
+#endif /* SS_SUPPORT */    
 {
     unsigned int dest;
     unsigned int c1, c2;
@@ -95,13 +102,24 @@ putline(int row, int column, unsigned char *s, short color)
     
     while( *s && dest < 160 * row) {
 #ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	if ( (*s & 0xff) == SS2 ) {
+	if ( ISHANKANA(*s) ) {
             pokeb(ATTR_SEG, dest, attr);
             poke(VRAM_SEG, dest, *t++);
 	    ++s;
 	    dest += 2;
 	} else
 #endif /* HANKANA */    
+#ifdef HOJO_KANJI
+	if ( ISHOJO(*s) {
+            pokeb(ATTR_SEG, dest, attr);
+            pokeb(VRAM_SEG, dest++, TOUFU1ST - 0x20);
+            pokeb(VRAM_SEG, dest++, TOUFU2ND);
+            pokeb(ATTR_SEG, dest, attr);
+            pokeb(VRAM_SEG, dest++, TOUFU1ST - 0x20);
+            pokeb(VRAM_SEG, dest++, TOUFU2ND + 0x80);
+	    s += 3;
+	} else
+#endif
         if( iseuc1st(*s) ) {
             c1 = *s++;
             c2 = *s++;
