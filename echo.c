@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.5 2000/06/27 01:49:43 amura Exp $ */
+/* $Id: echo.c,v 1.6 2000/07/18 12:38:56 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -14,6 +14,9 @@
 
 /*
  * $Log: echo.c,v $
+ * Revision 1.6  2000/07/18 12:38:56  amura
+ * remove some compile warning
+ *
  * Revision 1.5  2000/06/27 01:49:43  amura
  * import to CVS
  *
@@ -641,7 +644,7 @@ veread_complete(buf, nbuf, c, flag)
   char   *buf;
   int    nbuf, c, flag;
 {
-  int    matchnum, i, opoint, wflag;
+  int    matchnum, wflag;
 
   mb_endl();
   wflag = (c == ' ');
@@ -731,7 +734,7 @@ mb_init(nbuf, fp, ap)
   register char *fp;
   register va_list *ap;
 {
-  char  *prompt, ch;
+  char  *prompt;
   struct _Line   *lp, *lp2;
   char  *sformat();
 
@@ -1112,7 +1115,7 @@ static int
 mb_killw(n)
   int   n;
 {
-  int  v, m, ocol, opt, col, pt, i;
+  int  col, pt;
   struct _Line *lp;
 
   if (n < 0)
@@ -1194,7 +1197,7 @@ static int
 mb_forwc(n)
   int  n;
 {
-  int  m, v, ocol, opt, col, pt;
+  int  ocol, opt, col, pt;
   struct _Line  *lp;
 
   if (n < 0)
@@ -1331,7 +1334,6 @@ mb_upw(n)
      int n;
 {
   int  ocol, opt, col, pt;
-  char  c;
   struct _Line  *lp;
 
   if (n <= 0)
@@ -1362,7 +1364,6 @@ mb_downw(n)
      int n;
 {
   int  ocol, opt, col, pt;
-  char  c;
   struct _Line  *lp;
 
   if (n <= 0)
@@ -1438,7 +1439,7 @@ static int
 mb_yank(n)
   int  n;
 {
-  int  col, pt, ocol, opt, i, c, o;
+  int  col, pt, ocol, opt, i;
   int  ch;
   struct _Line *lp;
 
@@ -1467,7 +1468,7 @@ static int
 mb_trans(n)
   int n;
 {
-  int  ocol, opt, col, pt, v1, m1, v2, m2, i, on;
+  int  ocol, opt, col, pt, v1, m1, v2, m2, i;
   struct _Line *lp;
   char s[2];
 
@@ -1673,7 +1674,7 @@ static int
 mb_putchar(c)
   char  c;
 {
-  int  i, m, v, opt, more;
+  int  i, more;
   char *new_mb_buf;
   struct _Line *lp;
 
@@ -1740,7 +1741,7 @@ mb_fixlines(col, line, point, colp, ptp)
   int  col, point, *colp, *ptp;
   struct _Line *line;
 {
-  int    v, m, n, bp, ccol, opt, redraw, lno;
+  int    v, m, bp, ccol, opt, redraw, lno;
   struct _Line *lp0, *lp1;
 
   if (colp != NULL) *colp = col;
@@ -1935,7 +1936,7 @@ sformat(fp, ap)
   int   c, idx;
   char	kname[NKNAME];
   char	*keyname();
-  char	*cp, *p;
+  char	*cp;
 
   n = ncol + 1;
   if ((s = malloc(n)) == NULL)

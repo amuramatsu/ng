@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.2 2000/06/27 01:49:43 amura Exp $ */
+/* $Id: jump.c,v 1.3 2000/07/18 12:38:56 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: jump.c,v $
+ * Revision 1.3  2000/07/18 12:38:56  amura
+ * remove some compile warning
+ *
  * Revision 1.2  2000/06/27 01:49:43  amura
  * import to CVS
  *
@@ -258,6 +261,7 @@ compile(f, n)
     register int	s;
     char	 buf[NLINE],*result;
     extern char *call_process();
+    extern int isetmark(), gotobob();
 
     if (compile_command[0] == '\0')
 	s=eread("compile: ", buf, NLINE, EFNEW);
