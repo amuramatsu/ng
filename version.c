@@ -4,12 +4,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: version.c,v 1.1 1999/05/19 04:17:24 amura Exp $ */
+/* $Id: version.c,v 1.2 2000/06/01 05:37:04 amura Exp $ */
 
 /* $Log: version.c,v $
-/* Revision 1.1  1999/05/19 04:17:24  amura
-/* Initial revision
+/* Revision 1.2  2000/06/01 05:37:04  amura
+/* Ng 1.4beta4
 /*
+ * Revision 1.1  1999/05/19  04:17:24  amura
+ * Initial revision
+ *
 */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
@@ -20,55 +23,47 @@
 #define TRUE	1	/* include "def.h" when things get more complicated */
 #endif	/* ADDFUNC */
 
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#ifdef	MSDOS	/* 90.02.11  by S.Yoshida */
-#ifdef	J3100	/* 90.03.10  by S.Yoshida */
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-char version[] = "Ng 1.3L J-3100 version. [Nihongo Mg 2a]  Hankaku KANA Ok";
-#else
-char version[] = "Ng 1.3L J-3100 version. [Nihongo Mg 2a] ";
-#endif  /* HANKANA */
-#else	/* NOT J3100 */
-#ifdef	PC9801	/* 90.03.10  by S.Yoshida */
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-char version[] = "Ng 1.3L PC-9801 version. [Nihongo Mg 2a]  Hankaku KANA Ok";
-#else
-char version[] = "Ng 1.3L PC-9801 version. [Nihongo Mg 2a] ";
-#endif  /* HANKANA */
-#else	/* NOT PC9801 */
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-char version[] = "Ng 1.3L MS-DOS version. [Nihongo Mg 2a]  Hankaku KANA Ok";
-#else
-char version[] = "Ng 1.3L MS-DOS version. [Nihongo Mg 2a] ";
-#endif  /* HANKANA */
-#endif	/* PC9801 */
-#endif	/* J3100 */
-#else	/* NOT MSDOS */
-#ifdef	AMIGA	/* Jan.28,1993 by H.Ohkubo */
-# ifdef  INCLUDE_SKG
-#  ifdef HANKANA
-char version[] = "Kg [ KANgee/ based on Ng 1.3L] ver 4.3 Hankaku KANA Ok";
-#  else
-char version[] = "Kg [ KANgee/ based on Ng 1.3L] ver 4.3 ";
-#  endif /* HANKANA */
-# else /* WITHOUT SKG */
-#  ifdef HANKANA
-char version[] = "Ng 1.3L AmigaDos Rev.1 [Nihongo Mg 2a] Hankaku KANA Ok";
-#  else
-char version[] = "Ng 1.3L AmigaDos Rev.1 [Nihongo Mg 2a] ";
-#  endif /* HANKANA */
-# endif
-#else	/* NOT AMIGA */
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-char version[] = "Ng 1.3L [Nihongo Mg 2a]  Hankaku KANA Ok";
-#else
-char version[] = "Ng 1.3L [Nihongo Mg 2a] ";
-#endif  /* HANKANA */
-#endif	/* AMIGA */
-#endif	/* MSDOS */
-#else	/* NOT KANJI */
-char version[] = "Mg 2a (formerly MicroGnuEmacs)";
-#endif	/* KANJI */
+#ifdef KANJI			/* 90.01.29  by S.Yoshida */
+# ifdef	MSDOS			/* 90.02.11  by S.Yoshida */
+#  ifdef TCCONIO
+#   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
+char version[] = "Ng 1.4beta4 for IBM PC/TCCONIO [Nihongo Mg 2a] ";
+#   else /* NOT IBMPC */
+#    ifdef PC9801		/* 90.03.10  by S.Yoshida */
+char version[] = "Ng 1.4beta4 for PC-9801/TCCONIO [Nihongo Mg 2a] ";
+#    else /* NOT PC9801 */
+char version[] = "Ng 1.4beta4 for MS-DOS/TCCONIO [Nihongo Mg 2a] ";
+#    endif /* PC9801 */
+#   endif /* IBMPC */
+#  else /* NOT TCCONIO */
+#   ifdef IBMPC			/* 90.03.10  by S.Yoshida */
+char version[] = "Ng 1.4beta4 for IBM PC [Nihongo Mg 2a] ";
+#   else /* NOT IBMPC */
+#    ifdef PC9801		/* 90.03.10  by S.Yoshida */
+char version[] = "Ng 1.4beta4 for PC-9801 [Nihongo Mg 2a] ";
+#    else /* NOT PC9801 */
+char version[] = "Ng 1.4beta4 for MS-DOS [Nihongo Mg 2a] ";
+#    endif /* PC9801 */
+#   endif /* IBMPC */
+#  endif /* TCCONIO */
+# else /* NOT MSDOS */
+#  ifdef AMIGA			/* by H.Ohkubo / H.Konishi */
+char version[] = "Ng 1.4beta4 / KANgee ver 4.3 [Nihongo Mg 2a] ";
+#  else /* NOT AMIGA */
+#   ifdef _WIN32
+char version[] = "Ng 1.4beta4 / Win32 v0.4.7 [Nihongo Mg 2a] ";
+#   else
+char version[] = "Ng 1.4beta4 [Nihongo Mg 2a] ";
+#   endif /* _WIN32 */
+#  endif /* AMIGA */
+# endif /* MSDOS */
+#else /* NOT KANJI */
+# ifdef _WIN32
+char version[] = "Mg for Win32 v0.4.7 [Mg 2a (formerly MicroGnuEmacs)]";
+# else
+char version[] = "Mg 2a (formerly MicroGnuEmacs) ";
+# endif /* _WIN32 */
+#endif /* KANJI */
 
 /*
  * Display the version. All this does
@@ -92,12 +87,20 @@ static	char *cursor_pos_msg = "\tCURSOR_POS\t(Cursor locates on next CHR after P
 #ifdef	C_MODE
 static	char *c_mode_msg = "\tC_MODE\t\t(Enable \"c-mode\" functions)";
 #endif
+#ifdef	BUFFER_MODE
+static	char *buffer_mode_msg = "\tBUFFER_MODE\t(Enable \"Buffer Menu\" mode)";
+#endif
 #ifdef	NEW_COMPLETE
 static	char *complete_msg = "\tCOMPLETE\t(Enable new version completion)";
 #endif
 #ifndef	NO_DIR
+# ifdef EXTD_DIR
+static	char *dir_msg = "\tDIR\t\t(Enable buffer local directory change)";
+# else
 static	char *dir_msg = "\tDIR\t\t(Enable directory change functions)";
+# endif
 #endif
+#endif	/* ADD_FUNC */
 #ifndef	NO_DIRED
 static	char *dired_msg = "\tDIRED\t\t(Enable \"dired\" mode functions)";
 #endif
@@ -138,18 +141,52 @@ static	char *prefixregion_msg = "\tPREFIXREGION\t(Enable \"prefix-region\")";
 static	char *readonly_msg = "\tREADONLY\t(Enable read-only buffer mode)";
 #endif
 #ifdef	REGEX
+# ifdef  REGEX_JAPANESE
+static	char *regex_msg = "\tREGEX\t\t(Enable Japanese regular expression)";
+# else
 static	char *regex_msg = "\tREGEX\t\t(Enable regular expression functions)";
+# endif
 #endif
+
 #ifndef	NO_SHELL
 static	char *shell_msg = "\tSHELL\t\t(Enable shell-command function)";
 #endif
 #ifndef	NO_STARTUP
 static	char *startup_msg = "\tSTARTUP\t\t(Enable startup files)";
 #endif
+#ifdef	ADDFUNC
+static	char *addfunc_msg = "\tADDFUNC\t\t(Enable misc functions)";
+#endif
+#ifdef	VARIABLE_TAB
+static	char *vartab_msg = "\tVARIABLE_TAB\t(Enable buffer-local tabwidth)";
+#endif
+#ifdef	ADDOPT
+static	char *addopt_msg = "\tADDOPT\t\t(Enable additional startup option)";
+#endif
+#ifdef	CLIPBOARD
+static	char *clipboard_msg = "\tCLIPBOARD\t(Enable yank-buffer to/from clipboard)";
+#endif
+#ifdef  MINIBUF_EDIT
+static  char *minibuf_msg = "\tMINIBUF_EDIT\t(Enable minibuffer edit)";
+#endif
+#ifdef  CANNA
+static  char *canna_msg = "\tCANNA\t\t(Enable CANNA)";
+#endif
+#ifdef	NEXTLINE
+static	char *nextline_msg = "\tNEXTLINE\t(Enable \"next-line-add-newlines\")";
+#endif
+#ifdef	UNDO
+static	char *undo_msg = "\tUNDO\t\t(Enable undo)";
+#endif
+
 /* Dec.20,1992 Add by H.Ohkubo */
 #ifdef	AMIGA
-#ifdef	V11
-static	char *v11_msg = "\tV11\t\t(Enable AmigaDOS Ver.1.1)";
+#ifndef V2
+# ifdef	V11
+static	char *v1_msg = "\tV11\t\t(Enable AmigaDOS Ver.1.1)";
+# else
+static	char *v1_msg = "\tV1\t\t(Enable AmigaDOS Ver.1.x)";
+# endif
 #endif
 #ifdef	MENU
 static	char *menu_msg = "\tMENU\t\t(Enable menu selection)";
@@ -194,6 +231,10 @@ int f, n;
 	if ((bp = bfind("*Ng Version*", TRUE)) == NULL) return FALSE;
 	if (bclear(bp) != TRUE) return FALSE;
 	bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
+#ifdef READONLY
+	bp->b_flag |= BFRONLY;
+#endif
+	if (bclear(bp) != TRUE) return FALSE;
 
 	strcpy(line, "Ng version:");
 	if (addline(bp, line) == FALSE) return FALSE;
@@ -211,6 +252,10 @@ int f, n;
 #endif
 #ifdef	C_MODE
 	strcpy(line, c_mode_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+#ifdef	BUFFER_MODE
+	strcpy(line, buffer_mode_msg);
 	if (addline(bp, line) == FALSE) return FALSE;
 #endif
 #ifdef	NEW_COMPLETE
@@ -285,9 +330,42 @@ int f, n;
 	strcpy(line, startup_msg);
 	if (addline(bp, line) == FALSE) return FALSE;
 #endif
+#ifdef	ADDFUNC
+	strcpy(line, addfunc_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+#ifdef	VARIABLE_TAB
+	strcpy(line, vartab_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+#ifdef	ADDOPT
+	strcpy(line, addopt_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+#ifdef	CLIPBOARD
+	strcpy(line, clipboard_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+#ifdef	MINIBUF_EDIT
+	strcpy(line, minibuf_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+#ifdef	CANNA
+	strcpy(line, canna_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+#ifdef	NEXTLINE
+	strcpy(line, nextline_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+#ifdef	UNDO
+	strcpy(line, undo_msg);
+	if (addline(bp, line) == FALSE) return FALSE;
+#endif
+
 #ifdef	AMIGA	/* Dec.20,1992 By H.Ohkubo */
-#ifdef	V11
-	strcpy(line, v11_msg);
+#ifndef	V2
+	strcpy(line, v1_msg);
 	if (addline(bp, line) == FALSE) return FALSE;
 #endif
 #ifdef	MENU
@@ -341,8 +419,18 @@ int f, n;
  */
 printversion()
 {
+#ifdef	_WIN32
+	char	buf[ 128 ], *ptr = buf ;
+	extern	void	MessageOut( const char * ) ;
+
+	sprintf(ptr, "Ng version:\n");
+	ptr += strlen( ptr ) ;
+	sprintf(ptr, "\t%s\n", version);
+	MessageOut( buf ) ;
+#else	/* _WIN32 */
 	printf("Ng version:\n");
 	printf("\t%s\n", version);
+#endif	/* _WIN32 */
 	return TRUE;
 }
 
@@ -351,6 +439,7 @@ printversion()
  */
 printoptions()
 {
+#ifndef	_WIN32
 	printf("Compile time options:\n");
 #ifndef	NO_BACKUP
 	printf("%s\n", backup_msg);
@@ -360,6 +449,9 @@ printoptions()
 #endif
 #ifdef	C_MODE
 	printf("%s\n", c_mode_msg);
+#endif
+#ifdef	BUFFER_MODE
+	printf("%s\n", buffer_mode_msg);
 #endif
 #ifdef	NEW_COMPLETE
 	printf("%s\n", complete_msg);
@@ -415,9 +507,31 @@ printoptions()
 #ifndef	NO_STARTUP
 	printf("%s\n", startup_msg);
 #endif
+#ifdef	VARIABLE_TAB
+	printf("%s\n", vartab_msg);
+#endif
+#ifdef	ADDOPT
+	printf("%s\n", addopt_msg);
+#endif
+#ifdef	CLIPBOARD
+	printf("%s\n", clipboard_msg);
+#endif
+#ifdef	MINIBUF_EDIT
+	printf("%s\n", minibuf_msg);
+#endif
+#ifdef	CANNA
+	printf("%s\n", canna_msg);
+#endif
+#ifdef	NEXTLINE
+	printf("%s\n", nextline_msg);
+#endif
+#ifdef	UNDO
+	printf("%s\n", undo_msg);
+#endif
+
 #ifdef	AMIGA	/* Dec.20,1992 By H.Ohkubo */
-#ifdef	V11
-	printf("%s\n", v11_msg);
+#ifndef	V2
+	printf("%s\n", v1_msg);
 #endif
 #ifdef	MENU
 	printf("%s\n", menu_msg);
@@ -447,7 +561,8 @@ printoptions()
 	printf("%s\n", rexx_msg);
 #endif
 #endif	/* AMIGA */
+#endif	/* _WIN32 */
 
 	return TRUE;
 }
-#endif	/* ADDFUNC */
+
