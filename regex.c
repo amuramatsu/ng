@@ -1,12 +1,5 @@
-/* $Id: regex.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: regex.c,v 1.2 2003/02/22 08:09:47 amura Exp $ */
 /* This source is select Regular Expression routine */
-
-/*
- * $Log: regex.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
- *
- */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 

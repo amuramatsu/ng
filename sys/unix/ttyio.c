@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.14 2002/02/10 12:35:49 amura Exp $ */
+/* $Id: ttyio.c,v 1.15 2003/02/22 08:09:47 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -7,52 +7,6 @@
  * the display in a barely buffered fashion.
  *
  * Create from BSD UNIX version by amura, 2000
- */
-
-/*
- * $Log: ttyio.c,v $
- * Revision 1.14  2002/02/10 12:35:49  amura
- * cannot compile problem with Cygwin is fixed
- *
- * Revision 1.13  2001/11/28 19:02:11  amura
- * Small fixes arount termcap library.
- *
- * Revision 1.12  2001/11/25 19:52:05  amura
- * change for compiler warnings reducing
- *
- * Revision 1.11  2001/11/23 11:56:51  amura
- * Rewrite all sources
- *
- * Revision 1.10  2001/10/29 04:30:44  amura
- * let BUGFIX code enable always
- *
- * Revision 1.9  2001/03/02 08:48:32  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.8  2001/02/18 19:28:12  amura
- * ttflush() is modified for Solaris
- *
- * Revision 1.7  2001/02/14 09:22:30  amura
- * always use select() even if ioctl() does NOT support FIONREAD
- *
- * Revision 1.6  2001/01/23 08:43:50  amura
- * reset terminal polling mode in ttwait()
- *
- * Revision 1.5  2001/01/20 15:48:47  amura
- * very big terminal supported
- *
- * Revision 1.4  2000/12/18 17:20:41  amura
- * edit for cygwin
- *
- * Revision 1.3  2000/12/01 10:12:55  amura
- * edit for adapting to POSIX
- *
- * Revision 1.2  2000/11/23 14:03:32  amura
- * some fix for FreeBSD's termios interface
- *
- * Revision 1.1  2000/11/19 18:35:00  amura
- * support GNU configure system
- *
  */
 
 #include "config.h"

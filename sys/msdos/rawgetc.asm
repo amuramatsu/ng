@@ -1,4 +1,4 @@
-; $Id: rawgetc.asm,v 1.3 2001/11/24 08:24:29 amura Exp $
+; $Id: rawgetc.asm,v 1.4 2003/02/22 08:09:47 amura Exp $
 ;
 ;	int rawgetc();	Get one char from keyboard. If no keyin, return -1.
 ;
@@ -9,16 +9,6 @@
 ;
 ;	A> masm [-DPC9801|-DIBMPC] -Mx rawgetc.asm,rawgetc.obj,nul,nul
 ;
-; $Log: rawgetc.asm,v $
-; Revision 1.3  2001/11/24 08:24:29  amura
-; Rewrite all sources (for msdos port)
-;
-; Revision 1.2  2001/11/23 11:56:50  amura
-; Rewrite all sources
-;
-; Revision 1.1.1.1  2000/06/27 01:47:58  amura
-; import to CVS
-; 
 
 RAWGETC_TEXT	segment	byte public 'CODE'
 	public	_rawgetc

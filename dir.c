@@ -1,39 +1,9 @@
-/* $Id: dir.c,v 1.15 2001/11/24 08:24:28 amura Exp $ */
+/* $Id: dir.c,v 1.16 2003/02/22 08:09:46 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
  * Created:	Ron Flax (ron@vsedev.vse.com)
  *		Modified for MG 2a by Mic Kaczmarczik 03-Aug-1987
- */
-
-/*
- * $Log: dir.c,v $
- * Revision 1.15  2001/11/24 08:24:28  amura
- * Rewrite all sources (for msdos port)
- *
- * Revision 1.14  2001/11/23 11:56:35  amura
- * Rewrite all sources
- *
- * Revision 1.13  2001/02/18 19:29:29  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.12  2000/12/22 19:54:35  amura
- * fix some bug in filename handling
- *
- * Revision 1.11  2000/12/14 18:06:23  amura
- * filename length become flexible
- *
- * Revision 1.10  2000/09/21 17:28:29  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.9  2000/07/22 17:54:09  amura
- * fix typo bug
- *
- * -- snip --
- *
- * Revision 1.1  1999/05/21  02:20:08  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 

@@ -1,24 +1,8 @@
-/* $Id: console.c,v 1.4 2002/11/06 16:05:23 amura Exp $ */
+/* $Id: console.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  * These functions are taken directly from the
  * console.device chapter in the Amiga V1.1
  * ROM Kernel Manual.
- */
-
-/*
- * $Log: console.c,v $
- * Revision 1.4  2002/11/06 16:05:23  amura
- * compile with newstyle source
- *
- * Revision 1.3  2001/11/23 11:56:44  amura
- * Rewrite all sources
- *
- * Revision 1.2  2001/10/29 04:30:42  amura
- * let BUGFIX code enable always
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
- *
  */
 
 #include <exec/types.h>

@@ -1,4 +1,4 @@
-/* $Id: amiga_maps.c,v 1.2 2001/11/23 11:56:44 amura Exp $ */
+/* $Id: amiga_maps.c,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MG 2a
  *		keymap.c setup for Amiga-specific function keys.
@@ -14,17 +14,6 @@
  * rebind some of the function keys in dired mode, but for right now they
  * do the same thing as in fundamental mode.
  */
-
-/*
- * $Log: amiga_maps.c,v $
- * Revision 1.2  2001/11/23 11:56:44  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
- *
- */
-
 static PF amiga_keys[] = {
 #ifdef	FKEYS
     backline,		/* Up			(0x100)	*/

@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.4 2001/11/28 17:51:48 amura Exp $ */
+/* $Id: ttydef.h,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Amiga console device virtual terminal header file
@@ -7,21 +7,8 @@
  * Created:	20-Apr-86 ...!seismo!ut-sally!ut-ngp!mic
  */
 
-/*
- * $Log: ttydef.h,v $
- * Revision 1.4  2001/11/28 17:51:48  amura
- * little modifies for support VBCC. (but not work yet)
- *
- * Revision 1.3  2001/11/23 11:56:45  amura
- * Rewrite all sources
- *
- * Revision 1.2  2001/01/05 14:07:06  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
- */
+#ifndef __TTYDEF_H__
+#define __TTYDEF_H__
 
 #define	GOSLING				/* Compile in fancy display. */
 /* #define	TOP_OFFSET	11 */	/* # raster lines from top of window */
@@ -231,3 +218,5 @@ struct MenuInfo {
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
 #define	ungetkbd(c)		(ttungetc(c))
 #endif	/* KANJI */
+
+#endif /* __TTYDEF_H__ */

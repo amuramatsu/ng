@@ -1,53 +1,7 @@
-/* $Id: version.c,v 1.14 2001/11/23 11:56:42 amura Exp $ */
+/* $Id: version.c,v 1.15 2003/02/22 08:09:47 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
- */
-
-/*
- * $Log: version.c,v $
- * Revision 1.14  2001/11/23 11:56:42  amura
- * Rewrite all sources
- *
- * Revision 1.13  2001/08/17 19:15:06  amura
- * first try of unicode support (unix only/win32 on the way)
- *
- * Revision 1.12  2001/05/28 19:02:02  amura
- * edit to 1.5alpha3
- *
- * Revision 1.11  2001/03/09 16:17:22  amura
- * edit to 1.5alpha2
- *
- * Revision 1.10  2001/01/20 18:17:13  amura
- * edit to 1.5alpha1
- *
- * Revision 1.9  2001/01/05 14:07:05  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.8  2000/11/16 14:27:00  amura
- * edit to 1.4.2 release
- *
- * Revision 1.7  2000/10/02 16:29:55  amura
- * can display some Amiga configuration
- *
- * Revision 1.6  2000/09/21 17:10:52  amura
- * edit to 1.4.1 release
- *
- * Revision 1.5  2000/09/05 14:12:26  amura
- * edit to 1.4 release
- *
- * Revision 1.4  2000/07/23 22:43:10  amura
- * edit to beta6
- *
- * Revision 1.3  2000/06/27 01:49:45  amura
- * import to CVS
- *
- * Revision 1.2  2000/06/01  05:37:04  amura
- * Ng 1.4beta4
- *
- * Revision 1.1  1999/05/19  04:17:24  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

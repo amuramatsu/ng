@@ -1,20 +1,9 @@
-/* $Id: zz_pointer.h,v 1.2 2001/11/23 11:56:46 amura Exp $ */
+/* $Id: zz_pointer.h,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /**************************************
 *  ZZ_POINTER.H  08/05/90
 *  Written by Timm Martin
 *  This source code is public domain.
 ***************************************/
-
-/*
- * $Log: zz_pointer.h,v $
- * Revision 1.2  2001/11/23 11:56:46  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
- */
-
 #ifndef ZZ_POINTER_H
 #define ZZ_POINTER_H
 

@@ -1,9 +1,5 @@
-/* $Id: help.c,v 1.5 2001/11/23 11:56:37 amura Exp $ */
+/* $Id: help.c,v 1.6 2003/02/22 08:09:46 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
-
-/*
- * $Id: help.c,v 1.5 2001/11/23 11:56:37 amura Exp $
- */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"

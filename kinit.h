@@ -1,24 +1,8 @@
-/* $Id: kinit.h,v 1.4 2001/09/27 18:56:50 amura Exp $ */
+/* $Id: kinit.h,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  *	Initial KANJI code setting. (Like site-init.el in Nemacs)
  *
  *		Coded by Shigeki Yoshida (shige@csk.CO.JP)
- */
-
-/*
- * $Log: kinit.h,v $
- * Revision 1.4  2001/09/27 18:56:50  amura
- * Small changes for support EPOC32
- *
- * Revision 1.3  2001/01/20 15:49:36  amura
- * move TOUFU charactor to kinit.h
- *
- * Revision 1.2  2000/09/21 17:28:30  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
  */
 /* 90.01.29	Created by S.Yoshida */
 

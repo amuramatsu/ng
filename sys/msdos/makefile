@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2001/11/23 11:56:50 amura Exp $
+# $Id: makefile,v 1.4 2003/02/22 08:09:47 amura Exp $
 # Makefile for Ng at MS-DOS with MSC 5.1 / 6.0 & UNIX like make.
 #
 # This "makefile" is made for MS-C 5.1 / 6.0 and UNIX like "make" command
@@ -7,16 +7,6 @@
 #
 # If you have only standard "make" utility that is included in MS-C
 # 5.1 / 6.0, please use "makefile.msc" file. 
-#
-# $Log: makefile,v $
-# Revision 1.3  2001/11/23 11:56:50  amura
-# Rewrite all sources
-#
-# Revision 1.2  2001/03/02 08:48:31  amura
-# now AUTOSAVE feature implemented almost all (except for WIN32
-#
-# Revision 1.1.1.1  2000/06/27 01:47:59  amura
-# import to CVS
 #
 
 # CDEFS gets defines, and gets passed to lint. CFLAGS gets flags, and doesn't

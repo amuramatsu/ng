@@ -1,19 +1,6 @@
-/* $Id: spawn.c,v 1.3 2002/04/17 18:02:44 amura Exp $ */
+/* $Id: spawn.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Spawn CLI for Human68k
- */
-
-/*
- * $Log: spawn.c,v $
- * Revision 1.3  2002/04/17 18:02:44  amura
- * can use UN*X style path to SHELL environment variable
- *
- * Revision 1.2  2001/11/23 11:56:48  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:47:57  amura
- * import to CVS
- *
  */
 /* 90.11.10	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /* 90.02.11	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */

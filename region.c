@@ -1,4 +1,4 @@
-/* $Id: region.c,v 1.4 2001/11/23 11:56:41 amura Exp $ */
+/* $Id: region.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Region based commands.
  * The routines in this file
@@ -6,22 +6,6 @@
  * between "." and mark. Some functions are
  * commands. Some functions are just for
  * internal use.
- */
-
-/*
- * $Log: region.c,v $
- * Revision 1.4  2001/11/23 11:56:41  amura
- * Rewrite all sources
- *
- * Revision 1.3  2001/05/25 15:37:21  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.2  2001/02/18 17:07:27  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */

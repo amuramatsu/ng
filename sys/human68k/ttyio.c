@@ -1,40 +1,6 @@
-/* $Id: ttyio.c,v 1.10 2002/11/06 15:13:13 amura Exp $ */
+/* $Id: ttyio.c,v 1.11 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Human68k terminal I/O
- */
-
-/*
- * $Log: ttyio.c,v $
- * Revision 1.10  2002/11/06 15:13:13  amura
- * with DIRECT_IOCS macro, now you can compile Human68k version
- *
- * Revision 1.9  2002/04/18 13:49:22  amura
- * HUMAN68K's console output routine is modified for speed
- *
- * Revision 1.8  2002/04/06 22:59:27  amura
- * now Human68k port is validated
- *
- * Revision 1.7  2001/11/23 11:56:49  amura
- * Rewrite all sources
- *
- * Revision 1.6  2001/03/09 15:53:14  amura
- * enable to really work autosave feature
- *
- * Revision 1.5  2001/03/02 08:48:31  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.4  2001/01/20 15:48:46  amura
- * very big terminal supported
- *
- * Revision 1.3  2001/01/05 14:07:07  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.2  2000/07/20 12:41:56  amura
- * enable to use XF1/2 key as META
- *
- * Revision 1.1.1.1  2000/06/27 01:47:57  amura
- * import to CVS
- *
  */
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /* 90.02.11	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */

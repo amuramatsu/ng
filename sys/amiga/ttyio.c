@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.9 2002/11/06 18:19:26 amura Exp $ */
+/* $Id: ttyio.c,v 1.10 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga terminal window I/O, with all kinds o' trimmings.
@@ -6,38 +6,6 @@
  * Last Edit:	01-Dec-87 mic@emx.cc.utexas.edu
  * Created:	21-Apr-86 mic@emx.cc.utexas.edu
  */
-
-/*
- * $Log: ttyio.c,v $
- * Revision 1.9  2002/11/06 18:19:26  amura
- * compile with newstyle source when enable KANJI feature
- *
- * Revision 1.8  2002/11/06 16:05:23  amura
- * compile with newstyle source
- *
- * Revision 1.7  2001/11/23 11:56:45  amura
- * Rewrite all sources
- *
- * Revision 1.6  2001/03/02 08:48:30  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.5  2001/01/20 15:48:46  amura
- * very big terminal supported
- *
- * Revision 1.4  2000/12/21 16:54:20  amura
- * fix usage of strncat()
- *
- * Revision 1.3  2000/10/02 16:13:06  amura
- * ignore mouse event in minibuffer editing
- *
- * Revision 1.2  2000/09/29 17:26:17  amura
- * small patch for new ttymenu.c
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
- */
- 
 /*
  * Lots of includes.
  */

@@ -1,37 +1,9 @@
-/* $Id: cmode.c,v 1.6 2001/11/25 19:52:02 amura Exp $ */
+/* $Id: cmode.c,v 1.7 2003/02/22 08:09:46 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
  *
  *		Coded by Kazuhiro Takano
- */
-
-/*
- * $Log: cmode.c,v $
- * Revision 1.6  2001/11/25 19:52:02  amura
- * change for compiler warnings reducing
- *
- * Revision 1.5  2001/11/23 11:56:34  amura
- * Rewrite all sources
- *
- * Revision 1.4  2001/05/25 17:53:33  amura
- * change LABEL: check routine
- *
- * Revision 1.3  2000/12/14 18:12:13  amura
- * use alloca() and more memory secure
- *
- * Revision 1.2  2000/09/18 10:19:52  amura
- * calc_indent() is fixed
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
- * Revision 1.2  2000/03/10  21:25:51  amura
- * Almost Rewrite calc_indent.
- *
- * Revision 1.1  1999/05/14  22:43:36  amura
- * Initial revision
- *
  */
 /* 90.07.24	Created by K.Takano */
 

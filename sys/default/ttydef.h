@@ -1,32 +1,7 @@
-/* $Id: ttydef.h,v 1.7 2002/04/18 13:49:21 amura Exp $ */
+/* $Id: ttydef.h,v 1.8 2003/02/22 08:09:47 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
- */
-
-/*
- * $Log: ttydef.h,v $
- * Revision 1.7  2002/04/18 13:49:21  amura
- * HUMAN68K's console output routine is modified for speed
- *
- * Revision 1.6  2001/11/28 19:02:10  amura
- * Small fixes arount termcap library.
- *
- * Revision 1.5  2001/10/06 14:34:40  amura
- * implement putline() in EPOC32 port
- *
- * Revision 1.4  2001/09/27 19:36:36  amura
- * Small changes for support EPOC32
- *
- * Revision 1.3  2001/02/14 09:19:45  amura
- * code cleanup around putline() and NCOL/NROW
- *
- * Revision 1.2  2001/01/05 14:07:07  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.1.1.1  2000/06/27 01:48:02  amura
- * import to CVS
- *
  */
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /* 90.02.05	Modified for Ng 1.0 by S.Yoshida */

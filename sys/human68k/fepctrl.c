@@ -1,4 +1,4 @@
-/* $Id: fepctrl.c,v 1.3 2002/04/06 22:59:26 amura Exp $ */
+/* $Id: fepctrl.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*
  * fepctrl.c 1.2 1990/11/25	Public Domain.
  *
@@ -18,19 +18,6 @@
  *		turn FEP on by its default "on" status.
  *	void fep_force_off()
  *		don't save the status of FEP and turn it off.
- */
-
-/*
- * $Log: fepctrl.c,v $
- * Revision 1.3  2002/04/06 22:59:26  amura
- * now Human68k port is validated
- *
- * Revision 1.2  2001/11/23 11:56:47  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:47:58  amura
- * import to CVS
- *
  */
 
 #include "config.h"

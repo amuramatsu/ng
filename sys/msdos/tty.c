@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.7 2002/04/18 14:35:54 amura Exp $ */
+/* $Id: tty.c,v 1.8 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -24,31 +24,6 @@
  *	Using scrolling region vs insert/delete line should probably
  *	be based on cost rather than the assuption that scrolling
  *	region operations look better.
- */
-
-/*
- * $Log: tty.c,v $
- * Revision 1.7  2002/04/18 14:35:54  amura
- * now can compile without TCCONIO option
- *
- * Revision 1.6  2001/11/28 19:02:11  amura
- * Small fixes arount termcap library.
- *
- * Revision 1.5  2001/11/24 08:24:29  amura
- * Rewrite all sources (for msdos port)
- *
- * Revision 1.4  2001/11/23 11:56:50  amura
- * Rewrite all sources
- *
- * Revision 1.3  2001/01/20 15:48:47  amura
- * very big terminal supported
- *
- * Revision 1.2  2000/09/13 23:36:15  amura
- * use TCCONIO's window
- *
- * Revision 1.1.1.1  2000/06/27 01:47:58  amura
- * import to CVS
- *
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */

@@ -1,4 +1,4 @@
-* $Id: alloca.asm,v 1.1 2000/06/27 01:48:00 amura Exp $
+* $Id: alloca.asm,v 1.2 2003/02/22 08:09:47 amura Exp $
 *
 * alloca()    For SAS/C 6.0 By H.Konishi.
 *
@@ -13,11 +13,6 @@
 *
 * This version for the default Manx settings (int = 16 bits).  To use
 * with int=32 bits, simply change both the ".w" to ".l"
-*
-* $Log: alloca.asm,v $
-* Revision 1.1  2000/06/27 01:48:00  amura
-* Initial revision
-*
 *
 	xdef	_alloca
 	section code

@@ -1,19 +1,6 @@
-/* $Id: window.c,v 1.3 2001/11/23 11:56:43 amura Exp $ */
+/* $Id: window.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Window handling.
- */
-
-/*
- * $Log: window.c,v $
- * Revision 1.3  2001/11/23 11:56:43  amura
- * Rewrite all sources
- *
- * Revision 1.2  2001/05/25 15:36:53  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.1.1.1  2000/06/27 01:47:55  amura
- * import to CVS
- *
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */

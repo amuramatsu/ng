@@ -1,24 +1,5 @@
-# $Id: ngbc.mak,v 1.6 2001/11/23 11:56:55 amura Exp $
+# $Id: ngbc.mak,v 1.7 2003/02/22 08:09:47 amura Exp $
 # Makefile for Ng at Win32 with Borland C++ 5.2/5.5
-#
-# $Log: ngbc.mak,v $
-# Revision 1.6  2001/11/23 11:56:55  amura
-# Rewrite all sources
-#
-# Revision 1.5  2001/03/02 08:48:32  amura
-# now AUTOSAVE feature implemented almost all (except for WIN32
-#
-# Revision 1.4  2001/01/17 18:34:53  amura
-# now compile successfull on VC++ and BC++
-#
-# Revision 1.3  2000/11/16 14:21:30  amura
-# merge Ng for win32 0.5
-#
-# Revision 1.2  2000/07/17 14:10:07  amura
-# some typo bug fixed
-#
-# Revision 1.1.1.1  2000/06/27 01:48:00  amura
-# import to CVS
 #
 
 SYS	= win32

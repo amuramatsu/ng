@@ -1,44 +1,7 @@
-/* $Id: paragraph.c,v 1.11 2001/11/28 21:31:20 amura Exp $ */
+/* $Id: paragraph.c,v 1.12 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
- */
-
-/*
- * $Log: paragraph.c,v $
- * Revision 1.11  2001/11/28 21:31:20  amura
- * Some bugs are fixed without KANJI option
- *
- * Revision 1.10  2001/11/25 19:52:03  amura
- * change for compiler warnings reducing
- *
- * Revision 1.9  2001/11/23 11:56:40  amura
- * Rewrite all sources
- *
- * Revision 1.8  2001/10/29 04:30:42  amura
- * let BUGFIX code enable always
- *
- * Revision 1.7  2001/07/18 14:56:09  amura
- * fix silly bug
- *
- * Revision 1.6  2001/06/19 15:23:19  amura
- * to make uniform all indent
- *
- * Revision 1.5  2001/05/25 15:36:53  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.4  2000/10/02 16:24:42  amura
- * bugfix by Tillanosoft(Ng for Win32)
- *
- * Revision 1.3  2000/07/16 15:44:41  amura
- * undo bug on autofill fixed
- *
- * Revision 1.2  2000/06/27 01:49:44  amura
- * import to CVS
- *
- * Revision 1.1  2000/06/01  05:34:38  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

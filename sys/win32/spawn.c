@@ -1,27 +1,27 @@
-/* $Id: spawn.c,v 1.5 2001/11/23 11:56:55 amura Exp $ */
+/* $Id: spawn.c,v 1.6 2003/02/22 08:09:47 amura Exp $ */
+/*  OS dependent code used by Ng for WinCE.
+ *    Copyright (C) 1998 Eiichiro Ito
+ *  Modified for Ng for Win32
+ *    Copyright (C) 1999,2000 Toru Imai
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  ree Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
 /*
  *		Spawn CLI for Win32.
  *
  *		I make this file from MS-DOS spawn.c.
- */
-
-/*
- * $Log: spawn.c,v $
- * Revision 1.5  2001/11/23 11:56:55  amura
- * Rewrite all sources
- *
- * Revision 1.4  2000/12/14 18:12:14  amura
- * use alloca() and more memory secure
- *
- * Revision 1.3  2000/11/16 14:21:31  amura
- * merge Ng for win32 0.5
- *
- * Revision 1.2  2000/10/23 13:19:52  amura
- * now impliment call_process() and spawncli()
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
- *
  */
 /* 90.02.11	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 

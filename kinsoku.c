@@ -1,29 +1,9 @@
-/* $Id: kinsoku.c,v 1.5 2001/11/23 11:56:39 amura Exp $ */
+/* $Id: kinsoku.c,v 1.6 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *		These are only used when KANJI is #defined.
  *
  *		Coded by Shigeki Yoshida (shige@csk.CO.JP)
- */
-
-/*
- * $Log: kinsoku.c,v $
- * Revision 1.5  2001/11/23 11:56:39  amura
- * Rewrite all sources
- *
- * Revision 1.4  2001/02/18 17:07:26  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.3  2001/02/11 15:40:25  amura
- * some function are changed to static for speed/size
- *
- * Revision 1.2  2000/11/16 14:31:13  amura
- * fix some typos which cause compile error when using
- * strict ANSI-C compiler (ex ACK, gcc-1.x)
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
  */
 /* 90.01.29	Created by S.Yoshida */
 

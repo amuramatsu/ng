@@ -1,55 +1,9 @@
-/* $Id: kanji.c,v 1.18 2001/11/25 19:52:03 amura Exp $ */
+/* $Id: kanji.c,v 1.19 2003/02/22 08:09:46 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
  *
  *		Coded by Shigeki Yoshida (shige@csk.CO.JP)
- */
-
-/*
- * $Log: kanji.c,v $
- * Revision 1.18  2001/11/25 19:52:03  amura
- * change for compiler warnings reducing
- *
- * Revision 1.17  2001/11/23 11:56:38  amura
- * Rewrite all sources
- *
- * Revision 1.16  2001/09/27 19:47:58  amura
- * Small changes for support EPOC32
- *
- * Revision 1.15  2001/09/27 18:56:49  amura
- * Small changes for support EPOC32
- *
- * Revision 1.14  2001/08/29 00:04:54  amura
- * change macro UNICODE to USE_UNICODE and
- * some unicode support routine for win32 are implemented
- *
- * Revision 1.13  2001/08/17 19:15:05  amura
- * first try of unicode support (unix only/win32 on the way)
- *
- * Revision 1.12  2001/04/15 16:35:44  amura
- * patch for VC 6.0 from Katsuyoshi Ohara
- *
- * Revision 1.11  2001/02/18 17:07:25  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.10  2001/02/11 15:40:25  amura
- * some function are changed to static for speed/size
- *
- * Revision 1.9  2001/01/20 15:49:36  amura
- * move TOUFU charactor to kinit.h
- *
- * Revision 1.8  2001/01/11 13:15:17  amura
- * add Shift-JIS toufu charactor
- *
- * Revision 1.7  2001/01/05 14:07:03  amura
- * first implementation of Hojo Kanji support
- *
- * -- snip --
- *
- * Revision 1.1.1.1  2000/06/27 01:47:55  amura
- * import to CVS
- *
  */
 /* 90.01.29	Created by S.Yoshida */
 

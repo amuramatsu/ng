@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.20 2001/11/23 11:56:35 amura Exp $ */
+/* $Id: def.h,v 1.21 2003/02/22 08:09:46 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -8,50 +8,10 @@
  * The most common reason to edit this file would be to zap
  * the definition of CVMVAS or BACKUP.
  */
-
-/*
- * $Log: def.h,v $
- * Revision 1.20  2001/11/23 11:56:35  amura
- * Rewrite all sources
- *
- * Revision 1.19  2001/09/30 14:01:47  amura
- * some prototypes are corrected
- *
- * Revision 1.18  2001/09/27 18:56:49  amura
- * Small changes for support EPOC32
- *
- * Revision 1.17  2001/08/29 00:04:53  amura
- * change macro UNICODE to USE_UNICODE and
- * some unicode support routine for win32 are implemented
- *
- * Revision 1.16  2001/08/17 19:15:06  amura
- * first try of unicode support (unix only/win32 on the way)
- *
- * Revision 1.15  2001/05/25 15:36:52  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.14  2001/02/18 17:07:27  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.13  2001/02/11 15:40:24  amura
- * some function are changed to static for speed/size
- *
- * Revision 1.12  2001/02/01 16:30:39  amura
- * add vtsetsize() definition and change NFILEN size for amiga
- *
- * Revision 1.11  2001/01/17 18:33:14  amura
- * add prototype of ishojo() and some change for WIN32
- *
- * Revision 1.10  2001/01/05 14:07:00  amura
- * first implementation of Hojo Kanji support
- *
- * -- snip --
- *
- * Revision 1.1  1999/05/19  03:52:32  amura
- * Initial revision
- *
- */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
+
+#ifndef __NG_DEF_H__
+#define __NG_DEF_H__
 
 #include <stdlib.h>
 #include <string.h>
@@ -387,3 +347,5 @@ typedef struct	{
 }	REGION;
 
 #include "extern.h"			/* include extern definitions */
+
+#endif /* __NG_DEF__ */

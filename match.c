@@ -1,4 +1,4 @@
-/* $Id: match.c,v 1.4 2001/11/23 11:56:40 amura Exp $ */
+/* $Id: match.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Limited parenthesis matching routines
@@ -11,23 +11,6 @@
  * Since I often edit Scribe code, I've made it possible to
  * blink arbitrary characters -- just bind delimiter characters
  * to "blink-matching-paren-hack"
- */
-
-/*
- * $Log: match.c,v $
- * Revision 1.4  2001/11/23 11:56:40  amura
- * Rewrite all sources
- *
- * Revision 1.3  2001/02/11 15:38:05  amura
- * bugfix on VARIABLE_TAB suggested by ng1.3.1L6
- *
- * Revision 1.2  2000/11/16 14:31:13  amura
- * fix some typos which cause compile error when using
- * strict ANSI-C compiler (ex ACK, gcc-1.x)
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
  */
 /* Nov 1991. Modified by bsh to add electric-c-brace-blink and
  *           goto-matching-fence.

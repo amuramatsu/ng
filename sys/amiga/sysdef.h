@@ -1,37 +1,11 @@
-/* $Id: sysdef.h,v 1.8 2001/11/28 19:02:10 amura Exp $ */
+/* $Id: sysdef.h,v 1.9 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MicroEMACS
  * Version:	MG 2a
  *		Commodore Amiga system header file.
  */
-
-/*
- * $Log: sysdef.h,v $
- * Revision 1.8  2001/11/28 19:02:10  amura
- * Small fixes arount termcap library.
- *
- * Revision 1.7  2001/11/28 17:51:48  amura
- * little modifies for support VBCC. (but not work yet)
- *
- * Revision 1.6  2001/11/23 11:56:45  amura
- * Rewrite all sources
- *
- * Revision 1.5  2001/10/29 04:30:43  amura
- * let BUGFIX code enable always
- *
- * Revision 1.4  2001/02/18 19:29:03  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.3  2001/01/05 14:07:06  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.2  2000/12/14 18:07:52  amura
- * filename length become flexible
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
- */
+#ifndef __SYSDEF_H__
+#define __SYSDEF_H__
 
 #include <stdio.h>		/* Dec. 16, 1992 by H.Ohkubo */
 #include <stdlib.h>
@@ -173,3 +147,5 @@ typedef	struct	{
 #ifdef	NEW_COMPLETE	/* Jan.5,1992 Add by H.Ohkubo */
 #define	file_name_part	BaseName
 #endif
+
+#endif /* __SYSDEF_H__ */

@@ -1,21 +1,8 @@
-/* $Id: spawn.c,v 1.3 2001/11/24 08:24:29 amura Exp $ */
+/* $Id: spawn.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Spawn CLI for MS-DOS. (Tested only at MS-DOS 3.1)
  *
  *		I make this file from UNIX System V spawn.c.
- */
-
-/*
- * $Log: spawn.c,v $
- * Revision 1.3  2001/11/24 08:24:29  amura
- * Rewrite all sources (for msdos port)
- *
- * Revision 1.2  2001/11/23 11:56:50  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:47:58  amura
- * import to CVS
- *
  */
 /* 90.02.11	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
@@ -33,7 +20,8 @@ static VOID (*oldfunc)();
 static VOID (*curfunc)() = SIG_DFL;
 extern void ctrlbrk(int (*fptr)(void));
 
-static int sigfunc(void)
+static int
+sigfunc(void)
 {
     if (curfunc == SIG_DFL)
 	return 0;	/* abort */
@@ -45,7 +33,8 @@ static int sigfunc(void)
     return 1;		/* resume */
 }
 
-VOID (*signal(int sig, int (*func)()))()
+VOID
+(*signal(int sig, int (*func)()))()
 {
     if (sig != SIGINT) {
 	errno = EINVAL;

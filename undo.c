@@ -1,42 +1,8 @@
-/* $Id: undo.c,v 1.10 2001/11/23 11:56:42 amura Exp $ */
+/* $Id: undo.c,v 1.11 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
  * are a general set of undo support utilities.
- */
-
-/*
- * $Log: undo.c,v $
- * Revision 1.10  2001/11/23 11:56:42  amura
- * Rewrite all sources
- *
- * Revision 1.9  2001/08/17 19:15:06  amura
- * first try of unicode support (unix only/win32 on the way)
- *
- * Revision 1.8  2000/11/05 01:59:20  amura
- * ploblem with big undo is fixed
- *
- * Revision 1.7  2000/11/04 13:44:58  amura
- * undo memory exception is more safety
- *
- * Revision 1.6  2000/09/01 19:43:10  amura
- * change undo buffer memory allocation strategy for speed
- *
- * Revision 1.5  2000/07/22 20:49:38  amura
- * more secure run insert
- *
- * Revision 1.4  2000/07/18 18:59:57  amura
- * fixed never end loop on do_undo with arguments
- *
- * Revision 1.3  2000/07/16 15:47:06  amura
- * undo bug on autofill fixed
- *
- * Revision 1.2  2000/06/27 01:49:45  amura
- * import to CVS
- *
- * Revision 1.1  2000/06/01  05:36:42  amura
- * Initial revision
- *
  */
 
 #include "config.h"

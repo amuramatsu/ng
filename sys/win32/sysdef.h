@@ -1,44 +1,29 @@
-/* $Id: sysdef.h,v 1.11 2002/04/18 13:49:22 amura Exp $ */
+/* $Id: sysdef.h,v 1.12 2003/02/22 08:09:47 amura Exp $ */
+/*  OS dependent code used by Ng for WinCE.
+ *    Copyright (C) 1998 Eiichiro Ito
+ *  Modified for Ng for Win32
+ *    Copyright (C) 1999,2000 Toru Imai
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  ree Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
 /*
  *		Win32 based systems
  */
 
-/*
- * $Log: sysdef.h,v $
- * Revision 1.11  2002/04/18 13:49:22  amura
- * HUMAN68K's console output routine is modified for speed
- *
- * Revision 1.10  2001/11/28 19:02:11  amura
- * Small fixes arount termcap library.
- *
- * Revision 1.9  2001/11/23 11:56:56  amura
- * Rewrite all sources
- *
- * Revision 1.8  2001/05/25 15:59:07  amura
- * WIN32 version support AUTOSAVE feature
- *
- * Revision 1.7  2001/02/18 19:29:05  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.6  2001/02/18 17:00:02  amura
- * some definitions are imported form def.h
- *
- * Revision 1.5  2001/01/17 18:34:53  amura
- * now compile successfull on VC++ and BC++
- *
- * Revision 1.4  2001/01/05 14:07:09  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.3  2000/12/14 18:10:48  amura
- * filename length become flexible
- *
- * Revision 1.2  2000/09/18 10:22:39  amura
- * some macro definition is changed
- *
- * Revision 1.1.1.1  2000/06/27 01:47:59  amura
- * import to CVS
- *
- */
+#ifndef __SYSDEF_H__
+#define __SYSDEF_H__
 
 #ifdef	_WIN32_WCE
 #ifndef	NULL
@@ -131,4 +116,4 @@ int  Sprintf(char *buf, const char *fmt, ... );
 #define	exit(rc)	Exit(rc)
 #define	sprintf		Sprintf
 
-
+#endif /* __SYSDEF_H__ */

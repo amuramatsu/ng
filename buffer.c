@@ -1,45 +1,6 @@
-/* $Id: buffer.c,v 1.19 2001/11/25 19:52:02 amura Exp $ */
+/* $Id: buffer.c,v 1.20 2003/02/22 08:09:46 amura Exp $ */
 /*
  *		Buffer handling.
- */
-
-/*
- * $Log: buffer.c,v $
- * Revision 1.19  2001/11/25 19:52:02  amura
- * change for compiler warnings reducing
- *
- * Revision 1.18  2001/11/23 11:56:34  amura
- * Rewrite all sources
- *
- * Revision 1.17  2001/10/29 04:30:41  amura
- * let BUGFIX code enable always
- *
- * Revision 1.16  2001/05/25 15:36:52  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.15  2001/05/08 17:52:43  amura
- * display buffer size in bufferlist
- *
- * Revision 1.14  2001/03/02 08:49:04  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.13  2001/02/28 17:06:05  amura
- * buffer size to use eread() is more secure
- *
- * Revision 1.12  2001/02/18 19:26:41  amura
- * remove malloc() prototype
- *
- * Revision 1.11  2001/02/18 17:07:23  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.10  2001/01/05 14:06:59  amura
- * first implementation of Hojo Kanji support
- *
- * -- snip --
- *
- * Revision 1.1  1999/05/19  03:47:59  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

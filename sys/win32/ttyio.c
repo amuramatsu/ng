@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.6 2001/11/23 11:56:57 amura Exp $ */
+/* $Id: ttyio.c,v 1.7 2003/02/22 08:09:47 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -20,28 +20,6 @@
  */
 /*
  * TTY I/O routine for win32
- */
-
-/*
- * $Log: ttyio.c,v $
- * Revision 1.6  2001/11/23 11:56:57  amura
- * Rewrite all sources
- *
- * Revision 1.5  2001/05/25 15:59:08  amura
- * WIN32 version support AUTOSAVE feature
- *
- * Revision 1.4  2001/01/20 15:48:47  amura
- * very big terminal supported
- *
- * Revision 1.3  2000/11/16 14:21:32  amura
- * merge Ng for win32 0.5
- *
- * Revision 1.2  2000/10/23 16:52:51  amura
- * add GPL copyright to header
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
- *
  */
 
 #include <windows.h>

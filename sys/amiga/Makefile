@@ -1,21 +1,5 @@
-# $Id: Makefile,v 1.5 2001/11/28 17:51:47 amura Exp $
+# $Id: Makefile,v 1.6 2003/02/22 08:09:47 amura Exp $
 # Makefile for MicroEMACS. using Aztec small model
-#
-# $Log: Makefile,v $
-# Revision 1.5  2001/11/28 17:51:47  amura
-# little modifies for support VBCC. (but not work yet)
-#
-# Revision 1.4  2001/11/23 11:56:43  amura
-# Rewrite all sources
-#
-# Revision 1.3  2001/03/02 08:48:30  amura
-# now AUTOSAVE feature implemented almost all (except for WIN32
-#
-# Revision 1.2  2000/10/02 13:59:28  amura
-# edit for new ttymenu.c
-#
-# Revision 1.1.1.1  2000/06/27 01:48:01  amura
-# import to CVS
 #
 # Modified for Ng 1.3 AmigaDOS version by H.Ohkubo Dec.20,1992
 

@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.10 2002/04/06 22:56:42 amura Exp $ */
+/* $Id: basic.c,v 1.11 2003/02/22 08:09:46 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -7,40 +7,6 @@
  * the screen, setting mark, and swapping dot with
  * mark. Only moves between lines, which might make the
  * current buffer framing bad, are hard.
- */
-
-/*
- * $Log: basic.c,v $
- * Revision 1.10  2002/04/06 22:56:42  amura
- * cannot compiled problem is fixed
- *
- * Revision 1.9  2002/01/10 20:52:01  amura
- * NEXTLINE feature is enabled always
- *
- * Revision 1.8  2001/11/23 11:56:34  amura
- * Rewrite all sources
- *
- * Revision 1.7  2001/10/29 04:30:40  amura
- * let BUGFIX code enable always
- *
- * Revision 1.6  2001/05/25 15:36:51  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.5  2001/04/28 18:54:26  amura
- * support line-number-mode (based on MATSUURA's patch )
- *
- * Revision 1.4  2001/02/18 17:07:23  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.3  2001/01/05 14:06:59  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.2  2000/12/14 18:06:23  amura
- * filename length become flexible
- *
- * Revision 1.1.1.1  2000/06/27 01:47:55  amura
- * import to CVS
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

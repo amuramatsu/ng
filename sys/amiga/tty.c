@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.4 2001/11/23 11:56:45 amura Exp $ */
+/* $Id: tty.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga console device virtual terminal display
@@ -12,22 +12,6 @@
  * driver when we intend to do an escape sequence; this allows the
  * terminal I/O driver to turn off the cursor without breaking up
  * the sequences, leading to a garbled screen.
- */
-
-/*
- * $Log: tty.c,v $
- * Revision 1.4  2001/11/23 11:56:45  amura
- * Rewrite all sources
- *
- * Revision 1.3  2001/10/29 04:30:43  amura
- * let BUGFIX code enable always
- *
- * Revision 1.2  2001/01/20 15:48:46  amura
- * very big terminal supported
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
  */
 
 #include <exec/types.h>

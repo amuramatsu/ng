@@ -1,35 +1,9 @@
-/* $Id: sysdef.h,v 1.8 2002/04/18 13:49:22 amura Exp $ */
+/* $Id: sysdef.h,v 1.9 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		MS-DOS based systems
  */
-
-/*
- * $Log: sysdef.h,v $
- * Revision 1.8  2002/04/18 13:49:22  amura
- * HUMAN68K's console output routine is modified for speed
- *
- * Revision 1.7  2001/11/24 08:24:29  amura
- * Rewrite all sources (for msdos port)
- *
- * Revision 1.6  2001/11/23 11:56:50  amura
- * Rewrite all sources
- *
- * Revision 1.5  2001/05/20 20:22:51  amura
- * fix silly bug
- *
- * Revision 1.4  2001/05/08 17:58:57  amura
- * fix alloca() probrems with Turbo C
- *
- * Revision 1.3  2001/01/05 14:07:08  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.2  2000/12/14 18:10:47  amura
- * filename length become flexible
- *
- * Revision 1.1.1.1  2000/06/27 01:47:58  amura
- * import to CVS
- *
- */
+#ifndef __SYSDEF_H__
+#define __SYSDEF_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,3 +52,5 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #define	fncmp(s,d)	strcmp(s,d)	/* file name comparison		*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
+
+#endif /* __SYSDEF_H__ */

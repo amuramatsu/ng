@@ -1,28 +1,6 @@
-/* $Id: sysdef.h,v 1.6 2001/11/23 11:56:51 amura Exp $ */
+/* $Id: sysdef.h,v 1.7 2003/02/22 08:09:47 amura Exp $ */
 /*
  *	unix based systems (for configure)
- */
-
-/*
- * $Log: sysdef.h,v $
- * Revision 1.6  2001/11/23 11:56:51  amura
- * Rewrite all sources
- *
- * Revision 1.5  2001/03/02 08:48:32  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.4  2001/02/18 19:29:04  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.3  2000/12/14 18:14:12  amura
- * filename length become flexible
- *
- * Revision 1.2  2000/12/01 10:07:09  amura
- * edit for Minix
- *
- * Revision 1.1  2000/11/19 18:35:00  amura
- * support GNU configure system
- *
  */
 
 #include <stdio.h>

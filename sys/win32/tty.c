@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.3 2001/11/23 11:56:56 amura Exp $ */
+/* $Id: tty.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -17,19 +17,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
-/*
- * $Log: tty.c,v $
- * Revision 1.3  2001/11/23 11:56:56  amura
- * Rewrite all sources
- *
- * Revision 1.2  2000/10/23 16:52:51  amura
- * add GPL copyright to header
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
- *
  */
 
 #include <windows.h>

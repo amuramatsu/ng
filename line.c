@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.20 2001/11/23 11:56:40 amura Exp $ */
+/* $Id: line.c,v 1.21 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -17,55 +17,6 @@
  * that "b_nwnd" is non zero, which means that the
  * dot and mark values in the buffer headers are
  * nonsense.
- */
-
-/*
- * $Log: line.c,v $
- * Revision 1.20  2001/11/23 11:56:40  amura
- * Rewrite all sources
- *
- * Revision 1.19  2001/10/29 04:30:41  amura
- * let BUGFIX code enable always
- *
- * Revision 1.18  2001/09/27 18:47:20  amura
- * Rename all _[A-Z] constant (in chrdef.h) to _NGC_[A-Z],
- * because _L was used by EPOC32 library.
- *
- * Revision 1.17  2001/07/23 17:12:02  amura
- * fix mark handling when make newline on the mark position
- *
- * Revision 1.16  2001/06/19 15:23:19  amura
- * to make uniform all indent
- *
- * Revision 1.15  2001/05/25 15:36:52  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.14  2001/04/28 18:54:27  amura
- * support line-number-mode (based on MATSUURA's patch )
- *
- * Revision 1.13  2001/02/18 17:07:26  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.12  2001/02/01 16:28:48  amura
- * remove small kludge because it raise warning with mpatrol
- *
- * Revision 1.11  2001/01/05 14:07:04  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.10  2000/11/21 19:49:01  amura
- * fix bug in ldelete when delete 1 charactor
- *
- * Revision 1.9  2000/11/05 01:58:39  amura
- * speed ldelete() with undo up
- *
- * Revision 1.8  2000/11/04 13:44:58  amura
- * undo memory exception is more safety
- *
- * -- snip --
- *
- * Revision 1.1  1999/06/12  19:56:32  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

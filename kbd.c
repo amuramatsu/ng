@@ -1,46 +1,6 @@
-/* $Id: kbd.c,v 1.12 2001/11/24 08:24:28 amura Exp $ */
+/* $Id: kbd.c,v 1.13 2003/02/22 08:09:46 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
- */
-
-/*
- * $Log: kbd.c,v $
- * Revision 1.12  2001/11/24 08:24:28  amura
- * Rewrite all sources (for msdos port)
- *
- * Revision 1.11  2001/11/23 11:56:39  amura
- * Rewrite all sources
- *
- * Revision 1.10  2001/02/18 17:07:26  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.9  2001/01/05 14:07:04  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.8  2000/11/04 13:44:58  amura
- * undo memory exception is more safety
- *
- * Revision 1.7  2000/10/02 16:13:06  amura
- * ignore mouse event in minibuffer editing
- *
- * Revision 1.6  2000/09/21 17:28:30  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.5  2000/09/13 21:03:53  amura
- * can compile option UNDO without KANJI
- *
- * Revision 1.4  2000/07/20 12:45:17  amura
- * support undo with auto-fill mode
- *
- * Revision 1.3  2000/07/16 15:44:41  amura
- * undo bug on autofill fixed
- *
- * Revision 1.2  2000/06/27 01:49:43  amura
- * import to CVS
- *
- * Revision 1.1  2000/06/01  05:29:03  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

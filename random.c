@@ -1,43 +1,10 @@
-/* $Id: random.c,v 1.12 2001/11/23 11:56:41 amura Exp $ */
+/* $Id: random.c,v 1.13 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
  * processors for a large assortment of unrelated
  * commands. The only thing they have in common is
  * that they are all command processors.
- */
-
-/*
- * $Log: random.c,v $
- * Revision 1.12  2001/11/23 11:56:41  amura
- * Rewrite all sources
- *
- * Revision 1.11  2001/10/29 04:30:42  amura
- * let BUGFIX code enable always
- *
- * Revision 1.10  2001/07/23 17:12:02  amura
- * fix mark handling when make newline on the mark position
- *
- * Revision 1.9  2001/07/22 20:46:58  amura
- * before checkin has bug. now mark handling is fixed
- *
- * Revision 1.8  2001/06/19 15:15:32  amura
- * add correcting mark position when yank empty line
- *
- * Revision 1.7  2001/05/25 15:37:21  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.6  2001/02/18 17:07:26  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.5  2001/01/05 14:07:04  amura
- * first implementation of Hojo Kanji support
- *
- * -- snip -- 
- *
- * Revision 1.1  2000/06/01  05:35:32  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 /* 91.11.30     Modified by bsh */

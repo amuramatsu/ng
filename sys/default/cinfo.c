@@ -1,24 +1,10 @@
-/* $Id: cinfo.c,v 1.3 2001/11/23 11:56:46 amura Exp $ */
+/* $Id: cinfo.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Character class tables.
  * Do it yourself character classification
  * macros, that understand the multinational character set,
  * and let me ask some questions the standard macros (in
  * ctype.h) don't let you ask.
- */
-
-/*
- * $Log: cinfo.c,v $
- * Revision 1.3  2001/11/23 11:56:46  amura
- * Rewrite all sources
- *
- * Revision 1.2  2001/09/27 18:47:28  amura
- * Rename all _[A-Z] constant (in chrdef.h) to _NGC_[A-Z],
- * because _L was used by EPOC32 library.
- *
- * Revision 1.1.1.1  2000/06/27 01:48:02  amura
- * import to CVS
- *
  */
 /* 90.01.29	Modified for Ng 1.0  by S.Yoshida */
 

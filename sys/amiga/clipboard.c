@@ -1,4 +1,4 @@
-/* $Id: clipboard.c,v 1.4 2002/11/06 16:05:23 amura Exp $ */
+/* $Id: clipboard.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*   
  * clipboard.c
  *   Amiga clipboard support routine.
@@ -38,25 +38,6 @@
  *   such as Open, Close, Post, Read, Write, etc.
  *
  * included in "AMIGA DEVELOPER CD 1.2"
- */
-
-/*
- * $Log: clipboard.c,v $
- * Revision 1.4  2002/11/06 16:05:23  amura
- * compile with newstyle source
- *
- * Revision 1.3  2001/11/23 11:56:44  amura
- * Rewrite all sources
- *
- * Revision 1.2  2000/09/29 17:22:16  amura
- * change license to BSD style
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
- *
- * Revision 1.1  2000/02/09  18:16:06  amura
- * Initial revision
- *
  */
 
 #include "config.h"

@@ -1,37 +1,6 @@
-/* $Id: dired.c,v 1.9 2001/11/23 11:56:35 amura Exp $ */
+/* $Id: dired.c,v 1.10 2003/02/22 08:09:46 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
-
-/*
- * $Log: dired.c,v $
- * Revision 1.9  2001/11/23 11:56:35  amura
- * Rewrite all sources
- *
- * Revision 1.8  2001/02/18 19:29:29  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.7  2001/02/18 17:07:24  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.6  2000/12/27 16:56:01  amura
- * change d_makename() params for conservative reason, and bugfix in dires_()
- *
- * Revision 1.5  2000/12/14 18:06:24  amura
- * filename length become flexible
- *
- * Revision 1.4  2000/09/21 17:28:29  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.3  2000/07/22 17:54:09  amura
- * fix typo bug
- *
- * Revision 1.2  2000/06/27 01:49:42  amura
- * import to CVS
- *
- * Revision 1.1  1999/05/21  02:45:06  amura
- * Initial revision
- *
- */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"

@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.5 2001/11/23 11:56:56 amura Exp $ */
+/* $Id: tools.h,v 1.6 2003/02/22 08:09:47 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -19,24 +19,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/*
- * $Log: tools.h,v $
- * Revision 1.5  2001/11/23 11:56:56  amura
- * Rewrite all sources
- *
- * Revision 1.4  2000/11/16 14:21:31  amura
- * merge Ng for win32 0.5
- *
- * Revision 1.3  2000/10/23 16:52:51  amura
- * add GPL copyright to header
- *
- * Revision 1.2  2000/07/18 12:40:35  amura
- * for Win32, enable to handle japanese directory
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
- *
- */
+#ifndef __TOOLS_H__
+#define __TOOLS_H__
 
 #ifndef	APP_TOOLS1
 #define	APP_TOOLS1
@@ -96,3 +80,5 @@ LONG  RegRemoveValue(HKEY, LPCTSTR, LPTSTR);
 #define NG_WAVE_OFFSET		2
 
 #endif	/* APP_TOOLS1 */
+
+#endif /* __TOOLS_H__ */

@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.18 2002/04/07 01:01:32 amura Exp $ */
+/* $Id: fileio.c,v 1.19 2003/02/22 08:09:47 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -17,46 +17,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
-/*
- * $Log: fileio.c,v $
- * Revision 1.18  2002/04/07 01:01:32  amura
- * HOMEDIR feature is enable always
- *
- * Revision 1.17  2001/11/23 11:56:52  amura
- * Rewrite all sources
- *
- * Revision 1.16  2001/08/29 00:05:04  amura
- * change macro UNICODE to USE_UNICODE and
- * some unicode support routine for win32 are implemented
- *
- * Revision 1.15  2001/08/17 19:15:08  amura
- * first try of unicode support (unix only/win32 on the way)
- *
- * Revision 1.14  2001/04/15 16:35:45  amura
- * patch for VC 6.0 from Katsuyoshi Ohara
- *
- * Revision 1.13  2001/03/02 08:48:32  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.12  2001/02/18 19:29:04  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.11  2001/01/17 18:34:53  amura
- * now compile successfull on VC++ and BC++
- *
- * Revision 1.10  2001/01/05 14:07:08  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.9  2001/01/05 13:55:28  amura
- * filename completion fixed
- *
- * -- snip --
- *
- * Revision 1.1.1.1  2000/06/27 01:47:59  amura
- * import to CVS
- *
  */
 
 #include <windows.h>

@@ -1,22 +1,9 @@
-/* $Id: ttykbd.c,v 1.3 2001/11/23 11:56:46 amura Exp $ */
+/* $Id: ttykbd.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MG 2a
  * 		Amiga virtual terminal keyboard, default console keymap.
  * Created:	Mic Kaczmarczik (mic@emx.cc.utexas.edu)
  * Last edit:	May 14, 1988
- */
-
-/*
- * $Log: ttykbd.c,v $
- * Revision 1.3  2001/11/23 11:56:46  amura
- * Rewrite all sources
- *
- * Revision 1.2  2001/10/29 04:30:43  amura
- * let BUGFIX code enable always
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
  */
 
 #undef	TRUE

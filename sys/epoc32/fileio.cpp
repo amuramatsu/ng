@@ -1,26 +1,8 @@
-/* $Id: fileio.cpp,v 1.4 2001/11/28 21:45:12 amura Exp $ */
+/* $Id: fileio.cpp,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  *	Epoc32 file I/O. (Tested only at Psion 5mx)
  *
  *	I make this file from MSDOS & UNIX fileio.c.
- */
-
-/*
- * $Log: fileio.cpp,v $
- * Revision 1.4  2001/11/28 21:45:12  amura
- * Rewrite to new source code style
- *
- * Revision 1.3  2001/10/29 04:30:43  amura
- * let BUGFIX code enable always
- *
- * Revision 1.2  2001/10/06 14:21:02  amura
- * edit to avoid egcs-20000828 (or XSDK?) bugs
- *
- * Revision 1.1  2001/09/30 15:59:12  amura
- * Initial EPOC32 commit.
- *
- * Currently this is not run yet. Some functions around tty are not implemented.
- *
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */

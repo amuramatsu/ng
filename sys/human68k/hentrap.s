@@ -1,4 +1,4 @@
-* $Id: hentrap.s,v 1.1 2000/06/27 01:47:57 amura Exp $
+* $Id: hentrap.s,v 1.2 2003/02/22 08:09:47 amura Exp $
 *
 *	Public Domain Software
 *
@@ -6,9 +6,6 @@
 *	Written by Masatoshi Yoshizawa (Yoz.) for GAPO jstevie Human68k
 *	Added abort trap by Sawayanagi Yosirou <willow@saru.cc.u-tokyo.ac.jp>
 *
-* $Log: hentrap.s,v $
-* Revision 1.1  2000/06/27 01:47:57  amura
-* Initial revision
 *
 
 		.globl	_hentrap,_iskmode

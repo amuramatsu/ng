@@ -1,29 +1,7 @@
-/* $Id: extend.c,v 1.6 2001/11/25 19:52:03 amura Exp $ */
+/* $Id: extend.c,v 1.7 2003/02/22 08:09:46 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
- */
-
-/*
- * $Log: extend.c,v $
- * Revision 1.6  2001/11/25 19:52:03  amura
- * change for compiler warnings reducing
- *
- * Revision 1.5  2001/11/23 11:56:37  amura
- * Rewrite all sources
- *
- * Revision 1.4  2001/10/29 04:30:41  amura
- * let BUGFIX code enable always
- *
- * Revision 1.3  2001/08/17 19:15:05  amura
- * first try of unicode support (unix only/win32 on the way)
- *
- * Revision 1.2  2001/02/18 17:07:25  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.1.1.1  2000/06/27 01:47:55  amura
- * import to CVS
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.8 2001/11/23 11:56:42 amura Exp $ */
+/* $Id: undo.h,v 1.9 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -6,34 +6,8 @@
  * by MURAMATSU Atsushi
  */
 
-/*
- * $Log: undo.h,v $
- * Revision 1.8  2001/11/23 11:56:42  amura
- * Rewrite all sources
- *
- * Revision 1.7  2000/11/05 01:59:20  amura
- * ploblem with big undo is fixed
- *
- * Revision 1.6  2000/11/04 13:44:58  amura
- * undo memory exception is more safety
- *
- * Revision 1.5  2000/07/22 20:49:38  amura
- * more secure run insert
- *
- * Revision 1.4  2000/07/20 12:45:18  amura
- * support undo with auto-fill mode
- *
- * Revision 1.3  2000/07/16 15:50:32  amura
- * undo bug on autofill fixed
- * rewrite macro functions
- *
- * Revision 1.2  2000/06/27 01:49:45  amura
- * import to CVS
- *
- * Revision 1.1  2000/06/01 05:21:24  amura
- * Initial revision
- *
- */
+#ifndef __UNDO_H__
+#define __UNDO_H__
 
 #define UDNONE		0
 #define	UDDEL		1
@@ -108,3 +82,5 @@ int  undo_bgrow   _PRO((register UNDO_DATA*, register RSIZE));
 
 /* in line.c */
 int get_lineno   _PRO((BUFFER*, LINE*));
+
+#endif /* __UNDO_H__ */

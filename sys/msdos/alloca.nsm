@@ -1,4 +1,4 @@
-; $Id: alloca.nsm,v 1.1 2001/11/24 08:24:28 amura Exp $
+; $Id: alloca.nsm,v 1.2 2003/02/22 08:09:47 amura Exp $
 ;-------------------------------------------------------------
 ; alloca.nsm: void * alloca(int) for Turbo-C 2.0 (large model)
 ;	<nasm version>
@@ -8,10 +8,6 @@
 ;	  You had better use -k (Standard stack frame) option.
 ;
 ;-------------------------------------------------------------
-; $Log: alloca.nsm,v $
-; Revision 1.1  2001/11/24 08:24:28  amura
-; Rewrite all sources (for msdos port)
-;
 ;
 
 	extern	__stklen

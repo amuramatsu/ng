@@ -1,20 +1,10 @@
-/* $Id: kbd.h,v 1.3 2001/11/23 11:56:39 amura Exp $ */
+/* $Id: kbd.h,v 1.4 2003/02/22 08:09:46 amura Exp $ */
 /*
  * kbd.h: type definitions for symbol.c and kbd.c for mg experimental
  */
 
-/*
- * $Log: kbd.h,v $
- * Revision 1.3  2001/11/23 11:56:39  amura
- * Rewrite all sources
- *
- * Revision 1.2  2001/09/27 18:58:52  amura
- * Small changes for support EPOC32
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
- */
+#ifndef __KBD_H__
+#define __KBD_H__
 
 typedef struct	{
     KCHAR k_base;		/* first key in element			*/
@@ -79,3 +69,5 @@ extern MAPS *name_mode _PRO((char *));
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* __KBD_H__ */

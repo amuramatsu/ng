@@ -1,31 +1,12 @@
-/* $Id: sysdef.h,v 1.6 2002/04/18 13:49:22 amura Exp $ */
+/* $Id: sysdef.h,v 1.7 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Human68k system definitions
  */
-
-/*
- * $Log: sysdef.h,v $
- * Revision 1.6  2002/04/18 13:49:22  amura
- * HUMAN68K's console output routine is modified for speed
- *
- * Revision 1.5  2002/04/06 22:59:26  amura
- * now Human68k port is validated
- *
- * Revision 1.4  2001/11/23 11:56:48  amura
- * Rewrite all sources
- *
- * Revision 1.3  2001/02/18 19:29:04  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.2  2000/12/14 18:10:46  amura
- * filename length become flexible
- *
- * Revision 1.1.1.1  2000/06/27 01:47:57  amura
- * import to CVS
- *
- */
 /* 90.11.10	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /*		MS-DOS system definitions */
+
+#ifndef __SYSDEF_H__
+#define __SYSDEF_H__
 
 #include <stdio.h>
 /*
@@ -79,3 +60,5 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #ifdef __GNUC__
 #define alloca		__builtin_alloca
 #endif
+
+#endif /* __SYSDEF_H__ */

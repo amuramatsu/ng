@@ -1,33 +1,8 @@
-/* $Id: dirio.c,v 1.7 2002/11/06 16:05:23 amura Exp $ */
+/* $Id: dirio.c,v 1.8 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MG 2x
  *		Directory I/O routines, by Stephen Walton
  *		Version of 5-May-88
- */
-
-/*
- * $Log: dirio.c,v $
- * Revision 1.7  2002/11/06 16:05:23  amura
- * compile with newstyle source
- *
- * Revision 1.6  2001/11/23 11:56:44  amura
- * Rewrite all sources
- *
- * Revision 1.5  2001/10/29 04:30:43  amura
- * let BUGFIX code enable always
- *
- * Revision 1.4  2001/02/18 19:29:03  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.3  2000/12/22 19:48:17  amura
- * change "sysdef.h" to "def.h" for get NFILEN
- *
- * Revision 1.2  2000/12/14 18:07:51  amura
- * filename length become flexible
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
  */
 
 #include "config.h"	/* Dec. 15, 1992 by H.Ohkubo */

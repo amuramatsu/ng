@@ -1,4 +1,4 @@
-/* $Id: ttymenu.c,v 2.6 2002/11/06 16:05:24 amura Exp $ */
+/* $Id: ttymenu.c,v 2.7 2003/02/22 08:09:47 amura Exp $ */
 /*
  * ttymenu.c
  *   Amiga intuition menu handling routine for Ng 1.x
@@ -26,28 +26,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.  
- */
-
-/*
- * $Log: ttymenu.c,v $
- * Revision 2.6  2002/11/06 16:05:24  amura
- * compile with newstyle source
- *
- * Revision 2.5  2001/11/28 17:51:48  amura
- * little modifies for support VBCC. (but not work yet)
- *
- * Revision 2.4  2001/11/23 11:56:46  amura
- * Rewrite all sources
- *
- * Revision 2.3  2000/12/14 18:08:35  amura
- * filename length become flexible
- *
- * Revision 2.2  2000/10/11 13:38:59  amura
- * change wildcard in ASL requester
- *
- * Revision 2.1  2000/10/02 14:03:14  amura
- * rewrite from scratch
- *
  */
 
 #include "config.h"

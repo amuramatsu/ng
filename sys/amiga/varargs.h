@@ -1,18 +1,12 @@
-/* $Id: varargs.h,v 1.2 2001/11/23 11:56:46 amura Exp $ */
+/* $Id: varargs.h,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Varargs, for use on AmigaDOS with the Lattice C compiler,
  *	or (maybe?) the Manx compiler with 32-bit ints.
  *	Blatantly lifted from 4.2BSD.
  */
-/*
- * $Log: varargs.h,v $
- * Revision 1.2  2001/11/23 11:56:46  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
- */
+
+#ifndef __NG_VARARGS_H__
+#define __NG_VARARGS_H__
 
 #ifdef	__STDARG_H	/* Dec. 15, 1992 H.Ohkubo */
 #undef	va_start
@@ -26,5 +20,7 @@ typedef char *va_list;
 #define va_start(pv)	pv = (char *) &va_alist
 #define va_end(pv)	/* Naught to do... */
 #define va_arg(pv, t)	((t *) (pv += sizeof(t)))[-1]
+
+#endif /* __NG_VARARGS_H__ */
 
 

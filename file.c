@@ -1,53 +1,6 @@
-/* $Id: file.c,v 1.14 2002/04/07 01:00:53 amura Exp $ */
+/* $Id: file.c,v 1.15 2003/02/22 08:09:46 amura Exp $ */
 /*
  *		File commands.
- */
-
-/*
- * $Log: file.c,v $
- * Revision 1.14  2002/04/07 01:00:53  amura
- * feature configuration check is more reliable
- *
- * Revision 1.13  2001/11/23 11:56:37  amura
- * Rewrite all sources
- *
- * Revision 1.12  2001/10/29 04:30:41  amura
- * let BUGFIX code enable always
- *
- * Revision 1.11  2001/09/27 18:56:49  amura
- * Small changes for support EPOC32
- *
- * Revision 1.10  2001/08/29 00:04:53  amura
- * change macro UNICODE to USE_UNICODE and
- * some unicode support routine for win32 are implemented
- *
- * Revision 1.9  2001/08/17 19:15:05  amura
- * first try of unicode support (unix only/win32 on the way)
- *
- * Revision 1.8  2001/05/25 15:36:52  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.7  2001/02/18 19:29:30  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.6  2001/02/18 17:07:25  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.5  2000/12/22 19:54:35  amura
- * fix some bug in filename handling
- *
- * Revision 1.4  2000/12/14 18:06:24  amura
- * filename length become flexible
- *
- * Revision 1.3  2000/06/27 01:49:43  amura
- * import to CVS
- *
- * Revision 1.2  2000/06/01  05:26:51  amura
- * Undo support
- *
- * Revision 1.1  1999/05/19  03:56:19  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

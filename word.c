@@ -1,26 +1,10 @@
-/* $Id: word.c,v 1.4 2001/11/23 11:56:43 amura Exp $ */
+/* $Id: word.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Word mode commands.
  * The routines in this file
  * implement commands that work word at
  * a time. There are all sorts of word mode
  * commands.
- */
-
-/*
- * $Log: word.c,v $
- * Revision 1.4  2001/11/23 11:56:43  amura
- * Rewrite all sources
- *
- * Revision 1.3  2001/01/05 14:07:06  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.2  2000/06/27 01:49:45  amura
- * import to CVS
- *
- * Revision 1.1  2000/06/01  05:36:12  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

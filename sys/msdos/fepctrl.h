@@ -1,4 +1,4 @@
-/* $Id: fepctrl.h,v 1.2 2001/11/23 11:56:49 amura Exp $ */
+/* $Id: fepctrl.h,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /*
  * fepctrl.h 1.5 1992/04/08.  Public Domain.
  *
@@ -10,16 +10,6 @@
  *	Microsoft C 5.1, Microsoft C 6.0, Quick C 2.0,
  *	Lattic C 4.1 (need negative stack frame, except huge model),
  *	LSI C-86 3.2/3.3 Sampler (small model only).
- */
-
-/*
- * $Log: fepctrl.h,v $
- * Revision 1.2  2001/11/23 11:56:49  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:47:58  amura
- * import to CVS
- *
  */
 
 #ifndef __FEPCTRL_H

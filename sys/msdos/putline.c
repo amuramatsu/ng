@@ -1,27 +1,8 @@
-/* $Id: putline.c,v 1.5 2001/11/23 11:56:50 amura Exp $ */
+/* $Id: putline.c,v 1.6 2003/02/22 08:09:47 amura Exp $ */
 /*
   VRAM direct write routine for PC9801
   written by A.Shirahashi, KEK
 */
-
-/*
- * $Log: putline.c,v $
- * Revision 1.5  2001/11/23 11:56:50  amura
- * Rewrite all sources
- *
- * Revision 1.4  2001/10/06 11:41:11  amura
- * bug in Hojo Kanji support is fixed
- *
- * Revision 1.3  2001/03/09 15:53:14  amura
- * enable to really work autosave feature
- *
- * Revision 1.2  2001/01/20 15:47:23  amura
- * putline() support Hojo Kanji now
- *
- * Revision 1.1.1.1  2000/06/27 01:47:58  amura
- * import to CVS
- *
- */
 /*
    90.03.31	Modified by A.Shirahashi, support for 'SO' mode line
    90.03.28	Created by A.Shirahashi 

@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.7 2002/04/06 22:59:24 amura Exp $ */
+/* $Id: search.c,v 1.8 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -8,31 +8,6 @@
  * The plain old search code is part of the original
  * MicroEMACS "distribution". The incremental search code,
  * and the query-replace code, is by Rich Ellison.
- */
-
-/*
- * $Log: search.c,v $
- * Revision 1.7  2002/04/06 22:59:24  amura
- * now Human68k port is validated
- *
- * Revision 1.6  2001/11/25 19:52:04  amura
- * change for compiler warnings reducing
- *
- * Revision 1.5  2001/11/23 11:56:42  amura
- * Rewrite all sources
- *
- * Revision 1.4  2001/05/25 15:37:21  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.3  2001/01/05 14:07:05  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.2  2000/07/22 17:54:09  amura
- * fix typo bug
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 /* 91.11.23	C-w command in isearch was added by bsh. You need to #define */

@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.5 2001/11/28 19:02:10 amura Exp $ */
+/* $Id: tty.c,v 1.6 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -24,25 +24,6 @@
  *	Using scrolling region vs insert/delete line should probably
  *	be based on cost rather than the assuption that scrolling
  *	region operations look better.
- */
-
-/*
- * $Log: tty.c,v $
- * Revision 1.5  2001/11/28 19:02:10  amura
- * Small fixes arount termcap library.
- *
- * Revision 1.4  2001/11/25 19:52:04  amura
- * change for compiler warnings reducing
- *
- * Revision 1.3  2001/11/23 11:56:47  amura
- * Rewrite all sources
- *
- * Revision 1.2  2001/01/20 18:10:22  amura
- * very big terminal supported
- *
- * Revision 1.1.1.1  2000/06/27 01:48:02  amura
- * import to CVS
- *
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */

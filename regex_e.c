@@ -1,13 +1,5 @@
-/* $Id: regex_e.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: regex_e.c,v 1.2 2003/02/22 08:09:47 amura Exp $ */
 /* Imagine Generic gnuemacs copyright notice here */
-
-/*
- * $Log: regex_e.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
- *
- */
-
 /* To test, compile with -Dtest.
  This Dtestable feature turns this into a self-contained program
  which reads a pattern, describes how it compiles,

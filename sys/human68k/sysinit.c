@@ -1,16 +1,6 @@
-/* $Id: sysinit.c,v 1.2 2001/11/23 11:56:48 amura Exp $ */
+/* $Id: sysinit.c,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Human68k systems initialization
- */
-
-/*
- * $Log: sysinit.c,v $
- * Revision 1.2  2001/11/23 11:56:48  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:47:57  amura
- * import to CVS
- *
  */
 /* 90.11.09	Created for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 

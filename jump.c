@@ -1,36 +1,8 @@
-/* $Id: jump.c,v 1.8 2001/11/25 19:52:03 amura Exp $ */
+/* $Id: jump.c,v 1.9 2003/02/22 08:09:46 amura Exp $ */
 /*
  * jump-to-error
  *
  * Written by bsh, Dec 1991.
- */
-
-/*
- * $Log: jump.c,v $
- * Revision 1.8  2001/11/25 19:52:03  amura
- * change for compiler warnings reducing
- *
- * Revision 1.7  2001/11/23 11:56:37  amura
- * Rewrite all sources
- *
- * Revision 1.6  2000/09/21 17:28:29  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.5  2000/07/25 15:04:21  amura
- * fix filevisit() args
- *
- * Revision 1.4  2000/07/22 20:47:32  amura
- * do not use excline()
- *
- * Revision 1.3  2000/07/18 12:38:56  amura
- * remove some compile warning
- *
- * Revision 1.2  2000/06/27 01:49:43  amura
- * import to CVS
- *
- * Revision 1.1  2000/06/01  05:27:47  amura
- * Initial revision
- *
  */
 
 #include "config.h"

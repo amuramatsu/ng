@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.7 2001/11/25 19:52:05 amura Exp $ */
+/* $Id: spawn.c,v 1.8 2003/02/22 08:09:47 amura Exp $ */
 /*
  *	Spawn. (for configure)
  * This interracts with the job control stuff
@@ -6,31 +6,6 @@
  * By:	       rtech!daveb, to use stop for ksh.
  *
  * Create from BSD UNIX version by amura, 2000
- */
-
-/*
- * $Log: spawn.c,v $
- * Revision 1.7  2001/11/25 19:52:05  amura
- * change for compiler warnings reducing
- *
- * Revision 1.6  2001/11/23 11:56:51  amura
- * Rewrite all sources
- *
- * Revision 1.5  2000/12/21 16:58:06  amura
- * suspend support can enable most of OS
- *
- * Revision 1.4  2000/12/18 17:20:41  amura
- * edit for cygwin
- *
- * Revision 1.3  2000/12/01 10:09:11  amura
- * fix typos and edit MACROS adapting for POSIX
- *
- * Revision 1.2  2000/11/23 14:10:33  amura
- * small fixes on spawncli()
- *
- * Revision 1.1  2000/11/19 18:35:00  amura
- * support GNU configure system
- *
  */
 
 #include "config.h"

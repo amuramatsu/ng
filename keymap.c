@@ -1,43 +1,8 @@
-/* $Id: keymap.c,v 1.10 2001/11/23 11:56:39 amura Exp $ */
+/* $Id: keymap.c,v 1.11 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
  * keymap has been moved to a better place.
- */
-
-/*
- * $Log: keymap.c,v $
- * Revision 1.10  2001/11/23 11:56:39  amura
- * Rewrite all sources
- *
- * Revision 1.9  2001/04/28 18:54:27  amura
- * support line-number-mode (based on MATSUURA's patch )
- *
- * Revision 1.8  2001/03/02 08:49:04  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.7  2000/11/16 14:31:12  amura
- * fix some typos which cause compile error when using
- * strict ANSI-C compiler (ex ACK, gcc-1.x)
- *
- * Revision 1.6  2000/09/21 17:28:30  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.5  2000/09/01 19:45:16  amura
- * add default keybind for "undo"
- *
- * Revision 1.4  2000/06/27 01:49:44  amura
- * import to CVS
- *
- * Revision 1.3  2000/06/01  05:30:09  amura
- * Undo support
- *
- * Revision 1.2  2000/03/10  21:29:32  amura
- * some function added
- *
- * Revision 1.1  1999/05/19  03:59:01  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

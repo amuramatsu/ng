@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.12 2001/11/23 11:56:56 amura Exp $ */
+/* $Id: tools.c,v 1.13 2003/02/22 08:09:47 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -26,47 +26,6 @@
  * History of modifications
  * 1998/04/03:Eiichiroh Itoh
  *  (1) Convert from IrCopy for POBox
- *
- */
-
-/*
- * $Log: tools.c,v $
- * Revision 1.12  2001/11/23 11:56:56  amura
- * Rewrite all sources
- *
- * Revision 1.11  2001/08/29 00:05:05  amura
- * change macro UNICODE to USE_UNICODE and
- * some unicode support routine for win32 are implemented
- *
- * Revision 1.10  2001/08/17 19:15:08  amura
- * first try of unicode support (unix only/win32 on the way)
- *
- * Revision 1.9  2000/12/14 18:12:14  amura
- * use alloca() and more memory secure
- *
- * Revision 1.8  2000/11/16 14:21:31  amura
- * merge Ng for win32 0.5
- *
- * Revision 1.7  2000/10/23 16:52:51  amura
- * add GPL copyright to header
- *
- * Revision 1.6  2000/10/02 16:13:07  amura
- * ignore mouse event in minibuffer editing
- *
- * Revision 1.5  2000/09/01 19:39:12  amura
- * fix choped data bug on receiving from clipboard
- *
- * Revision 1.4  2000/07/25 15:04:21  amura
- * fix filevisit() args
- *
- * Revision 1.3  2000/07/22 20:46:32  amura
- * support "Drag&Drop"
- *
- * Revision 1.2  2000/07/18 12:40:35  amura
- * for Win32, enable to handle japanese directory
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
  *
  */
 

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.19 2002/04/18 13:49:21 amura Exp $ */
+/* $Id: display.c,v 1.20 2003/02/22 08:09:46 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -11,40 +11,6 @@
  * changes things around for memory mapped video. With
  * both off, the terminal is a VT52.
  */
-
-/*
- * $Log: display.c,v $
- * Revision 1.19  2002/04/18 13:49:21  amura
- * HUMAN68K's console output routine is modified for speed
- *
- * Revision 1.18  2001/11/25 19:52:02  amura
- * change for compiler warnings reducing
- *
- * Revision 1.17  2001/11/23 11:56:35  amura
- * Rewrite all sources
- *
- * Revision 1.16  2001/10/06 14:34:39  amura
- * implement putline() in EPOC32 port
- *
- * Revision 1.15  2001/09/30 13:58:38  amura
- * Define and rename macros support for EPOC32
- *
- * Revision 1.14  2001/04/28 18:54:27  amura
- * support line-number-mode (based on MATSUURA's patch )
- *
- * Revision 1.13  2001/02/18 17:07:24  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.12  2001/02/14 09:18:55  amura
- * code cleanup around putline()
- *
- * -- snip --
- *
- * Revision 1.1  1999/05/19  04:25:31  amura
- * Initial revision
- *
- */
-/* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"

@@ -1,4 +1,4 @@
-/* $Id: varargs.h,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: varargs.h,v 1.2 2003/02/22 08:09:47 amura Exp $ */
 /* varargs.h for MicroGnuEmacs 2a.  This one will work on systems that	*/
 /* the non-varargs version of mg 1 did.					*/
 /* based on the one I wrote for os9/68k .  I did not look at the bsd code. */
@@ -14,12 +14,8 @@
 /* and Sys V documentation of varargs.  Note that just because varargs.h*/
 /* is used does not mean that it is used properly.			*/
 
-/*
- * $Log: varargs.h,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
- *
- */
+#ifndef __NG_VARARGS_H__
+#define __NG_VARARGS_H__
 
 #ifndef	__STDARG_H
 # ifndef  __TURBOC__
@@ -49,3 +45,5 @@ typedef void *va_list;
 #endif	/* __TURBOC__ */
 
 #define va_end(pvar)		/* va_end is simple */
+
+#endif /* __NG_VARARGS_H__ */

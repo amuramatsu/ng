@@ -1,25 +1,10 @@
-/* $Id: sysdef.h,v 1.4 2002/04/18 13:49:21 amura Exp $ */
+/* $Id: sysdef.h,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Epoc32 based systems
  */
 
-/*
- * $Log: sysdef.h,v $
- * Revision 1.4  2002/04/18 13:49:21  amura
- * HUMAN68K's console output routine is modified for speed
- *
- * Revision 1.3  2001/11/28 21:45:12  amura
- * Rewrite to new source code style
- *
- * Revision 1.2  2001/11/28 19:02:10  amura
- * Small fixes arount termcap library.
- *
- * Revision 1.1  2001/09/30 15:59:12  amura
- * Initial EPOC32 commit.
- *
- * Currently this is not run yet. Some functions around tty are not implemented.
- *
- */
+#ifndef __SYSDEF_H__
+#define __SYSDEF_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,3 +61,5 @@ void epoc_tteeol();
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* __SYSDEF_H__ */

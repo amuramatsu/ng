@@ -1,17 +1,7 @@
-/* $Id: kanji_.c,v 1.2 2001/11/23 11:56:38 amura Exp $ */
+/* $Id: kanji_.c,v 1.3 2003/02/22 08:09:46 amura Exp $ */
 /* mskanji.c: ms-kanji handling routines
  * -> kanji_.c: euc kanji handling routines
  *serow / amura
- */
-
-/*
- * $Log: kanji_.c,v $
- * Revision 1.2  2001/11/23 11:56:38  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
  */
 
 #include "kanji_.h"

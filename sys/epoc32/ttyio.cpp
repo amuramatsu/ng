@@ -1,19 +1,7 @@
-/* $Id: ttyio.cpp,v 1.2 2001/11/28 21:45:12 amura Exp $ */
+/* $Id: ttyio.cpp,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Epoc32 terminal I/O. (Tested only at Psion S5mx)
  *		I make this file from MSDOS ttyio.c.
- */
-
-/*
- * $Log: ttyio.cpp,v $
- * Revision 1.2  2001/11/28 21:45:12  amura
- * Rewrite to new source code style
- *
- * Revision 1.1  2001/09/30 15:59:12  amura
- * Initial EPOC32 commit.
- *
- * Currently this is not run yet. Some functions around tty are not implemented.
- *
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */

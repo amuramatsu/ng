@@ -1,23 +1,12 @@
-/* $Id: chrdef.h,v 1.3 2001/09/27 18:47:28 amura Exp $ */
+/* $Id: chrdef.h,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*
  * sys/default/chardef.h: character set specific #defines for mg 2a
  * Warning: System specific ones exist
  */
-
-/*
- * $Log: chrdef.h,v $
- * Revision 1.3  2001/09/27 18:47:28  amura
- * Rename all _[A-Z] constant (in chrdef.h) to _NGC_[A-Z],
- * because _L was used by EPOC32 library.
- *
- * Revision 1.2  2001/01/05 14:07:07  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.1.1.1  2000/06/27 01:48:02  amura
- * import to CVS
- *
- */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
+
+#ifndef __CHRDEF_H__
+#define __CHRDEF_H__
 
 #ifndef	CHARMASK
 /*
@@ -108,3 +97,5 @@
 #define	K1E	286
 #define	K1F	287
 #endif
+
+#endif /* __CHRDEF_H__ */

@@ -1,4 +1,4 @@
-/* $Id: winmain.c,v 1.9 2001/11/23 11:56:57 amura Exp $ */
+/* $Id: winmain.c,v 1.10 2003/02/22 08:09:47 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -22,37 +22,6 @@
  * NG : NG program main routine
  *
  * 1998/11/14:Eiichiroh Itoh
- *
- */
-
-/*
- * $Log: winmain.c,v $
- * Revision 1.9  2001/11/23 11:56:57  amura
- * Rewrite all sources
- *
- * Revision 1.8  2001/02/14 09:19:09  amura
- * code cleanup around putline()
- *
- * Revision 1.7  2001/01/20 15:47:23  amura
- * putline() support Hojo Kanji now
- *
- * Revision 1.6  2000/11/16 14:21:32  amura
- * merge Ng for win32 0.5
- *
- * Revision 1.5  2000/10/23 16:52:52  amura
- * add GPL copyright to header
- *
- * Revision 1.4  2000/09/01 19:41:21  amura
- * fix for suppress buffer overrun
- *
- * Revision 1.3  2000/07/22 20:46:33  amura
- * support "Drag&Drop"
- *
- * Revision 1.2  2000/07/18 12:42:34  amura
- * support IME convertion on the spot
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
  *
  */
 

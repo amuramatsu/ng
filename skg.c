@@ -1,50 +1,9 @@
-/* $Id: skg.c,v 1.12 2001/11/28 19:48:01 amura Exp $ */
+/* $Id: skg.c,v 1.13 2003/02/22 08:09:47 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
 /*   original written by Hirokazu Konish                    */
 /*   rewrite for All ports and some patched by amura        */
-
-/*
- * $Log: skg.c,v $
- * Revision 1.12  2001/11/28 19:48:01  amura
- * Support strict ANSI C compilers (like HP-UX C compiler)
- *
- * Revision 1.11  2001/11/25 19:52:04  amura
- * change for compiler warnings reducing
- *
- * Revision 1.10  2001/11/23 11:56:42  amura
- * Rewrite all sources
- *
- * Revision 1.9  2001/05/08 18:38:34  amura
- * Make dictionary index when SKG start, for speed up dictionary searching
- *
- * Revision 1.8  2001/05/04 19:15:31  amura
- * correct handling of this/lastflag
- *
- * Revision 1.7  2001/05/04 17:52:02  amura
- * Make skg_init() and skg_finish(), and rewrite some routine for secure issue
- *
- * Revision 1.6  2001/04/30 14:59:49  amura
- * rewrite to speed up and bugfix
- *
- * Revision 1.5  2000/12/14 18:06:24  amura
- * filename length become flexible
- *
- * Revision 1.4  2000/11/16 14:31:13  amura
- * fix some typos which cause compile error when using
- * strict ANSI-C compiler (ex ACK, gcc-1.x)
- *
- * Revision 1.3  2000/10/02 16:13:46  amura
- * ignore mouse event in minibuffer editing
- *
- * Revision 1.2  2000/06/27 01:59:42  amura
- * small bugfix
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
- */
 
 #include "config.h"               /* 93.10.25  by H.Konishi */ 
 

@@ -1,18 +1,9 @@
-/* $Id: ttymouse.c,v 1.2 2001/11/23 11:56:46 amura Exp $ */
+/* $Id: ttymouse.c,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Commodore Amiga mouse handling 
  * Created:	Distant past
  * Last edit:	28-Nov-87  mic@emx.cc.utexas.edu
- */
-/*
- * $Log: ttymouse.c,v $
- * Revision 1.2  2001/11/23 11:56:46  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
  */
 
 #include <exec/types.h>

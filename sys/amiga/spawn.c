@@ -1,29 +1,10 @@
-/* $Id: spawn.c,v 1.5 2002/11/06 16:05:23 amura Exp $ */
+/* $Id: spawn.c,v 1.6 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MG
  * Version:	2x
  *		Spawn an AmigaDOS subprocess
  * Last edit:	05-Sep-1987
  * By:		...!ihnp4!seismo!ut-sally!ut-ngp!mic
- */
-
-/*
- * $Log: spawn.c,v $
- * Revision 1.5  2002/11/06 16:05:23  amura
- * compile with newstyle source
- *
- * Revision 1.4  2001/11/28 17:51:48  amura
- * little modifies for support VBCC. (but not work yet)
- *
- * Revision 1.3  2001/11/23 11:56:45  amura
- * Rewrite all sources
- *
- * Revision 1.2  2000/10/23 13:17:06  amura
- * no spawncli() do change directory
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
- *
  */
 
 #include <libraries/dos.h>

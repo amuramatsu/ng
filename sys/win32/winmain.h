@@ -1,4 +1,4 @@
-/* $Id: winmain.h,v 1.3 2001/11/23 11:56:58 amura Exp $ */
+/* $Id: winmain.h,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -19,18 +19,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/*
- * $Log: winmain.h,v $
- * Revision 1.3  2001/11/23 11:56:58  amura
- * Rewrite all sources
- *
- * Revision 1.2  2000/10/23 16:52:52  amura
- * add GPL copyright to header
- *
- * Revision 1.1.1.1  2000/06/27 01:48:00  amura
- * import to CVS
- *
- */
+#ifndef __WINMAIN_H__
+#define __WINMAIN_H__
 
 #ifdef	__cplusplus
 extern "C" {
@@ -50,3 +40,5 @@ void GetWH(int *, int *);
 #ifdef	__cplusplus
 };
 #endif
+
+#endif /* __WINMAIN_H__ */

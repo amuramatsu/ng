@@ -1,21 +1,5 @@
-# $Id: Makefile,v 1.5 2002/04/18 13:49:22 amura Exp $
+# $Id: Makefile,v 1.6 2003/02/22 08:09:47 amura Exp $
 # Makefile for Ng on Human68k (SHARP X68000)
-#
-# $Log: Makefile,v $
-# Revision 1.5  2002/04/18 13:49:22  amura
-# HUMAN68K's console output routine is modified for speed
-#
-# Revision 1.4  2002/04/17 17:50:10  amura
-# add dependent rule of ttyio.o
-#
-# Revision 1.3  2001/11/23 11:56:47  amura
-# Rewrite all sources
-#
-# Revision 1.2  2001/03/02 08:48:31  amura
-# now AUTOSAVE feature implemented almost all (except for WIN32
-#
-# Revision 1.1.1.1  2000/06/27 01:47:58  amura
-# import to CVS
 #
 
 SYS	= human68k

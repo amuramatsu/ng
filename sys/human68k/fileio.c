@@ -1,49 +1,6 @@
-/* $Id: fileio.c,v 1.13 2002/04/07 01:01:31 amura Exp $ */
+/* $Id: fileio.c,v 1.14 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Human68k file I/O
- */
-
-/*
- * $Log: fileio.c,v $
- * Revision 1.13  2002/04/07 01:01:31  amura
- * HOMEDIR feature is enable always
- *
- * Revision 1.12  2002/04/06 22:59:26  amura
- * now Human68k port is validated
- *
- * Revision 1.11  2001/11/23 11:56:47  amura
- * Rewrite all sources
- *
- * Revision 1.10  2001/10/29 04:30:44  amura
- * let BUGFIX code enable always
- *
- * Revision 1.9  2001/03/02 08:48:31  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.8  2001/02/18 19:29:03  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.7  2001/01/05 13:55:27  amura
- * filename completion fixed
- *
- * Revision 1.6  2000/12/28 07:27:15  amura
- * homedirctory support with filename complition
- *
- * Revision 1.5  2000/12/27 16:55:42  amura
- * change d_makename() params for conservative reason, and bugfix in dires_()
- *
- * Revision 1.4  2000/12/14 18:10:47  amura
- * filename length become flexible
- *
- * Revision 1.3  2000/07/25 15:06:52  amura
- * handle Kanji filename of initfile
- *
- * Revision 1.2  2000/07/18 12:44:03  amura
- * fix to emacs style backup
- *
- * Revision 1.1.1.1  2000/06/27 01:47:57  amura
- * import to CVS
- *
  */
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /*		File I/O for MS-DOS */

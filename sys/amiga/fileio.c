@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.12 2002/11/06 18:06:55 amura Exp $ */
+/* $Id: fileio.c,v 1.13 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -10,33 +10,6 @@
  * knowledge is here.  Uses AmigaDOS standard I/O and does its
  * own dynamic buffering; this seems to save about 2K worth
  * of space in the executable image.
- */
-
-/*
- * $Log: fileio.c,v $
- * Revision 1.12  2002/11/06 18:06:55  amura
- * Backup file making scheme changed.
- *
- *  When editting file is soft or hardlink, backup make by copy instead of
- *  rename.
- *
- * Revision 1.10  2001/11/28 17:51:47  amura
- * little modifies for support VBCC. (but not work yet)
- *
- * Revision 1.9  2001/11/23 11:56:44  amura
- * Rewrite all sources
- *
- * Revision 1.8  2001/10/29 04:30:43  amura
- * let BUGFIX code enable always
- *
- * -- snip --
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
- * Revision 1.1  1999/05/21  00:58:37  amura
- * Initial revision
- *
  */
 
 #include "config.h"	/* Dec.15,1992 Add by H.Ohkubo */

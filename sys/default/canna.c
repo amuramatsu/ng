@@ -1,23 +1,7 @@
-/* $Id: canna.c,v 1.4 2001/11/25 19:52:04 amura Exp $ */
+/* $Id: canna.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Canna Kana-Kanji Henkan server support routine.
  *       original code written by ENDO Yasuhiro 
- */
-
-/*
- * $Log: canna.c,v $
- * Revision 1.4  2001/11/25 19:52:04  amura
- * change for compiler warnings reducing
- *
- * Revision 1.3  2001/11/23 11:56:46  amura
- * Rewrite all sources
- *
- * Revision 1.2  2000/07/16 15:43:00  amura
- * undo support
- *
- * Revision 1.1.1.1  2000/06/27 01:48:02  amura
- * import to CVS
- *
  */
 
 #include "config.h"

@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.2 2002/04/18 14:36:29 amura Exp $ */
+/* $Id: tty.c,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -24,16 +24,6 @@
  *	Using scrolling region vs insert/delete line should probably
  *	be based on cost rather than the assuption that scrolling
  *	region operations look better.
- */
-
-/*
- * $Log: tty.c,v $
- * Revision 1.2  2002/04/18 14:36:29  amura
- * now can compile without DIRECT_IOCS option
- *
- * Revision 1.1  2002/04/18 13:50:32  amura
- * HUMAN68K's console output routine is modified for speed
- *
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */

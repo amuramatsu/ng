@@ -1,40 +1,6 @@
-/* $Id: main.c,v 1.10 2001/11/23 11:56:40 amura Exp $ */
+/* $Id: main.c,v 1.11 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Mainline
- */
-
-/*
- * $Log: main.c,v $
- * Revision 1.10  2001/11/23 11:56:40  amura
- * Rewrite all sources
- *
- * Revision 1.9  2001/05/25 15:59:06  amura
- * WIN32 version support AUTOSAVE feature
- *
- * Revision 1.8  2001/05/25 15:36:53  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.7  2000/12/14 18:12:14  amura
- * use alloca() and more memory secure
- *
- * Revision 1.6  2000/09/21 17:28:31  amura
- * replace macro _WIN32 to WIN32 for Cygwin
- *
- * Revision 1.5  2000/09/01 19:36:02  amura
- * support KANJI filename on WIN32
- *
- * Revision 1.4  2000/07/25 15:06:18  amura
- * handle Kanji filename for win32
- *
- * Revision 1.3  2000/07/18 12:51:25  amura
- * cleaning code
- *
- * Revision 1.2  2000/06/27 01:49:44  amura
- * import to CVS
- *
- * Revision 1.1  2000/06/01  05:34:17  amura
- * Initial revision
- *
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */

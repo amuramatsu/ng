@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.12 2001/11/28 19:48:00 amura Exp $ */
+/* $Id: echo.c,v 1.13 2003/02/22 08:09:46 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -10,48 +10,6 @@
 /*
  * The varargs lint directive comments are 0 an attempt to get lint to shup
  * up about CORRECT usage of varargs.h.  It won't.
- */
-
-/*
- * $Log: echo.c,v $
- * Revision 1.12  2001/11/28 19:48:00  amura
- * Support strict ANSI C compilers (like HP-UX C compiler)
- *
- * Revision 1.11  2001/11/25 19:52:03  amura
- * change for compiler warnings reducing
- *
- * Revision 1.10  2001/11/23 11:56:36  amura
- * Rewrite all sources
- *
- * Revision 1.9  2001/08/03 20:22:50  amura
- * small changes for first step of history support
- *
- * Revision 1.8  2001/01/05 14:07:01  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.7  2000/11/19 18:15:11  amura
- * rename sput?() functions because HP-UX have sputl() function
- * in its library
- *
- * Revision 1.6  2000/07/18 12:38:56  amura
- * remove some compile warning
- *
- * Revision 1.5  2000/06/27 01:49:43  amura
- * import to CVS
- *
- * Revision 1.4  2000/06/04  06:21:47  amura
- * To be able to compile without KANJI
- *
- * Revision 1.3  2000/06/01  05:26:18  amura
- * Debug CANNA support
- *
- * Revision 1.2  2000/03/28  02:38:37  amura
- * CANNA support.
- * ,
- *
- * Revision 1.1  2000/03/10  21:32:52  amura
- * Initial revision
- *
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 

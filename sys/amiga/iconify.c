@@ -1,4 +1,4 @@
-/* $Id: iconify.c,v 2.3 2002/11/06 16:05:23 amura Exp $ */
+/* $Id: iconify.c,v 2.4 2003/02/22 08:09:47 amura Exp $ */
 /*
  * iconify.c
  *   Leo Schwab's iconify() compatible iconify routine.
@@ -27,20 +27,6 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.  
  */
-
-/*
- * $Log: iconify.c,v $
- * Revision 2.3  2002/11/06 16:05:23  amura
- * compile with newstyle source
- *
- * Revision 2.2  2001/11/23 11:56:44  amura
- * Rewrite all sources
- *
- * Revision 2.1  2000/09/29 17:24:09  amura
- * rewrite from scratch
- *
- */
-
 #include "config.h"
 #ifdef DO_ICONIFY
 #include "def.h"

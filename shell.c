@@ -1,25 +1,9 @@
-/* $Id: shell.c,v 1.4 2001/11/25 19:52:04 amura Exp $ */
+/* $Id: shell.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Shell commands.
  * The file contains the command
  * processor, shell-command
  *	written by Kaoru Maeda.
- */
-
-/*
- * $Log: shell.c,v $
- * Revision 1.4  2001/11/25 19:52:04  amura
- * change for compiler warnings reducing
- *
- * Revision 1.3  2001/11/23 11:56:42  amura
- * Rewrite all sources
- *
- * Revision 1.2  2001/02/18 17:07:27  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
  */
 
 #include "config.h"	/* 91.01.10  by S.Yoshida */

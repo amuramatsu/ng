@@ -1,40 +1,6 @@
-/* $Id: complt.c,v 1.10 2001/11/23 11:56:35 amura Exp $ */
+/* $Id: complt.c,v 1.11 2003/02/22 08:09:46 amura Exp $ */
 /*
  *	Complete completion functions.
- */
-
-/*
- * $Log: complt.c,v $
- * Revision 1.10  2001/11/23 11:56:35  amura
- * Rewrite all sources
- *
- * Revision 1.9  2001/07/23 17:09:02  amura
- * fix raise segmentation fault when completion after shell-command
- *
- * Revision 1.8  2001/05/25 15:36:52  amura
- * now buffers have only one mark (before windows have one mark)
- *
- * Revision 1.7  2001/02/18 17:07:24  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.6  2001/01/05 14:07:00  amura
- * first implementation of Hojo Kanji support
- *
- * Revision 1.5  2000/11/04 13:43:30  amura
- * estrlen definition is changed to K&R style
- *
- * Revision 1.4  2000/09/05 01:04:54  amura
- * support HANKANA file and buffer
- *
- * Revision 1.3  2000/06/27 01:49:42  amura
- * import to CVS
- *
- * Revision 1.2  2000/06/01  05:24:14  amura
- * More robust
- *
- * Revision 1.1  1999/05/21  02:05:34  amura
- * Initial revision
- *
  */
 /* 90.12.10  Created by Sawayanagi Yosirou */
 

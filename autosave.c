@@ -1,23 +1,8 @@
-/* $Id: autosave.c,v 1.4 2001/11/23 11:56:34 amura Exp $ */
+/* $Id: autosave.c,v 1.5 2003/02/22 08:09:46 amura Exp $ */
 /*
  Auto save support code programed by M.Suzuki
  Ver	1.0.0	1997/01/07	Create
 */
-/*
- * $Log: autosave.c,v $
- * Revision 1.4  2001/11/23 11:56:34  amura
- * Rewrite all sources
- *
- * Revision 1.3  2001/03/02 08:49:04  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.2  2001/02/18 19:27:35  amura
- * fix del_autosave_file()
- *
- * Revision 1.1  2001/02/18 17:07:23  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- */ 
 
 #include "config.h"
 

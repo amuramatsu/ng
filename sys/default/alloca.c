@@ -1,4 +1,4 @@
-/* $Id: alloca.c,v 1.2 2001/11/23 11:56:46 amura Exp $ */
+/* $Id: alloca.c,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /*
 	alloca -- (mostly) portable public-domain implementation
 
@@ -25,16 +25,6 @@
 	allocating any.  It is a good idea to use alloca(0) in
 	your main control loop, etc. to force garbage collection.
 */
-/*
- * $Log: alloca.c,v $
- * Revision 1.2  2001/11/23 11:56:46  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:48:02  amura
- * import to CVS
- *
- */
-
 #ifndef lint
 static char	SCCSid[] = "@(#)alloca.c	1.1";	/* for the "what" utility */
 #endif

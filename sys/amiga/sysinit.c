@@ -1,4 +1,4 @@
-/* $Id: sysinit.c,v 1.8 2002/11/06 16:05:23 amura Exp $ */
+/* $Id: sysinit.c,v 1.9 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Name:	MG 2a
  *
@@ -8,35 +8,6 @@
  * Created:	Stephen Walton, 3-Dec-87.
  *	
  */
-
-/*
- * $Log: sysinit.c,v $
- * Revision 1.8  2002/11/06 16:05:23  amura
- * compile with newstyle source
- *
- * Revision 1.7  2001/11/23 11:56:45  amura
- * Rewrite all sources
- *
- * Revision 1.6  2001/02/01 16:31:43  amura
- * fix small bug? in get current directory
- *
- * Revision 1.5  2000/12/22 19:48:17  amura
- * change "sysdef.h" to "def.h" for get NFILEN
- *
- * Revision 1.4  2000/12/14 18:08:35  amura
- * filename length become flexible
- *
- * Revision 1.3  2000/10/31 07:08:14  amura
- * fix bug around input.device
- *
- * Revision 1.2  2000/09/29 17:25:15  amura
- * small patch for new iconify()
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
- */
-
 /* Dec.20,1992 Add by H.Ohkubo */
 #include "config.h"	/* Dec. 16, 1992 by H.Ohkubo */
 #include "def.h"

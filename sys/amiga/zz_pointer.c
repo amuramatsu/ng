@@ -1,25 +1,9 @@
-/* $Id: zz_pointer.c,v 1.4 2002/11/06 16:05:24 amura Exp $ */
+/* $Id: zz_pointer.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /**************************************
 *  ZZ_POINTER.C  08/05/90
 *  Written by Timm Martin
 *  This source code is public domain.
 ***************************************/
-
-/*
- * $Log: zz_pointer.c,v $
- * Revision 1.4  2002/11/06 16:05:24  amura
- * compile with newstyle source
- *
- * Revision 1.3  2001/11/28 17:51:48  amura
- * little modifies for support VBCC. (but not work yet)
- *
- * Revision 1.2  2001/11/23 11:56:46  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:48:01  amura
- * import to CVS
- *
- */
 
 #include "config.h"
 #include "def.h"

@@ -1,21 +1,8 @@
-/* $Id: dosutil.c,v 1.3 2002/04/06 22:59:25 amura Exp $ */
+/* $Id: dosutil.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		UNIX like functions for Human68k.
  *
  *		Coded by Shigeki Yoshida (shige@csk.CO.JP)
- */
-
-/*
- * $Log: dosutil.c,v $
- * Revision 1.3  2002/04/06 22:59:25  amura
- * now Human68k port is validated
- *
- * Revision 1.2  2001/11/23 11:56:47  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:47:58  amura
- * import to CVS
- *
  */
 /* 90.11.9	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /* 90.02.11	Created for Ng 1.0 MS-DOS ver. by S.Yoshida */

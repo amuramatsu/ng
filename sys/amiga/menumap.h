@@ -1,4 +1,4 @@
-/* $Id: menumap.h,v 2.2 2001/11/23 11:56:44 amura Exp $ */
+/* $Id: menumap.h,v 2.3 2003/02/22 08:09:47 amura Exp $ */
 /*
  * menumap.h
  *   Amiga intuition menu mapping header for Ng 1.x
@@ -28,19 +28,10 @@
  * POSSIBILITY OF SUCH DAMAGE.  
  */
 
-/*
- * $Log: menumap.h,v $
- * Revision 2.2  2001/11/23 11:56:44  amura
- * Rewrite all sources
- *
- * Revision 2.1  2000/10/02 14:05:46  amura
- * create for new ttymenu.c
- *
- */
-
+#ifndef __MENUMAP_H__
+#define __MENUMAP_H__
 
 /*--- Functions called from menu ---*/
-
 #define _PF()	_PRO((int, int))
 
 /*
@@ -405,3 +396,4 @@ MenuMap MgMenus[] = {
     {NULL      , MENU_END, NULL         , NULL}
 };
 
+#endif /* __MENUMAP_H__ */

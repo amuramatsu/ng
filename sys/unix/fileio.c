@@ -1,57 +1,8 @@
-/* $Id: fileio.c,v 1.19 2002/11/06 18:06:55 amura Exp $ */
+/* $Id: fileio.c,v 1.20 2003/02/22 08:09:47 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
  * Create from BSD UNIX version by amura, 2000
- */
-
-/*
- * $Log: fileio.c,v $
- * Revision 1.19  2002/11/06 18:06:55  amura
- * Backup file making scheme changed.
- *
- *  When editting file is soft or hardlink, backup make by copy instead of
- *  rename.
- *
- * Revision 1.18  2002/04/07 01:01:32  amura
- * HOMEDIR feature is enable always
- *
- * Revision 1.17  2001/11/25 19:52:05  amura
- * change for compiler warnings reducing
- *
- * Revision 1.16  2001/11/23 11:56:51  amura
- * Rewrite all sources
- *
- * Revision 1.15  2001/10/29 04:30:44  amura
- * let BUGFIX code enable always
- *
- * Revision 1.14  2001/08/29 00:05:04  amura
- * change macro UNICODE to USE_UNICODE and
- * some unicode support routine for win32 are implemented
- *
- * Revision 1.13  2001/08/17 19:15:07  amura
- * first try of unicode support (unix only/win32 on the way)
- *
- * Revision 1.12  2001/03/02 08:48:32  amura
- * now AUTOSAVE feature implemented almost all (except for WIN32
- *
- * Revision 1.11  2001/02/18 19:29:04  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.10  2001/02/18 17:07:40  amura
- * append AUTOSAVE feature (but NOW not work)
- *
- * Revision 1.9  2001/02/11 15:39:01  amura
- * change getuid() geteuid()
- *
- * Revision 1.8  2001/01/05 13:55:28  amura
- * filename completion fixed
- *
- * - snip -
- *
- * Revision 1.1  2000/11/19 18:35:00  amura
- * support GNU configure system
- *
  */
 
 #include "config.h"
@@ -229,6 +180,7 @@ char *fn;
 #include <sys/stat.h>
 #define	_SYS_STAT_H_
 #endif	/* _SYS_STAT_H_ */
+#include <utime.h>
 
 /*
  * Copy file contents and attributes
@@ -240,6 +192,7 @@ char *src, *dst;
     FILE *from, *to;
     struct stat filestat;
     struct utimbuf times;
+    int c;
     
     if ((from=fopen(src, "rb")) == NULL)
 	return 1;
@@ -263,12 +216,11 @@ char *src, *dst;
     /* change attr like as original */
     /* if some error occurd, ignore it */
     
-    times.actime  = filestat.st_utime;
+    times.actime  = filestat.st_atime;
     times.modtime = filestat.st_mtime;
     utime(dst, &times);
     chmod(dst, filestat.st_mode);
-    chgrp(dst, filestat.st_gid);
-    chown(dst, filestat.st_uid);
+    chown(dst, filestat.st_uid, filestat.st_gid);
     
     return TRUE;
 }

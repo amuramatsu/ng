@@ -1,15 +1,8 @@
-/* $Id: macro.h,v 1.2 2001/11/23 11:56:40 amura Exp $ */
+/* $Id: macro.h,v 1.3 2003/02/22 08:09:47 amura Exp $ */
 /* definitions for keyboard macros */
 
-/*
- * $Log: macro.h,v $
- * Revision 1.2  2001/11/23 11:56:40  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:47:56  amura
- * import to CVS
- *
- */
+#ifndef __MACRO_H__
+#define __MACRO_H__
 
 #ifndef EXTERN
 #define EXTERN extern
@@ -32,3 +25,6 @@ EXTERN LINE *maclcur;
 
 #undef	EXTERN
 #undef	INIT
+
+#endif /* __MACRO_H__ */
+

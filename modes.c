@@ -1,25 +1,9 @@
-/* $Id: modes.c,v 1.4 2001/11/23 11:56:40 amura Exp $ */
+/* $Id: modes.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  * Commands to toggle modes. Without an argument, toggle mode.
  * Negitive or zero argument, mode off.	 Positive argument, mode on.
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
-
-/*
- * $Log: modes.c,v $
- * Revision 1.4  2001/11/23 11:56:40  amura
- * Rewrite all sources
- *
- * Revision 1.3  2000/12/14 18:12:14  amura
- * use alloca() and more memory secure
- *
- * Revision 1.2  2000/06/27 01:49:44  amura
- * import to CVS
- *
- * Revision 1.1  1999/05/19  04:22:31  amura
- * Initial revision
- *
- */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"

@@ -1,4 +1,4 @@
-/* $Id: iconify.h,v 2.1 2000/09/29 17:24:09 amura Exp $ */
+/* $Id: iconify.h,v 2.2 2003/02/22 08:09:47 amura Exp $ */
 /*
  * iconify.h
  *    Leo Schwab's iconify() compatible iconify routine header.
@@ -28,6 +28,9 @@
  * POSSIBILITY OF SUCH DAMAGE.  
  */
 
+#ifndef __ICONIFY_H__
+#define __ICONIFY_H__
+
 #define	ICON_IMAGE	0
 /* this version support only ICON_IMAGE and ICON_WB */
 /*
@@ -39,3 +42,4 @@
 int iconify(UWORD *x, UWORD *y, UWORD width, UWORD height,
 	    APTR etcptr, APTR ptr, int type);
 
+#endif /* __ICONIFY_H__ */

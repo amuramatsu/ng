@@ -1,4 +1,4 @@
-/* $Id: termcap.c,v 1.4 2002/04/06 22:59:25 amura Exp $ */
+/* $Id: termcap.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
 /*
  * termcap.c - termcap library routines for MS-DOS and OS/2
  *
@@ -8,22 +8,6 @@
  *	You may freely copy and distribute this program.
  *
  *				Junn Ohta, September 1989
- */
-
-/*
- * $Log: termcap.c,v $
- * Revision 1.4  2002/04/06 22:59:25  amura
- * now Human68k port is validated
- *
- * Revision 1.3  2001/11/28 19:02:10  amura
- * Small fixes arount termcap library.
- *
- * Revision 1.2  2001/11/23 11:56:47  amura
- * Rewrite all sources
- *
- * Revision 1.1.1.1  2000/06/27 01:48:02  amura
- * import to CVS
- *
  */
 
 #include "config.h"
