@@ -1,8 +1,11 @@
-# $Id: GNUmakefile,v 1.3 2001/11/23 11:56:47 amura Exp $
+# $Id: GNUmakefile,v 1.4 2002/04/17 17:50:10 amura Exp $
 # GNUmakefile for Ng on Human68k (SHARP X68000)
 #	This makefile requires GNU make		91.01.20  by K.Maeda.
 #
 # $Log: GNUmakefile,v $
+# Revision 1.4  2002/04/17 17:50:10  amura
+# add dependent rule of ttyio.o
+#
 # Revision 1.3  2001/11/23 11:56:47  amura
 # Rewrite all sources
 #
@@ -126,6 +129,8 @@ re_search.o:	$(INCS) $(OINCS) $(REINCS) macro.h
 regex.o:	$(INCS) $(OINCS) $(REINCS)
 
 skg.o: 		$(INCS) $(OINCS) macro.h key.h undo.h
+
+ttyio.o:	$(INCS) $(OINCS) fepctrl.h
 
 sysdef.h:	$(SYSDIR)sysdef.h	# Update, if needed.
 	$(CP) $(SYSDIR)sysdef.h .

@@ -1,7 +1,10 @@
-# $Id: Makefile,v 1.3 2001/11/23 11:56:47 amura Exp $
+# $Id: Makefile,v 1.4 2002/04/17 17:50:10 amura Exp $
 # Makefile for Ng on Human68k (SHARP X68000)
 #
 # $Log: Makefile,v $
+# Revision 1.4  2002/04/17 17:50:10  amura
+# add dependent rule of ttyio.o
+#
 # Revision 1.3  2001/11/23 11:56:47  amura
 # Rewrite all sources
 #
@@ -111,6 +114,8 @@ re_search.o:	$(INCS) $(OINCS) $(REINCS) macro.h
 regex.o:	$(INCS) $(OINCS) $(REINCS)
 
 skg.o: 		$(INCS) $(OINCS) macro.h key.h undo.h
+
+ttyio.o:	$(INCS) $(OINCS) fepctrl.h
 
 sysdef.h:	sys\$(SYS)\sysdef.h	# Update, if needed.
 	copy sys\$(SYS)\sysdef.h
