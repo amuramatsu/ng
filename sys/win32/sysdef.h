@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.5 2001/01/17 18:34:53 amura Exp $ */
+/* $Id: sysdef.h,v 1.6 2001/02/18 17:00:02 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.6  2001/02/18 17:00:02  amura
+ * some definitions are imported form def.h
+ *
  * Revision 1.5  2001/01/17 18:34:53  amura
  * now compile successfull on VC++ and BC++
  *
@@ -79,19 +82,30 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
 char *getenv();
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
+
 #ifdef __BORLANDC__
 #include <malloc.h>	/* for alloca() definition */
 #else
 #define alloca(n)	_alloca(n)
 #endif
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+void	strcat_num(char *str, int num);
+void	strcat_char(char *str, int c);
+int	stricmp(const char *src, const char *dst);
+int	chdir(const char *dir );
+int	Fputc(int c);
+int	Sprintf(char *buf, const char *fmt, ... );
+#ifdef	__cplusplus
+}
+#endif
+
 #ifdef	putc
 #undef	putc
 #endif
 #define	putc(c,fp)	Fputc(c)
-#ifdef	__cplusplus
-extern "C" int Fputc(int c);
-#else
-extern	int Fputc(int c);
-#endif
+#define	exit(rc)	Exit(rc)
+#define	sprintf		Sprintf
 
