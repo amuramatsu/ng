@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.11 2001/02/11 15:40:24 amura Exp $ */
+/* $Id: display.c,v 1.12 2001/02/14 09:18:55 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.12  2001/02/14 09:18:55  amura
+ * code cleanup around putline()
+ *
  * Revision 1.11  2001/02/11 15:40:24  amura
  * some function are changed to static for speed/size
  *
@@ -410,11 +413,24 @@ vtputc(c) register int c; {
 	}
 }
 
-#if defined(MEMMAP)&&(!defined(PC9801))
+#if defined(MEMMAP)&&(!defined(PC9801))&&(!defined(WIN32))
 static VOID
-putline(int row, int col, unsigned char *s, unsigned char *t)
+#ifdef	SS_SUPPORT
+putline(row, col, s, t, color)
+unsigned char *s;
+unsigned char *t;
+short color;	/* this is dummy */
+#else
+putline(row, col, s, color)
+unsigned char *s;
+short color;	/* this is dummy */
+#endif
 {
     register int i;
+    unsigned char c;
+#ifdef	SS_SUPPORT
+    unsigned char c1;
+#endif
     int oldrow = vtrow;
     int oldcol = vtcol;
 
@@ -423,17 +439,31 @@ putline(int row, int col, unsigned char *s, unsigned char *t)
 
     for (i=row; i<=MAXROW; i++)
     {
+	c = *s++;
+#ifdef	SS_SUPPORT
+	if (vtkattr == ASCII) {
+	    c1 = *t++;
 #ifdef	HANKANA
-	if (ISHANKANA(*t++))
-	    vtkattr = HAN1ST;
+	    if (ISHANKANA(c) && c1!=0) {
+		vtkattr = HAN1ST;
+		c = c1;
+	    }
 #endif
-	vtputc(*s++);
+#ifdef	HOJO_KANJI
+	    if (ISHOJO(c) && c1!=0) {
+		vtkattr = HOJO1ST;
+		c = c1;
+	    }
+#endif
+	}
+#endif
+	vtputc(c);
     }
 
     vtrow = oldrow;
     vtcol = oldcol;
 }
-#endif /* MEMMAP && !PC9801 */
+#endif /* MEMMAP && !PC9801 && !WIN32 */
 
 /* Mark '\\' end of line 
  * whether curcol is not on the top of line.
@@ -509,6 +539,7 @@ int	*lines;
 #ifdef	HANKANA
 		if (ISHANKANA(c) && c1 == 1 )
 		    --(*curcol); 
+#endif
 		if (c == '\t'
 #ifdef	NOTAB
 			&& !(curbp->b_flag & BFNOTAB)
@@ -543,7 +574,7 @@ int	*lines;
 		if (ISKANJI(c)
 #ifdef	HANKANA
 		    && ISHANKANA(c)
-#endif	/* HANKANA */
+#endif
 		)	{
 			++(*lines);
 			*curcol = 0;
@@ -1070,28 +1101,14 @@ ucopy(vvp, pvp) register VIDEO *vvp; register VIDEO *pvp; {
  * reverse video works on most terminals.
  */
 static VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
-#if defined(WIN32)
-#ifdef	SS_SUPPORT
-	putline( row, 0, &vvp->v_text[0], &vvp->v_sub(0), vvp->v_color ) ;
-#else
-	putline( row, 0, &vvp->v_text[0], vvp->v_color ) ;
-#endif
-#elif defined(MEMMAP)
+#ifdef	MEMMAP
 	ttflush();	/* 90.06.09  by A.Shirahashi */
-#ifdef	PC9801	/* 90.03.24  by A.Shirahashi */
 #ifdef	SS_SUPPORT  /* 92.11.21  by S.Sasaki */
 	putline(row+1, 1, &vvp->v_text[0], &vvp->v_sub(0), vvp->v_color);
-#else  /* not SS_SUPPORT */
+#else
 	putline(row+1, 1, &vvp->v_text[0], vvp->v_color);
-#endif  /* SS_SUPPORT */
-#else	/* NOT PC9801 */
-#ifdef	SS_SUPPORT  /* 92.11.21  by S.Sasaki */
-	putline(row+1, 1, &vvp->v_text[0], &vvp->v_sub(0));
-#else  /* not SS_SUPPORT */
-	putline(row+1, 1, &vvp->v_text[0]);
-#endif  /* SS_SUPPORT */
-#endif	/* PC9801 */
-#else   /* not WIN32 && MEMMAP */
+#endif
+#else   /* not MEMMAP */
 	register char	*cp1;
 	register char	*cp2;
 	register char	*cp3;
@@ -1212,12 +1229,11 @@ static VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 		return;
         }
 	nbflag = FALSE;
-#ifdef	BUGFIX	/* 1999.09.07 by M.Suzuki */
-	ccp3 = cp3 = &vvp->v_text[ncol];	/* Compute right match. */
-	ccp4 = cp4 = &pvp->v_text[ncol];
-#else
 	cp3 = &vvp->v_text[ncol];		/* Compute right match. */
 	cp4 = &pvp->v_text[ncol];
+#ifdef	SS_SUPPORT	/* 1999.09.07 by M.Suzuki */
+	ccp3 = cp3;
+	ccp4 = cp4;
 #endif
 
 	while (cp3[-1] == cp4[-1]) {
@@ -1318,7 +1334,6 @@ static VOID uline(row, vvp, pvp) VIDEO *vvp; VIDEO *pvp; {
 #endif
         ttflush(); /* 90.06.09  by A.Shirahashi */
 #endif  /* MEMMAP */
-#endif	/* WIN32 */
 }
 
 /*

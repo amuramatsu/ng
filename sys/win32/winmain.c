@@ -1,4 +1,4 @@
-/* $Id: winmain.c,v 1.7 2001/01/20 15:47:23 amura Exp $ */
+/* $Id: winmain.c,v 1.8 2001/02/14 09:19:09 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -27,6 +27,9 @@
 
 /*
  * $Log: winmain.c,v $
+ * Revision 1.8  2001/02/14 09:19:09  amura
+ * code cleanup around putline()
+ *
  * Revision 1.7  2001/01/20 15:47:23  amura
  * putline() support Hojo Kanji now
  *
@@ -1384,7 +1387,7 @@ putline(int row, int column, unsigned char *s, short color)
 			*dst++ = c ;
 	}
 	*dst = 0 ;
-	PutLine(row, sjis, (short)(color == CMODE ? 1 : 0));
+	PutLine(row-1, sjis, (short)(color == CMODE ? 1 : 0));
 }
 
 #if defined(COMMANDBANDS) && !defined(USE_SHMENU)
