@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: basic.c,v 1.11.2.1 2003/02/26 00:08:57 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -12,8 +12,6 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-
-VOID setgoal();
 
 /*
  * Go to beginning of line.
@@ -32,11 +30,6 @@ int f, n;
  * right thing if the count is less than
  * 0. Error if you try to move back from
  * the beginning of the buffer.
-#ifdef	KANJI
- * (91.01.01  Add comment by S.Yoshida)
- * When after moving "n" bytes, here is KANJI 2nd byte,
- * go to the KANJI 1st byte of that char.
-#endif
  */
 /*ARGSUSED*/
 int
@@ -45,10 +38,7 @@ int f;
 register int n;
 {
     register LINE *lp;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    register int kanji2nd = 0;	/* Now on a KANJI 2nd byte. */
-#endif /* KANJI */ 
-   if (n < 0)
+    if (n < 0)
 	return forwchar(f, -n);
     while (n--) {
 	if (curwp->w_doto == 0) {
@@ -61,44 +51,9 @@ register int n;
 	    curwp->w_doto  = llength(lp);
 	    curwp->w_flag |= WFMOVE;
 	}
-	else {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    if (kanji2nd) {
-		kanji2nd--;
-	    }
-	    else if (ISKANJI(lgetc(curwp->w_dotp, curwp->w_doto - 1))) {
-#ifdef HOJO_KANJI
-		if (ISHOJO(lgetc(curwp->w_dotp, curwp->w_doto - 2)))
-		    kanji2nd = 2;
-		else
-#endif /* HOJO_KANJI */
-		    kanji2nd = 1;
-	    }
-#endif /* KANJI */
+	else
 	    curwp->w_doto--;
-	}
     }
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    if (kanji2nd) {			/* When stop at KANJI 2nd byte. */
-	if (
-#ifdef	HOJO_KANJI
-	    (kanji2nd==2 && curwp->w_doto == 1) ||
-#endif
-	    curwp->w_doto == 0) { /* This is illegal, but... */
-	    if ((lp=lback(curwp->w_dotp)) == curbp->b_linep) {
-		if (!(f & FFRAND))
-		    ewprintf("Beginning of buffer");
-		return (FALSE);
-	    }
-	    curwp->w_dotp  = lp;
-	    curwp->w_doto  = llength(lp);
-	    curwp->w_flag |= WFMOVE;
-	}
-	else {		/* Go back KANJI 1st byte.	*/
-	    curwp->w_doto -= kanji2nd;
-	}
-    }
-#endif	/* KANJI */
     return TRUE;
 }
 
@@ -119,12 +74,6 @@ int f, n;
  * right thing if the count is less than
  * 0. Error if you try to move forward
  * from the end of the buffer.
-#ifdef	KANJI
- * (91.01.01  Add comment by S.Yoshida)
- * When after moving "n" bytes, here is KANJI 2nd byte,
- * if "n" is 1 byte, go to next char, other go back to
- * the KANJI 1st byte of that char.
-#endif
  */
 /*ARGSUSED*/
 int
@@ -132,10 +81,6 @@ forwchar(f, n)
 int f;
 register int n;
 {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    register int kanji2nd = 0;		/* Now on a KANJI 2nd byte. */
-    register int oldn = n;
-#endif /* KANJI */
     if (n < 0)
 	return backchar(f, -n);
     while (n--) {
@@ -150,37 +95,9 @@ register int n;
 	    curwp->w_doto  = 0;
 	    curwp->w_flag |= WFMOVE;
 	}
-	else {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    if (kanji2nd) {
-		kanji2nd--;
-#ifdef HOJO_KANJI
-	    }
-	    else if (ISHOJO(lgetc(curwp->w_dotp, curwp->w_doto))) {
-		kanji2nd = 2;
-#endif /* HOJO_KANJI */
-	    }
-	    else if (ISKANJI(lgetc(curwp->w_dotp, curwp->w_doto))) {
-		kanji2nd = 1;
-	    }
-#endif /* KANJI */
+	else
 	    curwp->w_doto++;
-	}
     }
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    if (kanji2nd) {			/* When stop at KANJI 2nd byte.	*/
-	if (oldn == 1) {		/* Special case. Go to next char. */
-	    curwp->w_doto += kanji2nd;
-	}
-	else {			/* Go back KANJI 1st byte.	*/
-	    curwp->w_doto--;
-#ifdef HOJO_KANJI
-	    if (ISHOJO(lgetc(curwp->w_dotp, curwp->w_doto)))
-		curwp->w_doto--;
-#endif
-	}
-    }
-#endif /* KANJI */
     return TRUE;
 }
 
@@ -245,7 +162,7 @@ int f, n;
 
 
 #ifdef	ADDFUNC
-int line_number_mode = FALSE;
+static int line_number_mode = FALSE;
 
 int
 linenumbermode(f, n)
@@ -400,56 +317,29 @@ register LINE *dlp;
     register int col;
     register int newcol;
     register int dbo;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-    register int kanji2nd = FALSE;	/* Now on a KANJI 2nd byte. */
-#endif	/* KANJI */
-#ifdef  VARIABLE_TAB
+#ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
-#endif  /* VARIABLE_TAB */
+#endif
+    int (*width)(NG_WCHAR_t) = curbp->lang.lm_width;
 
     col = 0;
     dbo = 0;
     while (dbo != llength(dlp)) {
 	c = lgetc(dlp, dbo);
 	newcol = col;
-#ifdef	HOJO_KANJI
-	if (ISHOJO(c) && !kanji2nd) {
-	    dbo++;
-	    continue;
-	}
-#endif	/* HOJO_KANJI */
-	if (c == '\t'
-#ifdef	NOTAB
-	    && !(curbp->b_flag & BFNOTAB)
-#endif
-	    )
+	if (c == NG_WTAB && !(curbp->b_flag & BFNOTAB)) {
 #ifdef VARIABLE_TAB
-	    newcol = (newcol/tab + 1)*tab -1;
+	    newcol = (newcol/tab + 1)*tab - 1;
 #else
 	    newcol |= 0x07;
 #endif
-	else if (ISCTRL(c) != FALSE)
-	    ++newcol;
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	else if (ISHANKANA(c) && !kanji2nd)
-	    --newcol;
-#endif  /* HANKANA */
-	++newcol;
+	}
+	else
+	    newcol += width(c);
 	if (newcol > curgoal)
 	    break;
 	col = newcol;
 	++dbo;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	if (kanji2nd) {
-	    kanji2nd = FALSE;
-	}
-	else if (ISKANJI(c)) {
-	    kanji2nd = TRUE;
-	}
-    }
-    if (kanji2nd) {		/* When stop at KANJI 2nd byte,	*/
-	dbo--;			/* go back KANJI 1st byte.	*/
-#endif	/* KANJI */
     }
     return (dbo);
 }

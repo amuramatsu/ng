@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.20 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: buffer.c,v 1.20.2.1 2003/02/26 00:08:57 amura Exp $ */
 /*
  *		Buffer handling.
  */
@@ -12,9 +12,10 @@
 #endif
 
 #ifdef VARIABLE_TAB
-int defb_tab = 8;
-int cmode_tab = 0;
+LINE_OFF_t defb_tab = 8;
+LINE_OFF_t cmode_tab = 0;
 #endif /* VARIABLE_TAB */
+
 #define	GETNUMLEN	6
 static BUFFER *makelist _PRO((void));
 static long buffersize _PRO((BUFFER*));
@@ -689,7 +690,7 @@ int f, n;
     else if ((bp=bfind(bufn, FALSE)) == NULL)
 	return FALSE;
 
-    if (bp==curbp) {
+    if (bp == curbp) {
 	ewprintf("Cannot insert buffer into self");
 	return FALSE;
     }

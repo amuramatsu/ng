@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.9 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: undo.h,v 1.9.2.1 2003/02/26 00:08:57 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -8,33 +8,6 @@
 
 #ifndef __UNDO_H__
 #define __UNDO_H__
-
-#define UDNONE		0
-#define	UDDEL		1
-#define UDBS		2
-#define UDINS		3
-#define	UDINSNL		3	/* this is backward compatibirity */
-#define UDOVER		5
-#define UDTWIDDLE	6
-#define	UDREPL		7
-
-#define UDMASK		0x0F
-#define	UDFIRST		0x10
-
-typedef struct UNDO_DATA {
-    int u_type;
-    int u_dotlno;
-    short u_doto;
-    RSIZE u_size;
-    char u_code[2];
-    struct UNDO_DATA* u_next;
-    RSIZE u_used;
-    char *u_buffer;
-} UNDO_DATA;
-
-extern UNDO_DATA** undoptr;
-extern UNDO_DATA** undostart;
-extern UNDO_DATA** undobefore;
 
 /* undo support functions */
 
