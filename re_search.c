@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.5 2001/11/25 19:52:04 amura Exp $ */
+/* $Id: re_search.c,v 1.6 2001/11/28 19:48:01 amura Exp $ */
 /*
  *		regular expression search commands for
  *			   MicroGnuEmacs
@@ -71,6 +71,9 @@ what you give them.   Help stamp out software-hoarding!
 
 /*
  * $Log: re_search.c,v $
+ * Revision 1.6  2001/11/28 19:48:01  amura
+ * Support strict ANSI C compilers (like HP-UX C compiler)
+ *
  * Revision 1.5  2001/11/25 19:52:04  amura
  * change for compiler warnings reducing
  *
@@ -563,10 +566,10 @@ char *prompt;
 	/* New pattern given */
 	(VOID) strcpy(re_pat, tpat);
 	re_buff.allocated = 40;
-	re_buff.buffer = (char *) malloc (re_buff.allocated);
+	re_buff.buffer = (char *) malloc(re_buff.allocated);
 	re_buff.fastmap = fastmap;
 	if (casefoldsearch)
-	    re_buff.translate = upcase;
+	    re_buff.translate = (char *)upcase;
 	else
 	    re_buff.translate = '\0';
 	message = re_compile_pattern (re_pat, strlen(re_pat), &re_buff);

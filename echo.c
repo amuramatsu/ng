@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.11 2001/11/25 19:52:03 amura Exp $ */
+/* $Id: echo.c,v 1.12 2001/11/28 19:48:00 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -14,6 +14,9 @@
 
 /*
  * $Log: echo.c,v $
+ * Revision 1.12  2001/11/28 19:48:00  amura
+ * Support strict ANSI C compilers (like HP-UX C compiler)
+ *
  * Revision 1.11  2001/11/25 19:52:03  amura
  * change for compiler warnings reducing
  *
@@ -81,7 +84,7 @@ static VOID eformat _PRO((register char *fp, register va_list *ap));
 static VOID eputi _PRO((int, int));
 static VOID eputl _PRO((long, int));
 static VOID eputs _PRO((char *));
-static VOID eputc _PRO((char));
+static VOID eputc _PRO((int));
 #ifndef NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
 static int complt _PRO((int, int, char *, int));
 #endif /* NEW_COMPLETE */
@@ -321,8 +324,8 @@ static int mb_isbol _PRO((void));
 static int mb_isword _PRO((void));
 static int mb_gotochar _PRO((int));
 static int mb2_gotochar _PRO((int));
-static int mb_insert _PRO((int, char));
-static int mb2_insert _PRO((int, char));
+static int mb_insert _PRO((int, int));
+static int mb2_insert _PRO((int, int));
 static int mb_insertstr _PRO((char *));
 static VOID mb_insertcmplmsg _PRO((char *));
 static int mb2_insertcmplmsg _PRO((char *));
@@ -350,9 +353,9 @@ static int mb2_cancel _PRO((void));
 static int mb_kill _PRO((void));
 static int mb_yank _PRO((int));
 static int mb_trans _PRO((int));
-static int mb_matchparen _PRO((int, char, char));
+static int mb_matchparen _PRO((int, int, int));
 static int mb_col _PRO((struct _Line *, int));
-static int mb_putchar _PRO((char));
+static int mb_putchar _PRO((int));
 static VOID mb_move _PRO((int));
 static VOID mb_movech _PRO((int));
 static int mb_fixlines _PRO((int, struct _Line *, int, int *, int *));
@@ -363,7 +366,7 @@ static char* sformat _PRO((char *, va_list *));
 static int s_put_i _PRO((char *, int, int, int, int));
 static int s_put_l _PRO((char *, int, int, long, int));
 static int s_put_s _PRO((char *, int, int, char *));
-static int s_put_c _PRO((char *, int, int, char));
+static int s_put_c _PRO((char *, int, int, int));
 static VOID chsize _PRO((char *, int *, int *));
 static VOID chsize2 _PRO((char *, int *, int *));
 
@@ -959,8 +962,7 @@ int i;
 
 static int
 mb_insert(n, c)
-int  n;
-char c;
+int n, c;
 {
     int col, pt, ocol, opt;
 #ifdef KANJI
@@ -1038,8 +1040,7 @@ char c;
 
 static int
 mb2_insert(n, c)
-int  n;
-char c;
+int n, c;
 {
     if (n < 0)
 	return -1;
@@ -1663,7 +1664,7 @@ int n;
 static int
 mb_matchparen(n, opar, cpar)
 int n;
-char opar, cpar;
+int opar, cpar;
 {
     int i, dep, dep2, instr, oinstr, point, v, m;
     int col, ocol, pt, opt, red, match, on;
@@ -1794,7 +1795,7 @@ int pt;
 
 static int
 mb_putchar(c)
-char c;
+int c;
 {
     int i, more;
     char *new_mb_buf;
@@ -2180,7 +2181,7 @@ static int
 s_put_c(p, idx, n, c)
 register char *p;
 register int idx, n;
-register char c;
+register int c;
 {
     epresf = TRUE;
 
@@ -3134,7 +3135,7 @@ register char *s;
  */
 static VOID
 eputc(c)
-register char c;
+register int c;
 {
     epresf = TRUE;
 #ifdef  MINIBUF_EDIT

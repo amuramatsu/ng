@@ -1,4 +1,4 @@
-/* $Id: skg.c,v 1.11 2001/11/25 19:52:04 amura Exp $ */
+/* $Id: skg.c,v 1.12 2001/11/28 19:48:01 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
@@ -7,6 +7,9 @@
 
 /*
  * $Log: skg.c,v $
+ * Revision 1.12  2001/11/28 19:48:01  amura
+ * Support strict ANSI C compilers (like HP-UX C compiler)
+ *
  * Revision 1.11  2001/11/25 19:52:04  amura
  * change for compiler warnings reducing
  *
@@ -400,8 +403,8 @@ int size;
 	register ROMANTBL *romanptr = romantbl;
 	while (romanptr < romantbl_end) {
 	    if (compare_string(ptr, romanptr->roman)) {
-		strcat(dstr, romanptr->kana);
-		ptr += strlen(romanptr->roman);
+		strcat((char *)dstr, (char *)romanptr->kana);
+		ptr += strlen((char *)romanptr->roman);
 		break;
 	    }
 	    romanptr++;
@@ -468,9 +471,9 @@ skg_init()
 	   fscanf(romanfile, "%s %s", bufkey, bufstr) != EOF) {
 	if (bufkey[0]=='\0' || bufstr[0]=='\0')
 	    continue;
-	strncpy(romanptr->roman, bufkey, ROMAN_MAXLEN);
+	strncpy((char *)romanptr->roman, bufkey, ROMAN_MAXLEN);
 	romanptr->roman[ROMAN_MAXLEN-1] = '\0';
-	strncpy(romanptr->kana,  bufstr, KANA_MAXLEN);
+	strncpy((char *)romanptr->kana,  bufstr, KANA_MAXLEN);
 	romanptr->kana[KANA_MAXLEN-1]   = '\0';
 	romanptr++;
 	romantbl_size++;
@@ -621,11 +624,11 @@ WORDLIST dictionary_list;
 register char *target, *dstr;
 {
     if (target == NULL)
-	target = dictionary_list + 1;
+	target = (char *)(dictionary_list + 1);
     else {
 	target++;
 	if (*target=='\0' || *target == '\n' || *target == '\r')
-	    target = dictionary_list + 1;
+	    target = (char *)(dictionary_list + 1);
     }
     while (*target != '/')
 	*dstr++ = *target++;
@@ -639,11 +642,13 @@ WORDLIST dictionary_list;
 register char *target, *dstr;
 {
     if (target == (char *)dictionary_list) 
-	target = dictionary_list + strlen(dictionary_list) - 1;
+	target = (char *)(dictionary_list +
+			  strlen((char *)dictionary_list) - 1);
     for (target-- ; *target != '/' ; target--);
 
     if (target == (char *)dictionary_list) 
-	target = dictionary_list + strlen(dictionary_list) - 1;
+	target = (char *)(dictionary_list +
+			  strlen((char *)dictionary_list) - 1);
     for (target-- ; *target != '/' ; target--)
 	;
     target++;
@@ -823,8 +828,8 @@ WORDLIST dlist;
 	    match_strings++;
 	    ewprintf("(Matching %d targets)", match_strings); 
 	    
-	    strcpy(dlist, tmplist); 
-	    strcpy(rstr,  tmprstr); 
+	    strcpy((char *)dlist, tmplist); 
+	    strcpy((char *)rstr,  tmprstr); 
 	    if (target_number < MAX_TARGET) {
 		strcpy(ctarget[target_number].list, tmplist);
 		strcpy(ctarget[target_number].rest, tmprstr);
@@ -833,14 +838,14 @@ WORDLIST dlist;
 	}
     }
 
-    if (strlen(dlist) == 0) {
+    if (strlen((char *)dlist) == 0) {
 	if (mode == H_MODE) {
 	    convert_to_hiragana(tmpstr, istr, sizeof(tmpstr));
-	    sprintf(dlist, "/%s/", tmpstr);
+	    sprintf((char *)dlist, "/%s/", tmpstr);
 	    clear_string(rstr);
 	}
 	else /* if (mode == A_MODE) */ {
-	    sprintf(dlist, "/%s/", istr);
+	    sprintf((char *)dlist, "/%s/", istr);
 	    clear_string(rstr);
 	}
     }
@@ -857,9 +862,9 @@ WORDLIST dlist;
 		
 		makedic(ctarget[i].list, ctarget[i].rest, 
 			strlen(rstr), tmplist); 
-		if (strlen(dlist)+strlen(tmplist)+1 > DIC_BUFFER_SIZE)
+		if (strlen((char *)dlist)+strlen(tmplist)+1 > DIC_BUFFER_SIZE)
 		    break;
-		strcat(dlist, tmplist);
+		strcat((char *)dlist, tmplist);
 	    }
 	}
     }
@@ -890,8 +895,9 @@ register char *keystr;
 	    register ROMANTBL *romanptr = romantbl;
 	    while (romanptr < romantbl_end) {
 		if (compare_string(ptr, romanptr->roman)) {
-		    int len = strlen(romanptr->roman);
-		    strcpy(dickeyptr->hiragana, romanptr->kana);
+		    int len = strlen((char *)romanptr->roman);
+		    strcpy((char *)dickeyptr->hiragana,
+			   (char *)romanptr->kana);
 		    dickeyptr->length = len;
 		    dickeyptr->flg    = TRUE;
 		    dickeyptr++; 
@@ -907,9 +913,9 @@ register char *keystr;
 			break;
 		    
 		    if (ISUPPER(*ptr))
-			strcpy(dickeyptr->hiragana , KATA_SMALL_TSU);
+			strcpy((char *)dickeyptr->hiragana, KATA_SMALL_TSU);
 		    else
-			strcpy(dickeyptr->hiragana , HIRA_SMALL_TSU);
+			strcpy((char *)dickeyptr->hiragana, HIRA_SMALL_TSU);
 		    dickeyptr->length = 1;
 		    dickeyptr->flg = TRUE;
 		    dickeyptr++;
@@ -953,9 +959,9 @@ int length;
     while (klen < clen) {
 	if (!dickeyptr->flg)
 	    break;
-	strcat(dstr, dickeyptr->hiragana);
+	strcat(dstr, (char *)dickeyptr->hiragana);
 	cpnt += dickeyptr->length;
-	klen += strlen(dickeyptr->hiragana) / 2; 
+	klen += strlen((char *)dickeyptr->hiragana) / 2; 
 	dickeyptr++;
     }
     
