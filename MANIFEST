@@ -1,4 +1,4 @@
-# $Id: MANIFEST,v 1.1 2000/06/27 01:47:57 amura Exp $
+# $Id: MANIFEST,v 1.2 2000/06/29 00:14:46 amura Exp $
    File Name			  Description
 -----------------------------------------------------------
  COPYING			GNU EMACS GENERAL PUBLIC LICENSE
@@ -10,8 +10,7 @@
  complt.h			〃
  config.h			〃
  def.h				〃
- dot.ng				Ng 初期設定サンプルファイル
- dir.c				共通部分ソース
+ dir.c				〃
  dired.c			〃
  display.c			〃
  docs				ドキュメントディレクトリ
@@ -19,8 +18,8 @@
  docs/CHANGES.new		Ng チェンジノート(1.4beta1以降)
  docs/CHANGES.Ami		Ng AMIGA 版チェンジノート
  docs/CHANGES.W32		Ng Win32 版チェンジノート
- docs/Ng.doc			Ng 機能説明
  docs/Ng.FAQ			Ng Frequentry Asking Question 集
+ docs/Ng.doc			Ng 機能説明
  docs/Ng.ref			Ng レファレンスガイド
  docs/Ng.tut			Ng 入門編
  docs/README			Mg 2a 説明
@@ -36,6 +35,7 @@
  docs/mgprog.doc		Mg プログラム説明書
  docs/mg.tex			Mg リファレンスマニュアル (TeX テキスト)
  docs/supdoc.w32		Ng 1.3 for win32 補足説明
+ dot.ng				Ng 初期設定サンプルファイル
  echo.c				〃
  extend.c			〃
  file.c				〃
@@ -69,21 +69,23 @@
  skg.c				〃
  sys				OS 依存部ディレクトリ
  sys/amiga			AMIGA 用ディレクトリ
+ sys/amiga/DMakefile		DICE 用の DMakefile
+ sys/amiga/KgMenus.c		AMIGA 依存部分ソース
+ sys/amiga/KgMenus.h		〃
+ sys/amiga/Kgremotemenus.c	〃
+ sys/amiga/Makefile		Manx 用の Makefile (sample/untested)
+ sys/amiga/Makefile.SAS6	SAS C v6 用の Makefile (sample/untested)
+ sys/amiga/Makefile.gcc		GeekGadgets 用の Makefile
+ sys/amiga/Ng-startup		Ng 初期設定サンプルファイル
  sys/amiga/alloca.asm		alloca() がないコンパイラ用のアセンブラソース
- sys/amiga/amiga_ma???.c	AMIGA 依存部分ソース
+ sys/amiga/amiga_maps.c		AMIGA 依存部分ソース
  sys/amiga/clipboard.c		〃
  sys/amiga/console.c		〃
  sys/amiga/dirio.c		〃
  sys/amiga/fileio.c		〃
  sys/amiga/iconify.c		〃
  sys/amiga/iconify.h		〃
- sys/amiga/KGmenus.c		〃
- sys/amiga/KGmenus.h		〃
- sys/amiga/KGremote.c		〃
- sys/amiga/Makefile		SAS C 用の Makefile
- sys/amiga/Makefile.dice	DICE + Unix like MAKE 用の Makefile
- sys/amiga/Makefile.gcc		GeekGadgets 用の Makefile
- sys/amiga/menustack.c		AMIGA 依存部分ソース
+ sys/amiga/menustack.c		〃
  sys/amiga/offset.c		〃
  sys/amiga/sleep.c		〃
  sys/amiga/spawn.c		〃
@@ -96,7 +98,8 @@
  sys/amiga/ttykbd.c		〃
  sys/amiga/ttymenu.c		〃
  sys/amiga/ttymouse.c		〃
- sys/amiga/zz_pointer.c		〃
+ sys/amiga/varargs.h		ローカルな varargs.h を使う場合のヘッダ (Amiga)
+ sys/amiga/zz_pointer.c		AMIGA 依存部分ソース
  sys/amiga/zz_pointer.h		〃
  sys/bsd			BSD 用ディレクトリ
  sys/bsd/Makefile		BSD 用 Makefile
@@ -159,7 +162,7 @@
  sys/sysv/ttyio.c		〃
  sys/win32			Win32 用ディレクトリ
  sys/win32/appicon.ico		Win32 用アイコン
- sys/win32/ce1appicon.ico	Win32 用アイコン（白黒）
+ sys/win32/ce1appicon.ico	Win32 用アイコン (白黒)
  sys/win32/ce2appicon.ico	Win32 用アイコン
  sys/win32/fileio.c		Win32 依存部分ソース
  sys/win32/ngbc.mak		Borland C++ 用メイクファイル
