@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.9 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: sysdef.h,v 1.9.2.1 2003/02/28 17:52:48 amura Exp $ */
 /*
  * Name:	MicroEMACS
  * Version:	MG 2a
@@ -34,6 +34,7 @@ void *alloca(int);
 #define	HAVE_GETCWD
 #define	VARARGS
 #define	DPROMPT				/* we always want delayed prompts */
+#define NFILEN		256		/* Length, file name.		*/
 #define	KBLOCK		4096		/* Kill grow.			*/
 #define	GOOD		0		/* Good exit status.		*/
 #define	SYSINIT		sysinit()	/* System-specific initialization */

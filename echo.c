@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16 2003/02/25 09:01:33 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.1 2003/02/28 17:52:48 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -270,7 +270,6 @@ struct _Line {
 };
 
 /* for Minibuffer history */
-#define MB_NHISTS		10
 #define MB_HIST_FUNC		0
 #define MB_HIST_BUF		1
 #define MB_HIST_FILE		2

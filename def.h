@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.21.2.2 2003/02/28 17:47:18 amura Exp $ */
+/* $Id: def.h,v 1.21.2.3 2003/02/28 17:52:48 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -75,27 +75,23 @@ typedef int (*PF) _PRO((int, int)); /* generaly useful type */
 /*
  * Table sizes, etc.
  */
-#if defined(MSDOS)
-#define NFILEN	80			/* Length, file name.		*/
-#elif defined(HUMAN68K)
-#define NFILEN	128			/* Length, file name.		*/
-#elif defined(AMIGA)
-#define NFILEN	256			/* Length, file name.		*/
-#else /* Maybe Win32 or UN*X */
-#define NFILEN	1024			/* Length, file name.		*/
+#ifndef NFILEN /* Maybe Win32 or UN*X */
+#define NFILEN		1024		/* Length, file name.		*/
 #endif
-#define NBUFN	32			/* Length, buffer name.		*/
-#define NLINE	256			/* Length, line.		*/
-#define NINPUT	32			/* Length, small minibuf input	*/
+#define NBUFN		32		/* Length, buffer name.		*/
+#define NLINE		256		/* Length, line.		*/
+#define NINPUT		32		/* Length, small minibuf input	*/
 #define TERMCAP_BUF_LEN	2048		/* Length, termcap lib buffer	*/
-#define PBMODES 8			/* modes per buffer		*/
-#define NKBDM	256			/* Length, keyboard macro.	*/
-#define NPAT	80			/* Length, pattern.		*/
-#define HUGE	1000			/* A rather large number.	*/
-#define NSRCH	128			/* Undoable search commands.	*/
-#define NXNAME	64			/* Length, extended command.	*/
-#define NKNAME	20			/* Length, key names		*/
-#define UNDOSIZE 10			/* Undo buffer size		*/
+#define PBMODES		8		/* modes per buffer		*/
+#define NKBDM		256		/* Length, keyboard macro.	*/
+#define NPAT		80		/* Length, pattern.		*/
+#define HUGE		1000		/* A rather large number.	*/
+#define NSRCH		128		/* Undoable search commands.	*/
+#define NXNAME		64		/* Length, extended command.	*/
+#define NKNAME		20		/* Length, key names		*/
+#define NUNDO	 	10		/* Undo buffer size		*/
+#define MB_NHISTS	10		/* Minibuffer History size	*/
+
 /*
  * Universal.
  */

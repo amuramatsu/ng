@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.7 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: sysdef.h,v 1.7.2.1 2003/02/28 17:52:48 amura Exp $ */
 /*
  *		Human68k system definitions
  */
@@ -13,6 +13,7 @@
 #include <string.h>		 need to use memcpy(). but defined in def.h
 */
 
+#define NFILEN		128		/* Length, file name.		*/
 #define	KBLOCK		1024		/* Kill grow.			*/
 #define	GOOD		0		/* Good exit status.		*/
 #ifndef	NO_SHELL	/* 91.01.10  by K.Maeda */
