@@ -1,10 +1,13 @@
-/* $Id: ttyio.c,v 1.2 2000/07/20 12:41:56 amura Exp $ */
+/* $Id: ttyio.c,v 1.2.2.1 2003/02/25 15:00:25 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.2.2.1  2003/02/25 15:00:25  amura
+ * add #include <iocslib.h>
+ *
  * Revision 1.2  2000/07/20 12:41:56  amura
  * enable to use XF1/2 key as META
  *
@@ -19,6 +22,7 @@
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
 #include	<doslib.h>
+#include	<iocslib.h>
 #include	<time.h>
 
 #define	RAW_MODE	0x20

@@ -1,4 +1,4 @@
-/* $Id: dosutil.c,v 1.1 2000/06/27 01:47:58 amura Exp $ */
+/* $Id: dosutil.c,v 1.1.1.1.2.1 2003/02/25 15:00:25 amura Exp $ */
 /*
  *		UNIX like functions for Human68k.
  *
@@ -7,14 +7,18 @@
 
 /*
  * $Log: dosutil.c,v $
- * Revision 1.1  2000/06/27 01:47:58  amura
- * Initial revision
+ * Revision 1.1.1.1.2.1  2003/02/25 15:00:25  amura
+ * add #include <iocslib.h>
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:58  amura
+ * import to CVS
  *
  */
 /* 90.11.9	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /* 90.02.11	Created for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
+#include	<iocslib.h>
 #include	<time.h>
 
 /* Sleep (busily) for n seconds */
