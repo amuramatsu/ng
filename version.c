@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.11 2001/03/09 16:17:22 amura Exp $ */
+/* $Id: version.c,v 1.12 2001/05/28 19:02:02 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: version.c,v $
+ * Revision 1.12  2001/05/28 19:02:02  amura
+ * edit to 1.5alpha3
+ *
  * Revision 1.11  2001/03/09 16:17:22  amura
  * edit to 1.5alpha2
  *
@@ -50,7 +53,7 @@
 #define TRUE	1	/* include "def.h" when things get more complicated */
 #endif	/* ADDFUNC */
 
-#define	VERSION		"1.5alpha2"
+#define	VERSION		"1.5alpha3"
 
 #ifdef	KANJI
 # define PROGNAME	"Ng"
