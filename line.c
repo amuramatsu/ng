@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.5 2000/06/27 01:49:44 amura Exp $ */
+/* $Id: line.c,v 1.6 2000/07/16 15:44:41 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.6  2000/07/16 15:44:41  amura
+ * undo bug on autofill fixed
+ *
  * Revision 1.5  2000/06/27 01:49:44  amura
  * import to CVS
  *
@@ -446,18 +449,22 @@ ldelete(n, kflag) RSIZE n; {
 #endif	/* KANJI */
 #ifdef	UNDO
 	UNDO_DATA*	undo = NULL;
-	int		one_char = FALSE;
+	int		char_num = 0;
 
-	undo_setup(undo);
-	if (n!=0 && isundo()) {
-	    if (n == 1) {
-		one_char = TRUE;
-		undo_bfree(undo);
+	if (n != 0) {
+	    undo_setup(undo);
+	    if (isundo()) {
+		if (n == 1) {
+		    char_num = 1;
+		    undo_bfree(undo);
+		}
+		else
+		    char_num = 2;
+		undo->u_used = 0;
+		undo->u_doto = curwp->w_doto;
+		undo->u_dotlno = get_lineno(curbp, curwp->w_dotp);
+		undo->u_type = (kflag==KBACK) ? UDBS : UDDEL;
 	    }
-	    undo->u_used = 0;
-	    undo->u_doto = curwp->w_doto;
-	    undo->u_dotlno = get_lineno(curbp, curwp->w_dotp);
-	    undo->u_type = (kflag==KBACK) ? UDBS : UDDEL;
 	}
 #endif
 
@@ -489,7 +496,7 @@ ldelete(n, kflag) RSIZE n; {
 #ifdef	UNDO
 			if (isundo())
 			{
-			    if (one_char) {
+			    if (char_num == 1) {
 				undo->u_code[0] = '\n';
 				undo->u_code[1] = 0;
 			    } else {
@@ -524,7 +531,7 @@ ldelete(n, kflag) RSIZE n; {
 #endif	/* KANJI */
 #ifdef	UNDO
 		if (isundo()) {
-		    if (one_char) {
+		    if (char_num == 1) {
 			if (chunk == 1) {
 			    undo->u_code[0] = *cp1;
 			    undo->u_code[1] = 0;
@@ -574,7 +581,7 @@ ldelete(n, kflag) RSIZE n; {
 	send_clipboard();
 #endif
 #ifdef	UNDO
-	if (isundo()) {
+	if (isundo() && char_num!=0) {
 	    undo_finish(&(undo->u_next));
 	}
 #endif

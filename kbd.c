@@ -1,10 +1,13 @@
-/* $Id: kbd.c,v 1.2 2000/06/27 01:49:43 amura Exp $ */
+/* $Id: kbd.c,v 1.3 2000/07/16 15:44:41 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
 
 /*
  * $Log: kbd.c,v $
+ * Revision 1.3  2000/07/16 15:44:41  amura
+ * undo bug on autofill fixed
+ *
  * Revision 1.2  2000/06/27 01:49:43  amura
  * import to CVS
  *
@@ -177,12 +180,12 @@ register int	c;
 
 doin()
 {
-	KEYMAP	*curmap;
-	PF	funct;
-	int d;
+    KEYMAP	*curmap;
+    PF	funct;
+    int d;
 #ifdef	UNDO
-	int s;
-	BUFFER *bp;
+    int s;
+    BUFFER *bp;
 #endif
 
 #ifndef NO_DPROMPT
@@ -442,6 +445,20 @@ int f, n;
     if(curbp->b_flag & BFAUTOFILL && 		/* Autofill mode and	*/
        !inkfill && no_k2nd) {			/* KANJI 2nd byte.	*/
 	    int	s;
+#ifdef	UNDO
+	    if (isundo()) {
+		if (lastflag & CFINS2) {
+		    curbp->b_utop--;
+		    if (curbp->b_utop < 0)
+			curbp->b_utop = UNDOSIZE;
+		    undoptr = &curbp->b_ustack[curbp->b_utop];
+		    while (*undoptr != NULL) {
+			undobefore = undoptr;
+			undoptr = &((*undoptr)->u_next);
+		    }
+		}
+	    }
+#endif
 	    inkfill = TRUE;
 	    s = fillword(f, n);		/* fill word with KANJI char.	*/
 	    inkfill = FALSE;
@@ -503,12 +520,21 @@ int f, n;
 	if(curbp->b_flag & BFOVERWRITE) {	/* Overwrite mode	*/
 	    UNDO_DATA *undo;
 	    if (lastflag & CFINS2) {
-		curbp->b_utop--;
-		if (curbp->b_utop < 0)
-		    curbp->b_utop = UNDOSIZE;
-		undoptr = &curbp->b_ustack[curbp->b_utop];
-		if (undo_type(*undoptr) != UDOVER)
-		    panic("kbd: Run overwrite error");
+		if (undobefore != NULL) {
+		    undoptr = undobefore;
+		    undobefore = NULL;
+		} else {
+		    curbp->b_utop--;
+		    if (curbp->b_utop < 0)
+			curbp->b_utop = UNDOSIZE;
+		    undoptr = &curbp->b_ustack[curbp->b_utop];
+		    if (*undoptr != NULL) {
+			while ((*undoptr)->u_next != NULL) {
+			    undobefore = undoptr;
+			    undoptr = &((*undoptr)->u_next);
+			}
+		    }
+		}
 		undo = *undoptr;
 	    } else {
 		undo_setup(undo);
@@ -554,18 +580,27 @@ int f, n;
 #endif	/* KANJI */
 	    undo_finish(&(undo->u_next));
 
-	    if ((lastflag&CFINS2) == 0) {
+	    if (!(lastflag & CFINS2)) {
 		if (undoptr!=NULL && *undoptr!=NULL)
 		    (*undoptr)->u_type = UDNONE;
 	    }
 	    if (n<=0) return TRUE;
-	} else if (lastflag & CFINS2) {
-	    curbp->b_utop--;
-	    if (curbp->b_utop < 0)
-		curbp->b_utop = UNDOSIZE;
-	    undoptr = &curbp->b_ustack[curbp->b_utop];
-	    if (undo_type(*undoptr) != UDINS)
-		panic("kbd: Run insert error");
+	} else if (lastflag & CFINS2) {/* not Overwrite mode */
+	    if (undobefore != NULL) {
+		undoptr = undobefore;
+		undobefore = NULL;
+	    } else {
+		curbp->b_utop--;
+		if (curbp->b_utop < 0)
+		    curbp->b_utop = UNDOSIZE;
+		undoptr = &curbp->b_ustack[curbp->b_utop];
+	    }
+	    if (*undoptr != NULL) {
+		while ((*undoptr)->u_next != NULL) {
+		    undobefore = undoptr;
+		    undoptr = &((*undoptr)->u_next);
+		}
+	    }
 	}
 	/* if this is NOT, somecase linsert() panic */
 	  else if (*undoptr != NULL)

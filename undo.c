@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.2 2000/06/27 01:49:45 amura Exp $ */
+/* $Id: undo.c,v 1.3 2000/07/16 15:47:06 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -7,6 +7,9 @@
 
 /*
  * $Log: undo.c,v $
+ * Revision 1.3  2000/07/16 15:47:06  amura
+ * undo bug on autofill fixed
+ *
  * Revision 1.2  2000/06/27 01:49:45  amura
  * import to CVS
  *
@@ -251,8 +254,9 @@ do_undo(f, n)
 		    curwp->w_doto = undo->u_doto;
 		}
 		break;
-		
+#if	UDINSNL != UDINS		
 	      case UDINSNL:
+#endif
 	      case UDINS:
 		ldelete(undo->u_used, KNONE);
 		break;

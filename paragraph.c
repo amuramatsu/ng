@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.2 2000/06/27 01:49:44 amura Exp $ */
+/* $Id: paragraph.c,v 1.3 2000/07/16 15:44:41 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: paragraph.c,v $
+ * Revision 1.3  2000/07/16 15:44:41  amura
+ * undo bug on autofill fixed
+ *
  * Revision 1.2  2000/06/27 01:49:44  amura
  * import to CVS
  *
@@ -699,7 +702,7 @@ fillword(f, n)
 		char	*cp = fillprefix;
 
 #ifdef	UNDO
-	    if (undoptr != NULL) {
+	    if (isundo()) {
 		if (*undoptr != NULL)
 		    (*undoptr)->u_type = UDNONE;
 		if (*cp) {
