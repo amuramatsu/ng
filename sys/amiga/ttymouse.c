@@ -1,4 +1,4 @@
-/* $Id: ttymouse.c,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: ttymouse.c,v 1.1.1.1.2.1 2003/03/02 18:43:55 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Commodore Amiga mouse handling 
@@ -7,8 +7,11 @@
  */
 /*
  * $Log: ttymouse.c,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.1.1.1.2.1  2003/03/02 18:43:55  amura
+ * change curwp to curbp
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
 
@@ -125,14 +128,14 @@ mkillregion(f, n)
 	register struct LINE *p_old;
 	register short	o_old;
 
-	p_old = curwp->w_markp;		/* Save old mark */
-	o_old = curwp->w_marko;
+	p_old = curbp->b_markp;		/* Save old mark */
+	o_old = curbp->b_marko;
 	isetmark();				/* and set current one */
 	if (!dottomouse()) {
-		curwp->w_markp = p_old;	/* Oops - put mark back */
-		curwp->w_marko = o_old;
+		curbp->b_markp = p_old;	/* Oops - put mark back */
+		curbp->b_marko = o_old;
 		return (FALSE);
-		}
+	}
 	return (killregion(f, n));
 }
 
