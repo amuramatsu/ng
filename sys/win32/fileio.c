@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.13 2001/03/02 08:48:32 amura Exp $ */
+/* $Id: fileio.c,v 1.14 2001/04/15 16:35:45 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.14  2001/04/15 16:35:45  amura
+ * patch for VC 6.0 from Katsuyoshi Ohara
+ *
  * Revision 1.13  2001/03/02 08:48:32  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -83,6 +86,10 @@ int		addline( BUFFER *bp, char *text ) ;
 
 #ifdef _WIN32_WCE
 extern strnicmp(char *, char *, size_t);
+#endif
+
+#ifndef HAVE_RINDEX
+#define rindex(s,c)	strrchr(s,c)
 #endif
 
 TCHAR	g_szPath[ MAX_PATH ] = TEXT("") ;

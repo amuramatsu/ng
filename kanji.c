@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.11 2001/02/18 17:07:25 amura Exp $ */
+/* $Id: kanji.c,v 1.12 2001/04/15 16:35:44 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.12  2001/04/15 16:35:44  amura
+ * patch for VC 6.0 from Katsuyoshi Ohara
+ *
  * Revision 1.11  2001/02/18 17:07:25  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -147,7 +150,7 @@ static int kanalastchar pro((int *lastch));
 static int klastchar pro((int *lastch, int kselect));
 static int kcodecheck pro((char *p, int len));
 static int bufjtoe_c pro((char *j, int len));
-static int bufstoe_c pro((char *p, int len));
+int bufstoe_c pro((char *p, int len));
 
 /*
  * COMMAND: change-default-fileio-code
@@ -1687,7 +1690,7 @@ int	len;
 	return (leng);
 }
 
-static int
+int
 bufstoe_c(p, len)
 char	*p;
 int	len;
