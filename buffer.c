@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.12 2001/02/18 19:26:41 amura Exp $ */
+/* $Id: buffer.c,v 1.13 2001/02/28 17:06:05 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.13  2001/02/28 17:06:05  amura
+ * buffer size to use eread() is more secure
+ *
  * Revision 1.12  2001/02/18 19:26:41  amura
  * remove malloc() prototype
  *
@@ -133,9 +136,9 @@ usebuffer(f, n)
 	/* Get buffer to use from user */
 	if ((curbp->b_altb == NULL)
 	    && ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
-		s=eread("Switch to buffer: ", bufn, NBUFN, EFNEW|EFBUF);
+		s=eread("Switch to buffer: ", bufn, sizeof(bufn), EFNEW|EFBUF);
 	else
-		s=eread("Switch to buffer: (default %s) ", bufn, NBUFN,
+		s=eread("Switch to buffer: (default %s) ", bufn, sizeof(bufn),
 			 EFNEW|EFBUF, curbp->b_altb->b_bname);
 
 	if (s == ABORT) return s;
@@ -162,11 +165,11 @@ poptobuffer(f, n)
 	/* Get buffer to use from user */
 	if ((curbp->b_altb == NULL)
 	    && ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
-		s=eread("Switch to buffer in other window: ", bufn, NBUFN,
-			EFNEW|EFBUF);
+		s=eread("Switch to buffer in other window: ",
+			bufn, sizeof(bufn), EFNEW|EFBUF);
 	else
 		s=eread("Switch to buffer in other window: (default %s) ",
-			 bufn, NBUFN, EFNEW|EFBUF, curbp->b_altb->b_bname);
+			 bufn, sizeof(bufn), EFNEW|EFBUF, curbp->b_altb->b_bname);
 	if (s == ABORT) return s;
 	if (s == FALSE && curbp->b_altb != NULL) bp = curbp->b_altb ;
 	else if ((bp=bfind(bufn, TRUE)) == NULL) return FALSE;
@@ -195,8 +198,8 @@ killbuffer(f, n)
 	register int	s;
 	char		bufn[NBUFN];
 
-	if ((s=eread("Kill buffer: (default %s) ", bufn, NBUFN, EFNEW|EFBUF,
-		    curbp->b_bname)) == ABORT) return (s);
+	if ((s=eread("Kill buffer: (default %s) ", bufn, sizeof(bufn),
+		     EFNEW|EFBUF, curbp->b_bname)) == ABORT) return (s);
 	else if (s == FALSE) bp = curbp;
 	else if ((bp=bfind(bufn, FALSE)) == NULL) return FALSE;
 
@@ -678,16 +681,16 @@ bufferinsert(f, n)
 
 	/* Get buffer to use from user */
 	if (curbp->b_altb != NULL)
-		s=eread("Insert buffer: (default %s) ", bufn, NBUFN,
+		s=eread("Insert buffer: (default %s) ", bufn, sizeof(bufn),
 #ifdef	BUGFIX	/* 91.01.04  by S.Yoshida */
 			 EFNEW|EFBUF, curbp->b_altb->b_bname);
 	else
-		s=eread("Insert buffer: ", bufn, NBUFN, EFNEW|EFBUF);
+		s=eread("Insert buffer: ", bufn, sizeof(bufn), EFNEW|EFBUF);
 #else	/* ORIGINAL */
 			 EFNEW|EFBUF, &(curbp->b_altb->b_bname),
 			 (char *) NULL) ;
 	else
-		s=eread("Insert buffer: ", bufn, NBUFN, EFNEW|EFBUF,
+		s=eread("Insert buffer: ", bufn, sizeof(bufn), EFNEW|EFBUF,
 			 (char *) NULL) ;
 #endif	/* BUGFIX */
 	if (s == ABORT) return (s);
