@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.11 2002/11/06 16:05:23 amura Exp $ */
+/* $Id: fileio.c,v 1.12 2002/11/06 18:06:55 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,8 +14,11 @@
 
 /*
  * $Log: fileio.c,v $
- * Revision 1.11  2002/11/06 16:05:23  amura
- * compile with newstyle source
+ * Revision 1.12  2002/11/06 18:06:55  amura
+ * Backup file making scheme changed.
+ *
+ *  When editting file is soft or hardlink, backup make by copy instead of
+ *  rename.
  *
  * Revision 1.10  2001/11/28 17:51:47  amura
  * little modifies for support VBCC. (but not work yet)
@@ -26,23 +29,7 @@
  * Revision 1.8  2001/10/29 04:30:43  amura
  * let BUGFIX code enable always
  *
- * Revision 1.7  2001/03/02 08:47:04  amura
- * fix some bogus bugs
- *
- * Revision 1.6  2001/02/18 19:29:03  amura
- * split dir.c to port depend/independ
- *
- * Revision 1.5  2000/12/28 07:26:50  amura
- * suffix o is not search in filename complition
- *
- * Revision 1.4  2000/12/27 16:55:41  amura
- * change d_makename() params for conservative reason, and bugfix in dires_()
- *
- * Revision 1.3  2000/12/21 16:54:20  amura
- * fix usage of strncat()
- *
- * Revision 1.2  2000/12/14 18:07:52  amura
- * filename length become flexible
+ * -- snip --
  *
  * Revision 1.1.1.1  2000/06/27 01:48:01  amura
  * import to CVS
@@ -76,6 +63,7 @@
 #include <clib/exec_protos.h>
 #include <clib/intuition_protos.h>
 #endif
+#include <dos/dosextens.h>
 
 #ifdef USE_ARP
 # include <libraries/arpbase.h>
@@ -299,6 +287,9 @@ register int *nbytes;
 }
 
 #ifndef	NO_BACKUP
+static int filecopy_all _PRO((char *, char *));
+static int islink _PRO((char *));
+
 /*
  * Rename the current file into a backup copy,
  * possibly after deleting the original file.
@@ -326,10 +317,115 @@ char *fname;
 	}
 	twiddle = NULL;
     }
-    /* rename file to backup name (after unlocking the file)
-    */
+    /* rename file to backup name (after unlocking the file) */
     UnLock(lock);
-    return (int)Rename(fname,buffer);
+
+    if (islink(fname))
+	return filecopy_all(fname, buffer);
+
+    /* in NFS, Rename() occuers error, so fallback to copy */
+    if (!Rename(fname, buffer))
+	return filecopy_all(fname, buffer);
+
+    return TRUE;
+}
+
+/*
+ * Copy file contents and attributes
+ */
+static int
+filecopy_all(src, dst)
+char *src, *dst;
+{
+    BPTR lock;
+    LONG readlen;
+    UBYTE *buffer = NULL;
+    struct FileInfoBlock *fib;
+    struct FileHandle *from = NULL;
+    struct FileHandle *to = NULL;
+    
+    if ((lock = Lock(src, SHARED_LOCK)) == 0L)
+	return FALSE;
+    
+    if ((fib = (struct FileInfoBlock *)
+	 AllocMem(sizeof(struct FileInfoBlock), MEMF_CHIP|MEMF_CLEAR)) == NULL) {
+	UnLock(lock);
+	return FALSE;
+    }
+    
+    
+    if (Examine(lock, fib) == 0L) {
+	FreeMem(fib, sizeof(struct FileInfoBlock));
+	UnLock(lock);
+	return FALSE;
+    }
+    UnLock(lock);
+    
+    if ((buffer = AllocMem((ULONG) NIOBUF, 0L)) == NULL)
+	goto error;
+
+    if ((from=(struct FileHandle *)Open(src, MODE_OLDFILE)) == NULL)
+	goto error;
+
+    if ((to=(struct FileHandle *)Open(dst, MODE_NEWFILE)) == NULL)
+	goto error;
+
+    while ((readlen = Read((BPTR)from, buffer, NIOBUF)) != 0) {
+	if (Write((BPTR)to, buffer, readlen) != readlen)
+	    goto error;
+    }
+    Close((BPTR)to);
+    Close((BPTR)from);
+    FreeMem(buffer, (ULONG)NIOBUF);
+    
+    /* change attr like as original */
+    /* if some error occurd, ignore it */
+    SetFileDate(dst, &fib->fib_Date);
+    SetComment(dst, fib->fib_Comment);
+    /*
+     SetOwner(dst, (((ULONG)fib->fib_OwnerUID)<<16) | fib->fib_OwnerGID);
+     */
+    SetProtection(dst, fib->fib_Protection);
+    
+    FreeMem(fib, sizeof(struct FileInfoBlock));
+    return TRUE;
+
+error:
+
+    if (to != NULL)
+	Close((BPTR)to);
+    if (from != NULL)
+	Close((BPTR)from);
+    if (buffer != NULL)
+	FreeMem(buffer, (ULONG)NIOBUF);
+    FreeMem(fib, sizeof(struct FileInfoBlock));
+    
+    return FALSE;
+
+}
+
+/*
+ * Get file mode is hard or soft link
+ */
+static int
+islink(fn)
+char *fn;
+{
+    BPTR lock;
+    struct FileInfoBlock *fib;
+    int retval = FALSE;
+    
+    if ((lock = Lock(fn, SHARED_LOCK)) != 0L) {
+	if ((fib = (struct FileInfoBlock *)
+	     AllocMem(sizeof(struct FileInfoBlock), MEMF_CHIP)) != NULL) {
+	    if (Examine(lock, fib) != 0L)
+		 retval = (fib->fib_DirEntryType == ST_SOFTLINK) ||
+			 (fib->fib_DirEntryType == ST_LINKFILE);
+	    FreeMem(fib, sizeof(struct FileInfoBlock));
+	}
+	UnLock(lock);
+    }
+    return retval;
 }
 
 /*

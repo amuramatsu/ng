@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.18 2002/04/07 01:01:32 amura Exp $ */
+/* $Id: fileio.c,v 1.19 2002/11/06 18:06:55 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,12 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.19  2002/11/06 18:06:55  amura
+ * Backup file making scheme changed.
+ *
+ *  When editting file is soft or hardlink, backup make by copy instead of
+ *  rename.
+ *
  * Revision 1.18  2002/04/07 01:01:32  amura
  * HOMEDIR feature is enable always
  *
@@ -188,6 +194,9 @@ register int *nbytes;
 }
 
 #ifndef NO_BACKUP
+static int filecopy_all _PRO((char *, char *));
+static int islink _PRO((char *));
+
 /*
  * Rename the file "fname" into a backup
  * copy. On Unix the backup has the same name as the
@@ -209,6 +218,8 @@ char *fn;
     strcpy(nname, fn);
     strcat(nname, "~");
     unlink(nname);			/* Ignore errors.	*/
+    if (islink(fn))
+	return filecopy_all(fn, nname);
     if (rename(fn, nname) < 0)
 	return FALSE;
     return TRUE;
@@ -218,6 +229,70 @@ char *fn;
 #include <sys/stat.h>
 #define	_SYS_STAT_H_
 #endif	/* _SYS_STAT_H_ */
+
+/*
+ * Copy file contents and attributes
+ */
+static int
+filecopy_all(src, dst)
+char *src, *dst;
+{
+    FILE *from, *to;
+    struct stat filestat;
+    struct utimbuf times;
+    
+    if ((from=fopen(src, "rb")) == NULL)
+	return 1;
+    if ((to=fopen(dst, "wb")) == NULL) {
+	fclose(from);
+	return FALSE;
+    }
+    
+    if (stat(src, &filestat) < 0) {
+	fclose(from);
+	fclose(to);
+	return FALSE;
+    }
+    
+    while ((c=fgetc(from)) != EOF)
+	fputc(c, to);
+    
+    fclose(from);
+    fclose(to);
+
+    /* change attr like as original */
+    /* if some error occurd, ignore it */
+    
+    times.actime  = filestat.st_utime;
+    times.modtime = filestat.st_mtime;
+    utime(dst, &times);
+    chmod(dst, filestat.st_mode);
+    chgrp(dst, filestat.st_gid);
+    chown(dst, filestat.st_uid);
+    
+    return TRUE;
+}
+
+/*
+ * Get file mode is hard or soft link
+ */
+static int
+islink(fn)
+char *fn;
+{
+    struct stat filestat;
+    
+    if (stat(fn, &filestat) < 0)
+	return FALSE;
+    if (filestat.st_nlink >= 2)
+	return TRUE;
+#ifdef S_ISLNK
+    if (S_ISLNK(filestat.st_mode))
+	return TRUE;
+#endif
+    return FALSE;
+}
+
 /*
  * Get file mode of a file fn.
  */
