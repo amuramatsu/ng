@@ -1,10 +1,11 @@
-# $Id: MANIFEST,v 1.6 2000/10/23 16:53:18 amura Exp $
+# $Id: MANIFEST,v 1.7 2001/03/09 16:17:21 amura Exp $
    File Name			  Description
 -----------------------------------------------------------
  COPYING			GNU GENERAL PUBLIC LICENSE
  LICENSE			Ng LICENSE (BSD-style)
  MANIFEST			このファイル
- basic.c                   	共通部分ソース
+ autosave.c                   	共通部分ソース
+ basic.c			〃
  buffer.c			〃
  cmode.c			〃
  complt.c			〃
@@ -161,6 +162,12 @@
  sys/sysv/spawn.c		〃
  sys/sysv/sysdef.h		〃
  sys/sysv/ttyio.c		〃
+ sys/unix			Unix 用ディレクトリ
+ sys/unix/Makefile		Unix 用 Makefile
+ sys/unix/fileio.c		Unix 依存部分ソース
+ sys/unix/spawn.c		〃
+ sys/unix/sysdef.h		〃
+ sys/unix/ttyio.c		〃
  sys/win32			Win32 用ディレクトリ
  sys/win32/appicon.ico		Win32 用アイコン
  sys/win32/ce1appicon.ico	Win32 用アイコン (白黒)
@@ -171,6 +178,8 @@
  sys/win32/ng.ini		Ng 初期設定サンプルファイル
  sys/win32/ng.rc		Win32 依存部分ソース
  sys/win32/ngbc.mak		Borland C++ 用メイクファイル
+ sys/win32/ng.ini		Ng 初期設定サンプルファイル (英語版)
+ sys/win32/ng.rc		Win32 依存部分ソース (英語版)
  sys/win32/resource.h		Win32 依存部分ソース
  sys/win32/spawn.c		〃
  sys/win32/sysdef.h		〃
