@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.20 2001/11/28 21:31:20 amura Exp $ */
+/* $Id: config.h,v 1.12.2.1 2003/03/08 01:11:49 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -68,6 +68,11 @@
 
 #define	MINIBUF_EDIT	/* minibuffer edit like GNU emacs (by Kakugawa)	*/
 
+#define	NEXTLINE 1	/* next-line-add-newlines (by S.Yoshida) */
+
+#define EMACS_QUERY_KEYS /* isearch/query-replace key bindings compatible */
+			/* with GNU Emacs 19 and later (by Shimbo)*/
+
 #define	UNDO		/* enable buffer undo */
 
 #define AUTOSAVE	/* enable autosaver (ported form M.Suziki's work) */
@@ -76,16 +81,18 @@
 /*	Features for Ng/KANgee (KANJI version Mg2a).			*/
 /*----------------------------------------------------------------------*/
 
-#undef	KANJI		/* Create KANJI handling version.	*/
+#define	KANJI		/* Create KANJI handling version.	*/
 
 #define	HANKANA		/* Create Hankaku KANA  handling version. */
 
-#define HOJO_KANJI	/* Create Hojo KANJI handling version. */
+#undef HOJO_KANJI	/* Create Hojo KANJI handling version. */
 
 #define CURSOR_POS	/* Cursor locates on next CHR after POINT */
 
 #define	KINSOKU		/* Create KINSOKU handling version. If defined, */
 			/* KANJI must be also.				*/
+
+#define	BUGFIX		/* Fix bugs in the original Mg2a.	*/
 
 #define	ADDFUNC		/* Create additional misc functions.	*/
 
@@ -94,6 +101,8 @@
 
 #define	INCLUDE_SKG	/* Enable SKG(Simple Kanji Generator System)	*/
 			/* (by H.Konishi) */ 
+
+#define JISFIX		/* JIS code input fix (by Gen.KUROKI) */
 
 #define VTCURSOR	/* Use DEC vt cursor key on JIS input mode */
 			/* (by Gen.KUROKI) */
@@ -108,14 +117,10 @@
 #if defined(_WIN32)&&!defined(__CYGWIN__)&&!defined(WIN32)
 #define	WIN32		/* Do not edit this line. */
 #endif			/* Do not edit this line. */
-#if defined(__XSDK__)&&!defined(EPOC32)
-#define EPOC32		/* Do not edit this line. */
-#endif			/* Do not edit this line. */
 #ifndef	MSDOS		/* Do not edit this line. */
 #ifndef	HUMAN68K	/* Do not edit this line. */
 #ifndef	AMIGA		/* Do not edit this line. */
 #ifndef WIN32		/* Do not edit this line. */
-#ifndef EPOC32		/* Do not edit this line. */
 /*................................................*/
 
 #undef	SVR2		/* System V is Release 2.	*/
@@ -126,10 +131,9 @@
 
 #define XKEYS		/* use numelic keypad (by Gen.KUROKI) */
 
-/*#define CANNA*/	/* use CANNA kana-kanji server (by Endo) */
+/*#define CANNA		/* use CANNA kana-kanji server (by Endo) */
 
 /*................................................*/
-#endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
@@ -144,16 +148,16 @@
 #ifdef	MSDOS		/* Do not edit this line. */
 /*................................................*/
 
-/*#undef TCCONIO*/	/* Use Turbo C console IO */
+/*#undef TCCONIO	/* Use Turbo C console IO  (by amura) */
 
-/*#undef IBMPC*/	/* Create Ng for IBM PC compatible	*/
+/*#undef IBMPC		/* Create Ng for IBM PC compatible	*/
 			/* (include Toshiba J-3100)		*/
 
-/*#undef PC9801*/	/* Create Ng for NEC PC-9801 series. */
+/*#undef PC9801		/* Create Ng for NEC PC-9801 series. */
 
 #define BACKSLASH	/* Display backslash instead of \ (PC-9801 only) */
 
-#define HOMEDIR		/* Home directory support for MSDOS */
+#define HOMEDIR		/* Home directory support for MSDOS (by amura) */
 
 #define FEPCTRL		/* Enable FEP auto control. */
 
@@ -216,7 +220,7 @@
 
 #undef	V11		/* No Ver1.1 AmigaDOS */
 
-#define V2		/* Don't support AmigaDOS 1.x */
+#define V2		/* Don't support AmigaDOS 1.x (by amura) */
 
 #define	DO_MENU		/* Enable Menu selection */
 
@@ -230,12 +234,10 @@
 
 #define	CHANGE_FONT	/* Enable font setting */
 
-#define	INLINE_PRAGMAS	/* Use #pragma for Amiga System calls */
-
 #undef	USE_ARP		/* Enable ARP Library */
 			/* Undefined by H.Konishi for SAS */ 
 
-#define	LAMIGA_META	/* Assume Left Amiga to META key */
+#define	LAMIGA_META	/* Assume Left Amiga to META key (by amura) */
 
 #undef	MODE_RENDITION	/* Set Default */
 #undef	TEXT_RENDITION	/* Set Default */
@@ -246,21 +248,8 @@
 
 #define ASL             /* Enable ASL Requester (by H.Konishi) */
 
-#undef	AMIGA_STDIO	/* Using ANSI-Standard FILE IO library */
-#define	CLIPBOARD	/* AMIGA Clipboard support */
-
-/*................................................*/
-#endif			/* Do not edit this line. */
-/*................................................*/
-
-/*----------------------------------------------------------------------*/
-/*	Epoc32 machine dependent features.				*/
-/*----------------------------------------------------------------------*/
-/*................................................*/
-#ifdef	EPOC32		/* Do not edit this line. */
-/*................................................*/
-
-/* This port have no options yet */
+#undef	AMIGA_STDIO	/* Using ANSI-Standard FILE IO library (by amura) */
+#define	CLIPBOARD	/* AMIGA Clipboard support (by amura) */
 
 /*................................................*/
 #endif			/* Do not edit this line. */
@@ -307,12 +296,6 @@
 #  endif
 #endif
 
-#ifdef INCLUDE_SKG
-#  ifndef KANJI
-#    undef INCLUDE_SKG
-#  endif
-#endif
-
 #ifdef	NO_DIR
 #   ifndef  NO_STARTUP
 #	define	NO_STARTUP
@@ -340,12 +323,6 @@
 # endif
 #endif
 
-#ifdef	TCCONIO
-#   ifndef WITHOUT_TERMCAP
-#	define	WITHOUT_TERMCAP
-#   endif
-#endif
-
 #ifdef	NEW_COMPLETE
 #   ifndef  ADDFUNC
 #	define	ADDFUNC
@@ -371,7 +348,7 @@
 #endif
 
 #ifdef	MSDOS
-#   ifdef   IBMPC
+#   ifdef   J3100
 #	ifdef   PC9801
 #	    undef   PC9801
 #	endif
