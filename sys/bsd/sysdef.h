@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.2 2000/06/27 01:59:42 amura Exp $ */
+/* $Id: sysdef.h,v 1.2.2.1 2003/02/23 14:32:58 amura Exp $ */
 /*
  *		BSD unix based systems (sunos, ultrix)
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.2.2.1  2003/02/23 14:32:58  amura
+ * canna_init() must be called after setttysize() on ttyio.c
+ *
  * Revision 1.2  2000/06/27 01:59:42  amura
  * small bugfix
  *
@@ -97,11 +100,6 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
  * if defined). BDC2 and BDC3 are mainly for VMS.
  */
 #define	BDC1	'/'			/* Buffer names.		*/
-
-#ifdef CANNA
-#define	SYSINIT canna_init()
-#define SYSCLEANUP canna_end()
-#endif
 
 #define MALLOCROUND(m)	(m+=7,m&=~7)	/* round up to 8 byte boundry	*/
 

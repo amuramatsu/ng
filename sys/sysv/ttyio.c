@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.2.2.3 2001/01/23 08:50:29 amura Exp $ */
+/* $Id: ttyio.c,v 1.2.2.4 2003/02/23 14:32:58 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		System V terminal I/O.
@@ -19,6 +19,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.2.2.4  2003/02/23 14:32:58  amura
+ * canna_init() must be called after setttysize() on ttyio.c
+ *
  * Revision 1.2.2.3  2001/01/23 08:50:29  amura
  * reset terminal polling mode in ttwait()
  *
@@ -183,6 +186,9 @@ ttopen()
 	(void) signal(SIGWINCH, ttwinch);
 #endif
 #endif
+#ifdef CANNA
+	canna_init();
+#endif
 	ttyactivep = TRUE;
 }
 
@@ -226,6 +232,9 @@ ttclose()
 #endif
 		abort();
 	ttyactivep = FALSE;
+#ifdef CANNA
+	canna_end();
+#endif
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: ttyio.c,v 1.1.1.1.2.1 2003/02/23 14:32:58 amura Exp $ */
 /*
  *		Ultrix-32 and Unix terminal I/O.
  * The functions in this file
@@ -9,8 +9,11 @@
 
 /*
  * $Log: ttyio.c,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.1.1.1.2.1  2003/02/23 14:32:58  amura
+ * canna_init() must be called after setttysize() on ttyio.c
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 /* 90.02.05	Modified for Ng 1.0 by S.Yoshida */
@@ -99,6 +102,9 @@ ttopen() {
 	(void) signal(SIGWINCH, ttwinch);
 #endif	/* SIGWINCH */
 #endif	/* ADDFUNC */
+#ifdef CANNA
+	canna_init();
+#endif
 }
 
 /*
@@ -177,6 +183,9 @@ ttraw() {
 ttclose() {
 	if (ttcooked() == FALSE)
 		panic("");		/* ttcooked() already printf'd */
+#ifdef CANNA
+	canna_end();
+#endif
 }
 
 /*
