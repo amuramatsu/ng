@@ -1,4 +1,4 @@
-/* $Id: console.c,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: console.c,v 1.2 2001/10/29 04:30:42 amura Exp $ */
 /*
  * These functions are taken directly from the
  * console.device chapter in the Amiga V1.1
@@ -7,8 +7,11 @@
 
 /*
  * $Log: console.c,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2001/10/29 04:30:42  amura
+ * let BUGFIX code enable always
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 
@@ -54,46 +57,6 @@ struct Window *window;
 	return((int) error);
 }
 
-#ifndef	BUGFIX	/* Dec.26,1992 by H.Ohkubo */
-/*
- * Output a single character	
- * to a specified console
- */ 
-
-int ConPutChar(request,character)
-struct IOStdReq *request;
-char character;
-{
-#ifdef	V11
-	register int x;
-#endif
-	request->io_Command = CMD_WRITE;
-	request->io_Data = (APTR)&character;
-	request->io_Length = (ULONG)1;
-	DoIO(request);
-	/* caution: read comments in manual! */
-	return(0);
-}
- 
-/*
- * Output a NULL-terminated string of
- * characters to a console
- */ 
-
-int ConPutStr(request,string)
-struct IOStdReq *request;
-char *string;
-{
-#ifdef	V11
-	register int x;
-#endif
-	request->io_Command = CMD_WRITE;
-	request->io_Data = (APTR)string;
-	request->io_Length = (LONG)-1;
-	DoIO(request);
-	return(0);
-}
-#endif	/* BUGFIX */
 /*
  * Write out a string of predetermined
  * length to the console

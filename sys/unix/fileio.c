@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.14 2001/08/29 00:05:04 amura Exp $ */
+/* $Id: fileio.c,v 1.15 2001/10/29 04:30:44 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.15  2001/10/29 04:30:44  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.14  2001/08/29 00:05:04  amura
  * change macro UNICODE to USE_UNICODE and
  * some unicode support routine for win32 are implemented
@@ -204,7 +207,6 @@ fbackupfile(fn) char *fn; {
     return (TRUE);
 }
 
-#ifdef	BUGFIX	/* 90.02.14  by S.Yoshida */
 #ifndef	_SYS_STAT_H_
 #include <sys/stat.h>
 #define	_SYS_STAT_H_
@@ -230,7 +232,6 @@ int	mode;
 {
     chmod(fn, mode);
 }
-#endif	/* BUGFIX */
 #endif
 
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
@@ -537,22 +538,11 @@ char *frname, *toname;
     char *eargv[3];
     int status; 	/* change for Digital UNIX */
 
-#ifdef	BUGFIX	/* 91.01.11  by Y.Kaneko */
     if((pid = vfork()) == 0) {
 	execl(CP_CMD, "cp", frname, toname, (char *)NULL);
-#else	/* ORIGINAL */
-    if(pid = vfork()) {
-	if(pid == -1)	return	-1;
-	eargv[0] = frname;
-	eargv[1] = toname;
-	eargv[2] = NULL;
-	execve("cp", eargv, (char **)NULL);
-#endif	/* BUGFIX */
 	_exit(1);	/* shouldn't happen */
     }
-#ifdef	BUGFIX	/* 91.01.11  by Y.Kaneko */
     if(pid == -1)	return	-1;
-#endif	/* BUGFIX */
     while(wait((int*)&status) != pid) {}
 
     return status == 0;
@@ -589,15 +579,10 @@ char *dirname;
     strcpy(bp->b_cwd, dirname);
     ensurecwd();
 #endif
-#ifdef	BUGFIX	/* 91.02.04  by M.Oki / 2000.12.xx amura */
     (VOID) strncpy(line, LS_CMD " -al '", sizeof(line));
     line[sizeof(line)-1] = '\0';
     (VOID) strncat(line, dirname, sizeof(line)-strlen(line)-1);
     (VOID) strncat(line, "' 2>&1", sizeof(line)-strlen(line)-1);
-#else	/* ORIGINAL */
-    (VOID) strcpy(line, "ls -al ");
-    (VOID) strcpy(&line[7], dirname);
-#endif	/* BUGFIX */
     if((dirpipe = popen(line, "r")) == NULL) {
 	ewprintf("Problem opening pipe to ls");
 	return NULL;

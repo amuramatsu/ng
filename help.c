@@ -1,8 +1,8 @@
-/* $Id: help.c,v 1.3 2001/02/18 17:07:25 amura Exp $ */
+/* $Id: help.c,v 1.4 2001/10/29 04:30:41 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 /*
- * $Id: help.c,v 1.3 2001/02/18 17:07:25 amura Exp $
+ * $Id: help.c,v 1.4 2001/10/29 04:30:41 amura Exp $
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -111,16 +111,12 @@ wallchart(f, n)
 	int m;
 	static char locbind[80] = "Local keybindings for mode ";
 
-#ifdef	BUGFIX	/* 91.02.06  by S.Yoshida */
 	if ((bp = bfind("*help*", TRUE)) == NULL) return FALSE;
 #ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
 	bp->b_flag &= ~(BFCHG | BFACHG);/* Blow away old.	*/
 #else
 	bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
 #endif	/* AUTOSAVE	*/
-#else	/* ORIGINAL */
-	bp = bfind("*help*", TRUE);
-#endif	/* BUGFIX */
 	if (bclear(bp) != TRUE) return FALSE;	/* Clear it out.	*/
 	for(m=curbp->b_nmodes; m > 0; m--) {
 	    (VOID) strcpy(&locbind[27], curbp->b_modes[m]->p_name);
@@ -232,12 +228,8 @@ int f, n;
 
     if(eread("apropos: ", string, sizeof(string), EFNEW) == ABORT) return ABORT;
 	/* FALSE means we got a 0 character string, which is fine */
-#ifdef	BUGFIX	/* 91.02.06  by S.Yoshida */
     if ((bp = bfind("*help*", TRUE)) == NULL) return FALSE;
     bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
-#else	/* ORIGINAL */
-    bp = bfind("*help*", TRUE);
-#endif	/* BUGFIX */
     if(bclear(bp) == FALSE) return FALSE;
     for(fnp = &functnames[0]; fnp < &functnames[nfunct]; fnp++) {
 	for(cp1 = fnp->n_name; *cp1; cp1++) {
@@ -281,12 +273,8 @@ KEYMAP	*map;
 	    if(funct == ele->k_funcp[i - ele->k_base]) {
 		if(funct == prefix) {
 		    cp = map_name(ele->k_prefmap);
-#ifdef	BUGFIX	/* 90.08.01  by H.Ohnishi */
 		    if(cp == NULL ||
 		       strncmp(cp, buf2, strlen(cp)) != 0) continue;
-#else	/* NOT BUGFIX */
-		    if(strncmp(cp, buf2, strlen(cp)) != 0) continue;
-#endif	/* BUGFIX */
 		}
 		(VOID) keyname(ind, i);
 		bindfound();

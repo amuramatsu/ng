@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.9 2001/03/09 15:53:14 amura Exp $ */
+/* $Id: fileio.c,v 1.10 2001/10/29 04:30:44 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.10  2001/10/29 04:30:44  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.9  2001/03/09 15:53:14  amura
  * enable to really work autosave feature
  *
@@ -238,7 +241,6 @@ char	*newname, *oldname, *ext;
 	strcat(node_p, ext);
 }
 
-#ifdef	BUGFIX	/* 90.02.16  by S.Yoshida */
 #ifndef	_SYS_STAT_H_
 #if	!defined(__TURBOC__) || __TURBOC__ >= 0x0200
 	/* 90.12.28  For Turbo-C 1.5 by Junn Ohta */
@@ -284,7 +286,6 @@ int	mode;
 #endif KANJI
 	(VOID) chmod(fns, mode);
 }
-#endif	/* BUGFIX */
 #endif
 
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */

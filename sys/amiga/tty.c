@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.2 2001/01/20 15:48:46 amura Exp $ */
+/* $Id: tty.c,v 1.3 2001/10/29 04:30:43 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga console device virtual terminal display
@@ -16,6 +16,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.3  2001/10/29 04:30:43  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.2  2001/01/20 15:48:46  amura
  * very big terminal supported
  *
@@ -186,11 +189,7 @@ register int	n;
 {
 	if (n > 9)
 		asciiparm(n/10);
-#ifdef	BUGFIX	/* Jan.4,1993 by H.Ohkubo */
 	ttputc((unsigned char)((n%10) + '0'));
-#else	/* Original code */
-	ttputc((n%10) + '0');
-#endif
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.7 2001/03/02 08:47:04 amura Exp $ */
+/* $Id: fileio.c,v 1.8 2001/10/29 04:30:43 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,6 +14,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.8  2001/10/29 04:30:43  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.7  2001/03/02 08:47:04  amura
  * fix some bogus bugs
  *
@@ -69,9 +72,7 @@ extern LONG			Write(), Read();
 extern UBYTE			*AllocMem();
 extern struct FileLock		*Lock();
 extern struct FileHandle	*Open();
-#ifdef	BUGFIX	/* Dec.17,1992 by H.Ohkubo */
 extern LONG	Examine();
-#endif
 
 #ifdef AMIGA_STDIO
 static FILE	*ffp;
@@ -306,7 +307,6 @@ char	*fname;
 	return (int) Rename(fname,buffer);
 }
 
-#ifdef	BUGFIX	/* Dec.17,1992 Modified for AmigaDos by H.Ohkubo */
 /*
  * Get file mode of a file fn.
  */
@@ -344,7 +344,6 @@ int	mode;
 		UnLock(lock);
 	}
 }
-#endif	/* BUGFIX */
 #endif	/* NO_BACKUP */
 
 /* Dec.18,1992 Add by H.Ohkubo */
@@ -657,19 +656,13 @@ char *name;
     if ((lock = Lock(name, ACCESS_READ)) == NULL)
 	return FALSE;
     if ((fib = (struct FileInfoBlock *)
-#ifdef	BUGFIX	/* Dec.17,1992 by H.Ohkubo */
 	   AllocMem((long)sizeof(struct FileInfoBlock),MEMF_CHIP))==NULL) {
-#else	/* ORIGINAL Code */
-	   AllocMem((long)sizeof(struct FileInfoBlock),MEMF_PUBLIC))==NULL) {
-#endif
 	UnLock(lock);
 	return FALSE;
     }
-#ifdef	BUGFIX	/* Dec.17, 1992 by H.Ohkubo */
     result = FALSE;
     if (Examine(lock, fib) != NULL)
-#endif
-    result = (fib->fib_DirEntryType > 0L) ? TRUE : FALSE;
+	result = (fib->fib_DirEntryType > 0L) ? TRUE : FALSE;
     FreeMem(fib,(long)sizeof(struct FileInfoBlock));
     UnLock(lock);
     return result;
@@ -852,11 +845,7 @@ char *pwdstr;
    n = nentries * FCHARS + 1;
          
    fib = (struct FileInfoBlock *)AllocMem((long)sizeof(struct FileInfoBlock),
-#ifdef	BUGFIX	/* Dec. 17, 1992 by H.Ohkubo */
-					MEMF_CHIP);
-#else	/* ORIGINAL Code */
-   					  MEMF_PUBLIC);
-#endif
+					  MEMF_CHIP);
    pwdstr[i = n-1] = '\0';
 
    while (lock) {

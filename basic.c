@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.6 2001/05/25 15:36:51 amura Exp $ */
+/* $Id: basic.c,v 1.7 2001/10/29 04:30:40 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: basic.c,v $
+ * Revision 1.7  2001/10/29 04:30:40  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.6  2001/05/25 15:36:51  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -294,18 +297,10 @@ forwline(f, n)
 	thisflag |= CFCPCN;
 	if (n == 0) return TRUE;
 	dlp = curwp->w_dotp;
-#ifdef	BUGFIX		/* amura */
 	while (lforw(dlp)!=curbp->b_linep && n--)
-#else
-	while (dlp!=curbp->b_linep && n--)
-#endif
 		dlp = lforw(dlp);
 	curwp->w_flag |= WFMOVE;
-#ifdef	BUGFIX		/* amura */
 	if(n > 0) /* ^N at end of buffer creates lines (like gnu) */
-#else
-	if(dlp==curbp->b_linep) /* ^N at end of buffer creates lines (like gnu) */
-#endif
 	{
 #ifdef	NEXTLINE	/* amura */
 	    if (! flag_nextline) {
@@ -326,20 +321,9 @@ forwline(f, n)
 			curbp->b_flag |= BFCHG;
 			curwp->w_flag |= WFMODE;
 		}
-#ifdef	BUGFIX		/* amura */
 		curwp->w_doto = llength(curwp->w_dotp);
 		while(n-- > 0)
 			lnewline();
-#else
-		curwp->w_doto = 0;
-		while(n-- >= 0) {
-			if((dlp = lallocx(0)) == NULL) return FALSE;
-			dlp->l_fp = curbp->b_linep;
-			dlp->l_bp = lback(dlp->l_fp);
-			dlp->l_bp->l_fp = dlp->l_fp->l_bp = dlp;
-		}
-		curwp->w_dotp = lback(curbp->b_linep);
-#endif
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
 	    }
 #endif	/* READONLY */
@@ -347,14 +331,10 @@ forwline(f, n)
 		curwp->w_dotp  = dlp;
 		curwp->w_doto  = getgoal(dlp);
 	}
-#ifdef ADDFUNC		/* amura */
+#ifdef ADDFUNC
 	if (line_number_mode)
 	    curwp->w_flag |= WFHARD;
-# ifdef	BUGFIX
 	return n>0 ? FALSE : TRUE;
-# else
-	return n>=0 ? FALSE : TRUE;
-# endif
 #else
 	return TRUE;
 #endif

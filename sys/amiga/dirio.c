@@ -1,4 +1,4 @@
-/* $Id: dirio.c,v 1.4 2001/02/18 19:29:03 amura Exp $ */
+/* $Id: dirio.c,v 1.5 2001/10/29 04:30:43 amura Exp $ */
 /*
  * Name:	MG 2x
  *		Directory I/O routines, by Stephen Walton
@@ -7,6 +7,9 @@
 
 /*
  * $Log: dirio.c,v $
+ * Revision 1.5  2001/10/29 04:30:43  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.4  2001/02/18 19:29:03  amura
  * split dir.c to port depend/independ
  *
@@ -54,16 +57,11 @@ char *path;
 		return -1;
 	fib = (struct FileInfoBlock *) AllocMem((long)
 					        sizeof(struct FileInfoBlock),
-#ifdef	BUGFIX	/* Dec.18,1992 by H.Ohkubo */
-						MEMF_CHIP |
-#endif
-						MEMF_CLEAR);
-#ifdef	BUGFIX	/* Dec.20,1992 by H.Ohkubo */
+						MEMF_CHIP | MEMF_CLEAR);
 	if (fib == NULL) {
 		UnLock(AttemptLock);
 		return -1;
 	}
-#endif
 	Examine(AttemptLock, fib);
 	if (fib->fib_DirEntryType < 0) {
 		retval = -1;

@@ -1,4 +1,4 @@
-/* $Id: ttykbd.c,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: ttykbd.c,v 1.2 2001/10/29 04:30:43 amura Exp $ */
 /*
  * Name:	MG 2a
  * 		Amiga virtual terminal keyboard, default console keymap.
@@ -8,8 +8,11 @@
 
 /*
  * $Log: ttykbd.c,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2001/10/29 04:30:43  amura
+ * let BUGFIX code enable always
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
 
@@ -120,28 +123,5 @@ char *ngrcfile;
 ttykeymapinit()
 #endif
 {
-#ifndef	BUGFIX	/* Dec.19,1992 by H.Ohkubo */
-#ifdef	FKEYS
-	KCHAR		c;
-	register KEYMAP **mapp = &map_table[0].p_map;
-#endif
-	static KCHAR	esc_bs[] = { CCHR('['), CCHR('H') };
-	static KCHAR	esc_del[] = { CCHR('['), CCHR('?') };
-	
-#define	BINDC(k,s) (c = k, bindkey(mapp, s, &c, 1))
-#define	BINDM(m,s) bindkey(mapp, s, m, (sizeof(m)/sizeof(KCHAR)))
-	
-	/* Swap the backspace and del keys, at least in normal usage.
-	 * This loses the help feature of CTRL-H, but we rebind
-	 * CTRL-_ to do the same thing. Under FKEYS, the Help key
-	 * calls describe-key-briefly.
-	 */
-	BINDC(CCHR('_'),	"help-help");	/* CTRL-Backspace */
-	BINDM(esc_bs,		"backward-kill-word");
-	BINDC(CCHR('H'),	"delete-backward-char");
-
-	BINDC(CCHR('?'),	"delete-char");
-	BINDM(esc_del,		"kill-word");
-#endif	/* BUGFIX */
 }
 

@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.10 2001/07/23 17:12:02 amura Exp $ */
+/* $Id: random.c,v 1.11 2001/10/29 04:30:42 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.11  2001/10/29 04:30:42  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.10  2001/07/23 17:12:02  amura
  * fix mark handling when make newline on the mark position
  *
@@ -128,11 +131,7 @@ getcolpos() {
 #ifdef  VARIABLE_TAB
 	int	tab = curbp->b_tabwidth;
 #endif  /* VARIABLE_TAB */
-#ifdef	BUGFIX	/* 90.04.10  by m.tei (Nikkei MIX) */
 	col = 0;				/* Determine column.	*/
-#else	/* NOT BUGFIX */
-	col = 1;				/* Determine column.	*/
-#endif	/* BUGFIX */
 
 	for (i=0; i<curwp->w_doto; ++i) {
 		c = lgetc(curwp->w_dotp, i);
@@ -146,9 +145,7 @@ getcolpos() {
 #else
 		    col |= 0x07;
 #endif
-#ifndef	BUGFIX	/* 90.04.10  by m.tei (Nikkei MIX) */
 		    ++col;
-#endif	/* BUGFIX */
 		} else if (ISCTRL(c) != FALSE)
 			++col;
 		++col;
@@ -171,9 +168,7 @@ getcolpos() {
 		}
 #endif  /* SS_SUPPORT */
 	}
-#ifdef	BUGFIX  /* 90.04.10  by m.tei (Nikkei MIX) */
 	col++;
-#endif	/* BUGFIX */
 	return col;
 }
 /*
@@ -319,9 +314,6 @@ openline(f, n)
 /*ARGSUSED*/
 newline(f, n)
 {
-#ifndef	BUGFIX	/* 90.02.14  by S.Yoshida */
-	register LINE	*lp;
-#endif	/* BUGFIX */
 	register int	s;
 
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
@@ -333,15 +325,6 @@ newline(f, n)
 
 	if (n < 0) return FALSE;
 	while (n--) {
-#ifndef	BUGFIX	/* 90.02.14  by S.Yoshida */
-		lp = curwp->w_dotp;
-		if (llength(lp) == curwp->w_doto
-		&& lforw(lp) != curbp->b_linep
-		&& llength(lforw(lp)) == 0) {
-			if ((s=forwchar(FFRAND, 1)) != TRUE)
-				return s;
-		} else
-#endif	/* BUGFIX */
 		if ((s=lnewline()) != TRUE)
 			return s;
 	}

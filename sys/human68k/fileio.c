@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.9 2001/03/02 08:48:31 amura Exp $ */
+/* $Id: fileio.c,v 1.10 2001/10/29 04:30:44 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.10  2001/10/29 04:30:44  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.9  2001/03/02 08:48:31  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -228,7 +231,6 @@ fbackupfile(fn) char *fn; {
 #endif
 }
 
-#ifdef	BUGFIX	/* 90.02.16  by S.Yoshida */
 #ifndef	_STAT_H_
 #include <stat.h>
 #define	_STAT_H_
@@ -280,7 +282,6 @@ int	mode;
 #endif KANJI
 	(VOID) chmod(fns, mode);
 }
-#endif	/* BUGFIX */
 #endif
 
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */

@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.9 2001/03/02 08:48:32 amura Exp $ */
+/* $Id: ttyio.c,v 1.10 2001/10/29 04:30:44 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.10  2001/10/29 04:30:44  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.9  2001/03/02 08:48:32  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -499,11 +502,7 @@ int ttwait() {
 	return (FALSE);
     }
 #endif	/* KANJI */
-#ifdef	BUGFIX	/* 90.02.07  by S.Yoshida */
     tmout.tv_sec = 1;
-#else	/* NOT BUGFIX */
-    tmout.tv_sec = 2;
-#endif	/* BUGFIX */
     tmout.tv_usec = 0;
 
     FD_ZERO(&readfd);

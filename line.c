@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.18 2001/09/27 18:47:20 amura Exp $ */
+/* $Id: line.c,v 1.19 2001/10/29 04:30:41 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.19  2001/10/29 04:30:41  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.18  2001/09/27 18:47:20  amura
  * Rename all _[A-Z] constant (in chrdef.h) to _NGC_[A-Z],
  * because _L was used by EPOC32 library.
@@ -370,7 +373,6 @@ lnewline()
 	lchange(WFHARD);
 	lp1  = curwp->w_dotp;			/* Get the address and	*/
 	doto = curwp->w_doto;			/* offset of "."	*/
-#ifdef BUGFIX /* amura */
 	if (lp1 == curbp->b_linep) {
 	    		/* At the end: special	*/
 			/* (now should only happen in empty buffer	*/
@@ -386,7 +388,6 @@ lnewline()
 		lp1->l_bp = lp2;
 		curwp->w_dotp = lp1 = lp2;
 	}
-#endif
 	if (doto == 0) {		/* avoid unnessisary copying */
 		if ((lp2 = lallocx(0)) == NULL)	/* new first part	*/
 			return FALSE;

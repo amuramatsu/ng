@@ -1,4 +1,4 @@
-/* $Id: fileio.cpp,v 1.2 2001/10/06 14:21:02 amura Exp $ */
+/* $Id: fileio.cpp,v 1.3 2001/10/29 04:30:43 amura Exp $ */
 /*
  *	Epoc32 file I/O. (Tested only at Psion 5mx)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.cpp,v $
+ * Revision 1.3  2001/10/29 04:30:43  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.2  2001/10/06 14:21:02  amura
  * edit to avoid egcs-20000828 (or XSDK?) bugs
  *
@@ -170,7 +173,6 @@ fbackupfile(char *fn)
     return (TRUE);
 }
 
-#ifdef	BUGFIX
 #include <sys/types.h>
 #include <sys/stat.h>
 /*
@@ -203,7 +205,6 @@ fsetfilemode(char *fn, int mode)
     strcpy(fns, fn);
     (VOID) chmod(fns, mode);
 }
-#endif	/* BUGFIX */
 #endif
 
 #ifdef	READONLY

@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.7 2001/07/18 14:56:09 amura Exp $ */
+/* $Id: paragraph.c,v 1.8 2001/10/29 04:30:42 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: paragraph.c,v $
+ * Revision 1.8  2001/10/29 04:30:42  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.7  2001/07/18 14:56:09  amura
  * fix silly bug
  *
@@ -158,9 +161,7 @@ fillpara(f, n)
 {
 	register int	c;		/* current char durring scan	*/
 	register int	wordlen;	/* length of current word	*/
-#ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
 	register int	wordcol;	/* column length of current word */
-#endif	/* BUGFIX */
 	register int	clength;	/* position on line during fill */
 	register int	i;		/* index during word copy	*/
 	register int	eopflag;	/* Are we at the End-Of-Paragraph? */
@@ -218,7 +219,6 @@ fillpara(f, n)
 
 	/* initialize various info */
 	while (!inword() && forwchar(FFRAND, 1)) {}
-#ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
 	for (clength = 0, i = 0; i < curwp->w_doto; i++) {
 		c = lgetc(curwp->w_dotp, i);
 		if (c == '\t'
@@ -236,9 +236,6 @@ fillpara(f, n)
 		++clength;
 	}
 	wordcol = 0;
-#else	/* ORIGINAL */
-	clength = curwp->w_doto;
-#endif	/* BUGFIX */
 	wordlen = 0;
 
 	/* scan through lines, filling words */
@@ -337,9 +334,7 @@ fillpara(f, n)
 				if (wordlen < MG_MAXWORD - 2) {
 					wbuf[wordlen++] = c;
 					wbuf[wordlen++] = c2;
-#ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
 					wordcol += 2;
-#endif	/* BUGFIX */
 				} else {
 					ewprintf("Word too long!");
 				}
@@ -347,7 +342,6 @@ fillpara(f, n)
 #endif	/* KANJI */
 			if (wordlen < MG_MAXWORD - 1) {
 				wbuf[wordlen++] = c;
-#ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
 				if (c == '\t'
 #ifdef	NOTAB
 				    && !(curbp->b_flag & BFNOTAB)
@@ -361,7 +355,6 @@ fillpara(f, n)
 				else if (ISCTRL(c) != FALSE)
 					++wordcol;
 				++wordcol;
-#endif	/* BUGFIX */
 			} else {
 				/* You loose chars beyond MG_MAXWORD if the word
 				 * is to long. I'm to lazy to fix it now; it
@@ -374,11 +367,7 @@ fillpara(f, n)
 			/* calculate tenatitive new length with word added */
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 			c2 = c;		/* save separate char.	*/
-#ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
 			newlength = clength + wordcol
-#else	/* ORIGINAL */
-			newlength = clength + wordlen
-#endif	/* BUGFIX */
 #ifdef	KINSOKU	/* 90.01.29  by S.Yoshida */
 				- bolkclen
 #endif	/* KINSOKU */
@@ -389,11 +378,7 @@ fillpara(f, n)
 				    !kend && !kstart)))
 				 ? 1 : 0);
 #else	/* NOT KANJI */
-#ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
 			newlength = clength + 1 + wordcol;
-#else	/* ORIGINAL */
-			newlength = clength + 1 + wordlen;
-#endif	/* BUGFIX */
 #endif	/* KANJI */
 			/* if at end of line or at doublespace and previous
 			 * character was one of '.','?','!' doublespace here.
@@ -405,9 +390,7 @@ fillpara(f, n)
 			  && 0 < wordlen && ISEOSP(wbuf[wordlen - 1])
 			  && wordlen<MG_MAXWORD-1) {
 				wbuf[wordlen++] = ' ';
-#ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
 				++wordcol;
-#endif	/* BUGFIX */
 			}
 			/* at a word break with a word waiting */
 			if (newlength <= fillcol) {
@@ -484,13 +467,8 @@ fillpara(f, n)
 #endif
 			for (i=0; i<wordlen; i++) {
 				(VOID) linsert(1, wbuf[i]);
-#ifndef	BUGFIX	/* 91.01.02  by S.Yoshida */
-				++clength;
-#endif	/* BUGFIX */
 			}
-#ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
 			clength += wordcol;
-#endif	/* BUGFIX */
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 			lastsepchar = ksepflag ? '\0' : (eolflag ? '\n' : c2);
 				/* 91.01.15  NULL -> '\0' */
@@ -502,9 +480,7 @@ fillpara(f, n)
 #endif	/* KINSOKU */
 #endif	/* KANJI */
 			wordlen = 0;
-#ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
 			wordcol = 0;
-#endif	/* BUGFIX */
 		}
 	}
 	/* and add a last newline for the end of our new paragraph */
@@ -552,11 +528,6 @@ killpara(f, n)
 	return TRUE;
 }
 
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#ifndef	BUGFIX
-#define	BUGFIX
-#endif	/* BUGFIX */
-#endif	/* KANJI */
 /*
  * check to see if we're past fillcol, and if so,
  * justify this line. As a last step, justify the line.
@@ -589,11 +560,7 @@ fillword(f, n)
 	}
 #endif	/* READONLY */
 
-#ifdef	BUGFIX	/* 90.01.29  by S.Yoshida */
 	for (i = col = 0; col < fillcol; ++i, ++col) {
-#else	/* ORIGINAL */
-	for (i = col = 0; col <= fillcol; ++i, ++col) {
-#endif	/* BUGFIX */
 		if (i == curwp->w_doto) return selfinsert(f, n) ;
 		c = lgetc(curwp->w_dotp, i);
 		if (c == '\t'
@@ -669,12 +636,8 @@ fillword(f, n)
 #endif	/* KINSOKU */
 	    ))
 #else	/* NOT KANJI */
-#ifdef	BUGFIX	/* 90.01.29  by S.Yoshida */
 	if (curwp->w_doto < llength(curwp->w_dotp) &&
 	    (c = lgetc(curwp->w_dotp, curwp->w_doto)) != ' ' && c != '\t')
-#else	/* ORIGINAL */
-	if ((c = lgetc(curwp->w_dotp, curwp->w_doto)) != ' ' && c != '\t')
-#endif	/* BUGFIX */
 #endif	/* KANJI */
 		do {
 			(VOID) backchar(FFRAND, 1);
@@ -771,11 +734,7 @@ fillword(f, n)
 setfillcol(f, n) {
 	extern int	getcolpos() ;
 
-#ifdef	BUGFIX	/* 90.02.14  by S.Yoshida */
 	fillcol = ((f & FFARG) ? n : (getcolpos() - 1));
-#else	/* ORIGINAL */
-	fillcol = ((f & FFARG) ? n : getcolpos());
-#endif	/* BUGFIX */
 	ewprintf("Fill column set to %d", fillcol);
 	return TRUE;
 }

@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.16 2001/05/25 15:36:52 amura Exp $ */
+/* $Id: buffer.c,v 1.17 2001/10/29 04:30:41 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.17  2001/10/29 04:30:41  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.16  2001/05/25 15:36:52  amura
  * now buffers have only one mark (before windows have one mark)
  *
@@ -195,11 +198,7 @@ killbuffer(f, n)
 	 * there's only one buffer, create buffer *scratch* and make
 	 * it the alternate buffer.  return if *scratch* is only buffer
 	 */
-#ifdef	BUGFIX	/* 90.02.22  by S.Yoshida */
 	if ((bp1 = bp->b_altb) == NULL || bp1 == bp) {
-#else	/* ORIGINAL */
-	if ((bp1 = bp->b_altb) == NULL) {
-#endif	/* BUGFIX */
 		bp1 = (bp == bheadp) ? bp->b_bufp : bheadp;
 		if (bp1 == NULL) {
 			/* only one buffer. see if it's *scratch* */
@@ -602,13 +601,8 @@ showbuffer(bp, wp, flags) register BUFFER *bp; register WINDOW *wp; {
 		wp->w_doto  = bp->b_doto;
 	} else
 	/* already on screen, steal values from other window */
-#ifdef	BUGFIX	/* ? 90.12.08    Sawayanagi Yosirou */
 		for (owp = wheadp; owp != NULL; owp = owp->w_wndp)
 			if (owp->w_bufp == bp && owp != wp) {
-#else	/* ORIGINAL */
-		for (owp = wheadp; owp != NULL; owp = wp->w_wndp)
-			if (wp->w_bufp == bp && owp != wp) {
-#endif	/* BUGFIX */
 				wp->w_dotp  = owp->w_dotp;
 				wp->w_doto  = owp->w_doto;
 				break;
@@ -660,17 +654,9 @@ bufferinsert(f, n)
 	/* Get buffer to use from user */
 	if (curbp->b_altb != NULL)
 		s=eread("Insert buffer: (default %s) ", bufn, sizeof(bufn),
-#ifdef	BUGFIX	/* 91.01.04  by S.Yoshida */
 			 EFNEW|EFBUF, curbp->b_altb->b_bname);
 	else
 		s=eread("Insert buffer: ", bufn, sizeof(bufn), EFNEW|EFBUF);
-#else	/* ORIGINAL */
-			 EFNEW|EFBUF, &(curbp->b_altb->b_bname),
-			 (char *) NULL) ;
-	else
-		s=eread("Insert buffer: ", bufn, sizeof(bufn), EFNEW|EFBUF,
-			 (char *) NULL) ;
-#endif	/* BUGFIX */
 	if (s == ABORT) return (s);
 	if (s == FALSE && curbp->b_altb != NULL) bp = curbp->b_altb;
 	else if ((bp=bfind(bufn, FALSE)) == NULL) return FALSE;

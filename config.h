@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.15 2001/09/30 13:58:37 amura Exp $ */
+/* $Id: config.h,v 1.16 2001/10/29 04:30:41 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -91,8 +91,6 @@
 
 #define	KINSOKU		/* Create KINSOKU handling version. If defined, */
 			/* KANJI must be also.				*/
-
-#define	BUGFIX		/* Fix bugs in the original Mg2a.	*/
 
 #define	ADDFUNC		/* Create additional misc functions.	*/
 

@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.3 2001/08/17 19:15:05 amura Exp $ */
+/* $Id: extend.c,v 1.4 2001/10/29 04:30:41 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: extend.c,v $
+ * Revision 1.4  2001/10/29 04:30:41  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.3  2001/08/17 19:15:05  amura
  * first try of unicode support (unix only/win32 on the way)
  *
@@ -733,11 +736,9 @@ register char *line;
 				case '^':
 /* split into two statements due to bug in OSK cpp */
 				    c = CHARMASK(*++argp);
-#ifdef	BUGFIX	/* 90.02.28  by S.Yoshida */
 				    if (c == '\\') {
 					    c = CHARMASK(*++argp);
 				    }
-#endif	/* BUGFIX */
 				    c = ISLOWER(c) ?
 					CCHR(TOUPPER(c)) : CCHR(c);
 				    break;

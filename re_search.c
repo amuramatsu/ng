@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.2 2000/10/02 16:11:46 amura Exp $ */
+/* $Id: re_search.c,v 1.3 2001/10/29 04:30:42 amura Exp $ */
 /*
  *		regular expression search commands for
  *			   MicroGnuEmacs
@@ -71,6 +71,9 @@ what you give them.   Help stamp out software-hoarding!
 
 /*
  * $Log: re_search.c,v $
+ * Revision 1.3  2001/10/29 04:30:42  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.2  2000/10/02 16:11:46  amura
  * small fix in re_searchagain()
  *
@@ -669,21 +672,6 @@ killmatches(cond)
 
   return(TRUE);
 }
-
-#ifndef	BUGFIX	/* 91.01.09  by S.Yoshida */
-petersfunc(f, n) {
-
-  int s;
-  LINE	*clp;
-  char c;
-
-  curwp->w_doto = 0;
-  s = ldelete(llength(curwp->w_dotp)+1, KNONE);
-  curwp->w_flag |= WFMOVE;
-  return(s);
-
-}
-#endif	/* BUGFIX */
 
 /* Count lines matching regex
  */

@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.4 2001/02/18 19:29:03 amura Exp $ */
+/* $Id: sysdef.h,v 1.5 2001/10/29 04:30:43 amura Exp $ */
 /*
  * Name:	MicroEMACS
  * Version:	MG 2a
@@ -7,6 +7,9 @@
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.5  2001/10/29 04:30:43  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.4  2001/02/18 19:29:03  amura
  * split dir.c to port depend/independ
  *
@@ -58,15 +61,11 @@ extern char *offset_dummy;		/* Manx 3.2 can't handle 0->	*/
 #define MALLOCROUND(m)	(m+=7,m&=~7)	/* Round up to 8 byte boundary	*/
 
 #ifndef NULL
-# ifdef	BUGFIX	/* Dec. 15, 1992 by H.Ohkubo */
-#  ifdef  SAS6
+# ifdef  SAS6
 #   define	NULL	0L
-#  else
+# else
 #   define	NULL	((void *)0)
-#  endif
-# else	/* ORIGINAL Code */
-# define NULL	((char *) 0)		/* These are crass, but		*/ 
-# endif	/* BUGFIX */
+# endif
 #endif
 #ifndef EOF
 # define	EOF	-1		/* will work`			*/

@@ -1,10 +1,13 @@
-/* $Id: file.c,v 1.11 2001/09/27 18:56:49 amura Exp $ */
+/* $Id: file.c,v 1.12 2001/10/29 04:30:41 amura Exp $ */
 /*
  *		File commands.
  */
 
 /*
  * $Log: file.c,v $
+ * Revision 1.12  2001/10/29 04:30:41  amura
+ * let BUGFIX code enable always
+ *
  * Revision 1.11  2001/09/27 18:56:49  amura
  * Small changes for support EPOC32
  *
@@ -744,7 +747,6 @@ filewrite(f, n)
 		curbp->b_flag &= ~BFCHG;
 #endif
 #endif	/* AUTOSAVE */
-#ifdef	BUGFIX	/* 91.01.18  by S.Yoshida */
 	    {
 		BUFFER		*bp;
 		char		bname[NBUFN], *cp;
@@ -766,7 +768,6 @@ filewrite(f, n)
 			curbp->b_bname = cp;
 		}
 	    }
-#endif	/* BUGFIX */
 		upmodes(curbp);
 	}
 	return s;
@@ -801,10 +802,8 @@ filesave(f, n)
 buffsave(bp) BUFFER *bp; {
 	register int	s;
 #ifndef NO_BACKUP	/* 90.02.14  by S.Yoshida */
-#ifdef	BUGFIX		/* 90.02.14  by S.Yoshida */
 	register int	m = -1;
 	VOID		fsetfilemode();
-#endif	/* BUGFIX */
 #endif	/* NO_BACKUP */
 
 	if ((bp->b_flag&BFCHG) == 0)	{	/* Return, no changes.	*/
@@ -817,9 +816,7 @@ buffsave(bp) BUFFER *bp; {
 	}
 #ifndef NO_BACKUP
 	if (makebackup && (bp->b_flag&BFBAK)) {
-#ifdef	BUGFIX	/* 90.02.14  by S.Yoshida */
 		m = fgetfilemode(bp->b_fname);
-#endif	/* BUGFIX */
 		s = fbackupfile(bp->b_fname);
 		if (s == ABORT)			/* Hard error.		*/
 			return FALSE;
@@ -837,11 +834,9 @@ buffsave(bp) BUFFER *bp; {
 #endif	/* AUTOSAVE	*/
 	if ((s=writeout(bp, bp->b_fname)) == TRUE) {
 #ifndef NO_BACKUP
-#ifdef	BUGFIX	/* 90.02.14  by S.Yoshida */
 		if (m != -1) {
 			fsetfilemode(bp->b_fname, m);
 		}
-#endif	/* BUGFIX */
 #ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
 		bp->b_flag &= ~(BFCHG | BFBAK | BFACHG);
 #else
@@ -911,9 +906,5 @@ upmodes(bp) register BUFFER *bp; {
 	register WINDOW *wp;
 
 	for (wp = wheadp; wp != NULL; wp = wp->w_wndp)
-#ifdef	BUGFIX	/* 91.01.15  by K.Maeda */
 		if (bp == NULL || wp->w_bufp == bp) wp->w_flag |= WFMODE;
-#else	/* ORIGINAL */
-		if (bp == NULL || curwp->w_bufp == bp) wp->w_flag |= WFMODE;
-#endif	/* BUGFIX */
 }
