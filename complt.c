@@ -1,10 +1,13 @@
-/* $Id: complt.c,v 1.3 2000/06/27 01:49:42 amura Exp $ */
+/* $Id: complt.c,v 1.4 2000/09/05 01:04:54 amura Exp $ */
 /*
  *	Complete completion functions.
  */
 
 /*
  * $Log: complt.c,v $
+ * Revision 1.4  2000/09/05 01:04:54  amura
+ * support HANKANA file and buffer
+ *
  * Revision 1.3  2000/06/27 01:49:42  amura
  * import to CVS
  *
@@ -35,6 +38,9 @@ static int complete_filename pro((char *));
 static int complete_list_funcnames pro((char *, BUFFER *));
 static int complete_list_buffernames pro((char *, BUFFER *));
 static int complete_list_filenames pro((char *, BUFFER *));
+#ifdef	HANKANA
+static int estrlen pro((char *));
+#endif
 
 /*
  * do some completion.
@@ -424,16 +430,27 @@ complete_list_buffernames (name, bp)
 
 	if (line[0] == '\0')
 	  {
+#ifdef	HANKANA
+	    if (estrlen (cand) < LIST_COL)
+#else
 	    if (strlen (cand) < LIST_COL)
+#endif
 	      strcpy (line, cand);
 	    else
 	      addline (bp, cand);
 	  }
 	else
 	  {
+#ifdef	HANKANA
+	    if (estrlen (cand) < LIST_COL)
+	      {
+		int k = estrlen(line);
+		for (j = strlen (line); k < LIST_COL; j++, k++)
+#else
 	    if (strlen (cand) < LIST_COL)
 	      {
 		for (j = strlen (line); j < LIST_COL; j++)
+#endif
 		  line[j] = ' ';
 		line[j] = '\0';
 		strcat (line, cand);
@@ -478,16 +495,27 @@ complete_list_filenames (name, bp)
 	cand += dnlen;
 	if (line[0] == '\0')
 	  {
+#ifdef	HANKANA
+	    if (estrlen (cand) < LIST_COL)
+#else
 	    if (strlen (cand) < LIST_COL)
+#endif
 	      strcpy (line, cand);
 	    else
 	      addline (bp, cand);
 	  }
 	else
 	  {
+#ifdef	HANKANA
+	    if (estrlen (cand) < LIST_COL)
+	      {
+		int k = estrlen(line);
+		for (j = strlen (line); k < LIST_COL; j++, k++)
+#else
 	    if (strlen (cand) < LIST_COL)
 	      {
 		for (j = strlen (line); j < LIST_COL; j++)
+#endif
 		  line[j] = ' ';
 		line[j] = '\0';
 		strcat (line, cand);
@@ -578,4 +606,19 @@ complete_scroll_down ()
     ttmove (cur_row, cur_col);
     return (TRUE);
 }
+
+#ifdef	HANKANA
+static int
+estrlen(char *str)
+{
+    int i = 0;
+    while (*str)
+    {
+	if ((unsigned char)*str != SS2)
+	    i++;
+	str++;
+    }
+    return i;
+}
+#endif	/* HANKANA */
 #endif	/* NEW_COMPLETE */
