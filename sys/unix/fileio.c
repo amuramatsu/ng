@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.4 2000/12/21 16:56:25 amura Exp $ */
+/* $Id: fileio.c,v 1.5 2000/12/22 20:02:14 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.5  2000/12/22 20:02:14  amura
+ * readonly check is more correctly
+ *
  * Revision 1.4  2000/12/21 16:56:25  amura
  * filename length become flexible
  *
@@ -214,7 +217,24 @@ char	*fn;
     struct	stat	filestat;
     
     if (stat(fn, &filestat) == 0) {
-	return(!(filestat.st_mode & S_IWUSR));
+	if (filestat.st_mode&S_IWOTH)
+	    return FALSE;
+	if (filestat.st_mode&S_IWGRP && filestat.st_gid==getegid())
+	    return FALSE;
+#ifdef HAVE_GETGROUPS
+	if (filestat.st_mode & S_IWGRP) {
+	    gid_t gids[NGROUPS_MAX];
+	    int i,num;
+	    
+	    num = getgroups(NGROUPS_MAX, gids);
+	    for (i=0; i<num; i++)
+		if (filestat.st_gid == gids[i])
+		    return FALSE;
+	}
+#endif
+	if (filestat.st_mode&S_IWUSR && filestat.st_uid==getuid())
+	    return FALSE;
+	return TRUE;
     } else {
 	return FALSE;
     }
