@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.15.2.1 2003/03/08 00:17:23 amura Exp $ */
+/* $Id: def.h,v 1.15.2.2 2003/03/08 01:22:35 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.15.2.2  2003/03/08 01:22:35  amura
+ * NOTAB is always enabled
+ *
  * Revision 1.15.2.1  2003/03/08 00:17:23  amura
  * fix query-replace bug, too
  *
@@ -349,9 +352,7 @@ typedef struct	BUFFER {
 
 #define BFCHG	0x01			/* Changed.			*/
 #define BFBAK	0x02			/* Need to make a backup.	*/
-#ifdef	NOTAB
 #define BFNOTAB 0x04			/* no tab mode			*/
-#endif
 #define BFOVERWRITE 0x08		/* overwrite mode		*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 #define	BFAUTOFILL 0x10			/* autofill mode with KANJI.	*/

@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.17.2.1 2003/03/08 00:17:23 amura Exp $ */
+/* $Id: line.c,v 1.17.2.2 2003/03/08 01:22:35 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.17.2.2  2003/03/08 01:22:35  amura
+ * NOTAB is always enabled
+ *
  * Revision 1.17.2.1  2003/03/08 00:17:23  amura
  * fix query-replace bug, too
  *
@@ -44,15 +47,6 @@
  *
  * Revision 1.11  2001/01/05 14:07:04  amura
  * first implementation of Hojo Kanji support
- *
- * Revision 1.10  2000/11/21 19:49:01  amura
- * fix bug in ldelete when delete 1 charactor
- *
- * Revision 1.9  2000/11/05 01:58:39  amura
- * speed ldelete() with undo up
- *
- * Revision 1.8  2000/11/04 13:44:58  amura
- * undo memory exception is more safety
  *
  * -- snip --
  *
@@ -499,9 +493,9 @@ ldelete(n, kflag) RSIZE n; {
 #endif
 #ifdef KANJI
 	if (kflag & KNOKANJI)
-	    kanji2nd = -1;
+		kanji2nd = -1;
 	else
-	    kanji2nd = 0;
+		kanji2nd = 0;
 	kflag = KFLAGS(kflag);
 #endif
 

@@ -1,4 +1,4 @@
-/* $Id: menumap.h,v 2.2 2001/11/23 11:56:44 amura Exp $ */
+/* $Id: menumap.h,v 2.1.4.1 2003/03/08 01:22:36 amura Exp $ */
 /*
  * menumap.h
  *   Amiga intuition menu mapping header for Ng 1.x
@@ -30,8 +30,8 @@
 
 /*
  * $Log: menumap.h,v $
- * Revision 2.2  2001/11/23 11:56:44  amura
- * Rewrite all sources
+ * Revision 2.1.4.1  2003/03/08 01:22:36  amura
+ * NOTAB is always enabled
  *
  * Revision 2.1  2000/10/02 14:05:46  amura
  * create for new ttymenu.c
@@ -41,7 +41,7 @@
 
 /*--- Functions called from menu ---*/
 
-#define _PF()	_PRO((int, int))
+#define _PF() pro((int, int))
 
 /*
  * Defined by "buffer.c".
@@ -115,9 +115,7 @@ extern	int	quit _PF();		/* Quit				*/
  */
 extern	int	indentmode _PF();	/* set auto-indent mode		*/
 extern	int	fillmode _PF();		/* set word-wrap mode		*/
-#ifdef	NOTAB
 extern	int	notabmode _PF();	/* no tab mode			*/
-#endif
 extern	int	overwrite _PF();	/* overwrite mode		*/
 #ifdef	C_MODE	/* 90.07.24  by K.Takano */
 extern	int	cmode _PF();		/* set c-mode			*/
@@ -241,7 +239,8 @@ typedef struct {
 #define	MENU_SUB_ICON	""
 #endif
 
-MenuMap MgFileMenus[] = {
+MenuMap MgFileMenus[] =
+{
     {"Open File...      (C-x C-f)", MENU_FUNC, filevisit  , NULL},
 #ifndef	NO_DIRED
     {"Open Directory... (C-x d)"  , MENU_FUNC, dired      , NULL},
@@ -257,7 +256,7 @@ MenuMap MgFileMenus[] = {
     {"Split Window      (C-x 2)"  , MENU_FUNC, splitwind  , NULL},
     {"One Window        (C-x 1)"  , MENU_FUNC, onlywind   , NULL},
     {"One Window(Alt)   (C-x 0)"  , MENU_FUNC, delwind    , NULL},
-#if defined(AMIGA)||defined(DO_ICONIFY)
+#if	defined(AMIGA)||defined(DO_ICONIFY)
     {"---------------------------", MENU_LINE, NULL       , NULL},
 #endif
 #ifdef	AMIGA
@@ -271,7 +270,8 @@ MenuMap MgFileMenus[] = {
     {NULL                         , MENU_END , NULL       , NULL}
 };
 
-MenuMap MgEditMenus[] = {
+MenuMap MgEditMenus[] =
+{
 #ifdef	UNDO
     {"Undo             (C-x _)", MENU_FUNC, do_undo    , NULL},
 #endif
@@ -285,7 +285,8 @@ MenuMap MgEditMenus[] = {
     {NULL                      , MENU_END , NULL       , NULL}
 };
 
-MenuMap MgSearchMenus[] = {
+MenuMap MgSearchMenus[] =
+{
     {"Search..."                       , MENU_FUNC, forwsearch    , NULL},
 #ifdef REGEX
     {"Regexp Search..."                , MENU_FUNC, re_forwsearch , NULL},
@@ -308,7 +309,8 @@ MenuMap MgSearchMenus[] = {
 };
 
 #ifdef	KANJI
-MenuMap MgKanjiMenus[] = {
+MenuMap MgKanjiMenus[] =
+{
     {"Kanji Buffer I/O Code (C-x C-k f)", MENU_FUNC, k_set_buffio , NULL},
     {"Kanji Input Code      (C-x C-k i)", MENU_FUNC, k_set_input  , NULL},
     {"Kanji Display Code    (C-x C-k d)", MENU_FUNC, k_set_display, NULL},
@@ -317,7 +319,8 @@ MenuMap MgKanjiMenus[] = {
 #endif	/* KANJI */
 
 #ifdef	AMIGA
-MenuMap MgAmigaMenus[] = {
+MenuMap MgAmigaMenus[] =
+{
     {"Window Border Toggle"           , MENU_FUNC, togglewindow  , NULL},
     {"Window Zooming"                 , MENU_FUNC, togglezooms   , NULL},
 #ifdef	CHANGE_FONT
@@ -335,7 +338,8 @@ MenuMap MgAmigaMenus[] = {
 };
 #endif	/* AMIGA */
 
-MenuMap MgEtcMenus[] = {
+MenuMap MgEtcMenus[] =
+{
 #ifndef	NO_MACRO
     {"Execute Kbd Macro  (C-x e)"  , MENU_FUNC, executemacro, NULL},
     {"----------------------------", MENU_LINE, NULL        , NULL},
@@ -368,7 +372,8 @@ MenuMap MgEtcMenus[] = {
 };
 
 #ifndef	NO_HELP
-MenuMap MgHelpMenus[] = {
+MenuMap MgHelpMenus[] =
+{
     {"Command Apropos...   (C-h a)", MENU_FUNC, apropos_command, NULL},
     {"Decscribe Bindings   (C-h b)", MENU_FUNC, wallchart      , NULL},
     {"Decscribe Key        (C-h c)", MENU_FUNC, desckey        , NULL},
@@ -380,7 +385,8 @@ MenuMap MgHelpMenus[] = {
 
 #ifdef	AMIGA
 #ifdef	ASL
-MenuMap MgAslMenus[] = {
+MenuMap MgAslMenus[] =
+{
     {"Open File"  , MENU_FUNC, aslopen  , NULL},
     {"Insert File", MENU_FUNC, aslinsert, NULL},
     {"Write File" , MENU_FUNC, aslwrite , NULL},
@@ -389,7 +395,8 @@ MenuMap MgAslMenus[] = {
 #endif	/* ASL */
 #endif	/* AMIGA */
 
-MenuMap MgMenus[] = {
+MenuMap MgMenus[] =
+{
     {"File"    , MENU_SUB, MgFileMenus  , NULL},
     {"Edit"    , MENU_SUB, MgEditMenus  , NULL},
     {"Search"  , MENU_SUB, MgSearchMenus, NULL},
