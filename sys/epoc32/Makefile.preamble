@@ -1,0 +1,17 @@
+
+###############################################################################
+#  Makefile.preamble
+#  Copyright 1999, X.soft
+#
+#  Use this makefile for configuring the standard application makefiles 
+#  associated with ProjectBuilder. It is included before the main makefile.
+#  In Makefile.preamble you set attributes for a project, so they are available
+#  to the projects makefiles.  In contrast, you typically write additional rules or 
+#  override built-in behavior in the Makefile.postamble.
+#  
+#  Each directory in a project tree (main project plus subprojects) should 
+#  have its own Makefile.preamble and Makefile.postamble.
+###############################################################################
+#
+# Not used currently in the XSdk
+#

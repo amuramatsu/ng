@@ -1,0 +1,26 @@
+// ng.mmp
+
+target         	Ng.exe
+targettype      EXE
+targetpath      \SYSTEM\APPS\Ng
+uid		0x0F000001 0x0F001608
+unicodeuid	0x0F000002 0x0F001608
+
+project		ng
+subproject	ng
+lang		SC
+
+userinclude	.
+systeminclude   \EPOC32\INCLUDE
+
+source		epocmain.cpp epoctty.cpp tty.c ttyio.cpp fileio.cpp spawn.c
+source		cinfo.c ttykbd.c
+source		autosave.c basic.c buffer.c cmode.c complt.c dir.c dired.c 
+source		display.c echo.c extend.c file.c help.c jump.c kanji.c
+source		kbd.c keymap.c kinsoku.c line.c macro.c main.c 
+source		match.c modes.c paragraph.c random.c re_search.c regex.c 
+source		region.c search.c shell.c skg.c undo.c version.c 
+source		window.c word.c 
+
+library		EUSER.LIB  EFSRV.LIB  ESTOR.LIB   BAFL.LIB   GDI.LIB
+library		ETEXT.LIB  ECONS.LIB  ESTLIB.LIB

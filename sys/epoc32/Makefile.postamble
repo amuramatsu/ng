@@ -1,0 +1,14 @@
+
+###############################################################################
+#  Makefile.postamble
+#  Copyright 1999, X.soft
+#
+#  Use this makefile, which is imported after all other makefiles, to
+#  override attributes for a projects Makefile environment. This allows you  
+#  to take advantage of the environment set up by the other Makefiles. 
+#  You can also define custom rules at the end of this file.
+#
+###############################################################################
+#
+# Not used currently in the XSdk
+# 

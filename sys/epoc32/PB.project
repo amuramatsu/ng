@@ -1,0 +1,49 @@
+{
+    DYNAMIC_CODE_GEN = YES; 
+    English_RESOURCES = {}; 
+    FILESTABLE = {
+        CLASSES = (epocmain.cpp,epoctty.cpp,tty.c,ttyio.cpp,fileio.cpp,spawn.c,cinfo.c,ttykbd.c,autosave.c,basic.c,buffer.c,cmode.c,complt.c,dir.c,dired.c,display.c,echo.c,extend.c,file.c,help.c,jump.c,kanji.c,kbd.c,keymap.c,kinsoku.c,line.c,macro.c,main.c,match.c,modes.c,paragraph.c,random.c,re_search.c,regex.c,region.c,search.c,shell.c,skg.c,undo.c,version.c,window.c,word.c); 
+        FRAMEWORKS = (); 
+        FRAMEWORKSEARCH = (); 
+        H_FILES = (chrdef.h,complt.h,config.h,def.h,epoctty.h,kanji.h,kanji_.h,kbd.h,key.h,kinit.h,macro.h,regex_e.h,regex_j.h,sysdef.h,ttydef.h,undo.h,varargs.h,); 
+        LIBRARYSEARCH = ("D:\\EPOC32\\Release\\MARM\\Rel"); 
+        OTHER_LIBS = (euser, efsrv, estor, bafl, gdi, etext, econs, estlib,); 
+        OTHER_LINKED = (); 
+        OTHER_SOURCES = (
+            Makefile, 
+            cpp.template, 
+            h.template, 
+            Makefile.postamble, 
+            Makefile.preamble, 
+            Makefile.xsdk
+        ); 
+        PRECOMPILED_HEADERS = (); 
+        PROJECT_HEADERS = (); 
+        PUBLIC_HEADERS = (); 
+        SUBPROJECTS = (); 
+    }; 
+    LANGUAGE = English; 
+    MAKEFILEDIR = "$(NEXT_ROOT)/Local/Developer/XSdk/Makefiles"; 
+    NEXTSTEP_BUILDTOOL = /bin/gnumake; 
+    NEXTSTEP_INSTALLDIR = /Applications; 
+    NEXTSTEP_JAVA_COMPILER = /usr/bin/javac; 
+    NEXTSTEP_OBJCPLUS_COMPILER = /usr/bin/cc; 
+    PROJECTNAME = ng; 
+    PROJECTTYPE = "Epoc EXE"; 
+    PROJECTVERSION = 2.8; 
+    TARGETS = (debug, marm, export); 
+    WINDOWS_BUILDTOOL = $NEXT_ROOT/Developer/Executables/make; 
+    WINDOWS_INSTALLDIR = /Applications; 
+    WINDOWS_JAVA_COMPILER = "$(JDKBINDIR)/javac.exe"; 
+    WINDOWS_OBJCPLUS_COMPILER = "$(DEVDIR)/gcc"; 
+    XSdkCreated = "2001-09-28 05:33:40 JST"; 
+    XSdkImportedBy = MmpImport; 
+    XSdkUID1 = 268435578; 
+    XSdkUID2 = 251658241; 
+    XSdkUID3 = 251663880; 
+    XSdkUsingExtendedApi = NO; 
+    XSdkVersionBeta = YES; 
+    XSdkVersionMajor = 1; 
+    XSdkVersionMinor = 0; 
+    XSdkPlainResources = (  );
+}
