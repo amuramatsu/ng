@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.2 2000/11/23 14:03:32 amura Exp $ */
+/* $Id: ttyio.c,v 1.3 2000/12/01 10:12:55 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,6 +11,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.3  2000/12/01 10:12:55  amura
+ * edit for adapting to POSIX
+ *
  * Revision 1.2  2000/11/23 14:03:32  amura
  * some fix for FreeBSD's termios interface
  *
@@ -56,9 +59,6 @@ static int ttysavedp = FALSE;		/* terminal state saved?	*/
 #ifdef	HAVE_TERMIOS_H
 static struct termios	ot;		/* entry state of the terminal	*/
 static struct termios	nt;		/* editor's terminal state	*/
-# ifndef _POSIX_VDISABLE		/* some system not defined this */
-# define _POSIX_VDISABLE 0
-# endif
 #else
 static struct termio	ot;		/* entry state of the terminal	*/
 static struct termio	nt;		/* editor's terminal state	*/
@@ -94,9 +94,12 @@ RETSIGTYPE ttwinch();
 #ifndef USE_SELECT
 /* These are used to implement typeahead on System V */
 int kbdflgs;			/* saved keyboard fd flags	*/
-int kbdpoll;			/* in O_NDELAY mode		*/
+int kbdpoll;			/* in O_NONBLOCK mode		*/
 int kbdqp;			/* there is a char in kbdq	*/
 char kbdq;			/* char we've already read	*/
+#ifndef	O_NONBLOCK	/* for old system compat? */
+#define O_NONBLOCK	O_NDELAY
+#endif
 #endif
 
 /*
@@ -161,29 +164,23 @@ ttraw() {
 	nt = ot;		/* save entry state		*/
 	nt.c_cc[VMIN] = 1;	/* one character read is OK	*/
 	nt.c_cc[VTIME] = 0;	/* Never time out.		*/
-#ifdef HAVE_TERMIOS_H
-# ifdef VLNEXT
-	nt.c_cc[VLNEXT]   = _POSIX_VDISABLE;
-# endif
-# ifdef VDISCARD
-	nt.c_cc[VDISCARD] = _POSIX_VDISABLE;
-# endif
-#endif
 	nt.c_iflag |= IGNBRK;
 	nt.c_iflag &= ~( ICRNL | INLCR | ISTRIP | IXON | IXOFF );
 	nt.c_oflag &= ~OPOST;
 	nt.c_cflag |= CS8;	/* allow 8th bit on input	*/
 	nt.c_cflag &= ~PARENB;	/* Don't check parity		*/
 	nt.c_lflag &= ~( ECHO | ICANON | ISIG );
-	
+#ifdef	IEXTEN
+	nt.c_lflag &= ~IEXTEN;
+#endif
 #ifndef USE_SELECT
-	kbdpoll = (((kbdflgs = fcntl(0, F_GETFL, 0)) & O_NDELAY) != 0);
+	kbdpoll = (((kbdflgs = fcntl(0, F_GETFL, 0)) & O_NONBLOCK) != 0);
 #endif
 	ttysavedp = TRUE;
     }
 #ifndef	USE_SELECT
     else
-	kbdpoll = ((fcntl(0, F_GETFL, 0) & O_NDELAY) != 0);
+	kbdpoll = ((fcntl(0, F_GETFL, 0) & O_NONBLOCK) != 0);
 #endif
 
 #ifdef	HAVE_TERMIOS_H
@@ -440,7 +437,7 @@ typeahead() {
 #else
     if( !kbdqp )
     {
-	if( !kbdpoll && fcntl( 0, F_SETFL, kbdflgs | O_NDELAY ) < 0 )
+	if( !kbdpoll && fcntl( 0, F_SETFL, kbdflgs | O_NONBLOCK) < 0 )
 	    abort();
 	kbdpoll = TRUE;
 	kbdqp = (1 == read( 0, &kbdq, 1 ));
