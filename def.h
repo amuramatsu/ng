@@ -9,12 +9,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: def.h,v 1.2 2000/05/01 23:04:38 amura Exp $ */
+/* $Id: def.h,v 1.3 2000/06/01 05:25:06 amura Exp $ */
 
 /* $Log: def.h,v $
-/* Revision 1.2  2000/05/01 23:04:38  amura
-/* undo test version
+/* Revision 1.3  2000/06/01 05:25:06  amura
+/* Undo support
 /*
+ * Revision 1.2  2000/05/01  23:04:38  amura
+ * undo test version
+ *
  * Revision 1.1  1999/05/19  03:52:32  amura
  * Initial revision
  *
@@ -74,6 +77,7 @@ typedef int (*PF) pro((int, int)); /* generaly useful type */
 #define NSRCH	128			/* Undoable search commands.	*/
 #define NXNAME	64			/* Length, extended command.	*/
 #define NKNAME	20			/* Length, key names		*/
+#define UNDOSIZE 10			/* Undo buffer size		*/
 /*
  * Universal.
  */
@@ -250,44 +254,6 @@ typedef struct	WINDOW {
 #define WFMODE	0x10			/* Update mode line.		*/
 
 /*
- * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
- * This undo is not support redo. and not perfect now.
- */
-#ifdef UNDO
-#ifndef	UNDOSIZE
-#define UNDOSIZE 10
-#endif
-
-#define UDNONE	0
-#define	UDDEL	1
-#define UDBS	2
-#define UDINS	3
-#define	UDINSNL	4
-#define UDOVER	5	/* not yet */
-#define UDREPL	6	/* not yet */
-#define	UDFIRST	0x10
-
-typedef struct UNDO_DATA {
-    int    u_type;
-    int    u_dotlno;
-    short  u_doto;
-    short  u_size;
-    char   u_code[2];
-    short  u_used;
-    char   *u_buffer;
-} UNDO_DATA;
-
-#define undo_type(_bp)	(_bp->b_utop!=_bp->b_ubottom ? _bp->b_utop->u_type&0x0f : UDNONE)
-#define undo_check(_bp)	(_bp->b_utop != _bp->b_ubottom)
-#define undo_reset(_bp)			\
-{					\
-    _bp->b_ubottom = _bp->b_utop;	\
-    _bp->b_utop->u_type = UDNONE;	\
-    _bp->b_utop->u_used = 0;		\
-}
-#endif
-
-/*
  * Text is kept in buffers. A buffer header, described
  * below, exists for every buffer in the system. The buffers are
  * kept in a big list, so that commands that search for a buffer by
@@ -321,10 +287,10 @@ typedef struct	BUFFER {
 	char	b_tabwidth;		/* Local TAB width		*/
 #endif  /* VARIABLE_TAB */
 #ifdef	UNDO
-	struct	UNDO_DATA b_ustack[UNDOSIZE+1];
+	struct	UNDO_DATA *b_ustack[UNDOSIZE+1];
 					/* Undo stack data		*/
-	struct	UNDO_DATA *b_utop;	/* Undo stack top		*/
-	struct	UNDO_DATA *b_ubottom;	/* Undo stack bottom		*/
+	short	b_utop;			/* Undo stack top		*/
+	short	b_ubottom;		/* Undo stack bottom		*/
 #endif	/* UNDO */
 }	BUFFER;
 #define b_bufp	b_list.l_p.x_bp
@@ -452,18 +418,9 @@ extern int newline pro((int, int));
 extern int selfinsert pro((int, int));
 extern int cm_indent pro((int, int));
 extern int cm_term pro((int, int));
-#ifdef	UNDO
-extern int linsertx pro((int, int, int));
-extern int ldeletex pro((RSIZE, int, int));
-extern int lnewlinex pro((int));
-#define	linsert(n, c)	linsertx(n, c, UDINS)
-#define ldelete(n, kf)	ldeletex(n, kf, (kf==KBACK)?UDBS:UDDEL)
-#define lnewline()	lnewlinex(UDINSNL)
-#else
 extern int linsert pro((int, int));
 extern int ldelete pro((RSIZE, int));
 extern int lnewline pro((void));
-#endif
 extern int panic pro((char *));
 extern int name_fent pro((char *, int));
 extern int splitwind pro((int, int));

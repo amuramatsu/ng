@@ -5,12 +5,15 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: keymap.c,v 1.2 2000/03/10 21:29:32 amura Exp $ */
+/* $Id: keymap.c,v 1.3 2000/06/01 05:30:09 amura Exp $ */
 
 /* $Log: keymap.c,v $
-/* Revision 1.2  2000/03/10 21:29:32  amura
-/* some function added
+/* Revision 1.3  2000/06/01 05:30:09  amura
+/* Undo support
 /*
+ * Revision 1.2  2000/03/10  21:29:32  amura
+ * some function added
+ *
  * Revision 1.1  1999/05/19  03:59:01  amura
  * Initial revision
  *
@@ -43,6 +46,9 @@ extern	int	gotoline _PF();		/* Go to a specified line.	*/
 extern	int	forw1page _PF();	/* move forward by lines	*/
 extern	int	back1page _PF();	/* move back by lines		*/
 #endif
+#ifdef	NEXTLINE
+extern	int	nextline _PF();		/* next-line-noexpand		*/
+#endif
 
 /*
  * Defined by "buffer.c".
@@ -74,6 +80,7 @@ extern	int	b_thiswin _PF();	/* buffer-mode on this window	*/
  * Defined by "cmode.c".
  */
 #ifdef	C_MODE	/* 90.07.24  by K.Takano */
+extern	int	cm_use_c_mode _PF();	/* use-c-mode			*/
 extern	int	cm_brace _PF();		/* c-mode electric-c-brace	*/
 extern	int	cm_brace_blink _PF();	/* c-mode electric-c-brace-blink*/
 extern	int	cm_semi _PF();		/* c-mode electric-c-semi	*/
@@ -90,6 +97,7 @@ extern	int	cm_set_cbrace _PF();	/* set-c-continued-brace-offset	*/
 extern	int	cm_set_newl _PF();	/* set-c-auto-newline		*/
 extern	int	cm_set_tab _PF();	/* set-c-tab-always-indent	*/
 extern	int	cm_list_var _PF();	/* list-c-mode-variables	*/
+extern	int	cm_indentregion();	/* c-indent-region  Y.Koyanagi	*/
 #endif	/* C_MODE */
 
 #ifndef NO_DIR
@@ -165,7 +173,9 @@ extern	int	apropos_command _PF();	/* apropos			*/
  * defined by "jump.c"         Dec 1991. bsh
  */
 #ifdef	JUMPERR
-extern	int	jumptoerror();	/* parse current line as error message */
+extern	int	jumptoerror _PF();	/* parse current line as error message */
+extern	int	nexterror _PF();	/* next-error Y.Koyanagi/amura */
+extern	int	compile _PF();		/* compile  Y.Koyanagi */
 #endif
 /*
  * defined by "kanji.c"
@@ -217,6 +227,13 @@ extern	int	kc_del_bol _PF();	/* Delete BOL KINSOKU chars.	*/
 extern	int	kc_add_eol _PF();	/* Add EOL KINSOKU chars.	*/
 extern	int	kc_del_eol _PF();	/* Delete EOL KINSOKU chars.	*/
 #endif	/* KINSOKU */
+
+/*
+ * defined by "line.c"
+ */
+#ifdef	UNDO
+extern	int	do_undo _PF();		/* undo */
+#endif
 
 /*
  * defined by "macro.c"
@@ -471,6 +488,13 @@ extern	int	modebackground _PF();	/*  ""				*/
 
 #endif	/* AMIGA */
 
+#ifdef CANNA
+/*
+ * Defined by "canna.c".
+ */
+extern int canna_toggle();
+#endif
+
 /* initial keymap declarations, deepest first */
 
 #ifndef NO_HELP
@@ -640,6 +664,10 @@ static	PF	cXcar[] = {
 	rescan,		/* q */
 	rescan,		/* r */
 	savebuffers,	/* s */
+#ifdef	UNDO
+	rescan,		/* t */
+	do_undo,	/* u */
+#endif
 };
 #ifndef NO_MACRO
 static	struct	KEYMAPE(6+IMAPEXT)	cXmap = {
@@ -667,7 +695,11 @@ static	struct	KEYMAPE(5+IMAPEXT)	cXmap = {
 		{'0',	'4',		cX0,	(KEYMAP *)&cX4map},
 #endif	/* FILLPREFIX */
 		{'=',	'=',		cXeq,	(KEYMAP *)NULL},
+#ifdef	UNDO
+		{'^',	'u',		cXcar,	(KEYMAP *)NULL},
+#else
 		{'^',	's',		cXcar,	(KEYMAP *)NULL},
+#endif
 	}
 };
 
@@ -804,7 +836,11 @@ static	PF	fund_CJ[] = {
 	reposition,	/* ^L */
 	newline,	/* ^M */
 	forwline,	/* ^N */
+#ifdef CANNA
+	canna_toggle,	/* ^O */
+#else
 	openline,	/* ^O */
+#endif
 	backline,	/* ^P */
 	quote,		/* ^Q */
 	backisearch,	/* ^R */
@@ -843,7 +879,11 @@ static	PF	fund_esc[] = {
 #endif	/* PC9801 */
 #else	/* NOT MSDOS */
 #ifdef	HUMAN68K	/* 90.11.09    Sawayanagi Yosirou */
+#ifdef	FEPCTRL
+	fepmode_toggle,	/* ^\ */	/* ^\ is fep-toggle */
+#else
 	setmark,	/* ^\ */	/* ^\ is also set-mark-command. */
+#endif	/* FEPCTRL */
 #else	/* NOT HUMAN68K */
 	rescan,		/* ^\ */	/* selfinsert is default on fundamental */
 #endif	/* HUMAN68K */
@@ -1053,9 +1093,9 @@ static	PF	cmodecolon[] = {
 	cm_semi,	/* ; */
 };
 static	PF	cmodepar[] = {
-	cm_brace,	/* { */
+	cm_brace_blink,	/* { */
 	rescan,		/* | */
-	cm_brace,	/* } */
+	cm_brace_blink,	/* } */
 };
 static	struct	KEYMAPE(3+IMAPEXT)	cmodemap = {
 	3,
@@ -1298,6 +1338,7 @@ FUNCTNAMES	functnames[] = {
 #endif
 #ifdef C_MODE	/* 90.07.24  by K.Takano */
 	{cm_indent,	"c-indent-command"},
+	{cm_indentregion, "c-indent-region"},	/* Y.Koyanagi */
 	{cmode,		"c-mode"},
 	{cm_lfindent,	"c-newline-and-indent"},
 #endif	/* C_MODE */
@@ -1305,6 +1346,9 @@ FUNCTNAMES	functnames[] = {
 	{prefix,	"c-x prefix"},
 #ifndef NO_MACRO
 	{executemacro,	"call-last-kbd-macro"},
+#endif
+#ifdef CANNA
+	{canna_toggle,	"canna-toggle"},
 #endif
 	{capword,	"capitalize-word"},
 #ifndef NO_DIR
@@ -1321,9 +1365,9 @@ FUNCTNAMES	functnames[] = {
 	{k_rot_buffio,	"change-fileio-code"},
 	{k_rot_input,	"change-input-code"},
 #endif	/* KANJI */
-#ifdef	COMPILE_MODE
+#ifdef JUMPERR /* 91.09.14  by Y.Koyanagi */
 	{compile,	"compile"},
-#endif	/* COMPILE_MODE */
+#endif	/* JUMPERR */
 #ifndef NO_STARTUP
 #ifdef _WIN32
 	{ConfigStartupFilePath, "configure"},
@@ -1397,6 +1441,10 @@ FUNCTNAMES	functnames[] = {
 	{extend,	"execute-extended-command"},
 #ifdef FEPCTRL
 	{fepmode_toggle,"fep-toggle"},
+#else
+# ifdef CANNA
+	{canna_toggle,	"fep-toggle"},
+# endif
 #endif
 	{fillpara,	"fill-paragraph"},
 	{filevisit,	"find-file"},
@@ -1491,10 +1539,13 @@ FUNCTNAMES	functnames[] = {
 	{negative_argument, "negative-argument"},
 	{newline,	"newline"},
 	{indent,	"newline-and-indent"},
-#ifdef	COMPILE_MODE
+#ifdef	JUMPERR /* Y.Koyanagi */
 	{nexterror,	"next-error"},
 #endif
 	{forwline,	"next-line"},
+#ifdef	NEXTLINE
+	{nextline,	"next-line-add-newlines"},
+#endif
 #ifdef	ADDFUNC	/* 90.12.28  by S.Yoshida */
 #ifdef	KANJI
 	{showngversion,	"ng-version"},
@@ -1630,9 +1681,15 @@ FUNCTNAMES	functnames[] = {
 	{togglereadonly, "toggle-read-only"},
 #endif	/* READONLY */
 	{twiddle,	"transpose-chars"},
+#ifdef	UNDO
+	{do_undo,	"undo"},
+#endif
 	{universal_argument, "universal-argument"},
 	{upperregion,	"upcase-region"},
 	{upperword,	"upcase-word"},
+#ifdef	C_MODE
+	{cm_use_c_mode,	"use-c-mode"},
+#endif
 	{showcpos,	"what-cursor-position"},
 	{filewrite,	"write-file"},
 	{yank,		"yank"},
@@ -1745,12 +1802,3 @@ register PF fpoint;
 	} while(++fnp < &functnames[NFUNCT]);
 	return (char *)NULL;
 }
-
-/* $Id: keymap.c,v 1.2 2000/03/10 21:29:32 amura Exp $ */
-/* Local Variables: */
-/*  c-indent-level:                   8      */
-/*  c-continued-statement-offset:     8      */
-/*  c-brace-offset:                  -8      */
-/*  c-argdecl-indent:                 8      */
-/*  c-label-offset:                  -8      */
-/* End: */

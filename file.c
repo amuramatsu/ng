@@ -3,16 +3,22 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-/* $Id: file.c,v 1.1 1999/05/19 03:56:19 amura Exp $ */
+/* $Id: file.c,v 1.2 2000/06/01 05:26:51 amura Exp $ */
 
 /* $Log: file.c,v $
-/* Revision 1.1  1999/05/19 03:56:19  amura
-/* Initial revision
+/* Revision 1.2  2000/06/01 05:26:51  amura
+/* Undo support
 /*
+ * Revision 1.1  1999/05/19  03:56:19  amura
+ * Initial revision
+ *
 */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
+#ifdef	UNDO
+#include	"undo.h"
+#endif
 
 BUFFER	*findbuffer();
 VOID	makename();
@@ -28,6 +34,11 @@ fileinsert(f, n)
 {
 	register int	s;
 	char		fname[NFILEN];
+
+#ifdef	EXTD_DIR
+	ensurecwd();
+	edefset(curbp->b_cwd);
+#endif
 
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
 	if ((s=eread("Insert file: ", fname, NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
@@ -46,103 +57,13 @@ fileinsert(f, n)
 }
 
 /*
- * Select a file for editing.
- * Look around to see if you can find the
- * fine in another buffer; if you can find it
- * just switch to the buffer. If you cannot find
- * the file, create a new buffer, read in the
- * text, and switch to the new buffer.
+ * fileopen is a combined routine of filevisit, filereadonly and
+ * poptofile.
  */
-/*ARGSUSED*/
-filevisit(f, n)
-{
-	register BUFFER *bp;
-	int	s;
-	char	fname[NFILEN];
-	char	*adjf;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	int	saved_kexpect;
-	extern	int	global_kexpect;	/* Defined at kanjic.	*/
-#endif	/* KANJI */
-
-#ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-	if ((s=eread("Find file: ", fname, NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
-#else	/* NO_FILECOMP */
-	if ((s=ereply("Find file: ", fname, NFILEN)) != TRUE)
-#endif	/* NO_FILECOMP */
-		return s;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	saved_kexpect = global_kexpect;
-	if (f & FFARG) {
-		if (n < 0) {
-			global_kexpect = NIL;
-		} else if (n == 4) {
-			global_kexpect = T;
-		} else if (n >= 0 && n <= 3) {
-			global_kexpect = n;
-		} else {
-			ewprintf("Invalid argument %d", n);
-			return FALSE;
-		}
-	}
-#endif	/* KANJI */
-	adjf = adjustname(fname);
-#ifndef NO_DIRED	/* 91.01.15  by K.Maeda */
-			/* 91.01.16  by S.Yoshida */
-	if (ffisdir(adjf)) {
-		eargset(adjf);
-		return dired(f, n);
-	}
-#endif	/* NO_DIRED */
-	if ((bp = findbuffer(adjf)) == NULL) {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		global_kexpect = saved_kexpect;
-#endif	/* KANJI */
-		return FALSE;
-	}
-	curbp = bp;
-	if (showbuffer(bp, curwp, WFHARD) != TRUE) {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		global_kexpect = saved_kexpect;
-#endif	/* KANJI */
-		return FALSE;
-	}
-	if (bp->b_fname[0] == 0) {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		s = readin(adjf);		/* Read it in.		*/
-		global_kexpect = saved_kexpect;
-#ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-		if (fchkreadonly(bp->b_fname)) { /* If no write permission, */
-			bp->b_flag |= BFRONLY;	 /* mark as read-only.      */
-			ewprintf("File is write protected");
-		}
-#endif	/* READONLY */
-		return (s);
-#else	/* NOT KANJI */
-#ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-		s = readin(adjf);		/* Read it in.		*/
-		if (fchkreadonly(bp->b_fname)) { /* If no write permission, */
-			bp->b_flag |= BFRONLY;	 /* mark as read-only.      */
-			ewprintf("File is write protected");
-		}
-		return (s);
-#else	/* NOT READONLY */
-		return readin(adjf);		/* Read it in.		*/
-#endif	/* READONLY */
-#endif	/* KANJI */
-	}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	global_kexpect = saved_kexpect;
-#endif	/* KANJI */
-	return TRUE;
-}
-
-/*
- * Pop to a file in the other window. Same as last function, just
- * popbuf instead of showbuffer.
- */
-/*ARGSUSED*/
-poptofile(f, n)
+static
+fileopen(f, n, readonly, popup, prompt)
+int f, n, readonly, popup;
+char *prompt;
 {
 	register BUFFER *bp;
 	register WINDOW *wp;
@@ -151,14 +72,18 @@ poptofile(f, n)
 	char	*adjf;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	int	saved_kexpect;
-	extern	int	global_kexpect;	/* Defined at kanji.c.	*/
+	extern	int	global_kexpect;	/* Defined at kanjic.	*/
 #endif	/* KANJI */
 
+#ifdef	EXTD_DIR
+	ensurecwd();
+	edefset(curbp->b_cwd);
+#endif
+
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-	if ((s=eread("Find file in other window: ", fname,
-		     NFILEN, EFNEW | EFFILE | EFCR)) != TRUE)
+	if ((s=eread(prompt, fname, NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
 #else	/* NO_FILECOMP */
-	if ((s=ereply("Find file in other window: ", fname, NFILEN)) != TRUE)
+	if ((s=ereply(prompt, fname, NFILEN)) != TRUE)
 #endif	/* NO_FILECOMP */
 		return s;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
@@ -190,42 +115,85 @@ poptofile(f, n)
 #endif	/* KANJI */
 		return FALSE;
 	}
-	if ((wp = popbuf(bp)) == NULL) {
+	if (popup) {
+	  if ((wp = popbuf(bp)) == NULL) {
+#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
+	    global_kexpect = saved_kexpect;
+#endif	/* KANJI */
+	    return FALSE;
+	  }
+	  curbp = bp;
+	  curwp = wp;
+	}
+	else {
+	  curbp = bp;
+	  if (showbuffer(bp, curwp, WFHARD) != TRUE) {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 		global_kexpect = saved_kexpect;
 #endif	/* KANJI */
 		return FALSE;
+	  }
 	}
-	curbp = bp;
-	curwp = wp;
 	if (bp->b_fname[0] == 0) {
+		s = readin(adjf);		/* Read it in.		*/
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		s = readin(adjf);		/* Read it in.		*/
 		global_kexpect = saved_kexpect;
-#ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-		if (fchkreadonly(bp->b_fname)) { /* If no write permission, */
-			bp->b_flag |= BFRONLY;	 /* mark as read-only.      */
-			ewprintf("File is write protected");
+#endif
+#ifdef READONLY
+		if (readonly) {
+		  bp->b_flag |= BFRONLY;	/* Mark as read-only	*/
+		}
+		else {
+		  if (fchkreadonly(bp->b_fname)) {/* If no write permission, */
+		    bp->b_flag |= BFRONLY;	  /* mark as read-only.      */
+		    ewprintf("File is write protected");
+		  }
 		}
 #endif	/* READONLY */
-		return (s);
-#else	/* NOT KANJI */
-#ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-		s = readin(adjf);		/* Read it in.		*/
-		if (fchkreadonly(bp->b_fname)) { /* If no write permission, */
-			bp->b_flag |= BFRONLY;	 /* mark as read-only.      */
-			ewprintf("File is write protected");
-		}
-		return (s);
-#else	/* NOT READONLY */
-		return readin(adjf);		/* Read it in.		*/
-#endif	/* READONLY */
-#endif	/* KANJI */
-	}
+  		return (s);
+  	}
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	global_kexpect = saved_kexpect;
 #endif	/* KANJI */
+
+#ifdef READONLY
+	if (readonly) {
+	  bp->b_flag |= BFRONLY; /* Mark as read-only	*/
+	  wp = wheadp;           /* Update mode lines.	*/
+	  while (wp != NULL) {
+	    if (wp->w_bufp == bp) {
+	      wp->w_flag |= WFMODE;
+	    }
+	    wp = wp->w_wndp;
+	  }
+	}
+#endif
 	return TRUE;
+}
+
+/*
+ * Select a file for editing.
+ * Look around to see if you can find the
+ * file in another buffer; if you can find it
+ * just switch to the buffer. If you cannot find
+ * the file, create a new buffer, read in the
+ * text, and switch to the new buffer.
+ */
+/*ARGSUSED*/
+filevisit(f, n)
+{
+  return fileopen(f, n, FALSE, FALSE, "Find file: ");
+}
+
+
+/*
+ * Pop to a file in the other window. Same as last function, just
+ * popbuf instead of showbuffer.
+ */
+/*ARGSUSED*/
+poptofile(f, n)
+{
+  return fileopen(f, n, FALSE, TRUE, "Find file in other window: ");
 }
 
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
@@ -241,80 +209,39 @@ poptofile(f, n)
 /*ARGSUSED*/
 filereadonly(f, n)
 {
-	register BUFFER *bp;
-	register WINDOW *wp;
-	int	s;
-	char	fname[NFILEN];
-	char	*adjf;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	int	saved_kexpect;
-	extern	int	global_kexpect;	/* Defined at kanjic.	*/
-#endif	/* KANJI */
-
-#ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-	if ((s=eread("Find file read-only: ",
-		     fname, NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
-#else	/* NO_FILECOMP */
-	if ((s=ereply("Find file read-only: ", fname, NFILEN)) != TRUE)
-#endif	/* NO_FILECOMP */
-		return s;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	saved_kexpect = global_kexpect;
-	if (f & FFARG) {
-		if (n < 0) {
-			global_kexpect = NIL;
-		} else if (n == 4) {
-			global_kexpect = T;
-		} else if (n >= 0 && n <= 3) {
-			global_kexpect = n;
-		} else {
-			ewprintf("Invalid argument %d", n);
-			return FALSE;
-		}
-	}
-#endif	/* KANJI */
-	adjf = adjustname(fname);
-#ifndef NO_DIRED	/* 91.01.15  by K.Maeda */
-			/* 91.01.16  by S.Yoshida */
-	if (ffisdir(adjf)) {
-		eargset(adjf);
-		return dired(f, n);
-	}
-#endif	/* NO_DIRED */
-	if ((bp = findbuffer(adjf)) == NULL) {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		global_kexpect = saved_kexpect;
-#endif	/* KANJI */
-		return FALSE;
-	}
-	curbp = bp;
-	if (showbuffer(bp, curwp, WFHARD) != TRUE) {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		global_kexpect = saved_kexpect;
-#endif	/* KANJI */
-		return FALSE;
-	}
-	if (bp->b_fname[0] == 0) {
-		s = readin(adjf);		/* Read it in.		*/
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		global_kexpect = saved_kexpect;
-#endif	/* KANJI */
-		bp->b_flag |= BFRONLY;		/* Mark as read-only	*/
-		return (s);
-	}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	global_kexpect = saved_kexpect;
-#endif	/* KANJI */
-	bp->b_flag |= BFRONLY;			/* Mark as read-only	*/
-	wp = wheadp;				/* Update mode lines.	*/
-	while (wp != NULL) {
-		if (wp->w_bufp == bp)
-			wp->w_flag |= WFMODE;
-		wp = wp->w_wndp;
-	}
-	return TRUE;
+  return fileopen(f, n, TRUE, FALSE, "Find file read-only: ");
 }
 #endif	/* READONLY */
+
+int
+filealternate(f, n)
+int f, n;
+{
+  int	s;
+  char fname[NFILEN], *prompt = "Find alternate file: ";
+
+#ifdef	EXTD_DIR
+  ensurecwd();
+  edefset(curbp->b_cwd);
+#endif
+
+#ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
+  s = eread(prompt, fname, NFILEN, EFNEW | EFFILE | EFCR);
+#else	/* NO_FILECOMP */
+  s = ereply(prompt, fname, NFILEN);
+#endif	/* NO_FILECOMP */
+  if (s != TRUE) {
+    return FALSE;
+  }
+  if (curbp) {
+    eargset(curbp->b_bname);
+    if (killbuffer(0, 1)) {
+      eargset(fname);
+      return filevisit(f, n);
+    }
+  }
+  return FALSE;
+}
 
 /*
  * given a file name, either find the buffer it uses, or create a new
@@ -366,6 +293,9 @@ unsigned num;
 readin(fname) char *fname; {
 	register int		status;
 	register WINDOW		*wp;
+#ifdef C_MODE
+	extern	int	flag_use_c_mode;
+#endif
 
 	if (bclear(curbp) != TRUE)		/* Might be old.	*/
 		return TRUE;
@@ -381,12 +311,26 @@ readin(fname) char *fname; {
 		}
 	}
 #ifdef	C_MODE	/* 91.01.13  by S.Yoshida */
-	{
-	  int	len = strlen(fname);
-
-	  if (len > 2 && fname[len - 2] == '.' &&
-	      (fname[len - 1] == 'c' || fname[len - 1] == 'h')) {
-		cmode(0, 1);	/* Change into C-mode. */
+	if (flag_use_c_mode) {
+	    char *ptr;
+	    ptr = fname + strlen(fname);
+	    while (ptr > fname)
+	    {
+		if (*(--ptr) == '.')
+		    break;
+	    }
+		
+	    if (ptr > fname) {
+		ptr++;
+		if (
+(ptr[1]=='\0' && (ptr[0]=='c' || ptr[0] =='h' || ptr[0]=='C' || ptr[0]=='m'))
+||(ptr[2]=='\0' && ptr[0]=='c' && ptr[1]=='c')
+||(ptr[3]=='\0' && (ptr[0]=='c'||ptr[0]=='h') &&
+			 ptr[1]==ptr[2] && (ptr[1]=='p'||ptr[1]=='x'))
+		   )
+	      {
+		  cmode(0, 1);	/* Change into C-mode. */
+	      }
 	  }
 	}
 #endif	/* C_MODE */
@@ -404,7 +348,7 @@ readin(fname) char *fname; {
  * copy of nothing).
  */
 insertfile(fname, newname) char fname[], newname[]; {
-	register LINE	*lp1;
+	register LINE	*lp1 = (LINE *)NULL;
 	register LINE	*lp2;
 	register WINDOW *wp;
 	int		nbytes;
@@ -418,8 +362,12 @@ insertfile(fname, newname) char fname[], newname[]; {
 #endif  /* HANKANA */
 
 	bp = curbp;				/* Cheap.		*/
-	if (newname != (char *) NULL)
+	if (newname != (char *) NULL) {
 		(VOID) strcpy(bp->b_fname, newname);
+#ifdef	EXTD_DIR
+		bp->b_cwd[0] = '\0';
+#endif		
+	}
 	if ((s=ffropen(fname)) == FIOERR)	/* Hard file open.	*/
 		goto out;
 	if (s == FIOFNF) {			/* File not found.	*/
@@ -477,7 +425,7 @@ lineread:
 		break;
 	    case FIOLONG: {	/* a line to long to fit in our buffer	*/
 		    char *cp;
-		    char *cp2;
+		    char *cp2 = (char *)NULL;
 		    int	 i;
 
 		    nbytes = 0;
@@ -486,12 +434,16 @@ lineread:
 			    ewprintf("Could not allocate %d bytes",
 				    nbytes + NLINE);
 			    s = FIOERR;
-			    if(nbytes) free(cp2);
+			    if(nbytes) {
+			      free(cp2);
+			      cp2 = (char *)NULL;
+			    }
 			    goto endoffile;
 			}
 			if(nbytes) {
 			    bcopy(cp2, cp, nbytes);
 			    free(cp2);
+			    cp2 = (char *)NULL;
 			}
 			bcopy(line, cp+nbytes, NLINE);
 			nbytes += NLINE;
@@ -511,11 +463,13 @@ lineread:
 					nbytes + i);
 				    s = FIOERR;
 				    free(cp2);
+				    cp2 = (char *)NULL;
 				    goto endoffile;
 				}
 				bcopy(cp2, cp, nbytes);
 				bcopy(line, cp+nbytes, i);
 				free(cp2);
+				cp2 = (char *)NULL;
 #ifdef HANKANA /* 92.11.21  by S.Sasaki */
 				leng = kcodecount(cp, nbytes+i);
 				if((lp1=lalloc(
@@ -599,6 +553,9 @@ out:		lp2 = NULL;
 			}
 		}
 	}
+#ifdef	UNDO
+	undo_reset(bp);
+#endif
 	return s != FIOERR;			/* False if error.	*/
 }
 
@@ -637,6 +594,48 @@ makename(bname, fname) char bname[]; char fname[]; {
 	*cp2 = 0;
 }
 
+#ifdef EXTD_DIR
+/*
+ * Take a file name, and from it
+ * fabricate a path name. This routine knows
+ * about the syntax of file names on the target system.
+ * BDC1		left scan delimiter.
+ * BDC2		optional second left scan delimiter.
+ * BDC3		optional right scan delimiter.
+ *
+ * Modified based on makename() and introduced by Tillanosoft, Mar 22, 1999
+ */
+VOID
+makepath(dname, fname, len)
+char *dname, *fname;
+int len;
+{
+  register char	*cp1, *ecp1, *cp2, *ecp2;
+
+  cp1 = fname;
+  while (*cp1 != 0) {
+    ++cp1;
+  }
+#ifdef	BDC2
+  while (fname < cp1 && cp1[-1] != BDC1 && cp1[-1] != BDC2) {
+    --cp1;
+  }
+#else
+  while (fname < cp1 && cp1[-1] != BDC1) {
+    --cp1;
+  }
+#endif
+  ecp1 = (fname < cp1) ? cp1 : fname;
+  cp1 = fname;
+  cp2 = dname;
+  ecp2 = dname + len - 1; /* -1 is for the EOS at the end */
+  while (cp2 < ecp2 && cp1 < ecp1) {
+    *cp2++ = *cp1++;
+  }
+  *cp2 = 0;
+}
+#endif /* EXTD_DIR */
+
 /*
  * Ask for a file name, and write the
  * contents of the current buffer to that file.
@@ -653,6 +652,11 @@ filewrite(f, n)
 	char		fname[NFILEN];
 	char		*adjfname;
 
+#ifdef	EXTD_DIR
+	ensurecwd();
+	edefset(curbp->b_cwd);
+#endif
+
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
 	if ((s=eread("Write file: ", fname, NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
 #else	/* NO_FILECOMP */
@@ -662,6 +666,9 @@ filewrite(f, n)
 	adjfname = adjustname(fname);
 	if ((s=writeout(curbp, adjfname)) == TRUE) {
 		(VOID) strcpy(curbp->b_fname, adjfname);
+#ifdef	EXTD_DIR
+		curbp->b_cwd[0] = '\0';
+#endif		
 #ifndef NO_BACKUP
 		curbp->b_flag &= ~(BFBAK | BFCHG);
 #else
