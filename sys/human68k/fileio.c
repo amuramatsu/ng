@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.5 2000/12/27 16:55:42 amura Exp $ */
+/* $Id: fileio.c,v 1.6 2000/12/28 07:27:15 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.6  2000/12/28 07:27:15  amura
+ * homedirctory support with filename complition
+ *
  * Revision 1.5  2000/12/27 16:55:42  amura
  * change d_makename() params for conservative reason, and bugfix in dires_()
  *
@@ -369,6 +372,17 @@ register char *fn;
 	    strcat (fnb, "/");
 	return (fnb);
     }
+#ifdef HOMEDIR
+    else if (fn[0]=='~' && (fn[1]=='/' || fn[1]=='\\')) {
+    	strcpy(fnb, getenv("HOME"));
+    	while (*cp) {
+	    if (*cp == '\\')
+		*cp = '/';
+	    cp++;
+    	}
+    	fn++;
+    }
+#endif
     endp = fn + strlen (fn) - 1;
     cp = fnb;
     for (p = endp; p > fn; p--)
@@ -863,8 +877,26 @@ fffiles(name, buf)
     int    n, len, size, dirpartlen, nampartlen;
     char    *buffer;
     void    *malloc(), *realloc();
-
-    strcpy(pathbuf, name);
+#ifdef	HOMEDIR
+    char	*home;
+    int		homelen;
+    
+    if(name[0] == '~' && (name[1]=='/' || name[1]=='\\') &&
+       (home = getenv("HOME"))) {
+	homelen = strlen(home);
+	strncpy(pathbuf, home, sizeof(pathbuf));
+	pathbuf[NFILEN-1] = '\0';
+	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
+    } else {
+	home = NULL;
+	homelen = 0;
+	strncpy(pathbuf, name, sizeof(pathbuf));
+	pathbuf[NFILEN-1] = '\0';
+    }
+#else
+    strncpy(pathbuf, name, sizeof(pathbuf));
+    pathbuf[NFILEN-1] = '\0';
+#endif
     dirpart = NULL;
     for (cp = pathbuf; *cp; cp++)
     {
@@ -883,7 +915,11 @@ fffiles(name, buf)
         *pathbuf = '\0';
         dirpartlen = 0;
     }
+#ifdef	HOMEDIR
+    nampart = name + dirpartlen - homelen + 1;
+#else
     nampart = name + dirpartlen;
+#endif
     nampartlen = strlen(nampart);
 
     buffer = malloc(MALLOC_STEP);
@@ -931,6 +967,13 @@ fffiles(name, buf)
             if ((buffer = realloc(buffer, size += MALLOC_STEP)) == NULL)
                 return(-1);
         }
+#ifdef HOMEDIR
+	if(home) {
+	    strcpy(buffer+len, "~");
+	    strcat(buffer+len, tmpnam+homelen);
+	    l -= homelen - 1;
+	} else
+#endif
         strcpy(buffer + len, tmpnam);
         len += l;
         n++;

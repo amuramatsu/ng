@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.4 2000/12/27 16:55:42 amura Exp $ */
+/* $Id: fileio.c,v 1.5 2000/12/28 07:27:16 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.5  2000/12/28 07:27:16  amura
+ * homedirctory support with filename complition
+ *
  * Revision 1.4  2000/12/27 16:55:42  amura
  * change d_makename() params for conservative reason, and bugfix in dires_()
  *
@@ -324,7 +327,6 @@ register char *fn;
 	*cp++ = *fn++;
 	*cp++ = *fn++;
     }
-#ifdef MSDOS
 #ifdef HOMEDIR
     else if (fn[0]=='~' && (fn[1]=='/' || fn[1]=='\\')) {
     	strcpy(fnb, getenv("HOME"));
@@ -335,7 +337,6 @@ register char *fn;
     	}
     	fn++;
     }
-#endif
 #endif
     switch(*fn) {
 	case '/':
@@ -827,8 +828,26 @@ char *name, **buf;
 	int	n, len, size, dirpartlen, nampartlen;
 	char	*buffer;
 	void	*malloc(), *realloc();
-
-	strcpy(pathbuf, name);
+#ifdef	HOMEDIR
+	char	*home;
+	int	homelen;
+	
+	if(name[0] == '~' && (name[1]=='/' || name[1]=='\\') &&
+	   (home = getenv("HOME"))) {
+		homelen = strlen(home);
+		strncpy(pathbuf, home, sizeof(pathbuf));
+		pathbuf[NFILEN-1] = '\0';
+		strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
+	} else {
+		home = NULL;
+		homelen = 0;
+		strncpy(pathbuf, name, sizeof(pathbuf));
+		pathbuf[NFILEN-1] = '\0';
+    	}
+#else
+	strncpy(pathbuf, name, sizeof(pathbuf));
+	pathbuf[NFILEN-1] = '\0';
+#endif
 	dirpart = NULL;
 	for (cp = pathbuf; *cp; cp++) {
 		if (*cp == '/') {
@@ -847,7 +866,11 @@ char *name, **buf;
 		strcpy(pathbuf, ".\\");	/* 90.05.30  by A.Shirahashi */
 		dirpartlen = 0;
 	}
+#ifdef	HOMEDIR
+	nampart = name + dirpartlen - homelen + 1;
+#else
 	nampart = name + dirpartlen;
+#endif
 	nampartlen = strlen(nampart);
 	for (cp = nampart; *cp; cp++) {		/* _dos_find*() return	*/
 		/* 90.05.30  by A.Shirahashi: Use "toupper()". */
@@ -936,6 +959,14 @@ char *name, **buf;
                     }
                 }
 		/* 90.06.08  by A.Shirahashi: to */
+		/* 00.12.28  by amura.. contributed by sahf */
+#ifdef HOMEDIR
+		if(home) {
+			strcpy(buffer+len, "~");
+			strcat(buffer+len, tmpnam+homelen);
+			l -= homelen - 1;
+		} else
+#endif
 		strcpy(buffer + len, tmpnam);
 		len += l;
 		n++;

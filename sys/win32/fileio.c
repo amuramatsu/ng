@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.7 2000/12/27 16:55:44 amura Exp $ */
+/* $Id: fileio.c,v 1.8 2000/12/28 07:27:16 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.8  2000/12/28 07:27:16  amura
+ * homedirctory support with filename complition
+ *
  * Revision 1.7  2000/12/27 16:55:44  amura
  * change d_makename() params for conservative reason, and bugfix in dires_()
  *
@@ -84,6 +87,10 @@ fffiles( char *name, char **buf )
 	HANDLE	hFind ;
 	WIN32_FIND_DATA	find ;
 	TCHAR	findPath[ MAX_PATH ], unicode[ MAX_PATH ] ;
+#ifdef HOMEDIR
+	char	*home;
+	int	homelen;
+#endif
 
 #ifndef _WIN32_WCE
 	if (name[1] == ':' && name[2] == '\0') {
@@ -91,7 +98,23 @@ fffiles( char *name, char **buf )
 	}
 #endif
 
-	strcpy( pathbuf, name ) ;
+#ifdef HOMEDIR
+	if (name[0] == '~' && (name[1]=='/' || name[1]==`\\`) &&
+	    (home = getenv("HOME"))) {
+		homelen = strlen(home);
+		strncpy(pathbuf, home, sizeof(pathbuf));
+		pathbuf[NFILEN-1] = '\0';
+		strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
+	} else {
+		home = NULL;
+		homelen = 0;
+		strncpy(pathbuf, name, sizeof(pathbuf));
+		pathbuf[NFILEN-1] = '\0';
+    	}
+#else
+	strncpy(pathbuf, name, sizeof(pathbuf));
+	pathbuf[NFILEN-1] = '\0';
+#endif
 	dirpart = NULL ;
 	for ( cp = pathbuf ; *cp ; cp ++ ) {
 		if ( *cp == '/' ) {
@@ -110,7 +133,11 @@ fffiles( char *name, char **buf )
 		strcpy( pathbuf, ".\\" ) ;	/* 90.05.30  by A.Shirahashi */
 		dirpartlen = 0 ;
 	}
-	nampart = name + dirpartlen ;
+#ifdef	HOMEDIR
+	nampart = name + dirpartlen - homelen + 1;
+#else
+	nampart = name + dirpartlen;
+#endif
 	nampartlen = strlen( nampart ) ;
 
 	buffer = malloc( MALLOC_STEP ) ;
@@ -170,6 +197,14 @@ fffiles( char *name, char **buf )
 			}
 		}
 		/* 90.06.08  by A.Shirahashi: to */
+		/* 00.12.28  by amura.. contributed by sahf */
+#ifdef HOMEDIR
+		if(home) {
+			strcpy(buffer+len, "~");
+			strcat(buffer+len, tmpnam+homelen);
+			l -= homelen - 1;
+		} else
+#endif
 		strcpy( buffer + len, tmpnam ) ;
 		len += l ;
 		n ++ ;
@@ -222,6 +257,20 @@ adjustname( char *fn )
 	if (fn[1] == ':') {
 	  *cp++ = *fn++;
 	  *cp++ = *fn++;
+	}
+#endif
+#ifdef HOMEDIR
+#ifndef _WIN32_WCE
+	else
+#endif
+	if (fn[0]=='~' && (fn[1]=='/' || fn[1]=='\\')) {
+		strcpy(fnb, getenv("HOME"));
+		while (*cp) {
+    			if (*cp == '/')
+    				*cp = '\\';
+    			cp++;
+    		}
+		fn++;
 	}
 #endif
 	switch( *fn ) {
