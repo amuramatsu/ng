@@ -1,15 +1,31 @@
-/* $Id: clipboard.c,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: clipboard.c,v 1.2 2000/09/29 17:22:16 amura Exp $ */
 /*   
  * clipboard.c
+ *   Amiga clipboard support routine.
  *
- * AMIGA clipboard support routine.
+ * Copyright (C) 2000, MURAMATSU Atsushi  All rights reserved.
  *
- *	Copyright (c) 2000, MURAMATSU Atsushi
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  *
- * Permission is hereby granted to distribute this program, so long as
- * this source file is distributed with it, and this copyright notice
- * is not removed from the file.
- *
+ * THIS SOFTWARE IS PROVIDED BY "MURAMATSU Atsushi" AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.  
  */
 /* This source Based on:
  *
@@ -21,16 +37,19 @@
  *   Provide standard clipboard device interface routines
  *   such as Open, Close, Post, Read, Write, etc.
  *
- * on AMIGA DEVELOPER CD 1.2
+ * included in "AMIGA DEVELOPER CD 1.2"
  */
 
 /*
  * $Log: clipboard.c,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2000/09/29 17:22:16  amura
+ * change license to BSD style
  *
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2000/09/29 17:14:40  amura
+ * change license to BSD style
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  * Revision 1.1  2000/02/09  18:16:06  amura
  * Initial revision
