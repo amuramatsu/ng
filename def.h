@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.10 2001/01/05 14:07:00 amura Exp $ */
+/* $Id: def.h,v 1.11 2001/01/17 18:33:14 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.11  2001/01/17 18:33:14  amura
+ * add prototype of ishojo() and some change for WIN32
+ *
  * Revision 1.10  2001/01/05 14:07:00  amura
  * first implementation of Hojo Kanji support
  *
@@ -531,11 +534,7 @@ extern int charcategory pro((int, int));
 extern VOID PutLine pro((int, unsigned char *, short));
 extern VOID kgetkeyflush pro((void));
 extern VOID kdselectcode pro((int));
-#ifdef WIN32
-extern VOID kfselectcode pro((int));
-#else
 extern VOID kfselectcode pro((FILE *, int));
-#endif
 extern VOID initcategory pro((int));
 extern int ttwait pro((void));
 extern int kgetkey pro((void));
@@ -584,6 +583,9 @@ extern int shrinkwind pro((int, int));
 extern int forwword pro((int, int));
 extern int incategory pro((void));
 extern int iskanji pro((void));
+#ifdef	HOJO_KANJI
+extern int ishojo pro((void));
+#endif
 extern int iskword pro((int, int));
 extern int gotobol pro((int, int));
 #ifdef	EXTD_DIR
