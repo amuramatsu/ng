@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.3 2000/12/21 16:54:20 amura Exp $ */
+/* $Id: fileio.c,v 1.4 2000/12/27 16:55:41 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,6 +14,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.4  2000/12/27 16:55:41  amura
+ * change d_makename() params for conservative reason, and bugfix in dires_()
+ *
  * Revision 1.3  2000/12/21 16:54:20  amura
  * fix usage of strncat()
  *
@@ -570,10 +573,13 @@ char *dirname;
     ffclose();
     DeleteFile(tmpname);
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    if (bp->b_fname)
-	free(bp->b_fname);
-    if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
+    if(bp->b_fname != NULL) free(bp->b_fname);
+    if((bp->b_fname=malloc(strlen(dirname)+1)) != NULL)
 	(VOID) strcpy(bp->b_fname, dirname);
+#ifdef EXTD_DIR
+    if(bp->b_cwd != NULL) free(bp->b_cwd);
+    bp->b_cwd = NULL;
+#endif
     if((bp->b_modes[0] = name_mode("dired")) == NULL) {
 	bp->b_modes[0] = &map_table[0];
 	ewprintf("Could not find mode dired");
@@ -606,9 +612,9 @@ char *pattern;
 
 #define LIST_LINE_LENGTH 58			/* Size of line from List */
 
-d_makename(lp, fn)
+d_makename(lp, fn, buflen)
 register LINE *lp;
-register char **fn;
+register char *fn;
 {
     register char *cp;
     int n = 2, len;
@@ -616,28 +622,24 @@ register char **fn;
     if(llength(lp) < LIST_LINE_LENGTH) return ABORT;
     if(lgetc(lp, 2) == ':') return ABORT;	/* FileNote line	*/
     len = strlen(curbp->b_fname) + llength(lp) - 41;
-    cp = malloc(len + 1);
-    if (cp) {
-	*fn = cp;
-	(VOID) strcpy(cp, curbp->b_fname);
-	cp += strlen(cp);
-	if ((cp[-1] != ':') && (cp[-1] != '/'))	/* append '/' if needed	*/
-	    *cp++ = '/';
-	while (lgetc(lp, n) != ' ') {
-	    *cp++ = lgetc(lp, n);
-	    n++;
-	}
-	*cp = '\0';
-        for (n=34; n<llength(lp); n++)
-          if (lgetc(lp,n) == ' ')
-	    break;
-        for (; n<llength(lp); n++)
-          if (lgetc(lp,n) != ' ')
-	    break;
-	return strncmp(&lp->l_text[n], "Dir", 3) == 0;
+    if (buflen <= len) return ABORT;
+    cp = fn;
+    (VOID) strcpy(cp, curbp->b_fname);
+    cp += strlen(cp);
+    if ((cp[-1] != ':') && (cp[-1] != '/'))	/* append '/' if needed	*/
+	*cp++ = '/';
+    while (lgetc(lp, n) != ' ') {
+	*cp++ = lgetc(lp, n);
+	n++;
     }
-    else
-	return ABORT;
+    *cp = '\0';
+    for (n=34; n<llength(lp); n++)
+	if (lgetc(lp,n) == ' ')
+	    break;
+    for (; n<llength(lp); n++)
+	if (lgetc(lp,n) != ' ')
+	    break;
+    return strncmp(&lp->l_text[n], "Dir", 3) == 0;
 }
 
 #ifndef	NO_DIRED	/* Dec.17,1992 by H.Ohkubo */

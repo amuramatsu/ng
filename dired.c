@@ -1,9 +1,12 @@
-/* $Id: dired.c,v 1.5 2000/12/14 18:06:24 amura Exp $ */
+/* $Id: dired.c,v 1.6 2000/12/27 16:56:01 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
 /*
  * $Log: dired.c,v $
+ * Revision 1.6  2000/12/27 16:56:01  amura
+ * change d_makename() params for conservative reason, and bugfix in dires_()
+ *
  * Revision 1.5  2000/12/14 18:06:24  amura
  * filename length become flexible
  *
@@ -55,10 +58,10 @@ int f, n;
     curbp = bp;
 #ifdef	EXTD_DIR
     i = strlen(dirname);
-    if (curbp->b_cwd)
+    if (curbp->b_cwd != NULL)
 	free(curbp->b_cwd);
     if ((curbp->b_cwd=malloc(i+2)) == NULL)
-	return;
+	return FALSE;
     strcpy(curbp->b_cwd, dirname);
     if (i >= 1) {
 #ifdef BDC2
@@ -206,41 +209,34 @@ static
 d_fileopen(f, n, popup)
 int f, n, popup;
 {
-    char *fname;
+    char fname[NFILEN];
     register BUFFER *bp;
     register int s;
     register WINDOW *wp;
     BUFFER *findbuffer();
 
-    if((s = d_makename(curwp->w_dotp, &fname)) == ABORT) return FALSE;
-    if ((bp = (s ? dired_(fname) : findbuffer(fname))) == NULL) {
-      free(fname);
+    if ((s = d_makename(curwp->w_dotp, fname, sizeof(fname))) == ABORT)
+	return FALSE;
+    if ((bp = (s ? dired_(fname) : findbuffer(fname))) == NULL)
       return FALSE;
-    }
 #ifdef	READONLY	/* 91.01.16  by S.Yoshida */
     if (s) {			/* If dired buffer,	*/
 	bp->b_flag |= BFRONLY;	/* mark as read-only.	*/
     }
 #endif	/* READONLY */
     if (popup) {
-      if ((wp = popbuf(bp)) == NULL) {
-	free(fname);
+      if ((wp = popbuf(bp)) == NULL)
 	return FALSE;
-      }
       curbp = bp;
       curwp = wp;
     }
     else {
       curbp = bp;
-      if (showbuffer(bp, curwp, WFHARD) != TRUE) {
-	free(fname);
+      if (showbuffer(bp, curwp, WFHARD) != TRUE)
 	return FALSE;
-      }
     }
-    if (bp->b_fname != NULL) {
-      free(fname);
+    if (bp->b_fname != NULL)
       return TRUE;
-    }
     s = readin(fname);
 #ifdef	READONLY	/* 91.01.16  by S.Yoshida */
     if (fchkreadonly(bp->b_fname)) { /* If no write permission, */
@@ -248,7 +244,6 @@ int f, n, popup;
 	    ewprintf("File is write protected");
     }
 #endif	/* READONLY */
-    free(fname);
     return s;
 }
 
@@ -287,7 +282,7 @@ d_expunge(f, n)
 int f, n;
 {
     register LINE *lp, *nlp;
-    char *fname;
+    char fname[NFILEN];
     VOID lfree();
 
 #ifdef	EXTD_DIR
@@ -297,25 +292,21 @@ int f, n;
     for(lp = lforw(curbp->b_linep); lp != curbp->b_linep; lp = nlp) {
 	nlp = lforw(lp);
 	if(llength(lp) && lgetc(lp, 0) == 'D') {
-	    switch(d_makename(lp, &fname)) {
+	    switch(d_makename(lp, fname, sizeof(fname))) {
 		case ABORT:
 		    ewprintf("Bad line in dired buffer");
 		    return FALSE;
 		case FALSE:
 		    if(unlink(fname) < 0) {
 			ewprintf("Could not delete '%s'", fname);
-			free(fname);
 			return FALSE;
 		    }
-		    free(fname);
 		    break;
 		case TRUE:
 		    if(unlinkdir(fname) < 0) {
 			ewprintf("Could not delete directory '%s'", fname);
-			free(fname);
 			return FALSE;
 		    }
-		    free(fname);
 		    break;
 	    }
 	    lfree(lp);
@@ -352,17 +343,16 @@ char *path;
 d_copy(f, n)
 int f, n;
 {
-    char *frname, toname[NFILEN], *fr;
+    char frname[NFILEN], toname[NFILEN], *fr;
     int stat;
 
 #ifdef	EXTD_DIR
     ensurecwd();
 #endif
 
-    switch (d_makename(curwp->w_dotp, &frname)) {
+    switch (d_makename(curwp->w_dotp, frname, sizeof(frname))) {
     case TRUE:
       ewprintf("Not a file");
-      free(frname);
       return FALSE;
 
     case ABORT:
@@ -384,11 +374,9 @@ int f, n;
     if((stat = eread("Copy %s to: ", toname, NFILEN, EFNEW | EFCR, fr))
 #endif	/* NO_FILECOMP */
 	!= TRUE) {
-	free(frname);
 	return stat;
     }
     stat = (copy(frname, toname) >= 0);
-    free(frname);
     return stat;
 }
 
@@ -396,17 +384,16 @@ int f, n;
 d_rename(f, n)
 int f, n;
 {
-    char *frname, toname[NFILEN], *fr;
+    char frname[NFILEN], toname[NFILEN], *fr;
     int stat;
 
 #ifdef	EXTD_DIR
     ensurecwd();
 #endif
 
-    switch (d_makename(curwp->w_dotp, &frname)) {
+    switch (d_makename(curwp->w_dotp, frname, sizeof(frname))) {
     case TRUE:
       ewprintf("Not a file");
-      free(frname);
       return FALSE;
 
     case ABORT:
@@ -429,11 +416,9 @@ int f, n;
     if((stat = eread("Rename %s to: ", toname, NFILEN, EFNEW | EFCR, fr))
 #endif	/* NO_FILECOMP */
 	!= TRUE) {
-      free(frname);
       return stat;
     }
     stat = (rename(frname, toname) >= 0);
-    free(frname);
     return stat;
 }
 
@@ -443,11 +428,11 @@ d_execute(f, n)
 int f, n;
 {
 #ifdef WIN32
-  char *fname;
+  char fname[NFILEN];
   register int s;
   extern void WinExecute(char *);
 
-  s = d_makename(curwp->w_dotp, &fname);
+  s = d_makename(curwp->w_dotp, fname, sizeof(fname));
   if (s == ABORT) {
     return FALSE;
   }
@@ -455,13 +440,11 @@ int f, n;
 #if !defined(_WIN32_WCE) || 200 <= _WIN32_WCE
     goto noproblem;
 #endif
-    free(fname);
     return FALSE;
   }
   else {
 noproblem:
     WinExecute(fname);
-    free(fname);
     return TRUE;
   }
 #else	/* not WIN32 */

@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.5 2000/12/22 20:02:14 amura Exp $ */
+/* $Id: fileio.c,v 1.6 2000/12/27 16:55:43 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.6  2000/12/27 16:55:43  amura
+ * change d_makename() params for conservative reason, and bugfix in dires_()
+ *
  * Revision 1.5  2000/12/22 20:02:14  amura
  * readonly check is more correctly
  *
@@ -503,10 +506,12 @@ char *dirname;
     }
     if(bclear(bp) != TRUE) return FALSE;
 #ifdef	EXTD_DIR
-    if (bp->b_cwd)
-	free(bp->b_cwd);
-    if ((bp->b_cwd=malloc(strlen(dirname)+1)) != NULL)
-	strcpy(bp->b_cwd, dirname);
+    if(bp->b_cwd != NULL) free(bp->b_cwd);
+    if((bp->b_cwd=malloc(strlen(dirname)+1)) == NULL) {
+	ewprintf("Could not create buffer");
+	return NULL;
+    }
+    strcpy(bp->b_cwd, dirname);
     ensurecwd();
 #endif
 #ifdef	BUGFIX	/* 91.02.04  by M.Oki / 2000.12.xx amura */
@@ -532,10 +537,9 @@ char *dirname;
 	return NULL;
     }
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    if (bp->b_fname)
-	free(bp->b_fname);
-    if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
-	(VOID) strcpy(bp->b_fname, dirname);
+    if(bp->b_fname != NULL) free(bp->b_fname);
+    if((bp->b_fname=malloc(strlen(dirname)+1)) != NULL)
+	(VOID)strcpy(bp->b_fname, dirname);
     if((bp->b_modes[0] = name_mode("dired")) == NULL) {
 	bp->b_modes[0] = &map_table[0];
 	ewprintf("Could not find mode dired");
@@ -545,9 +549,9 @@ char *dirname;
     return bp;
 }
 
-d_makename(lp, fn)
+d_makename(lp, fn, buflen)
 register LINE *lp;
-register char **fn;
+register char *fn;
 {
   char* cp;
   int l,l1,len;
@@ -590,22 +594,17 @@ register char **fn;
   l++;
 
   len = llength(lp) - l + 1;
-  cp = malloc(len + strlen(curbp->b_fname) + 1);
-  if (cp) {
-    *fn = cp;
-    strcpy(cp, curbp->b_fname);
-    cp += strlen(cp);
-    bcopy(lp->l_text + l, cp, len);
-    cp[len-1] = '\0';
+  if (buflen <= len+strlen(curbp->b_fname)) return ABORT;
+  cp = fn;
+  strcpy(cp, curbp->b_fname);
+  cp += strlen(cp);
+  bcopy(lp->l_text + l, cp, len);
+  cp[len-1] = '\0';
 #ifdef	HAVE_SYMLINK
-    if (lgetc(lp, 2) == 'l')
-      return ffisdir(curbp->b_fname);
+  if (lgetc(lp, 2) == 'l')
+    return ffisdir(curbp->b_fname);
 #endif
-    return lgetc(lp, 2) == 'd';
-  }
-  else {
-    return ABORT;
-  }
+  return lgetc(lp, 2) == 'd';
 }
 
 /*

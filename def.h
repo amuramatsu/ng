@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.8 2000/12/14 18:12:13 amura Exp $ */
+/* $Id: def.h,v 1.9 2000/12/27 16:56:00 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.9  2000/12/27 16:56:00  amura
+ * change d_makename() params for conservative reason, and bugfix in dires_()
+ *
  * Revision 1.8  2000/12/14 18:12:13  amura
  * use alloca() and more memory secure
  *
@@ -87,8 +90,8 @@ typedef int (*PF) pro((int, int)); /* generaly useful type */
 #else	/* Not MSDOS */
 #ifdef	HUMAN68K
 #define NFILEN	128			/* Length, file name.		*/
-#else	/* Not HUMAN68K */
-#define NFILEN	256			/* Length, file name.		*/
+#else	/* Not MSDOS && Not HUMAN68K */
+#define NFILEN	1024			/* Length, file name.		*/
 #endif	/* HUMAN68K */
 #endif	/* MSODS */
 #define NBUFN	24			/* Length, buffer name.		*/
@@ -455,7 +458,7 @@ extern VOID eargset pro((char *));
 extern int killbuffer pro((int, int));
 extern int forwpage pro((int, int));
 extern int d_undelbak pro((int, int));
-extern int d_makename pro((LINE *, char **));
+extern int d_makename pro((LINE *, char *, int));
 extern int readin pro((char *));
 extern int fchkreadonly pro((char *));
 #ifdef WIN32

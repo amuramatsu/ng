@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.6 2000/12/14 18:10:48 amura Exp $ */
+/* $Id: fileio.c,v 1.7 2000/12/27 16:55:44 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.7  2000/12/27 16:55:44  amura
+ * change d_makename() params for conservative reason, and bugfix in dires_()
+ *
  * Revision 1.6  2000/12/14 18:10:48  amura
  * filename length become flexible
  *
@@ -685,13 +688,11 @@ dired_( char *dirname )
 	}
 	free( files ) ;
 	bp->b_dotp = lforw( bp->b_linep ) ;		/* go to first line */
-	if (bp->b_fname)
-		free(bp->b_fname);
-	if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
+	if (bp->b_fname != NULL) free(bp->b_fname);
+	if ((bp->b_fname=malloc(strlen(dirname)+1)) != NULL)
 		(VOID) strcpy(bp->b_fname, dirname);
 #ifdef EXTD_DIR
-	if (bp->b_cwd)
-		free(bp->b_cwd);
+	if(bp->b_cwd != NULL) free(bp->b_cwd);
 	bp->b_cwd = NULL;
 #endif
 	if ( ( bp->b_modes[0] = name_mode( "dired" ) ) == NULL ) {
@@ -704,7 +705,7 @@ dired_( char *dirname )
 }
 
 int
-d_makename( LINE *lp, char **fn )
+d_makename( LINE *lp, char *fn, int buflen)
 {
 	char	*cp ;
 	int len;
@@ -713,18 +714,13 @@ d_makename( LINE *lp, char **fn )
 		return ABORT ;
 	}
 	len = strlen(curbp->b_fname) + llength(lp) - 41;
-	cp = malloc(len + 1);
-	if (cp) {
-	  *fn = cp;
-	  strcpy(cp, curbp->b_fname);
-	  cp += strlen(cp);
-	  bcopy(lp->l_text + 41, cp, llength(lp) - 41);
-	  (*fn)[len] = '\0';
-	  return lgetc(lp, 2) == 'd';
-	}
-	else {
-	  return ABORT;
-	}
+	if (buflen <= len) return ABORT;
+	cp = fn;
+	strcpy(cp, curbp->b_fname);
+	cp += strlen(cp);
+	bcopy(lp->l_text + 41, cp, llength(lp) - 41);
+	(*fn)[len] = '\0';
+	return lgetc(lp, 2) == 'd';
 }
 
 static int __cdecl

@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.3 2000/12/14 18:17:37 amura Exp $ */
+/* $Id: fileio.c,v 1.4 2000/12/27 16:55:41 amura Exp $ */
 /*
  *		bsd (4.2, others?), Sun (3.2, ?) and Ultrix-32 (?) file I/O.
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.4  2000/12/27 16:55:41  amura
+ * change d_makename() params for conservative reason, and bugfix in dires_()
+ *
  * Revision 1.3  2000/12/14 18:17:37  amura
  * filename length become flexible and small bugfix
  *
@@ -487,7 +490,7 @@ char *dirname;
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
     if (bp->b_fname)
 	free(bp->b_fname);
-    if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
+    if ((bp->b_fname=malloc(strlen(dirname)+1)) != NULL)
 	(VOID) strcpy(bp->b_fname, dirname);
     if((bp->b_modes[0] = name_mode("dired")) == NULL) {
 	bp->b_modes[0] = &map_table[0];
@@ -498,9 +501,9 @@ char *dirname;
     return bp;
 }
 
-d_makename(lp, fn)
+d_makename(lp, fn, buflen)
 register LINE *lp;
-register char **fn;
+register char *fn;
 {
   char* cp;
   int l,l1,len;
@@ -543,22 +546,17 @@ register char **fn;
   l++;
 
   len = llength(lp) - l + 1;
-  cp = malloc(len + strlen(curbp->b_fname) + 1);
-  if (cp) {
-    *fn = cp;
-    strcpy(cp, curbp->b_fname);
-    cp += strlen(cp);
-    bcopy(lp->l_text + l, cp, len);
-    cp[len-1] = '\0';
+  if (buflen <= len+strlen(curbp->b_fname)) return ABORT;
+  cp = fn;
+  strcpy(cp, curbp->b_fname);
+  cp += strlen(cp);
+  bcopy(lp->l_text + l, cp, len);
+  cp[len-1] = '\0';
 #ifdef SYMBLINK
-    if (lgetc(lp, 2) == 'l')
-      return ffisdir(curbp->b_fname);
+  if (lgetc(lp, 2) == 'l')
+    return ffisdir(curbp->b_fname);
 #endif
-    return lgetc(lp, 2) == 'd';
-  }
-  else {
-    return ABORT;
-  }
+  return lgetc(lp, 2) == 'd';
 }
 #endif
 

@@ -1,10 +1,13 @@
-/* $Id: fileio.c,v 1.4 2000/12/14 18:10:47 amura Exp $ */
+/* $Id: fileio.c,v 1.5 2000/12/27 16:55:42 amura Exp $ */
 /*
  *		Human68k file I/O
  */
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.5  2000/12/27 16:55:42  amura
+ * change d_makename() params for conservative reason, and bugfix in dires_()
+ *
  * Revision 1.4  2000/12/14 18:10:47  amura
  * filename length become flexible
  *
@@ -650,13 +653,11 @@ char *dirname;
     }
     free(filelist);
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    if (bp->b_fname)
-	free(bp->b_fname);
-    if ((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
+    if(bp->b_fname != NULL) free(bp->b_fname);
+    if((bp->b_fname=malloc(strlen(dirname+1))) != NULL)
 	(VOID) strcpy(bp->b_fname, dirname);
 #ifdef EXTD_DIR
-    if (bp->b_cwd)
-	free(bp->b_cwd);
+    if(bp->b_cwd != NULL) free(bp->b_cwd);
     bp->b_cwd = NULL;
 #endif
     if((bp->b_modes[0] = name_mode("dired")) == NULL) {
@@ -668,9 +669,9 @@ char *dirname;
     return bp;
 }
 
-d_makename(lp, fn)
+d_makename(lp, fn, buflen)
 register LINE *lp;
-register char **fn;
+register char *fn;
 {
     register char *cp;
     int len;
@@ -678,17 +679,13 @@ register char **fn;
     if(llength(lp) <= 41) return ABORT;
     len = strlen(curbp->b_fname) + llength(lp) - 41;
     cp = malloc(len + 1);
-    if (cp) {
-      *fn = cp;
-      (VOID)strcpy(cp, curbp->b_fname);
-      cp += strlen(cp);
-      bcopy(&lp->l_text[41], cp, llength(lp) - 41);
-      cp[llength(lp) - 41] = '\0';
-      return lgetc(lp, 2) == 'd';
-    }
-    else {
-      return ABORT;
-    }
+    if (buflen <= len) return ABORT;
+    cp = fn;
+    strcpy(cp, curbp->b_fname);
+    cp += strlen(cp);
+    bcopy(&lp->l_text[41], cp, llength(lp) - 41);
+    cp[llength(lp) - 41] = '\0';
+    return lgetc(lp, 2) == 'd';
 }
 
 char **
