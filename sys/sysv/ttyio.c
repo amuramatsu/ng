@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.2 2000/11/16 14:32:03 amura Exp $ */
+/* $Id: ttyio.c,v 1.2.2.1 2000/12/01 10:04:12 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		System V terminal I/O.
@@ -19,6 +19,10 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.2.2.1  2000/12/01 10:04:12  amura
+ * fix ttraw() with termios
+ * unset IEXTEN flag on c_lflag
+ *
  * Revision 1.2  2000/11/16 14:32:03  amura
  * fix some typos which cause compile error when using
  * strict ANSI-C compiler (ex ACK, gcc-1.x)
@@ -110,16 +114,15 @@ ttopen()
 		nt = ot;		/* save entry state		*/
 		nt.c_cc[VMIN] = 1;	/* one character read is OK	*/
 		nt.c_cc[VTIME] = 0;	/* Never time out.		*/
-#ifdef POSIXTTY		/* by S.Okamoto 93/03/16 */
-		nt.c_cc[VLNEXT] = 0;
-#endif
 		nt.c_iflag |= IGNBRK;
 		nt.c_iflag &= ~( ICRNL | INLCR | ISTRIP | IXON | IXOFF );
 		nt.c_oflag &= ~OPOST;
 		nt.c_cflag |= CS8;	/* allow 8th bit on input	*/
 		nt.c_cflag &= ~PARENB;	/* Don't check parity		*/
 		nt.c_lflag &= ~( ECHO | ICANON | ISIG );
-
+#ifdef	POSIX_TTY
+		nt.c_lflag &= ~IEXTEN;
+#endif
 		kbdpoll = (((kbdflgs = fcntl(0, F_GETFL, 0)) & O_NDELAY) != 0);
 #ifdef HAVE_GETSID
 		{
