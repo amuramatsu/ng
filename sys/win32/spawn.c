@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: spawn.c,v 1.2 2000/10/23 13:19:52 amura Exp $ */
 /*
  *		Spawn CLI for Win32.
  *
@@ -7,26 +7,50 @@
 
 /*
  * $Log: spawn.c,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2000/10/23 13:19:52  amura
+ * now impliment call_process() and spawncli()
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 /* 90.02.11	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
+#include "config.h"	/* 90.12.20  by S.Yoshida */
 #include <windows.h>
-#include	"def.h"
+#include "def.h"
+#include "tools.h"
 
 int
 spawncli( int f, int n)
 {
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    BOOL bSuccess;
+    char *shell;
+    
+    ewprintf("[Starting new shell]");
+    if ((shell=getenv("COMSPEC")) == NULL) {
+	ewprintf("Can't find shell");
 	return FALSE;
+    }
+    memset(&si, 0, sizeof(si));
+    si.cb = sizeof(si);
+    si.lpTitle = "MicroEmacs Subprocess";
+#ifdef	EXTD_DIR
+    ensurecwd();
+#endif
+    bSuccess = CreateProcess(NULL, shell, NULL, NULL,
+			     FALSE, CREATE_NEW_CONSOLE, NULL,
+			     NULL, &si, &pi);
+    return (bSuccess) ? TRUE : FALSE;
 }
 
 int
 tticon( int f, int n )
 {
     extern HWND g_hwndMain;
+#ifdef	_WIN32_WCE
 #if 0
     HWND next;
 
@@ -47,19 +71,20 @@ tticon( int f, int n )
 		     SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE |
 		     SWP_NOSENDCHANGING);
     }
-#else
+#else	/* Always activate */
     SetWindowPos(g_hwndMain, HWND_BOTTOM, 0, 0, 0, 0,
 		 SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE |
 		 SWP_NOSENDCHANGING);
-#endif
-    return FALSE;
+#endif	/* 1 */
+#else	/* not _WIN32_WCE */
+	CloseWindow(g_hwndMain);
+#endif	/* _WIN32_WCE */
+    return TRUE;
 }
 
-#ifndef NO_SHELL	/* 91.01.10  by K.Maeda */
-#include <sys/stat.h>
-#include <io.h>
+#ifndef NO_SHELL	/* 91.01.10  by K.Maeda / Modified by sahf and amura */
 
-char tempfile[128];
+char tempfile[NFILEN];
 
 /*
  *	Call process in subshell.
@@ -76,11 +101,47 @@ call_process(command, input)
 char *command;
 char *input;
 {
-    char buf[256];
-    char *tmp;
-    int ostdin, ostdout, ostderr, in, out, s;
     extern char *mktemp();
-    char *temp_path;
+    int  cmdlen;
+    char *sbuf, *tmp, *temp_path, *shell;
+    LPTSTR buf;
+    BOOL bSuccess;
+    HANDLE hRead, hWrite;
+    SECURITY_ATTRIBUTES sa;
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+
+    if ((shell=getenv("COMSPEC")) != NULL) {
+	int shlen;
+	cmdlen = strlen(command) + strlen(shell) + 5;
+	if ((sbuf=malloc(cmdlen)) == NULL)
+	    return NULL;
+	strcpy(sbuf, shell);
+	strcat(sbuf, " /c ");
+#ifdef KANJI
+	shlen = strlen(sbuf);
+	strcat(sbuf, command);
+	bufetos(sbuf+shlen, cmdlen-shlen);
+#else
+	strcat(sbuf, command);
+#endif
+    }
+    else {
+	cmdlen = strlen(command)+1;
+	if ((sbuf=malloc(cmdlen)) == NULL)
+	    return NULL;
+	strcpy(sbuf, command);
+#ifdef KANJI	
+	bufetos(sbuf, cmdlen);
+#endif
+    }
+    cmdlen = sjis2unicode((LPBYTE)sbuf, NULL, 0);
+    if ((buf=malloc(cmdlen)) == NULL) {
+	free(sbuf);
+	return NULL;
+    }
+    sjis2unicode(sbuf, buf, cmdlen);
+    free(sbuf);
 
     temp_path = getenv("TMP");
     if (temp_path == NULL)
@@ -103,35 +164,38 @@ char *input;
     if ((tmp = mktemp(tempfile)) == NULL) {
 	return NULL;
     }
-    if ((in = open(input ? input : "nul", 0)) < 0)
-	return NULL;
-    if ((out = creat(tmp, S_IREAD | S_IWRITE)) < 0) {
-	close(in);
-	return NULL;
-    }
-    ostdin = dup(0); ostdout = dup(1); ostderr = dup(2);
-    if (ostdin < 0 || ostdout < 0 || ostderr < 0) {
-	s = -1;
-	goto skip;
-    }
-    dup2(in, 0);
-    dup2(out, 1);
-    dup2(out, 2);
-    strcpy(buf, command);
+    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+    sa.lpSecurityDescriptor = NULL;
+    sa.bInheritHandle = TRUE;
+    hRead  = CreateFile(input ? input : "NUL", GENERIC_READ, 0, &sa,
+			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    hWrite = CreateFile(tmp, GENERIC_READ | GENERIC_WRITE, 0, &sa,
+			CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+    /* For OS panic during spawn child process */
+    if (GetFileType(tmp) == FILE_TYPE_UNKNOWN)
+	MoveFileEx(tmp, NULL, MOVEFILE_DELAY_UNTIL_REBOOT);
+    
+    memset(&si, 0, sizeof(si));
+    si.cb = sizeof(si);
+    si.hStdInput  = hRead;
+    si.hStdOutput = hWrite;
+    si.hStdError  = hWrite;
+    si.dwFlags    = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_MINIMIZE; /* or SW_HIDE */
 #ifdef	EXTD_DIR
     ensurecwd();
 #endif
-    s = system(buf);
-    close(in);
-    close(out);
-    dup2(ostdin, 0); dup2(ostdout, 1); dup2(ostderr, 2);
-skip:
-    close(ostdin); close(ostdout); close(ostderr);
-    if (s) {
+    bSuccess = CreateProcess(NULL, buf, NULL, NULL,
+			     TRUE, 0, NULL, NULL, &si, &pi);
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    CloseHandle(pi.hThread); CloseHandle(pi.hProcess);
+    CloseHandle(hRead); CloseHandle(hWrite);
+    free(buf);
+    if (!bSuccess) {
 	unlink(tmp);
 	return NULL;
     }
     return tmp;
 }
 #endif	/* NO_SHELL */
-
