@@ -1,4 +1,4 @@
-/* $Id: winmain.c,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: winmain.c,v 1.2 2000/07/18 12:42:34 amura Exp $ */
 /*
  * NG : NG program main routine
  *
@@ -8,8 +8,11 @@
 
 /*
  * $Log: winmain.c,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2000/07/18 12:42:34  amura
+ * support IME convertion on the spot
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 
@@ -549,20 +552,7 @@ ThreadMain( void )
 	ExitThread( 0 ) ;
 }
 
-#ifdef KANJI
-int
-fepmode_toggle( int f, int n )
-{
-  HIMC hIMC = ImmGetContext(g_hwndTty);
-  if (hIMC) {
-    BOOL ime_open = ImmGetOpenStatus(hIMC);
-    ImmSetOpenStatus(hIMC, !ime_open);
-    ImmReleaseContext(g_hwndTty, hIMC);
-  }
-  return TRUE;
-}
-#endif
-
+#if 0
 BOOL
 Fep_WM_CHAR( HWND hWnd, TCHAR chCharCode, LONG lKeyData )
 {
@@ -574,6 +564,7 @@ Fep_WM_SYSCHAR( HWND hWnd, TCHAR chCharCode, LONG lKeyData )
 {
   return FALSE;
 }
+#endif
 
 #ifdef FEPCTRL
 #define fep_init() /* nothing to do */
@@ -664,6 +655,19 @@ fepmode_chg(f, n)
   fepctrl = !fepctrl;
   if (fepctrl) {
     fepmode = TRUE;
+  }
+  return TRUE;
+}
+
+int
+fepmode_toggle( int f, int n )
+{
+  HIMC hIMC = ImmGetContext(g_hwndTty);
+  if (hIMC) {
+    BOOL ime_open = ImmGetOpenStatus(hIMC);
+    g_ime_prevopened = !ime_open;
+    ImmSetOpenStatus(hIMC, !ime_open);
+    ImmReleaseContext(g_hwndTty, hIMC);
   }
   return TRUE;
 }

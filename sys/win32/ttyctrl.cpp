@@ -1,9 +1,12 @@
-/* $Id: ttyctrl.cpp,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: ttyctrl.cpp,v 1.2 2000/07/18 12:42:33 amura Exp $ */
 
 /*
  * $Log: ttyctrl.cpp,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2000/07/18 12:42:33  amura
+ * support IME convertion on the spot
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 
@@ -45,10 +48,10 @@ static LOGFONT lfont = {
 
 #define GetFontH() (lfont.lfHeight + 1)
 #define GetFontHW() (lfont.lfWidth)
-#define KDrawText(hdc, str, len, rect, f) { HFONT hOldFont; \
-  hOldFont = (HFONT)SelectObject(hdc, m_hFont); \
-  DrawText(hdc, str, len, rect, (DT_NOPREFIX | DT_LEFT | DT_EXPANDTABS)); \
-  SelectObject(hdc, hOldFont); }
+#define KDrawText(hdc, str, len, rect, f) do { HFONT hOldFont;				\
+  hOldFont = (HFONT)SelectObject(hdc, m_hFont);								\
+  DrawText(hdc, str, len, rect, (DT_NOPREFIX | DT_LEFT | DT_EXPANDTABS));	\
+  SelectObject(hdc, hOldFont); } while (/*CONSTCOND*/0)
 
 class TtyView {
 protected:
@@ -67,9 +70,7 @@ protected:
 	DWORD	m_dwCurCol ;		/* カーソル桁位置 */
 	DWORD	m_dwCurLine ;		/* カーソル行位置 */
 	DWORD	m_dwCurH ;			/* カーソルの高さ */
-	DWORD	m_dwLastCurWidth ;	/* カーソル表示幅 */
-	DWORD	m_dwLastCurX ;		/* カーソル桁位置 */
-	DWORD	m_dwLastCurY ;		/* カーソル行位置 */
+	BOOL	m_bShowCursor ;		/* カーソル表示 */
 
 	HANDLE	m_hevtKey ;			/* キー入力通知用イベント */
 	WORD	m_szKeyBuf[ MAX_KEYBUF ] ;	/* キー入力バッファ */
@@ -91,15 +92,15 @@ protected:
 	void	PutLine( WORD y, WORD color, LPCSTR sjis ) ;
 	void	Flush() ;
 	BOOL	Kbhit() const ;
-	int		GetChar() ;
+	int 	GetChar() ;
 	DWORD	GetWH() const ;
 	void	AddMetaChar( TCHAR c ) ;
 	void	AddChar( TCHAR c ) ;
 
-	void	ShowCursor( HDC hDC ) ;
-	void	HideCursor( HDC hDC ) ;
+	void	ShowCursor(void) ;
+	void	HideCursor(void) ;
 	void	ResetContent() ;
-	int GetWindowEvent(void);
+	int  GetWindowEvent(void);
 	void AddWindowEvent(int);
 	void SetFontValues(LOGFONT *, HDC);
 	void AdjustScreen(HWND, HDC);
@@ -116,11 +117,11 @@ public:
 	BOOL	WMCopydata( PCOPYDATASTRUCT cds ) ;
 	BOOL	WMSysChar( TCHAR c, LONG keydata ) ;
 	void	WMChar( TCHAR c, LONG keydata ) ;
-	void	WMKeyDown( int nVirtKey, LONG lKeyData ) ;
+	BOOL	WMKeyDown( int nVirtKey, LONG lKeyData ) ;
 	void	WMMouseDown( WPARAM wParam, LPARAM lParam ) ;
 	void	WMSize( DWORD fwSize, WORD nWidth, WORD nHeight ) ;
 	BOOL	WMCopy() ;
-	void WMLButtonDown(int x, int y);
+	void	WMLButtonDown(int x, int y);
 
 	void	SetTab( DWORD wParam, BOOL bUpdate ) ;
 	void	SetHMargin( DWORD wParam, BOOL bUpdate ) ;
@@ -146,9 +147,7 @@ TtyView::TtyView()
 	m_dwCurCol = 0 ;
 	m_dwCurLine = 0 ;
 	m_dwCurH = GetFontH() ;
-	m_dwLastCurWidth = 0 ;
-	m_dwLastCurX = 0 ;
-	m_dwLastCurY = 0 ;
+	m_bShowCursor = FALSE;
 
 	m_hevtKey = 0 ;
 	m_dwKeyIn = 0 ;
@@ -182,14 +181,15 @@ TtyView::ClearScreen()
 
 	GetClientRect( m_hwnd, &rect ) ;
 	hDC = GetDC( m_hwnd ) ;
-	HideCursor( hDC ) ;
+	CreateCaret(m_hwnd, NULL, 2, m_dwFontH);
+	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 	FillRect( hdcBmp, &rect, (HBRUSH) GetStockObject( WHITE_BRUSH ) ) ;
 	FillRect( hDC,    &rect, (HBRUSH) GetStockObject( WHITE_BRUSH ) ) ;
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor( hDC ) ;
+	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
 }
 
@@ -221,7 +221,7 @@ TtyView::PutChar( BYTE c )
 	unicode[1] = 0 ;
 
 	hDC = GetDC( m_hwnd ) ;
-	HideCursor( hDC ) ;
+	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -251,7 +251,7 @@ TtyView::PutChar( BYTE c )
 		}
 	}
 
-	ShowCursor( hDC ) ;
+	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
 }
 
@@ -275,7 +275,7 @@ TtyView::PutKChar(BYTE c1, BYTE c2)
   sjis2unicode(foo, unicode, sizeof(unicode));
 
   hDC = GetDC(m_hwnd);
-  HideCursor(hDC);
+  HideCursor();
   hdcBmp = CreateCompatibleDC(hDC);
   hOldObj = SelectObject(hdcBmp, m_bmpScreen);
 
@@ -295,21 +295,34 @@ TtyView::PutKChar(BYTE c1, BYTE c2)
     }
   }
 
-  ShowCursor(hDC);
+  ShowCursor();
   ReleaseDC(m_hwnd, hDC);
 }
 
 void
 TtyView::GotoXY( WORD x, WORD y )
 {
-	HDC		hDC ;
-
-	hDC = GetDC( m_hwnd ) ;
-	HideCursor( hDC ) ;
-	m_dwCurCol = x ;
-	m_dwCurLine = y ;
-	ShowCursor( hDC ) ;
-	ReleaseDC( m_hwnd, hDC ) ;
+	DWORD dwCurX, dwCurY;
+	
+	m_dwCurCol = x;
+	m_dwCurLine = y;
+	dwCurX = m_dwFontW * m_dwCurCol ;
+	dwCurY = m_dwFontH * m_dwCurLine ;
+	SetCaretPos(dwCurX, dwCurY);
+#ifdef	FEPCTRL
+	{
+		HIMC hIMC = ImmGetContext(m_hwnd);
+		if (hIMC) {
+			COMPOSITIONFORM cf;
+			cf.dwStyle = CFS_POINT;
+			cf.ptCurrentPos.x = dwCurX;
+			cf.ptCurrentPos.y = dwCurY;
+			ImmSetCompositionWindow(hIMC, &cf);
+			ImmReleaseContext(m_hwnd, hIMC);
+		}
+	}
+#endif
+	ShowCursor();
 }
 
 BOOL
@@ -326,7 +339,7 @@ TtyView::EraseEOL()
 	HDC		hDC, hdcBmp ;
 
 	hDC = GetDC( m_hwnd ) ;
-	HideCursor( hDC ) ;
+	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -340,7 +353,7 @@ TtyView::EraseEOL()
 
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor( hDC ) ;
+	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
 }
 
@@ -352,7 +365,7 @@ TtyView::EraseEOP()
 	HDC		hDC, hdcBmp ;
 
 	hDC = GetDC( m_hwnd ) ;
-	HideCursor( hDC ) ;
+	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -375,7 +388,7 @@ TtyView::EraseEOP()
 
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor( hDC ) ;
+	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
 }
 
@@ -388,7 +401,7 @@ TtyView::PutLine( WORD y, WORD color, LPCSTR sjis )
 	TCHAR	unicode[ 256 ] ;
 
 	hDC = GetDC( m_hwnd ) ;
-	HideCursor( hDC ) ;
+	HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -405,10 +418,9 @@ TtyView::PutLine( WORD y, WORD color, LPCSTR sjis )
 	}
 	BitBlt( hDC, rect.left, rect.top, rect.right - rect.left + 1, rect.bottom - rect.top + 1,
 			hdcBmp, rect.left, rect.top, SRCCOPY ) ;
-
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor( hDC ) ;
+	ShowCursor() ;
 	ReleaseDC( m_hwnd, hDC ) ;
 }
 
@@ -453,7 +465,7 @@ TtyView::AddMetaChar( TCHAR c )
 	if ( next1 == m_dwKeyOut ) {
 		return ;
 	}
-	m_szKeyBuf[ m_dwKeyIn ] = 0x100 | (c % 0x100) ;
+	m_szKeyBuf[ m_dwKeyIn ] = 0x100 | (c & 0xFF) ;
 	m_dwKeyIn = next1 ;
 	if ( m_hevtKey ) {
 		::SetEvent( m_hevtKey ) ;
@@ -480,7 +492,7 @@ TtyView::AddChar( TCHAR c )
 		m_dwKeyIn = next1 ;
 		next1 = next2 ;
 	}
-	m_szKeyBuf[ m_dwKeyIn ] = sjisChar % 0x100 ;
+	m_szKeyBuf[ m_dwKeyIn ] = sjisChar & 0xFF;
 	m_dwKeyIn = next1 ;
 	if ( m_hevtKey ) {
 		::SetEvent( m_hevtKey ) ;
@@ -532,39 +544,23 @@ TtyView::AddWindowEvent(int ev)
  * カーソルを表示する
  */
 void
-TtyView::ShowCursor( HDC hDC )
+TtyView::ShowCursor(void)
 {
-	RECT	rect ;
-
-	m_dwLastCurWidth = 2 ;
-	m_dwLastCurX = m_dwFontW * m_dwCurCol ;
-	m_dwLastCurY = m_dwFontH * m_dwCurLine ;
-	PatBlt( hDC, m_dwLastCurX, m_dwLastCurY, m_dwLastCurWidth, m_dwCurH, PATINVERT ) ;
-	rect.left   = m_dwLastCurX ;
-	rect.top    = m_dwLastCurY ;
-	rect.right  = rect.left + m_dwLastCurWidth - 1 ;
-	rect.bottom = rect.top  + m_dwCurH         - 1 ;
-	ValidateRect( m_hwnd, &rect ) ;
+	ShowCaret(m_hwnd);
+	m_bShowCursor = TRUE;
 }
 
 /*
  * カーソルを消去する
  */
 void
-TtyView::HideCursor( HDC hDC )
+TtyView::HideCursor(void)
 {
-	RECT	rect ;
-
-	if ( !m_dwLastCurWidth ) {
+	if ( !m_bShowCursor ) {
 		return ;
 	}
-	PatBlt( hDC, m_dwLastCurX, m_dwLastCurY, m_dwLastCurWidth, m_dwCurH, PATINVERT ) ;
-	rect.left   = m_dwLastCurX ;
-	rect.top    = m_dwLastCurY ;
-	rect.right  = rect.left + m_dwLastCurWidth - 1 ;
-	rect.bottom = rect.top  + m_dwCurH         - 1 ;
-	m_dwLastCurWidth = 0 ;
-	ValidateRect( m_hwnd, &rect ) ;
+	HideCaret(m_hwnd);
+	m_bShowCursor = FALSE;
 }
 
 void
@@ -640,6 +636,17 @@ TtyView::AdjustScreen(HWND hWnd, HDC hDC)
   m_dwFontH = tm.tmHeight + m_dwHMargin;
   m_dwCurH = tm.tmHeight;
 
+#ifdef	FEPCTRL
+  /* set font to imm */
+  {
+    HIMC hIMC = ImmGetContext(m_hwnd);
+    if (hIMC) {
+      ImmSetCompositionFont(hIMC, &lfont);
+      ImmReleaseContext(m_hwnd, hIMC);
+    }
+  }
+#endif
+  
   /* Calculate the line numbers and column numbers */
   GetClientRect(m_hwnd, &rect);
   m_dwLines = rect.bottom / m_dwFontH;
@@ -678,7 +685,7 @@ TtyView::WMPaint()
 
 	GetClientRect( m_hwnd, &rect ) ;
 	hDC = ::BeginPaint( m_hwnd, &ps ) ;
-	//HideCursor( hDC ) ;
+	//HideCursor() ;
 	hdcBmp = CreateCompatibleDC( hDC ) ;
 	hOldObj = SelectObject( hdcBmp, m_bmpScreen ) ;
 
@@ -687,7 +694,7 @@ TtyView::WMPaint()
 
 	SelectObject( hdcBmp, hOldObj ) ;
 	DeleteDC( hdcBmp ) ;
-	ShowCursor( hDC ) ;
+	ShowCursor() ;
 	::EndPaint( m_hwnd, &ps ) ;
 }
 
@@ -712,7 +719,7 @@ TtyView::WMSysChar( TCHAR chCharCode, LONG lKeyData )
 	return TRUE ;
 }
 
-void
+BOOL
 TtyView::WMKeyDown( int nVirtKey, LONG lKeyData )
 {
 	BOOL	fShift   = 0x80 & GetKeyState( VK_SHIFT ) ;
@@ -787,7 +794,11 @@ TtyView::WMKeyDown( int nVirtKey, LONG lKeyData )
 		break;
 #endif
 #endif /* JAPANESE_KEYBOARD */
+	
+	default:
+		return FALSE;
 	}
+	return TRUE;
 }
 
 LRESULT
@@ -856,7 +867,6 @@ TtyView::WMLButtonDown(int x, int y)
   yy = y / m_dwFontH;
   AddWindowEvent((yy << 18) | (xx << 4) | TTY_WM_MOUSE);
 }
-
 
 #if 0
 /*
@@ -949,14 +959,22 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 		return 0 ;
 	}
 	pWindow = (PTtyView) GetWindowLong( hWnd, 0 ) ;
-	if ( !pWindow ) {
+	if ( !pWindow )
 		return DefWindowProc( hWnd, msg, wParam, lParam ) ;
-	}
 	switch ( msg ) {
 	case WM_DESTROY:
 		delete pWindow ;
 		SetWindowLong( hWnd, 0, (LONG) 0 ) ;
 		break ;
+	case WM_SETFOCUS:
+		CreateCaret(hWnd, NULL, 2, pWindow->m_dwFontH);
+		if (pWindow->m_bShowCursor)
+			pWindow->GotoXY((WORD)pWindow->m_dwCurCol,
+					(WORD)pWindow->m_dwCurLine);
+		break;
+	case WM_KILLFOCUS:
+		DestroyCaret();
+		break;
 	case WM_COMMAND:
 		return pWindow->WMCommand( hWnd, msg, wParam, lParam ) ;
 	case WM_COPYDATA:
@@ -968,12 +986,12 @@ TtyViewWndProc( HWND hWnd,  UINT msg, WPARAM wParam, LPARAM lParam )
 		pWindow->WMChar( (TCHAR) wParam, lParam ) ;
 		break ;
 	case WM_SYSCHAR:
-		if ( !pWindow->WMSysChar( (TCHAR) wParam, lParam ) ) {
-			DefWindowProc( hWnd, msg, wParam, lParam ) ;
-		}
+		if ( !pWindow->WMSysChar( (TCHAR) wParam, lParam ) )
+			return DefWindowProc( hWnd, msg, wParam, lParam ) ;
 		break ;
 	case WM_KEYDOWN:
-		pWindow->WMKeyDown( (int) wParam, lParam ) ;
+		if ( !pWindow->WMKeyDown( (int) wParam, lParam ) )
+			return DefWindowProc( hWnd, msg, wParam, lParam ) ;
 		break ;
 	case WM_SIZE:
 		pWindow->WMSize( wParam, LOWORD(lParam), HIWORD(lParam) ) ;
