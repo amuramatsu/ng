@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.13 2001/02/18 17:07:26 amura Exp $ */
+/* $Id: line.c,v 1.14 2001/04/28 18:54:27 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.14  2001/04/28 18:54:27  amura
+ * support line-number-mode (based on MATSUURA's patch )
+ *
  * Revision 1.13  2001/02/18 17:07:26  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -67,8 +70,6 @@
 #include	"def.h"
 #ifdef	UNDO
 #include	"undo.h"
-static int lineno_cache = FALSE;
-int set_lineno = -1;
 #endif
 
 #ifdef	CLIPBOARD
@@ -95,6 +96,10 @@ static char	*kbufp	= NULL;		/* Kill buffer data.		*/
 static RSIZE	kused	= 0;		/* # of bytes used in KB.	*/
 static RSIZE	ksize	= 0;		/* # of bytes allocated in KB.	*/
 static RSIZE	kstart	= 0;		/* # of first used byte in KB.	*/
+
+/* this is small tricks for speed up of get_lineno() */
+static int lineno_cache = FALSE;
+int set_lineno = -1;
 
 /*
  * This routine allocates a block of memory large enough to hold a LINE
@@ -937,8 +942,8 @@ receive_clipboard( void )
 }
 #endif	/* CLIPBOARD */
 
-#ifdef	UNDO
-int get_lineno(bp, blp)
+int
+get_lineno(bp, blp)
 BUFFER *bp;
 LINE *blp;
 {
@@ -965,11 +970,10 @@ LINE *blp;
 	n++;
     }
     if (lp == bp->b_linep)
-	return -1;
+	n = 0;
 
     before_n = n;
     lineno_cache = TRUE;
 
     return n;
 }
-#endif	/* UNDO */

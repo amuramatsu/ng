@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.4 2001/02/18 17:07:23 amura Exp $ */
+/* $Id: basic.c,v 1.5 2001/04/28 18:54:26 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: basic.c,v $
+ * Revision 1.5  2001/04/28 18:54:26  amura
+ * support line-number-mode (based on MATSUURA's patch )
+ *
  * Revision 1.4  2001/02/18 17:07:23  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -242,6 +245,33 @@ nextline(f, n)
 }
 #endif	/* NEXTLINE */
 
+
+#ifdef	ADDFUNC
+int line_number_mode = FALSE;
+
+linenumbermode(f, n)
+{
+    register int s;
+    register WINDOW *wp;
+    char	buf[NINPUT];
+
+    if ((f & FFARG) == 0) {
+	if ((s = ereply("line-number-mode : ", buf, sizeof(buf))) != TRUE)
+	    return (s);
+	if (ISDIGIT(buf[0]) || buf[0] == '-')
+	    n = (atoi(buf) > 0);
+	else if (buf[0] == 't' || buf[0] == 'T')
+	    n = TRUE;
+	else
+	    n = FALSE;
+	}
+    line_number_mode = n;
+    for (wp=wheadp; wp!=NULL; wp=wp->w_wndp)
+	wp->w_flag |= WFMODE;
+    return (TRUE);
+}
+#endif
+
 /*
  * Move forward by full lines.
  * If the number of lines to move is less
@@ -315,6 +345,8 @@ forwline(f, n)
 		curwp->w_doto  = getgoal(dlp);
 	}
 #ifdef ADDFUNC		/* amura */
+	if (line_number_mode)
+	    curwp->w_flag |= WFHARD;
 # ifdef	BUGFIX
 	return n>0 ? FALSE : TRUE;
 # else
@@ -348,6 +380,8 @@ backline(f, n)
 	curwp->w_doto  = getgoal(dlp);
 	curwp->w_flag |= WFMOVE;
 #ifdef ADDFUNC		/* amura */
+	if (line_number_mode)
+	    curwp->w_flag |= WFHARD;
 	return n >= 0 ? FALSE : TRUE;
 #else
 	return TRUE;

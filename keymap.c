@@ -1,4 +1,4 @@
-/* $Id: keymap.c,v 1.8 2001/03/02 08:49:04 amura Exp $ */
+/* $Id: keymap.c,v 1.9 2001/04/28 18:54:27 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
@@ -7,6 +7,9 @@
 
 /*
  * $Log: keymap.c,v $
+ * Revision 1.9  2001/04/28 18:54:27  amura
+ * support line-number-mode (based on MATSUURA's patch )
+ *
  * Revision 1.8  2001/03/02 08:49:04  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -64,6 +67,9 @@ extern	int	back1page _PF();	/* move back by lines		*/
 #endif
 #ifdef	NEXTLINE
 extern	int	nextline _PF();		/* next-line-noexpand		*/
+#endif
+#ifdef	ADDFUNC
+extern	int	linenumbermode _PF();	/* line-number-mode		*/
 #endif
 
 /*
@@ -985,6 +991,7 @@ static	struct	KEYMAPE(1+IMAPEXT)	blinkmap = {
 	}
 };
 
+
 #ifdef	NOTAB
 static	PF	notab_tab[] = {
 	space_to_tabstop,	/* ^I */
@@ -1522,6 +1529,7 @@ FUNCTNAMES	functnames[] = {
 	{killpara,	"kill-paragraph"},
 	{killregion,	"kill-region"},
 	{delfword,	"kill-word"},
+	{linenumbermode, "line-number-mode"},
 	{listbuffers,	"list-buffers"},
 #ifdef	C_MODE	/* 90.07.24  by K.Takano */
 	{cm_list_var,	"list-c-mode-variables"},

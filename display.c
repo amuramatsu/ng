@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.13 2001/02/18 17:07:24 amura Exp $ */
+/* $Id: display.c,v 1.14 2001/04/28 18:54:27 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.14  2001/04/28 18:54:27  amura
+ * support line-number-mode (based on MATSUURA's patch )
+ *
  * Revision 1.13  2001/02/18 17:07:24  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -1481,51 +1484,21 @@ modeline(wp) register WINDOW *wp; {
 		/* 90.12.28  Move to here like as Nemacs 3.3. by S.Yoshida */
 	n += kdispbufcode(bp);			/* Show KANJI code.	*/
 #endif	/* KANJI */	
-	for(mode=0;;) {
+	for (mode=0;;) {
 	    n += vtputs(bp->b_modes[mode]->p_name);
 	    if(++mode > bp->b_nmodes) break;
 	    vtputc('-');
 	    ++n;
 	}
 	vtputc(')');
-	++n;
-#ifdef ADDFUNC
-	{
-	  extern int windowpos pro((WINDOW *));
-	  int ratio = windowpos(wp);
-
-	  vtputc('-'); vtputc('-');
-	  n += 2;
-	  switch (ratio) {
-	  case MG_RATIO_ALL:
-	    vtputs("All");
-	    break;
-
-	  case MG_RATIO_TOP:
-	    vtputs("Top");
-	    break;
-	    
-	  case MG_RATIO_BOT:
-	    vtputs("Bot");
-	    break;
-
-	  default:
-	    if ((ratio / 10) == 0) {
-	      vtputc(' ');
-	    }
-	    else {
-	      vtputc('0' + (ratio / 10));
-	    }
-	    vtputc('0' + (ratio % 10));
-	    vtputc('%');
-	  }
-	  n += 3;
-	}
+#ifdef	ADDFUNC
+	vtputc('-');
+	vtputc('-');
+	moderatio(wp);
 #endif
 	vtmarkyen('-');				/* Pad out.		*/
 }
 
-#ifdef	ADDFUNC
 /*
  * Redisplay the mode line  "raito" ONLY for
  * the window pointed to by the "wp".
@@ -1542,8 +1515,7 @@ moderatio(wp) register WINDOW *wp; {
 	register int	n;
 	register BUFFER *bp;
 	int	mode, l;
-	extern int windowpos pro((WINDOW *));
-	int ratio = windowpos(wp);
+	extern int line_number_mode;		/* Defined in basic.c	*/
 
 	l = wp->w_toprow+wp->w_ntrows;		/* Location.		*/
 	vscreen[l]->v_color = CMODE;		/* Mode line color.	*/
@@ -1558,37 +1530,49 @@ moderatio(wp) register WINDOW *wp; {
 	/* 90.12.28  Move to here like as Nemacs 3.3. by S.Yoshida */
 	n += 4;					/* Show KANJI code.	*/
 #endif	/* KANJI */	
-	for(mode=0;;) {
+	for (mode=0;;) {	/* skip mode names */
 	    n += strlen(bp->b_modes[mode]->p_name);
-	    if(++mode > bp->b_nmodes) break;
+	    if (++mode > bp->b_nmodes) break;
 	    ++n;
 	}
 	vtmove(l, n);				/* Seek to right line.	*/
-	switch (ratio) {
-	  case MG_RATIO_ALL:
-	    vtputs("All");
-	    break;
+        if (line_number_mode) {
+	    extern int get_lineno pro((BUFFER*, LINE*));
+	    char linestr[NINPUT];	/* XXX now, support only 32bit int */
+	    sprintf(linestr, "L%d", get_lineno(bp, wp->w_dotp)+1);
+	    vtputs(linestr);
+	}
+	{
+            extern int windowpos pro((WINDOW *));
+	    int ratio = windowpos(wp);
 
-	  case MG_RATIO_TOP:
-	    vtputs("Top");
-	    break;
-	    
-	  case MG_RATIO_BOT:
-	    vtputs("Bot");
-	    break;
-
-	  default:
-	    if ((ratio / 10) == 0) {
-	      vtputc(' ');
+	    vtputc('-'); vtputc('-');
+            switch (ratio) {
+	    case MG_RATIO_ALL:
+	      vtputs("All");
+	      break;
+	      
+	    case MG_RATIO_TOP:
+	      vtputs("Top");
+	      break;
+	      
+	    case MG_RATIO_BOT:
+	      vtputs("Bot");
+	      break;
+	      
+	    default:
+	      if ((ratio / 10) == 0) {
+		vtputc(' ');
+	      }
+	      else {
+		vtputc('0' + (ratio / 10));
+	      }
+	      vtputc('0' + (ratio % 10));
+	      vtputc('%');
 	    }
-	    else {
-	      vtputc('0' + (ratio / 10));
-	    }
-	    vtputc('0' + (ratio % 10));
-	    vtputc('%');
+            vtputc('-');vtputc('-');
 	}
 }
-#endif
 
 /*
  * output a string to the mode line, report how long it was.
