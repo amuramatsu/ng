@@ -1,7 +1,10 @@
-# $Id: Makefile.in,v 1.1 2000/11/19 18:34:59 amura Exp $
+# $Id: Makefile.in,v 1.2 2000/12/01 10:06:16 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # $Log: Makefile.in,v $
+# Revision 1.2  2000/12/01 10:06:16  amura
+# add configure rule and fix strip rule
+#
 # Revision 1.1  2000/11/19 18:34:59  amura
 # support GNU configure system
 #
@@ -10,9 +13,11 @@
 
 SYS	= unix
 
-CC	= @CC@
+CC	     = @CC@
+STRIP        = @STRIP@
 INSTALL      = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
+
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
 BINDIR      = @bindir@
@@ -65,7 +70,7 @@ $(PROG):	$(OBJ)
 
 # strip mg once you're satisfied it'll run -- makes it much smaller
 strip:
-	strip $(PROG)
+	$(STRIP) $(PROG)
 
 install:
 	$(INSTALL) -m 755 -o root -g wheel $(PROG) $(BINDIR)
@@ -75,6 +80,9 @@ install:
 
 lint: $(SRCS) $(OSRCS) $(INCS) $(OINCS)
 	lint -ahbz $(CDEFS) $(SRCS) $(OSRCS)
+
+sysconfig.h:
+	./configure
 
 $(OBJ):		$(INCS) $(OINCS)
 
