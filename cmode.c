@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.3 2000/12/14 18:12:13 amura Exp $ */
+/* $Id: cmode.c,v 1.4 2001/05/25 17:53:33 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: cmode.c,v $
+ * Revision 1.4  2001/05/25 17:53:33  amura
+ * change LABEL: check routine
+ *
  * Revision 1.3  2000/12/14 18:12:13  amura
  * use alloca() and more memory secure
  *
@@ -326,7 +329,7 @@ static calc_indent()
 
 /*-- Label check --*/	
     c = lgetc(lp, cbo);
-    if (ISWORD(c) || c=='_')
+    if (ISWORD(c) || c == '_' || c == '-')
     {
 	for (bo = cbo+1; bo < llength(lp); bo++)
 	{
@@ -337,8 +340,8 @@ static calc_indent()
 		with_colon = TRUE;
 		break;
 	    }
-	    if (!ISWORD(c) && c!=' ' && c!='\t' && c!='\'' && c!='_'
-		&& c != '(' && c != ')')
+	    if (c == '<' || c == '>' || c == '=' ||
+		c == '[' || c == ']' || c == '\\')
 		break;
 	}
     }
