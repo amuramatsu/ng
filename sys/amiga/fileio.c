@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.4 2000/12/27 16:55:41 amura Exp $ */
+/* $Id: fileio.c,v 1.5 2000/12/28 07:26:50 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -14,6 +14,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.5  2000/12/28 07:26:50  amura
+ * suffix o is not search in filename complition
+ *
  * Revision 1.4  2000/12/27 16:55:41  amura
  * change d_makename() params for conservative reason, and bugfix in dires_()
  *
@@ -749,6 +752,8 @@ char *name, **buf;
 			strcat(tmpnam, "/");
 		}
 		l = strlen(tmpnam) + 1;
+		if (l > 3 && (stricmp(&tmpnam[l-3],".O") == 0))
+			continue;
 		if (l + len >= size) {
 				/* make room for double null */
 			if ((buffer = realloc(buffer, size += MALLOC_STEP)) == NULL) {
