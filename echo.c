@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.8 2001/01/05 14:07:01 amura Exp $ */
+/* $Id: echo.c,v 1.9 2001/08/03 20:22:50 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -14,6 +14,9 @@
 
 /*
  * $Log: echo.c,v $
+ * Revision 1.9  2001/08/03 20:22:50  amura
+ * small changes for first step of history support
+ *
  * Revision 1.8  2001/01/05 14:07:01  amura
  * first implementation of Hojo Kanji support
  *
@@ -391,11 +394,11 @@ veread(fp, buf, nbuf, flag, ap)
 
   mb_init(nbuf, fp, ap);
   cmp_msg_len = 0;
-  MetaPrefix  = 0;
-  CtluPrefix  = 0;
+  MetaPrefix  = FALSE;
+  CtluPrefix  = FALSE;
   nargs       = 1;
   sign        = 1;
-  ctluf       = 0;
+  ctluf       = FALSE;
 #ifdef CANNA
   mb_cannamode  = FALSE;
   mbMode[0] = '\0';
@@ -414,20 +417,22 @@ veread(fp, buf, nbuf, flag, ap)
 	    continue;
     }
 #endif
-
-    if (CtluPrefix == 1){
+    /*
+     * Check num prefix
+     */
+    if (CtluPrefix){
       switch (c){
       case CCHR('G'):
 	nargs = 1;
 	sign  = 1;
-	ctluf = 0;
-	CtluPrefix = 0;
+	ctluf = FALSE;
+	CtluPrefix = FALSE;
 	thisflag = lastflag;
 	continue;
 	break;
       case CCHR('U'):
-	if (ctluf == 0){
-	  ctluf = 1;
+	if (!ctluf){
+	  ctluf = FALSE;
 	  nargs = 4;
 	  sign = 1;
 	} else 
@@ -435,17 +440,17 @@ veread(fp, buf, nbuf, flag, ap)
 	break;
       case '0':case '1':case '2':case '3':case '4':
       case '5':case '6':case '7':case '8':case '9':
-	if (ctluf == 1){
+	if (ctluf){
 	  nargs = (c - '0');
-	  ctluf = 0;
+	  ctluf = FALSE;
 	} else {
 	  nargs = (10*nargs + (c - '0')); 
 	}
 	break;
       case '-':
-	if (ctluf == 1){
+	if (ctluf){
 	  sign = -1;
-	  ctluf = 0;
+	  ctluf = FALSE;
 	  nargs = 0;
 	  break;
 	} else
@@ -458,9 +463,9 @@ veread(fp, buf, nbuf, flag, ap)
     }
 Cmd:
     nargs = sign * nargs;
-    CtluPrefix = 0;
+    CtluPrefix = FALSE;
 
-    if (MetaPrefix == 1){
+    if (MetaPrefix){
       switch (c){
       case CCHR('G'):      /* Espace from Meta prefix  */
 	break;
@@ -496,20 +501,25 @@ Cmd:
 	  while (nargs++ < 0)
 	    complete_scroll_up();
 	break;
+      case 'p': case 'P':
+        break;
+      case 'n': case 'N':
+        break;
+
       default:
 	ttbeep();
       }
-      MetaPrefix = 0;
+      MetaPrefix = FALSE;
     } else {
       switch (c){
       case CCHR('['):    /* META prefix */
-	MetaPrefix = 1;
+	MetaPrefix = TRUE;
 	thisflag = lastflag;
 	continue;
       case CCHR('U'):    /* Ctl-U prefix */
-	CtluPrefix = 1;
+	CtluPrefix = TRUE;
 	nargs = 4;
-	ctluf = 1;
+	ctluf = TRUE;
 	sign  = 1;
 	thisflag = lastflag;
 	continue;
@@ -641,7 +651,7 @@ Cmd:
       }
     }
     nargs = 1;
-    ctluf = 0;
+    ctluf = FALSE;
     sign  = 1;
   }
 }
