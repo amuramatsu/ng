@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.3 2000/07/16 15:44:41 amura Exp $ */
+/* $Id: paragraph.c,v 1.4 2000/10/02 16:24:42 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: paragraph.c,v $
+ * Revision 1.4  2000/10/02 16:24:42  amura
+ * bugfix by Tillanosoft(Ng for Win32)
+ *
  * Revision 1.3  2000/07/16 15:44:41  amura
  * undo bug on autofill fixed
  *
@@ -185,8 +188,21 @@ fillpara(f, n)
 	if(curwp->w_doto != 0)	{
 		/* paragraph ends at end of buffer */
 		(VOID) lnewline();
-		eopline = lforw(curwp->w_dotp);
-	} else	eopline = curwp->w_dotp;
+		/* In order to reduce the complexity, simply add a
+		   newline (by the above code) so that the rest of the
+		   source code will not be affected by the exceptional
+		   paragraph.  This idea was brought to the source
+		   code by the original authors, but there was a bug
+		   which over-delete one word at the end of the
+		   paragraph in the case the paragraph ends with EOB
+		   and there is a certain FILLPREFIX string for the
+		   paragraph.  This bug was brought to the source code
+		   when FILLPREFIX feature had been introduced.  This
+		   bug has been fixed by re-writing the way to get the
+		   `eopline' here.  Tillanosoft Sep 4, 2000 */
+		(VOID)gotoeop(FFRAND, 1);
+	}
+	eopline = curwp->w_dotp;
 
 	/* and back top the begining of the paragraph */
 	(VOID) gotobop(FFRAND, 1);
@@ -270,7 +286,7 @@ fillpara(f, n)
 				}
 			}
 		} else {
-			if (ISKANJI(wbuf[wordlen - 1]) &&
+			if (0 < wordlen && ISKANJI(wbuf[wordlen - 1]) &&
 #ifdef	KINSOKU	/* 90.01.29  by S.Yoshida */
 			    !lastiseolkc && !isbolkchar(0, c) &&
 #endif	/* KINSOKU */
@@ -377,7 +393,7 @@ fillpara(f, n)
 			    || curwp->w_doto==llength(curwp->w_dotp)
 			    || (c=lgetc(curwp->w_dotp,curwp->w_doto))==' '
 			    || c=='\t')
-			  && ISEOSP(wbuf[wordlen-1])
+			  && 0 < wordlen && ISEOSP(wbuf[wordlen - 1])
 			  && wordlen<MG_MAXWORD-1) {
 				wbuf[wordlen++] = ' ';
 #ifdef	BUGFIX	/* 91.01.02  by S.Yoshida */
@@ -471,7 +487,7 @@ fillpara(f, n)
 				/* 91.01.15  NULL -> '\0' */
 			kexist = FALSE;
 			kstart = FALSE;
-			kend   = ISKANJI(wbuf[wordlen - 1]);
+			kend   = (0 < wordlen && ISKANJI(wbuf[wordlen - 1]));
 #ifdef	KINSOKU	/* 90.01.29  by S.Yoshida */
 			bolkclen = 0;
 #endif	/* KINSOKU */

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.4 2000/09/21 17:28:29 amura Exp $ */
+/* $Id: display.c,v 1.5 2000/10/02 16:24:42 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,6 +14,9 @@
 
 /*
  * $Log: display.c,v $
+ * Revision 1.5  2000/10/02 16:24:42  amura
+ * bugfix by Tillanosoft(Ng for Win32)
+ *
  * Revision 1.4  2000/09/21 17:28:29  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -228,6 +231,15 @@ vtputc(c) register int c; {
 #ifdef VARIABLE_TAB
 	int tab = curwp->w_bufp->b_tabwidth;
 #endif
+
+	/* vtrow sometimes over-runs the NROW -1.  In the case, vp at
+	   following line becomes an uninitialized pointer.  Then core
+	   dump or system error may occur.  To avoid the error.  Some
+	   range confirmation should be needed. 
+	   By Tillanosoft Sep 9, 2000.  */
+	if (NROW - 1 <= vtrow) {
+	  return;
+	}
 
 	vp = vscreen[vtrow];
 	if (c == '\t'
@@ -479,13 +491,13 @@ int row, col;
       width = 2;
       skipbytes = 2;
     }
-#endif /* KANJI */
 #ifdef HANKANA
     if ((c & 0xff) == SS2) {
       width = 1;
       skipbytes = 2;
     }
 #endif /* HANKANA */
+#endif /* KANJI */
     if (c == '\t'
 #ifdef	NOTAB
 	&& !(curbp->b_flag & BFNOTAB)
@@ -507,12 +519,16 @@ int row, col;
       return i;
     }
     curcol += width;
-    if (curcol >= ncol-1) {
+    if (curcol >= ncol-1
+#ifdef	KANJI
+	|| (ISKANJI(c) && curcol >= ncol-2)
+#endif
+	) {
       curcol= ISCTRL(c) ? (curcol - ncol + 1) : 0;
       --row;
     }
   }
-  if (row == 0) {
+  if (row <= 0) {
     return i;
   }
   else {
