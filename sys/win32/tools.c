@@ -1,4 +1,4 @@
-/* $Id: tools.c,v 1.4 2000/07/25 15:04:21 amura Exp $ */
+/* $Id: tools.c,v 1.5 2000/09/01 19:39:12 amura Exp $ */
 /*
  * NG : C library compatible routine for Ng
  *
@@ -12,6 +12,9 @@
 
 /*
  * $Log: tools.c,v $
+ * Revision 1.5  2000/09/01 19:39:12  amura
+ * fix choped data bug on receiving from clipboard
+ *
  * Revision 1.4  2000/07/25 15:04:21  amura
  * fix filevisit() args
  *
@@ -866,7 +869,7 @@ size_clipboard_()
     goto exit ;
   }
   ret = unicode2sjis(cbptr, (LPBYTE)NULL, 0);
-  size = 0;
+  size = 1;		/* ASCIZ NULL byte */
   for (i=0,p=(char *)cbptr; i<ret; i++,p++)
   {
     if (*p > 0xA0 && *p < 0xE0) /* *p is kana */
@@ -925,9 +928,9 @@ recieve_clipboard_(char *buffer, int *size)
 	}
   }
 #ifdef KANJI
-  *size = bufstoe(buffer, dst-buffer-1);
+  *size = bufstoe(buffer, dst-buffer);
 #else
-  *size = dst - buffer - 1;
+  *size = dst - buffer;
 #endif
 
 exit:
