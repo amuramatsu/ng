@@ -1,8 +1,8 @@
-/* $Id: help.c,v 1.4 2001/10/29 04:30:41 amura Exp $ */
+/* $Id: help.c,v 1.5 2001/11/23 11:56:37 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 /*
- * $Id: help.c,v 1.4 2001/10/29 04:30:41 amura Exp $
+ * $Id: help.c,v 1.5 2001/11/23 11:56:37 amura Exp $
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -12,14 +12,13 @@
 #include "kbd.h"
 #include "key.h"
 #ifndef NO_MACRO
-#include "macro.h"
+# include "macro.h"
 #endif
-extern int rescan();
 
 /* 91.02.06  Move static declaration to here for some compiler. by S.Yoshida */
-static	int	showall();
-static	VOID	findbind();
-static	VOID	bindfound();
+static int showall _PRO((char *, KEYMAP *));
+static VOID findbind _PRO((PF, char *, KEYMAP *));
+static VOID bindfound _PRO((VOID));
 
 /*
  * Read a key from the keyboard, and look it
@@ -27,7 +26,9 @@ static	VOID	bindfound();
  * currently bound to the key.
  */
 /*ARGSUSED*/
+int
 desckey(f, n)
+int f, n;
 {
     register KEYMAP *curmap;
     register PF funct;
@@ -38,7 +39,8 @@ desckey(f, n)
     int i;
 
 #ifndef NO_MACRO
-    if(inmacro) return TRUE;		/* ignore inside keyboard macro */
+    if (inmacro)
+	return TRUE;		/* ignore inside keyboard macro */
 #endif
     (VOID) strcpy(prompt, "Describe key briefly: ");
     pep = prompt + strlen(prompt);
@@ -48,8 +50,8 @@ desckey(f, n)
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
     fepmode_off();
 #endif
-    for(;;) {
-	for(;;) {
+    for (;;) {
+	for (;;) {
 	    ewprintf("%s", prompt);
 	    pep[-1] = ' ';
 	    pep = keyname(pep, key.k_chars[key.k_count++] = c = getkey(FALSE));
@@ -58,23 +60,26 @@ desckey(f, n)
 	    *pep = '\0';
 	    curmap = ele->k_prefmap;
 	}
-	if(funct != rescan) break;
-	if(ISUPPER(key.k_chars[key.k_count-1])) {
+	if (funct != rescan)
+	    break;
+	if (ISUPPER(key.k_chars[key.k_count-1])) {
 	    funct = doscan(curmap, TOLOWER(key.k_chars[key.k_count-1]));
-	    if(funct == prefix) {
+	    if (funct == prefix) {
 		*pep++ = '-';
 		*pep = '\0';
 		curmap = ele->k_prefmap;
 		continue;
 	    }
-	    if(funct != rescan) break;
+	    if (funct != rescan)
+		break;
 	}
 nextmode:
-	if(--m < 0) break;
+	if (--m < 0)
+	    break;
 	curmap = curbp->b_modes[m]->p_map;
-	for(i=0; i < key.k_count; i++) {
+	for (i=0; i < key.k_count; i++) {
 	    funct = doscan(curmap, key.k_chars[i]);
-	    if(funct != prefix) {
+	    if (funct != prefix) {
 		if(i == key.k_count - 1 && funct != rescan) goto found;
 		funct = rescan;
 		goto nextmode;
@@ -85,10 +90,12 @@ nextmode:
 	*pep = '\0';
     }
 found:
-    if(funct == rescan) ewprintf("%k is not bound to any function");
+    if (funct == rescan)
+	ewprintf("%k is not bound to any function");
     else if((pep = function_name(funct)) != NULL)
-	    ewprintf("%k runs the command %s", pep);
-    else    ewprintf("%k is bound to an unnamed function");
+	ewprintf("%k runs the command %s", pep);
+    else
+	ewprintf("%k is bound to an unnamed function");
 #ifdef KANJI		/* code from Ng-1.3.1L+6 */
     if (ISKANJI(c))
 	getkey(FALSE);	/* eat up kanji 2nd byte */
@@ -106,92 +113,114 @@ static BUFFER	*bp;
 static char buf[80];	/* used by showall and findbind */
 
 /*ARGSUSED*/
+int
 wallchart(f, n)
+int f, n;
 {
-	int m;
-	static char locbind[80] = "Local keybindings for mode ";
+    int m;
+    static char locbind[80] = "Local keybindings for mode ";
 
-	if ((bp = bfind("*help*", TRUE)) == NULL) return FALSE;
+    if ((bp = bfind("*help*", TRUE)) == NULL)
+	return FALSE;
 #ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
-	bp->b_flag &= ~(BFCHG | BFACHG);/* Blow away old.	*/
+    bp->b_flag &= ~(BFCHG | BFACHG);/* Blow away old.	*/
 #else
-	bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
+    bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
 #endif	/* AUTOSAVE	*/
-	if (bclear(bp) != TRUE) return FALSE;	/* Clear it out.	*/
-	for(m=curbp->b_nmodes; m > 0; m--) {
-	    (VOID) strcpy(&locbind[27], curbp->b_modes[m]->p_name);
-	    (VOID) strcat(&locbind[27], ":");
-	    if((addline(bp, locbind) == FALSE) ||
-		(showall(buf, curbp->b_modes[m]->p_map) == FALSE) ||
-		(addline(bp, "") == FALSE)) return FALSE;
-	}
-	if((addline(bp, "Global bindings:") == FALSE) ||
-	    (showall(buf, map_table[0].p_map) == FALSE)) return FALSE;
-	return popbuftop(bp);
+    if (bclear(bp) != TRUE)
+	return FALSE;	/* Clear it out.	*/
+    for (m=curbp->b_nmodes; m > 0; m--) {
+	(VOID) strcpy(&locbind[27], curbp->b_modes[m]->p_name);
+	(VOID) strcat(&locbind[27], ":");
+	if ((addline(bp, locbind) == FALSE) ||
+	    (showall(buf, curbp->b_modes[m]->p_map) == FALSE) ||
+	    (addline(bp, "") == FALSE))
+	    return FALSE;
+    }
+    if ((addline(bp, "Global bindings:") == FALSE) ||
+	(showall(buf, map_table[0].p_map) == FALSE))
+	return FALSE;
+    return popbuftop(bp);
 }
 
-static	int showall(ind, map)
-char	*ind;
-KEYMAP	*map;
+static int
+showall(ind, map)
+char *ind;
+KEYMAP *map;
 {
-	register MAP_ELEMENT *ele;
-	register int i;
-	PF	functp;
-	char	*cp;
-	char	*cp2;
-	int	last;
+    register MAP_ELEMENT *ele;
+    register int i;
+    PF functp;
+    char *cp;
+    char *cp2;
+    int last;
 
-	if(addline(bp, "") == FALSE) return FALSE;
-	last = -1;
-	for(ele = &map->map_element[0]; ele < &map->map_element[map->map_num] ; ele++) {
-	    if(map->map_default != rescan && ++last < ele->k_base) {
-		cp = keyname(ind, last);
-		if(last < ele->k_base - 1) {
-		    (VOID) strcpy(cp, " .. ");
-		    cp = keyname(cp + 4, ele->k_base - 1);
-		}
-		do { *cp++ = ' '; } while(cp < &buf[16]);
-		(VOID) strcpy(cp, function_name(map->map_default));
-		if(addline(bp, buf) == FALSE) return FALSE;
+    if (addline(bp, "") == FALSE)
+	return FALSE;
+    last = -1;
+    for (ele = &map->map_element[0];
+	 ele < &map->map_element[map->map_num] ; ele++) {
+	if (map->map_default != rescan && ++last < ele->k_base) {
+	    cp = keyname(ind, last);
+	    if (last < ele->k_base - 1) {
+		(VOID) strcpy(cp, " .. ");
+		cp = keyname(cp + 4, ele->k_base - 1);
 	    }
-	    last = ele->k_num;
-	    for(i=ele->k_base; i <= last; i++) {
-		functp = ele->k_funcp[i - ele->k_base];
-		if(functp != rescan) {
-		    if(functp != prefix) cp2 = function_name(functp);
-		    else cp2 = map_name(ele->k_prefmap);
-		    if(cp2 != NULL) {
-			cp = keyname(ind, i);
-			do { *cp++ = ' '; } while(cp < &buf[16]);
-			(VOID) strcpy(cp, cp2);
-			if (addline(bp, buf) == FALSE) return FALSE;
-		    }
-		}
-	    }
+	    do {
+		*cp++ = ' ';
+	    } while(cp < &buf[16]);
+	    (VOID) strcpy(cp, function_name(map->map_default));
+	    if (addline(bp, buf) == FALSE)
+		return FALSE;
 	}
-	for(ele = &map->map_element[0]; ele < &map->map_element[map->map_num]; ele++) {
-	    if(ele->k_prefmap != NULL) {
-		for(i = ele->k_base; ele->k_funcp[i - ele->k_base] != prefix; i++) {
-		    if(i >= ele->k_num)  /* damaged map */
+	last = ele->k_num;
+	for (i=ele->k_base; i <= last; i++) {
+	    functp = ele->k_funcp[i - ele->k_base];
+	    if (functp != rescan) {
+		if (functp != prefix)
+		    cp2 = function_name(functp);
+		else
+		    cp2 = map_name(ele->k_prefmap);
+		if (cp2 != NULL) {
+		    cp = keyname(ind, i);
+		    do {
+			*cp++ = ' ';
+		    } while(cp < &buf[16]);
+		    (VOID) strcpy(cp, cp2);
+		    if (addline(bp, buf) == FALSE)
 			return FALSE;
 		}
-		cp = keyname(ind, i);
-		*cp++ = ' ';
-		if(showall(cp, ele->k_prefmap) == FALSE) return FALSE;
 	    }
 	}
-	return TRUE;
+    }
+    for (ele = &map->map_element[0];
+	 ele < &map->map_element[map->map_num]; ele++) {
+	if (ele->k_prefmap != NULL) {
+	    for (i = ele->k_base;
+		 ele->k_funcp[i - ele->k_base] != prefix; i++) {
+		if (i >= ele->k_num)  /* damaged map */
+		    return FALSE;
+	    }
+	    cp = keyname(ind, i);
+	    *cp++ = ' ';
+	    if (showall(cp, ele->k_prefmap) == FALSE)
+		return FALSE;
+	}
+    }
+    return TRUE;
 }
 
-int help_help pro((int, int));
+int help_help _PRO((int, int));
 
+int
 help_help(f, n)
 int f, n;
 {
     KEYMAP *kp;
-    PF	funct;
+    PF funct;
 
-    if((kp = name_map("help")) == NULL) return FALSE;
+    if ((kp = name_map("help")) == NULL)
+	return FALSE;
     ewprintf("a b c: ");
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
     fepmode_off();
@@ -207,9 +236,10 @@ int f, n;
 #else
 	funct = doscan(kp, getkey(FALSE));
 #endif
-    } while(funct==NULL || funct==help_help);
+    } while (funct==NULL || funct==help_help);
 #ifndef NO_MACRO
-    if(macrodef && macrocount < MAXMACRO) macro[macrocount-1].m_funct = funct;
+    if (macrodef && macrocount < MAXMACRO)
+	macro[macrocount-1].m_funct = funct;
 #endif
     return (*funct)(f, n);
 }
@@ -218,6 +248,7 @@ static char buf2[128];
 static char *buf2p;
 
 /*ARGSUSED*/
+int
 apropos_command(f, n)
 int f, n;
 {
@@ -226,65 +257,77 @@ int f, n;
     FUNCTNAMES *fnp;
     BUFFER *bp;
 
-    if(eread("apropos: ", string, sizeof(string), EFNEW) == ABORT) return ABORT;
-	/* FALSE means we got a 0 character string, which is fine */
-    if ((bp = bfind("*help*", TRUE)) == NULL) return FALSE;
+    /* FALSE means we got a 0 character string, which is fine */
+    if (eread("apropos: ", string, sizeof(string), EFNEW) == ABORT)
+	return ABORT;
+    if ((bp = bfind("*help*", TRUE)) == NULL)
+	return FALSE;
     bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
-    if(bclear(bp) == FALSE) return FALSE;
-    for(fnp = &functnames[0]; fnp < &functnames[nfunct]; fnp++) {
-	for(cp1 = fnp->n_name; *cp1; cp1++) {
+    if (bclear(bp) == FALSE)
+	return FALSE;
+    for (fnp = &functnames[0]; fnp < &functnames[nfunct]; fnp++) {
+	for (cp1 = fnp->n_name; *cp1; cp1++) {
 	    cp2 = string;
-	    while(*cp2 && *cp1 == *cp2)
+	    while (*cp2 && *cp1 == *cp2)
 		cp1++, cp2++;
-	    if(!*cp2) {
+	    if (!*cp2) {
 		(VOID) strcpy(buf2, fnp->n_name);
 		buf2p = &buf2[strlen(buf2)];
 		findbind(fnp->n_funct, buf, map_table[0].p_map);
-		if(addline(bp, buf2) == FALSE) return FALSE;
+		if (addline(bp, buf2) == FALSE)
+		    return FALSE;
 		break;
-	    } else cp1 -= cp2 - string;
+	    }
+	    else
+		cp1 -= cp2 - string;
 	}
     }
     return popbuftop(bp);
 }
 
-static VOID findbind(funct, ind, map)
+static VOID
+findbind(funct, ind, map)
 PF funct;
 char *ind;
-KEYMAP	*map;
+KEYMAP *map;
 {
     register MAP_ELEMENT *ele;
     register int i;
-    char	*cp;
-    int		last;
+    char *cp;
+    int last;
 
     last = -1;
-    for(ele = &map->map_element[0]; ele < &map->map_element[map->map_num]; ele++) {
-	if(map->map_default == funct && ++last < ele->k_base) {
+    for (ele = &map->map_element[0];
+	 ele < &map->map_element[map->map_num]; ele++) {
+	if (map->map_default == funct && ++last < ele->k_base) {
 	    cp = keyname(ind, last);
-	    if(last < ele->k_base - 1) {
+	    if (last < ele->k_base - 1) {
 		(VOID) strcpy(cp, " .. ");
 		(VOID) keyname(cp + 4, ele->k_base - 1);
 	    }
 	    bindfound();
 	}
 	last = ele->k_num;
-	for(i=ele->k_base; i <= last; i++) {
-	    if(funct == ele->k_funcp[i - ele->k_base]) {
-		if(funct == prefix) {
+	for (i=ele->k_base; i <= last; i++) {
+	    if (funct == ele->k_funcp[i - ele->k_base]) {
+		if (funct == prefix) {
 		    cp = map_name(ele->k_prefmap);
-		    if(cp == NULL ||
-		       strncmp(cp, buf2, strlen(cp)) != 0) continue;
+		    if (cp == NULL ||
+			strncmp(cp, buf2, strlen(cp)) != 0)
+			continue;
 		}
 		(VOID) keyname(ind, i);
 		bindfound();
 	    }
 	}
     }
-    for(ele = &map->map_element[0]; ele < &map->map_element[map->map_num]; ele++) {
-	if(ele->k_prefmap != NULL) {
-	    for(i = ele->k_base; ele->k_funcp[i - ele->k_base] != prefix; i++) {
-		if(i >= ele->k_num) return; /* damaged */
+    for (ele = &map->map_element[0];
+	 ele < &map->map_element[map->map_num]; ele++) {
+	if (ele->k_prefmap != NULL) {
+	    for (i = ele->k_base;
+		 ele->k_funcp[i - ele->k_base] != prefix; i++) {
+		if (i >= ele->k_num)
+		    return; /* damaged */
 	    }
 	    cp = keyname(ind, i);
 	    *cp++ = ' ';
@@ -293,10 +336,14 @@ KEYMAP	*map;
     }
 }
 
-static VOID bindfound() {
-    if(buf2p < &buf2[32]) {
-	do { *buf2p++ = ' '; } while(buf2p < &buf2[32]);
-    } else {
+static VOID
+bindfound() {
+    if (buf2p < &buf2[32]) {
+	do {
+	    *buf2p++ = ' ';
+	} while(buf2p < &buf2[32]);
+    }
+    else {
 	*buf2p++ = ',';
 	*buf2p++ = ' ';
     }

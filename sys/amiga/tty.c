@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.3 2001/10/29 04:30:43 amura Exp $ */
+/* $Id: tty.c,v 1.4 2001/11/23 11:56:45 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga console device virtual terminal display
@@ -16,6 +16,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.4  2001/11/23 11:56:45  amura
+ * Rewrite all sources
+ *
  * Revision 1.3  2001/10/29 04:30:43  amura
  * let BUGFIX code enable always
  *
@@ -48,33 +51,33 @@
 
 #undef	TRUE
 #undef	FALSE
-#include	"config.h"	/* Dec. 15, 1992 by H.Ohkubo */
-#include	"def.h"
+#include "config.h"	/* Dec. 15, 1992 by H.Ohkubo */
+#include "def.h"
 
 #define	BEL	0x07			/* BEL character.		*/
 #define	ESC	0x1B			/* ESC character.		*/
 #define	LF	0x0A			/* Linefeed character		*/
 #define	CSI	0x9B			/* Command Sequence Introducer	*/
 
-extern	int	ttrow;
-extern	int	ttcol;
-extern	int	tttop;
-extern	int	ttbot;
-extern	int	tthue;
+extern int ttrow;
+extern int ttcol;
+extern int tttop;
+extern int ttbot;
+extern int tthue;
 
-int	tceeol	=	3;		/* Costs, ANSI display.		*/
-int	tcinsl	= 	17;
-int	tcdell	=	16;
+int tceeol = 3;				/* Costs, ANSI display.		*/
+int tcinsl = 17;
+int tcdell = 16;
 
 
 #ifdef	CHANGE_COLOR
-short	mode_rendition = MODE_RENDITION,	/* set standard colors */
-	text_rendition = TEXT_RENDITION,
-	text_fg = TEXT_FG + 30,
-	text_bg = TEXT_BG + 40,
-	mode_fg = MODE_FG + 30,
-	mode_bg = MODE_BG + 40;
-#else				/* colors are hard-coded		*/
+short mode_rendition = MODE_RENDITION,	/* set standard colors */
+      text_rendition = TEXT_RENDITION,
+      text_fg = TEXT_FG + 30,
+      text_bg = TEXT_BG + 40,
+      mode_fg = MODE_FG + 30,
+      mode_bg = MODE_BG + 40;
+#else					/* colors are hard-coded */
 #define mode_rendition MODE_RENDITION
 #define	text_rendition TEXT_RENDITION
 #define text_fg (TEXT_FG + 30)
@@ -83,13 +86,11 @@ short	mode_rendition = MODE_RENDITION,	/* set standard colors */
 #define mode_bg (MODE_BG + 40)
 #endif
 
-#ifdef	SUPPORT_ANSI
-VOID	asciiparm(int) ;
-#else
-VOID	asciiparm() ;
-#endif
-/* VOID	ttnowindow() ; */
-VOID	ttwindow() ;
+static VOID asciiparm _PRO((int));
+VOID ttwindow _PRO((int, int));
+VOID ttnowindow _PRO((void));
+VOID ttnflush _PRO((int));
+VOID setttysize _PRO((void));
 
 extern struct Screen WBInfo; /* For Font Sensitive by H.Konishi */
 
@@ -100,12 +101,12 @@ extern struct Screen WBInfo; /* For Font Sensitive by H.Konishi */
  * the front-to-back gadgets, to avoid
  * garbage when scrolling.
  */
-/* VOID */
+VOID
 ttinit()
 {
-	ttputc(CSI);
-	asciiparm(TOP_OFFSET);
-	ttputc('y');
+    ttputc(CSI);
+    asciiparm(TOP_OFFSET);
+    ttputc('y');
 }
 
 /*
@@ -114,7 +115,7 @@ ttinit()
  * is a no-op on the Amiga, since the window
  * is deleted anyway.
  */
-/* VOID */
+VOID
 tttidy()
 {
 }
@@ -124,58 +125,59 @@ tttidy()
  * optimize out extra moves; redisplay may have left the cursor in the right
  * location last time!
  */
-/* VOID */
+VOID
 ttmove(row, col)
+int row, col;
 {
-	if (ttrow!=row || ttcol!=col) {
-		ttnflush(8);		/* flush if buffer too full 	*/
-		ttputc(CSI);
-		asciiparm(row+1);
-		ttputc(';');
-		asciiparm(col+1);
-		ttputc('H');
-		ttrow = row;
-		ttcol = col;
-	}
+    if (ttrow!=row || ttcol!=col) {
+	ttnflush(8);		/* flush if buffer too full 	*/
+	ttputc(CSI);
+	asciiparm(row+1);
+	ttputc(';');
+	asciiparm(col+1);
+	ttputc('H');
+	ttrow = row;
+	ttcol = col;
+    }
 }
 
 /*
  * Erase to end of line.
  */
-/* VOID */
+VOID
 tteeol()
 {
-	ttnflush(2);		/* flush if not enough room to fit in buffer */
-	ttputc(CSI);
-	ttputc('K');
+    ttnflush(2);	/* flush if not enough room to fit in buffer */
+    ttputc(CSI);
+    ttputc('K');
 }
 
 /*
  * Erase to end of page.
  */
-/* VOID */
+VOID
 tteeop()
 {
-	ttnflush(12);		/* flush (but only if not enough room for seq */
-	ttputc(CSI);
-	asciiparm((tthue == CTEXT) ? text_rendition : mode_rendition);
-	ttputc(';');
-	asciiparm(text_fg);
-	ttputc(';');
-	asciiparm(text_bg);
-	ttputc('m');
-	ttputc(CSI);	/* clear to end of display */
-	ttputc('J');
+    ttnflush(12);	/* flush (but only if not enough room for seq */
+    ttputc(CSI);
+    asciiparm((tthue == CTEXT) ? text_rendition : mode_rendition);
+    ttputc(';');
+    asciiparm(text_fg);
+    ttputc(';');
+    asciiparm(text_bg);
+    ttputc('m');
+    ttputc(CSI);	/* clear to end of display */
+    ttputc('J');
 }
 
 /*
  * Make a noise.
  */
-/* VOID */
+VOID
 ttbeep()
 {
-	ttputc(BEL);
-	ttflush();
+    ttputc(BEL);
+    ttflush();
 }
 
 /*
@@ -183,13 +185,13 @@ ttbeep()
  * ascii, and write it out. Used to
  * deal with numeric arguments.
  */
-VOID
+static VOID
 asciiparm(n)
-register int	n;
+register int n;
 {
-	if (n > 9)
-		asciiparm(n/10);
-	ttputc((unsigned char)((n%10) + '0'));
+    if (n > 9)
+	asciiparm(n/10);
+    ttputc((unsigned char)((n%10) + '0'));
 }
 
 /*
@@ -199,25 +201,26 @@ register int	n;
  * line case, which is a little bit special, with special
  * case code.
  */
-/* VOID */
+VOID
 ttinsl(row, bot, nchunk)
+int row, bot, nchunk;
 {
-	if (row == bot) {			/* Funny case.		*/
-		if (nchunk != 1)
-			panic("ttinsl: nchunk != 1");
-		ttmove(row, 0);
-		tteeol();
-		return;
-	} 
-	ttmove(1+bot-nchunk, 0);
-	if (nchunk > 0) {
-		ttwindow(row, bot);
-		ttnflush(4);		/* don't break the sequence  */
-		ttputc(CSI);
-  		asciiparm(nchunk);
-		ttputc('T');		/* Scroll scrolling region down	*/
-		ttnowindow();
-	}
+    if (row == bot) {			/* Funny case.		*/
+	if (nchunk != 1)
+	    panic("ttinsl: nchunk != 1");
+	ttmove(row, 0);
+	tteeol();
+	return;
+    } 
+    ttmove(1+bot-nchunk, 0);
+    if (nchunk > 0) {
+	ttwindow(row, bot);
+	ttnflush(4);		/* don't break the sequence  */
+	ttputc(CSI);
+	asciiparm(nchunk);
+	ttputc('T');		/* Scroll scrolling region down	*/
+	ttnowindow();
+    }
 }
 
 /*
@@ -227,25 +230,26 @@ ttinsl(row, bot, nchunk)
  * to be deleted.  It's really easy with the console
  * device scrolling region.
  */
-/* VOID */
+VOID
 ttdell(row, bot, nchunk)
+int row, bot, nchunk;
 {
-	if (row == bot) {		/* One line special case	*/
-		ttmove(row, 0);
-		tteeol();
-		return;
-	}
-	if (nchunk > 0) {
-		ttwindow(row, bot);
-		ttnflush(4);		/* don't break esc. sequence	*/
-		ttputc(CSI);
-  		asciiparm(nchunk);
-		ttputc('S');		/* Scroll scrolling region up	*/
-		ttnowindow();
-	}
-	ttrow = HUGE;
-	ttcol = HUGE;
-	ttmove(bot-nchunk,0);
+    if (row == bot) {		/* One line special case	*/
+	ttmove(row, 0);
+	tteeol();
+	return;
+    }
+    if (nchunk > 0) {
+	ttwindow(row, bot);
+	ttnflush(4);		/* don't break esc. sequence	*/
+	ttputc(CSI);
+	asciiparm(nchunk);
+	ttputc('S');		/* Scroll scrolling region up	*/
+	ttnowindow();
+    }
+    ttrow = HUGE;
+    ttcol = HUGE;
+    ttmove(bot-nchunk,0);
 }
 
 /*
@@ -257,52 +261,52 @@ ttdell(row, bot, nchunk)
  */
 
 extern	struct Window	*EmW;			/* The window MG uses */
-
 VOID
-ttwindow(top,bot)
+ttwindow(top, bot)
+int top, bot;
 {
-	if (tttop != top || ttbot != bot) {
-		ttnflush(10);			/* Flush if necessary	*/
-		ttputc(CSI);			/* Home cursor		*/
-		ttputc('H');
-
-		ttputc(CSI);			/* Set top offset	*/
-		asciiparm(TOP_OFFSET + top * FontHeight(EmW));
-		ttputc('y');
-
-		ttputc(CSI);
-		asciiparm(bot - top + 1);	/* Set page length	*/
-		ttputc('t');
-
-		ttrow = HUGE;			/* Force cursor reset	*/
-		ttcol = HUGE;
-		tttop = top;			/* Save region state	*/
-		ttbot = bot;
-	}
+    if (tttop != top || ttbot != bot) {
+	ttnflush(10);			/* Flush if necessary	*/
+	ttputc(CSI);			/* Home cursor		*/
+	ttputc('H');
+	
+	ttputc(CSI);			/* Set top offset	*/
+	asciiparm(TOP_OFFSET + top * FontHeight(EmW));
+	ttputc('y');
+	
+	ttputc(CSI);
+	asciiparm(bot - top + 1);	/* Set page length	*/
+	ttputc('t');
+	
+	ttrow = HUGE;			/* Force cursor reset	*/
+	ttcol = HUGE;
+	tttop = top;			/* Save region state	*/
+	ttbot = bot;
+    }
 }
 
 /*
  * Switch to full screen scrolling
  */
-/* VOID */
+VOID
 ttnowindow()
 {
-	ttnflush(10);			/* Flush if necessary		*/
-	ttputc(CSI);			/* Home cursor			*/
-	ttputc('H');
-
-	ttputc(CSI);			/* Set top offset to normal	*/
-	asciiparm(TOP_OFFSET);
-	ttputc('y');
-
-	ttputc(CSI);			/* Set page length to nrow	*/
-	asciiparm(nrow);
-	ttputc('t');
-
-	ttrow = HUGE;			/* Make cursor unknown.		*/
-	ttcol = HUGE;
-	tttop = HUGE;
-	ttbot = HUGE;
+    ttnflush(10);			/* Flush if necessary		*/
+    ttputc(CSI);			/* Home cursor			*/
+    ttputc('H');
+    
+    ttputc(CSI);			/* Set top offset to normal	*/
+    asciiparm(TOP_OFFSET);
+    ttputc('y');
+    
+    ttputc(CSI);			/* Set page length to nrow	*/
+    asciiparm(nrow);
+    ttputc('t');
+    
+    ttrow = HUGE;			/* Make cursor unknown.		*/
+    ttcol = HUGE;
+    tttop = HUGE;
+    ttbot = HUGE;
 }
 
 #ifdef	CHANGE_COLOR
@@ -317,24 +321,25 @@ ttnowindow()
  * Certain of these selections may be less than
  * appealing :-)
  */
-
+int
 ttmode(f, n)
+int f, n;
 {
-	register int	s;
-	char		buf[2];
-
-	if (!(f & FFARG)) {
-		if ((s = ereply("Set mode line rendition (0-7): ",
-				buf, sizeof(buf))) != TRUE)
-			return (s);
-		n = atoi(buf);
-	}
-	if (n < 0 || n > 7)
-		return (FALSE);
-
-	mode_rendition = n;		/* store the color	*/
-	sgarbf = TRUE;
-	return (TRUE);
+    register int s;
+    char buf[2];
+    
+    if (!(f & FFARG)) {
+	if ((s = ereply("Set mode line rendition (0-7): ",
+			buf, sizeof(buf))) != TRUE)
+	    return (s);
+	n = atoi(buf);
+    }
+    if (n < 0 || n > 7)
+	return (FALSE);
+    
+    mode_rendition = n;		/* store the color	*/
+    sgarbf = TRUE;
+    return (TRUE);
 }
 
 /*
@@ -342,24 +347,25 @@ ttmode(f, n)
  * Most of these selections will be
  * less than appealing :-]
  */
-
+int
 tttext(f, n)
+int f, n;
 {
-	register int	s;
-	char		buf[2];
-
-	if (!(f & FFARG)) {
-		if ((s = ereply("Set text rendition (0-7): ",
-				buf, sizeof(buf))) != TRUE)
-			return (s);
-		n = atoi(buf);
-	}
-	if (n < 0 || n > 7)
-		return (FALSE);
-
-	text_rendition = n;		/* store the color	*/
-	sgarbf = TRUE;
-	return (TRUE);
+    register int s;
+    char buf[2];
+    
+    if (!(f & FFARG)) {
+	if ((s = ereply("Set text rendition (0-7): ",
+			buf, sizeof(buf))) != TRUE)
+	    return (s);
+	n = atoi(buf);
+    }
+    if (n < 0 || n > 7)
+	return (FALSE);
+    
+    text_rendition = n;		/* store the color	*/
+    sgarbf = TRUE;
+    return (TRUE);
 }
 
 /*
@@ -369,94 +375,98 @@ tttext(f, n)
  * This requires a total refresh, which
  * sets up the screen.
  */
-
+int
 textforeground(f, n)
+int f, n;
 {
-	register int	s;
-	char		buf[2];
-
-	if (!(f & FFARG)) {
-		if ((s = ereply("Text foreground color (0-7): ",
-				buf, sizeof(buf))) != TRUE)
-			return (s);
-		n = atoi(buf);
-	}
-	if (n < 0 || n > 7)
-		return (FALSE);
-
-	text_fg = n + 30;
-	sgarbf = TRUE;
-	return (TRUE);
+    register int s;
+    char buf[2];
+    
+    if (!(f & FFARG)) {
+	if ((s = ereply("Text foreground color (0-7): ",
+			buf, sizeof(buf))) != TRUE)
+	    return (s);
+	n = atoi(buf);
+    }
+    if (n < 0 || n > 7)
+	return (FALSE);
+    
+    text_fg = n + 30;
+    sgarbf = TRUE;
+    return (TRUE);
 }
 
 /*
  * Set background color for entire window
  * to a value between 40 and 47 inclusive.
  */
-
+int
 textbackground(f, n)
+int f, n;
 {
-	register int	s;
-	char		buf[2];
-
-	if (!(f & FFARG)) {
-		if ((s = ereply("Text background color (0-7): ",
-				buf, sizeof(buf))) != TRUE)
-			return (s);
-		n = atoi(buf);
-	}
-	if (n < 0 || n > 7)
-		return (FALSE);
-
-	text_bg = n + 40;
-	sgarbf = TRUE;
-	return (TRUE);
+    register int s;
+    char buf[2];
+    
+    if (!(f & FFARG)) {
+	if ((s = ereply("Text background color (0-7): ",
+			buf, sizeof(buf))) != TRUE)
+	    return (s);
+	n = atoi(buf);
+    }
+    if (n < 0 || n > 7)
+	return (FALSE);
+    
+    text_bg = n + 40;
+    sgarbf = TRUE;
+    return (TRUE);
 }
 
 /*
  * Set foreground color for entire the mode line
  */
-
+int
 modeforeground(f, n)
+int f, n;
 {
-	register int	s;
-	char		buf[2];
-
-	if (!(f & FFARG)) {
-		if ((s = ereply("Mode line foreground color (0-7): ",
-				buf, sizeof(buf))) != TRUE)
-			return (s);
-		n = atoi(buf);
-	}
-	if (n < 0 || n > 7)
-		return (FALSE);
-
-	mode_fg = n + 30;
-	sgarbf = TRUE;
-	return (TRUE);
+    register int s;
+    char buf[2];
+    
+    if (!(f & FFARG)) {
+	if ((s = ereply("Mode line foreground color (0-7): ",
+			buf, sizeof(buf))) != TRUE)
+	    return (s);
+	n = atoi(buf);
+    }
+    if (n < 0 || n > 7)
+	return (FALSE);
+    
+    mode_fg = n + 30;
+    sgarbf = TRUE;
+    return (TRUE);
 }
 
 /*
  * Set background color for the mode line
  */
-
+int
 modebackground(f, n)
+int f, n;
 {
-	register int	s;
-	char		buf[2];
-
-	if (!(f & FFARG)) {
-		if ((s = ereply("Mode line background color (0-7): ",
-				buf, sizeof(buf))) != TRUE)
-			return (s);
-		n = atoi(buf);
-	}
-	if (n < 0 || n > 7)
-		return (FALSE);
-
-	mode_bg = n + 40;
-	sgarbf = TRUE;
-	return (TRUE);
+    register int s;
+    char buf[2];
+    
+    if (!(f & FFARG)) {
+	if ((s = ereply("Mode line background color (0-7): ",
+			buf, sizeof(buf))) != TRUE)
+	    return (s);
+	n = atoi(buf);
+    }
+    if (n < 0 || n > 7)
+	return (FALSE);
+    
+    mode_bg = n + 40;
+    sgarbf = TRUE;
+    return (TRUE);
 }
 #endif
 
@@ -466,36 +476,36 @@ modebackground(f, n)
  * not going to do anything (the color is already right)
  * and don't send anything to the display.
  */
-
-/* VOID */
+VOID
 ttcolor(color)
-register int	color;
+register int color;
 {
-	if (color != tthue) {
-		ttnflush(12);			/* Flush if necessary	*/
-		if (color == CTEXT) {		/* Normal video.	*/
-			ttputc(CSI);		/* Reset to 0		*/
-			ttputc('m');
-			ttputc(CSI);		/* Set text style	*/
-			asciiparm(text_rendition);
-			ttputc(';');
-			asciiparm(text_fg);
-			ttputc(';');
-			asciiparm(text_bg);
-			ttputc('m');
-		} else if (color == CMODE) {	/* Standout mode	*/
-			ttputc(CSI);		/* Reset to 0		*/
-			ttputc('m');
-			ttputc(CSI);		/* Set standout mode	*/
-			asciiparm(mode_rendition);
-			ttputc(';');
-			asciiparm(mode_fg);	/* Use mode line colors	*/
-			ttputc(';');
-			asciiparm(mode_bg);
-			ttputc('m');
-		}
-		tthue = color;			/* Save the color.	*/
+    if (color != tthue) {
+	ttnflush(12);			/* Flush if necessary	*/
+	if (color == CTEXT) {		/* Normal video.	*/
+	    ttputc(CSI);		/* Reset to 0		*/
+	    ttputc('m');
+	    ttputc(CSI);		/* Set text style	*/
+	    asciiparm(text_rendition);
+	    ttputc(';');
+	    asciiparm(text_fg);
+	    ttputc(';');
+	    asciiparm(text_bg);
+	    ttputc('m');
 	}
+	else if (color == CMODE) {	/* Standout mode	*/
+	    ttputc(CSI);		/* Reset to 0		*/
+	    ttputc('m');
+	    ttputc(CSI);		/* Set standout mode	*/
+	    asciiparm(mode_rendition);
+	    ttputc(';');
+	    asciiparm(mode_fg);		/* Use mode line colors	*/
+	    ttputc(';');
+	    asciiparm(mode_bg);
+	    ttputc('m');
+	}
+	tthue = color;			/* Save the color.	*/
+    }
 }
 
 /*
@@ -506,10 +516,9 @@ register int	color;
  * deals with a change. On the Amiga, we make the Intuition terminal driver
  * do all the work.
  */
-
-/* VOID */
+VOID
 ttresize()
 {
- 	setttysize();
-	vtsetsize(ncol, nrow);
+    setttysize();
+    vtsetsize(ncol, nrow);
 }

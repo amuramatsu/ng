@@ -1,4 +1,4 @@
-/* $Id: varargs.h,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: varargs.h,v 1.2 2001/11/23 11:56:46 amura Exp $ */
 /*
  * Varargs, for use on AmigaDOS with the Lattice C compiler,
  *	or (maybe?) the Manx compiler with 32-bit ints.
@@ -6,8 +6,11 @@
  */
 /*
  * $Log: varargs.h,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2001/11/23 11:56:46  amura
+ * Rewrite all sources
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
 
@@ -16,7 +19,7 @@
 #undef	va_end
 #undef	va_arg
 #else
-typedef char		*va_list;
+typedef char *va_list;
 #endif	/* __STDARG_H */
 
 #define va_dcl		int va_alist;

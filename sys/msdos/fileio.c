@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.10 2001/10/29 04:30:44 amura Exp $ */
+/* $Id: fileio.c,v 1.11 2001/11/23 11:56:49 amura Exp $ */
 /*
  *		MS-DOS file I/O. (Tested only at MS-DOS 3.1)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.11  2001/11/23 11:56:49  amura
+ * Rewrite all sources
+ *
  * Revision 1.10  2001/10/29 04:30:44  amura
  * let BUGFIX code enable always
  *
@@ -40,30 +43,32 @@
  */
 /* 90.02.11	Modified for Ng 1.0 MS-DOS ver. by S.Yoshida */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
-#include	"def.h"
-#include	<dos.h>
-#include	<ctype.h>	/* 90.05.30  Add by A.Shirahashi */
-#include	<string.h>	/* 90.07.26  Add by N.Kamei */
+#include "config.h"	/* 90.12.20  by S.Yoshida */
+#include "def.h"
+#include <dos.h>
+#include <ctype.h>	/* 90.05.30  Add by A.Shirahashi */
+#include <string.h>	/* 90.07.26  Add by N.Kamei */
 
-static	FILE	*ffp;
-extern	char	*getenv(), *strncpy();
-char	*adjustname();
-char	*fftolower();	/* 90.07.01  Add by S.Yoshida */
+static FILE *ffp;
+char *adjustname _PRO((char *));
+char *fftolower _PRO((char *));	/* 90.07.01  Add by S.Yoshida */
 
 /*
  * Open a file for reading.
  */
-ffropen(fn) char *fn; {
-	char fns[NFILEN];
-
-	strcpy(fns, fn);
+int
+ffropen(fn)
+char *fn;
+{
+    char fns[NFILEN];
+    
+    strcpy(fns, fn);
 #ifdef KANJI
-	bufetos(fns, strlen(fns)+1);
+    bufetos(fns, strlen(fns)+1);
 #endif
-	if ((ffp=fopen(fns, "r")) == NULL)
-		return (FIOFNF);
-	return (FIOSUC);
+    if ((ffp=fopen(fns, "r")) == NULL)
+	return (FIOFNF);
+    return (FIOSUC);
 }
 
 /*
@@ -71,27 +76,32 @@ ffropen(fn) char *fn; {
  * Return TRUE if all is well, and
  * FALSE on error (cannot create).
  */
-ffwopen(fn) char *fn; {
-	char fns[NFILEN];
-
-	strcpy(fns, fn);
+int
+ffwopen(fn)
+char *fn;
+{
+    char fns[NFILEN];
+    
+    strcpy(fns, fn);
 #ifdef KANJI
-	bufetos(fns, strlen(fns)+1);
+    bufetos(fns, strlen(fns)+1);
 #endif KANJI
-	if ((ffp=fopen(fns, "w")) == NULL) {
-		ewprintf("Cannot open file for writing");
-		return (FIOERR);
-	}
-	return (FIOSUC);
+    if ((ffp=fopen(fns, "w")) == NULL) {
+	ewprintf("Cannot open file for writing");
+	return (FIOERR);
+    }
+    return (FIOSUC);
 }
 
 /*
  * Close a file.
  * Should look at the status.
  */
-ffclose() {
-	(VOID) fclose(ffp);
-	return (FIOSUC);
+int
+ffclose()
+{
+    (VOID) fclose(ffp);
+    return (FIOSUC);
 }
 
 /*
@@ -101,6 +111,7 @@ ffclose() {
  * Check only at the newline and
  * end of buffer.
  */
+int
 ffputbuf(bp)
 BUFFER *bp;
 {
@@ -131,9 +142,8 @@ BUFFER *bp;
 	    cp++;	/* putc may evalualte arguments more than once */
 	}
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	if (kfio == JIS) {
-		kfselectcode(ffp, FALSE);
-	}
+	if (kfio == JIS)
+	    kfselectcode(ffp, FALSE);
 #endif	/* KANJI */
 	lp = lforw(lp);
 	if(lp == lpend) break;		/* no implied newline on last line */
@@ -152,25 +162,27 @@ BUFFER *bp;
  * line.  When FIOEOF is returned, there is a valid line
  * of data without the normally implied \n.
  */
+int
 ffgetline(buf, nbuf, nbytes)
-register char	*buf;
-register int	nbuf;
-register int	*nbytes;
+register char *buf;
+register int nbuf;
+register int *nbytes;
 {
-	register int	c;
-	register int	i;
-
-	i = 0;
-	while((c = getc(ffp))!=EOF && c!='\n') {
-		buf[i++] = c;
-		if (i >= nbuf) return FIOLONG;
-	}
-	if (c == EOF  && ferror(ffp) != FALSE) {
-		ewprintf("File read error");
-		return FIOERR;
-	}
-	*nbytes = i;
-	return c==EOF ? FIOEOF : FIOSUC;
+    register int c;
+    register int i;
+    
+    i = 0;
+    while((c = getc(ffp))!=EOF && c!='\n') {
+	buf[i++] = c;
+	if (i >= nbuf)
+	    return FIOLONG;
+    }
+    if (c == EOF  && ferror(ffp) != FALSE) {
+	ewprintf("File read error");
+	return FIOERR;
+    }
+    *nbytes = i;
+    return c==EOF ? FIOEOF : FIOSUC;
 }
 
 #ifndef NO_BACKUP
@@ -183,34 +195,37 @@ register int	*nbytes;
  * right thing here; I don't care that much as
  * I don't enable backups myself.
  */
-fbackupfile(fn) char *fn; {
-	register char	*nname;
-	char		*dotp;		/* 90.07.26  Add by N.Kamei */
-	VOID		strmfe();	/* 90.07.26  Add by N.Kamei */
-	char fns[NFILEN];
-	char nnames[NFILEN];
+int
+fbackupfile(fn)
+char *fn;
+{
+    register char *nname;
+    char *dotp;		/* 90.07.26  Add by N.Kamei */
+    char fns[NFILEN];
+    char nnames[NFILEN];
+    VOID strmfe _PRO((char *, char *, char *));	/* 90.07.26  Add by N.Kamei */
 
-	if ((nname=alloca((unsigned)(strlen(fn)+4+1))) == NULL) {
-					/* 90.07.26  1+1 -> 4+1 by N.Kamei */
-		ewprintf("Can't get %d bytes", strlen(fn) + 4 +1);
-		return (ABORT);
-	}
-/* 90.07.26  by N.Kamei
-   This is not good for MS-DOS.
-	(VOID) strcpy(nname, fn);
-	(VOID) strcat(nname, "~");
- */
-	strmfe(nname, fn, "bak");	/* 90.07.26  by N.Kamei */
-	strcpy(nnames, nname);
-	strcpy(fns, fn);
+    if ((nname=alloca((unsigned)(strlen(fn)+4+1))) == NULL) {
+	/* 90.07.26  1+1 -> 4+1 by N.Kamei */
+	ewprintf("Can't get %d bytes", strlen(fn) + 4 +1);
+	return (ABORT);
+    }
+    /* 90.07.26  by N.Kamei
+       This is not good for MS-DOS.
+       (VOID) strcpy(nname, fn);
+       (VOID) strcat(nname, "~");
+     */
+    strmfe(nname, fn, "bak");	/* 90.07.26  by N.Kamei */
+    strcpy(nnames, nname);
+    strcpy(fns, fn);
 #ifdef KANJI
-	bufetos(nnames, strlen(nnames)+1);
-	bufetos(fns, strlen(fns)+1);
-#endif KANJI
-	(VOID) unlink(nnames);			/* Ignore errors.	*/
-	if (rename(fns, nnames) < 0)
-		return (FALSE);
-	return (TRUE);
+    bufetos(nnames, strlen(nnames)+1);
+    bufetos(fns, strlen(fns)+1);
+#endif /* KANJI */
+    (VOID) unlink(nnames);			/* Ignore errors.	*/
+    if (rename(fns, nnames) < 0)
+	return (FALSE);
+    return (TRUE);
 }
 
 /*
@@ -220,29 +235,29 @@ fbackupfile(fn) char *fn; {
  */
 VOID
 strmfe(newname, oldname, ext)
-char	*newname, *oldname, *ext;
+char *newname, *oldname, *ext;
 {
-	char	*tmp_p, *node_p;
-
-	strcpy(newname, oldname);
-
-	/* search nodename top */
-	node_p	= newname;
-	tmp_p	= strchr(node_p, '\\');
-	while(tmp_p) {
-		node_p	= &tmp_p[1];
-		tmp_p	= strchr(node_p, '\\');
-	}
-	
-	tmp_p	= strrchr(node_p, '.');
-	if (tmp_p)
-		*tmp_p	= '\0';
-	strcat(node_p, ".");
-	strcat(node_p, ext);
+    char *tmp_p, *node_p;
+    
+    strcpy(newname, oldname);
+    
+    /* search nodename top */
+    node_p = newname;
+    tmp_p  = strchr(node_p, '\\');
+    while (tmp_p) {
+	node_p = &tmp_p[1];
+	tmp_p  = strchr(node_p, '\\');
+    }
+    
+    tmp_p = strrchr(node_p, '.');
+    if (tmp_p)
+	*tmp_p	= '\0';
+    strcat(node_p, ".");
+    strcat(node_p, ext);
 }
 
 #ifndef	_SYS_STAT_H_
-#if	!defined(__TURBOC__) || __TURBOC__ >= 0x0200
+#if !defined(__TURBOC__) || __TURBOC__ >= 0x0200
 	/* 90.12.28  For Turbo-C 1.5 by Junn Ohta */
 #include <sys/types.h>
 #endif	/* __TURBOC__ */
@@ -252,22 +267,22 @@ char	*newname, *oldname, *ext;
 /*
  * Get file mode of a file fn.
  */
+int
 fgetfilemode(fn)
-char	*fn;
+char *fn;
 {
-	struct	stat	filestat;
-	char fns[NFILEN];
-
-	strcpy(fns, fn);
+    struct stat filestat;
+    char fns[NFILEN];
+    
+    strcpy(fns, fn);
 #ifdef KANJI
-	bufetos(fns, strlen(fns)+1);
+    bufetos(fns, strlen(fns)+1);
 #endif KANJI
-
-	if (stat(fns, &filestat) == 0) {
-		return(filestat.st_mode & 0x0fff);
-	} else {
-		return(-1);
-	}
+    
+    if (stat(fns, &filestat) == 0)
+	return(filestat.st_mode & 0x0fff);
+    else
+	return(-1);
 }
 
 /*
@@ -275,22 +290,22 @@ char	*fn;
  */
 VOID
 fsetfilemode(fn, mode)
-char	*fn;
-int	mode;
+char *fn;
+int mode;
 {
-	char fns[NFILEN];
-
-	strcpy(fns, fn);
+    char fns[NFILEN];
+    
+    strcpy(fns, fn);
 #ifdef KANJI
-	bufetos(fns, strlen(fns)+1);
+    bufetos(fns, strlen(fns)+1);
 #endif KANJI
-	(VOID) chmod(fns, mode);
+    chmod(fns, mode);
 }
 #endif
 
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
 #ifndef	_SYS_STAT_H_
-#if	!defined(__TURBOC__) || __TURBOC__ >= 0x0200
+#if !defined(__TURBOC__) || __TURBOC__ >= 0x0200
 	/* 90.12.28  For Turbo-C 1.5 by Junn Ohta */
 #include <sys/types.h>
 #endif	/* __TURBOC__ */
@@ -300,29 +315,28 @@ int	mode;
 /*
  * Check whether file is read-only of a file fn.
  */
+int
 fchkreadonly(fn)
-char	*fn;
+char *fn;
 {
-	struct	stat	filestat;
-	char fns[NFILEN];
+    struct stat filestat;
+    char fns[NFILEN];
 
-	strcpy(fns, fn);
+    strcpy(fns, fn);
 #ifdef KANJI
-	bufetos(fns, strlen(fns)+1);
-#endif KANJI
+    bufetos(fns, strlen(fns)+1);
+#endif /* KANJI */
 
-	if (stat(fns, &filestat) == 0) {
-		return(!(filestat.st_mode & S_IWRITE));
-	} else {
-		return FALSE;
-	}
+    if (stat(fns, &filestat) == 0)
+	return(!(filestat.st_mode & S_IWRITE));
+    else
+	return FALSE;
 }
 #endif	/* READONLY */
 
 #ifndef NO_DIR
 #include <dos.h>
-char	*getcwd();
-char	*fftolower();	/* 90.07.01  Add by S.Yoshida */
+
 extern char *wdir;
 extern char *startdir;
 static char cwd[NFILEN];
@@ -407,9 +421,11 @@ char *newdir;
 	if (dir[2] == '\0') {
 	    dirinit();
 	    return 0;
-	} else if (chdir(dir+2) == -1)
+	}
+	else if (chdir(dir+2) == -1)
 	    return -1;
-    } else if (chdir(dir) == -1)
+    }
+    else if (chdir(dir) == -1)
 	return -1;
     dirinit();
     return 0;
@@ -422,7 +438,8 @@ char *newdir;
  * If NO_DIR is not defined, the same file should be refered to even if the
  * working directory changes.
  */
-char *adjustname(fn)
+char *
+adjustname(fn)
 register char *fn;
 {
     register char *cp;
@@ -445,117 +462,118 @@ register char *fn;
     }
 #endif
     switch(*fn) {
-	case '/':
-	    *fn = '\\';
-    	case '\\':
-	    /* 91.01.21  Add following if() for bug fix. by S.Yoshida	*/
-	    /* 		 This fix can consider that when current drive	*/
-	    /*		 is "a:", "\file" and "a:\file" are same.	*/
-	    if (cp == fnb) {
-		    *cp++ = wdir[0];	/* Current drive name.	*/
-		    *cp++ = wdir[1];	/* ':'			*/
-	    }
-	    *cp++ = *fn++;
-	    break;
-	default:
+    case '/':
+	*fn = '\\';
+    case '\\':
+	/* 91.01.21  Add following if() for bug fix. by S.Yoshida	*/
+	/* 		 This fix can consider that when current drive	*/
+	/*		 is "a:", "\file" and "a:\file" are same.	*/
+	if (cp == fnb) {
+	    *cp++ = wdir[0];	/* Current drive name.	*/
+	    *cp++ = wdir[1];	/* ':'			*/
+	}
+	*cp++ = *fn++;
+	break;
+    default:
 #ifndef	NO_DIR	/* 91.01.17  NODIR -> NO_DIR. by S.Yoshida */
-	    if (cp == fnb || fnb[0] == wdir[0]) {
-		(VOID) strcpy(fnb, wdir);
-		cp = fnb + strlen(fnb);
-	    } else {			/* Different drive. */
-		int	drive;
-		int	ndrive;
-		char	*getcwd();
-		drive = fnb[0];
-		/* 90.07.01  Change from TOUPPER() to TOLOWER() */
-		/*                                 by S.Yoshida */
-		if (ISUPPER(drive)) {
-			drive = TOLOWER(drive);
-		}
-		/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
-		drive = drive - 'a' + 1;
+	if (cp == fnb || fnb[0] == wdir[0]) {
+	    (VOID) strcpy(fnb, wdir);
+	    cp = fnb + strlen(fnb);
+	}
+	else {			/* Different drive. */
+	    int	drive;
+	    int	ndrive;
+	    drive = fnb[0];
+	    /* 90.07.01  Change from TOUPPER() to TOLOWER() */
+	    /*                                 by S.Yoshida */
+	    if (ISUPPER(drive))
+		drive = TOLOWER(drive);
+	    /* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
+	    drive = drive - 'a' + 1;
 #ifdef	__TURBOC__	/* 90.03.27  by A.Shirahashi */
-		(void) setdisk(drive - 1);
+	    (void) setdisk(drive - 1);
 #else	/* NOT __TURBOC__ */
-		_dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
+	    _dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
 #endif	/* __TURBOC__ */
-		/* 90.07.01  Add fftolower() by S.Yoshida */
-		if (!fftolower(getcwd(fnb, NFILEN - 1))) {
-		    cp = fnb;
-		    /* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
-		    *cp++ = drive + 'a' - 1;
-		    *cp++ = ':';
-		} else {
-		    cp = fnb + strlen(fnb);
-		}
-		drive = wdir[0];		/* Reset to current drive. */
-		/* 90.07.01  Change from TOUPPER() to TOLOWER() */
-		/*                                 by S.Yoshida */
-		if (ISUPPER(drive)) {
-			drive = TOLOWER(drive);
-		}
+	    /* 90.07.01  Add fftolower() by S.Yoshida */
+	    if (!fftolower(getcwd(fnb, NFILEN - 1))) {
+		cp = fnb;
 		/* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
-		drive = drive - 'a' + 1;
-#ifdef	__TURBOC__	/* 90.03.27  by A.Shirahashi */
-		(void) setdisk(drive - 1);
-#else	/* NOT __TURBOC__ */
-		_dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
-#endif	/* __TURBOC__ */
+		*cp++ = drive + 'a' - 1;
+		*cp++ = ':';
 	    }
-	    break;
+	    else {
+		cp = fnb + strlen(fnb);
+	    }
+	    drive = wdir[0];		/* Reset to current drive. */
+	    /* 90.07.01  Change from TOUPPER() to TOLOWER() */
+	    /*                                 by S.Yoshida */
+	    if (ISUPPER(drive))
+		drive = TOLOWER(drive);
+	    /* 90.07.01  Change from 'A' to 'a' by S.Yoshida */
+	    drive = drive - 'a' + 1;
+#ifdef	__TURBOC__	/* 90.03.27  by A.Shirahashi */
+	    (void) setdisk(drive - 1);
+#else	/* NOT __TURBOC__ */
+	    _dos_setdrive(drive, &ndrive);	/* Need MSC 5.1 */
+#endif	/* __TURBOC__ */
+	}
+	break;
 #else
-	    return fn;				/* punt */
+	return fn;				/* punt */
 #endif
     }
-    if(cp != fnb && cp[-1] != '\\') *cp++ = '\\';
-    while(*fn) {
-    	switch(*fn) {
-	    case '.':
-		switch(fn[1]) {
-	            case '\0':
-		    	*--cp = '\0';
-		    	return fnb;
-		    case '/':
-	    	    case '\\':
-	    	    	fn += 2;
-		    	continue;
-		    case '.':
-		    	if(fn[2]=='\\' || fn[2] == '/' || fn[2] == '\0') {
-			    --cp;
-			    while(cp > fnb && *--cp != '\\') {}
-			    ++cp;
-			    if(fn[2]=='\0') {
-			        *--cp = '\0';
-			        return fnb;
-			    }
-		            fn += 3;
-		            continue;
-		        }
-		        break;
-		    default:
-		    	break;
-	        }
-		break;
+    if (cp != fnb && cp[-1] != '\\')
+	*cp++ = '\\';
+    while (*fn) {
+    	switch (*fn) {
+	case '.':
+	    switch (fn[1]) {
+	    case '\0':
+		*--cp = '\0';
+		return fnb;
 	    case '/':
 	    case '\\':
-	    	fn++;
-	    	continue;
+		fn += 2;
+		continue;
+	    case '.':
+		if(fn[2]=='\\' || fn[2] == '/' || fn[2] == '\0') {
+		    --cp;
+		    while (cp > fnb && *--cp != '\\')
+			;
+		    ++cp;
+		    if (fn[2]=='\0') {
+			*--cp = '\0';
+			return fnb;
+		    }
+		    fn += 3;
+		    continue;
+		}
+		break;
 	    default:
-	    	break;
+		break;
+	    }
+	    break;
+	case '/':
+	case '\\':
+	    fn++;
+	    continue;
+	default:
+	    break;
 	}
-	while(*fn && (*cp++ = *fn++) != '\\') {
+	
+	while (*fn && (*cp++ = *fn++) != '\\') {
 	    /* 90.06.05  by S.Yoshida */
 	    /* 90.06.08  by A.Shirahashi, convert to lower case */
-	    if (ISUPPER(cp[-1])) {
+	    if (ISUPPER(cp[-1]))
 		cp[-1] = TOLOWER(cp[-1]);
-	    }
 	    if (cp[-1] == '/') {
 		cp[-1] = '\\';
 		break;
 	    }
 	}
     }
-    if(cp[-1]=='\\') {
+    if (cp[-1]=='\\') {
 	/* 91.01.16  bug fix for case only "a:\". by S.Yoshida */
 	if (cp != &fnb[3] || fnb[1] != ':') {
 	    --cp;
@@ -578,79 +596,79 @@ char *
 startupfile(ngrcfile, suffix)
 char* ngrcfile;
 #else
- startupfile(suffix)
+startupfile(suffix)
 #endif
 char *suffix;
 {
-	register char	*file;
-	static char	home[NFILEN];
-	char		*getenv();
-
-	if ((file = getenv("NG")) == NULL) {
-		if ((file = getenv("HOME")) == NULL) goto notfound;
-	}
-	if (strlen(file)+7 >= NFILEN - 1) goto notfound;
-	(VOID) strcpy(home, file);
+    register char *file;
+    static char	home[NFILEN];
+    
+    if ((file = getenv("NG")) == NULL) {
+	if ((file = getenv("HOME")) == NULL)
+	    goto notfound;
+    }
+    if (strlen(file)+7 >= NFILEN - 1)
+	goto notfound;
+    (VOID) strcpy(home, file);
 
 #ifdef	ADDOPT
-	if (!ngrcfile)
-		ngrcfile = getenv("NGRC");
-	if (ngrcfile)
-	{
-		if (access(ngrcfile, 0) == 0) {
-			strncpy(home, ngrcfile, NFILEN);
-			home[NFILEN-1] = '\0';
+    if (!ngrcfile)
+	ngrcfile = getenv("NGRC");
+    if (ngrcfile) {
+	if (access(ngrcfile, 0) == 0) {
+	    strncpy(home, ngrcfile, NFILEN);
+	    home[NFILEN-1] = '\0';
 #ifdef	KANJI
-			bufstoe(home, strlen(home)+1);
+	    bufstoe(home, strlen(home)+1);
 #endif
-			return home;
-		}
-	/*
-		strcat(home, "\\");
-		strcat(home, ngrcfile);
-		if (access(home, 0) == 0) {
-#ifdef	KANJI
-			bufstoe(home, strlen(home)+1);
-#endif
-			return home;
-		}
-		(VOID)strcpy(home, file);
-	*/
+	    return home;
 	}
-#endif
-
-#ifdef	KANJI	/* 90.02.10  by S.Yoshida */
-	(VOID) strcat(home, "\\ng.ini");
-#else	/* NOT KANJI */
-	(VOID) strcat(home, "\\mg.ini");
-#endif	/* KANJI */
-	if (suffix != NULL) {
-		(VOID) strcat(home, "-");
-		(VOID) strcat(home, suffix);
-	}
+#if 0
+	strcat(home, "\\");
+	strcat(home, ngrcfile);
 	if (access(home, 0) == 0) {
 #ifdef	KANJI
-		bufstoe(home, strlen(home)+1);
+	    bufstoe(home, strlen(home)+1);
 #endif
-		return home;
+	    return home;
 	}
+	(VOID)strcpy(home, file);
+#endif
+    }
+#endif
+    
+#ifdef	KANJI	/* 90.02.10  by S.Yoshida */
+    (VOID) strcat(home, "\\ng.ini");
+#else	/* NOT KANJI */
+    (VOID) strcat(home, "\\mg.ini");
+#endif	/* KANJI */
+    if (suffix != NULL) {
+	(VOID) strcat(home, "-");
+	(VOID) strcat(home, suffix);
+    }
+    if (access(home, 0) == 0) {
+#ifdef	KANJI
+	bufstoe(home, strlen(home)+1);
+#endif
+	return home;
+    }
 
 notfound:
 #ifdef	STARTUPFILE
-	strcpy(home, STARTUPFILE);
-	if (suffix != NULL) {
-		(VOID) strcat(home, "-");
-		(VOID) strcat(home, suffix);
-	}
-	if (access(home, 0) == 0) {
+    strcpy(home, STARTUPFILE);
+    if (suffix != NULL) {
+	(VOID) strcat(home, "-");
+	(VOID) strcat(home, suffix);
+    }
+    if (access(home, 0) == 0) {
 #ifdef	KANJI
-		bufstoe(home, strlen(home)+1);
+	bufstoe(home, strlen(home)+1);
 #endif
-		return home;
-	}
+	return home;
+    }
 #endif
 
-	return NULL;
+    return NULL;
 }
 #endif
 
@@ -661,24 +679,22 @@ notfound:
 #define	find_t ffblk
 #define	_dos_findfirst(p,a,f)	findfirst(p,f,a)
 #define	_dos_findnext(f)	findnext(f)
-#define	_A_NORMAL	0
-#define	_A_RDONLY	FA_RDONLY
-#define	_A_SUBDIR	FA_DIREC
-#define	_A_ARCH		FA_ARCH
-#define	attrib		ff_attrib
-#define	wr_date		ff_fdate
-#define	wr_time		ff_ftime
-/*#define size		ff_fsize*/ /* 90.05.30  remove by A.Shirahashi */
-/*#define name		ff_name*/ /* 90.05.30  remove by A.Shirahashi */
+#define	_A_NORMAL		0
+#define	_A_RDONLY		FA_RDONLY
+#define	_A_SUBDIR		FA_DIREC
+#define	_A_ARCH			FA_ARCH
+#define	attrib			ff_attrib
+#define	wr_date			ff_fdate
+#define	wr_time			ff_ftime
 #else	/* NOT __TURBOC__ */
 #include <search.h>
 #endif	/* __TURBOC__ */
 #include "kbd.h"
-
+int
 copy(frname, toname)
 char *frname, *toname;
 {
-    char cmd[256];
+    char cmd[CMDLINELINELENGTH];
     char frnames[NFILEN];
     char tonames[NFILEN];
 
@@ -688,48 +704,57 @@ char *frname, *toname;
     bufetos(frnames, strlen(frnames)+1);
     bufetos(tonames, strlen(tonames)+1);
 #endif
-
-    sprintf(cmd, "copy %s %s", frnames, tonames);
+    strcpy(cmd, "copy ");
+    strncat(cmd, frnames, sizeof(cmd) - strlen(cmd));
+    strncat(cmd, " ", sizeof(cmd) - strlen(cmd));
+    strncat(cmd, tonames, sizeof(cmd) - strlen(cmd));
+    cmd[sizeof(cmd)-1] = '\0';
     return (system(cmd) == 0);
 }
 
-BUFFER *dired_(dirname)
+BUFFER *
+dired_(dirname)
 char *dirname;
 {
     register BUFFER *bp;
-    BUFFER *findbuffer();
-    char **files, **getfilelist();
-    int  numfiles;
-    int  i;
+    char **files;
+    int numfiles;
+    int i;
+    char **getfilelist _PRO((int *, char *));
+    BUFFER *findbuffer _PRO((char *));
 
-    if((dirname = adjustname(dirname)) == NULL) {
+    if ((dirname = adjustname(dirname)) == NULL) {
 	ewprintf("Bad directory name");
 	return NULL;
     }
-    if(dirname[strlen(dirname)-1] != '\\') (VOID) strcat(dirname, "\\");
-    if((bp = findbuffer(dirname)) == NULL) {
+    if (dirname[strlen(dirname)-1] != '\\')
+	strcat(dirname, "\\");
+    if ((bp = findbuffer(dirname)) == NULL) {
 	ewprintf("Could not create buffer");
 	return NULL;
     }
-    if(bclear(bp) != TRUE) return FALSE;
+    if (bclear(bp) != TRUE)
+	return FALSE;
     if ((files = getfilelist(&numfiles, dirname)) == NULL) {
 	ewprintf("Could not get directory info");
 	return NULL;
     }
     for (i = 0; i < numfiles; i++) {
-	(VOID) addline(bp, files[i]);
+	addline(bp, files[i]);
 	free(files[i]);
     }
     free(files);
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    if(bp->b_fname != NULL) free(bp->b_fname);
-    if((bp->b_fname=malloc(strlen(dirname)+1)) != NULL)
-	(VOID) strcpy(bp->b_fname, dirname);
+    if (bp->b_fname != NULL)
+	free(bp->b_fname);
+    if ((bp->b_fname=malloc(strlen(dirname)+1)) != NULL)
+	strcpy(bp->b_fname, dirname);
 #ifdef EXTD_DIR
-    if(bp->b_cwd != NULL) free(bp->b_cwd);
+    if (bp->b_cwd != NULL)
+	free(bp->b_cwd);
     bp->b_cwd = NULL;
 #endif
-    if((bp->b_modes[0] = name_mode("dired")) == NULL) {
+    if ((bp->b_modes[0] = name_mode("dired")) == NULL) {
 	bp->b_modes[0] = &map_table[0];
 	ewprintf("Could not find mode dired");
 	return NULL;
@@ -738,6 +763,7 @@ char *dirname;
     return bp;
 }
 
+int
 d_makename(lp, fn, buflen)
 register LINE *lp;
 register char *fn;
@@ -745,9 +771,11 @@ register char *fn;
     register char *cp;
     int len;
 
-    if(llength(lp) <= 41) return ABORT;
+    if (llength(lp) <= 41)
+	return ABORT;
     len = strlen(curbp->b_fname) + llength(lp) - 41;
-    if (buflen <= len) return ABORT;
+    if (buflen <= len)
+	return ABORT;
     cp = fn;
     strcpy(cp, curbp->b_fname);
     cp += strlen(cp);
@@ -758,129 +786,134 @@ register char *fn;
 
 char **
 getfilelist(numfiles, dirname)
-int	*numfiles;
-char	*dirname;
+int *numfiles;
+char *dirname;
 {
-	char	**files;
-	int	maxfiles;
-	struct	find_t	fileinfo;
-	int	i;
-	char	filename[NFILEN];
+    char **files;
+    int	maxfiles;
+    struct find_t fileinfo;
+    int	i;
+    char filename[NFILEN];
 #ifdef KANJI
-	char	filenames[NFILEN];
+    char filenames[NFILEN];
 #endif
-	int	filelinecmp();
-	void	*calloc(), *realloc();
-	VOID	mkfileline();
-
-	if (strlen(dirname) + 4 > NFILEN) return(NULL);
-	(VOID) strcpy(filename, dirname);
-	(VOID) strcat(filename, "*.*");
-
-	maxfiles = 50;
-	files = (char **)calloc(maxfiles, sizeof(char *));
-	if (files == NULL) return(NULL);
-
-#ifdef KANJI
-	strcpy(filenames, filename);
-	bufetos(filenames, strlen(filenames) +1);
-	if (_dos_findfirst(filenames, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
-			&fileinfo) == 0) {
-#else /* not KANJI */
-	if (_dos_findfirst(filename, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
-			&fileinfo) == 0) {
-#endif /* KANJI */
-		files[0] = (char *)calloc(80, 1);
-		if (files[0] == NULL) {
-			free(files);
-			return(NULL);
-		}
-		mkfileline(files[0], &fileinfo);
-		*numfiles = 1;
-		while(_dos_findnext(&fileinfo) == 0) {
-			if (*numfiles >= maxfiles) {
-				files = (char **) realloc(files,
-					sizeof(char *) * (maxfiles + 20));
-				if (files == NULL) return(NULL);
-				maxfiles += 20;
-			}
-			files[*numfiles] = (char *)calloc(80, 1);
-			if (files[*numfiles] == NULL) {
-				for (i = 0; i < *numfiles; i++) {
-					free(files[i]);
-				}
-				free(files);
-				return(NULL);
-			}
-			mkfileline(files[*numfiles], &fileinfo);
-			(*numfiles)++;
-		}
-		qsort(files, *numfiles, sizeof (char *), filelinecmp);
-		return(files);
-	}
+    int filelinecmp _PRO((char **, char **));
+    VOID mkfileline _PRO((char *, struct find_t *));
+    
+    if (strlen(dirname) + 4 > NFILEN)
 	return(NULL);
+    strcpy(filename, dirname);
+    strcat(filename, "*.*");
+    
+    maxfiles = 50;
+    files = (char **)calloc(maxfiles, sizeof(char *));
+    if (files == NULL)
+	return(NULL);
+#ifdef KANJI
+    strcpy(filenames, filename);
+    bufetos(filenames, strlen(filenames) +1);
+    if (_dos_findfirst(filenames, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
+		       &fileinfo) == 0) {
+#else /* not KANJI */
+    if (_dos_findfirst(filename, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
+		       &fileinfo) == 0) {
+#endif /* KANJI */
+	files[0] = (char *)calloc(80, 1);
+	if (files[0] == NULL) {
+	    free(files);
+	    return(NULL);
+	}
+	mkfileline(files[0], &fileinfo);
+	*numfiles = 1;
+	while (_dos_findnext(&fileinfo) == 0) {
+	    if (*numfiles >= maxfiles) {
+		files = (char **) realloc(files,
+					  sizeof(char *) * (maxfiles + 20));
+		if (files == NULL)
+		    return(NULL);
+		maxfiles += 20;
+	    }
+	    files[*numfiles] = (char *)calloc(80, 1);
+	    if (files[*numfiles] == NULL) {
+		for (i = 0; i < *numfiles; i++) {
+		    free(files[i]);
+		}
+		free(files);
+		return(NULL);
+	    }
+	    mkfileline(files[*numfiles], &fileinfo);
+	    (*numfiles)++;
+	}
+	qsort(files, *numfiles, sizeof (char *), filelinecmp);
+	return(files);
+    }
+    return(NULL);
 }
 
 VOID
 mkfileline(line, info)
-char	*line;
-struct	find_t	*info;
+char *line;
+struct find_t *info;
 {
-	int	y;
-
-	line[0] = line[1] = ' ';
-	line[2] = (info->attrib & _A_SUBDIR) ? 'd' : '-';
-	line[3] = 'r';
-	line[4] = (info->attrib & _A_RDONLY) ? '-' : 'w';
-	line[5] = '-';
-	line[6] = (info->attrib & _A_ARCH) ? 'a' : '-';
+    int y;
+    
+    line[0] = line[1] = ' ';
+    line[2] = (info->attrib & _A_SUBDIR) ? 'd' : '-';
+    line[3] = 'r';
+    line[4] = (info->attrib & _A_RDONLY) ? '-' : 'w';
+    line[5] = '-';
+    line[6] = (info->attrib & _A_ARCH) ? 'a' : '-';
 #ifdef __TURBOC__	/* 90.05.30  by A.Shirahashi */
-	(VOID) sprintf(&line[7], "%15ld", info->ff_fsize);
+    sprintf(&line[7], "%15ld", info->ff_fsize);
 #else
-	(VOID) sprintf(&line[7], "%15ld", info->size);
+    sprintf(&line[7], "%15ld", info->size);
 #endif
-	y = 1980 + ((info->wr_date >> 9) & 0x7f);
-	y -= (y > 1999) ? 2000 : 1900;
-	(VOID) sprintf(&line[22], "  %02d-%02d-%02d  %02d:%02d  ",
-		y, (info->wr_date >> 5) & 0x0f, info->wr_date & 0x1f,
-		(info->wr_time >> 11) & 0x1f, (info->wr_time >> 5) & 0x3f);
+    y = 1980 + ((info->wr_date >> 9) & 0x7f);
+    y -= (y > 1999) ? 2000 : 1900;
+    sprintf(&line[22], "  %02d-%02d-%02d  %02d:%02d  ",
+	    y, (info->wr_date >> 5) & 0x0f, info->wr_date & 0x1f,
+	    (info->wr_time >> 11) & 0x1f, (info->wr_time >> 5) & 0x3f);
 #ifdef __TURBOC__	/* 90.05.30  by A.Shirahashi */
-	/* 90.07.01  Add fftolower() by S.Yoshida */
-	(VOID) strcpy(&line[41], info->ff_name);
+    /* 90.07.01  Add fftolower() by S.Yoshida */
+    strcpy(&line[41], info->ff_name);
 #else
-	/* 90.07.01  Add fftolower() by S.Yoshida */
-	(VOID) strcpy(&line[41], info->name);
+    /* 90.07.01  Add fftolower() by S.Yoshida */
+    strcpy(&line[41], info->name);
 #endif
 #ifdef  KANJI
-	(VOID) bufstoe(&line[41], strlen(&line[41])+1);
+    bufstoe(&line[41], strlen(&line[41])+1);
 #endif /* KANJI */
-	(VOID) fftolower(&line[41]);
+    fftolower(&line[41]);
 }
 
+int
 filelinecmp(x, y)
-char	**x, **y;
+char **x, **y;
 {
-	register unsigned char	*xx, *yy;
+    register unsigned char *xx, *yy;
+    
+    xx = (unsigned char*)&(*x)[41];
+    yy = (unsigned char*)&(*y)[41];
 
-	xx = (unsigned char*)&(*x)[41];
-	yy = (unsigned char*)&(*y)[41];
-
-	if (*xx != *yy) {		/* for "." ".." directories */
-		if (*xx == '.') return -1;
-		if (*yy == '.') return 1;
-	  	return(*xx - *yy);
-	}
-
-	if (*xx) {
-		for (xx++, yy++; *xx && *xx == *yy; xx++, yy++) {}
-	}
+    if (*xx != *yy) {		/* for "." ".." directories */
+	if (*xx == '.')
+	    return -1;
+	if (*yy == '.')
+	    return 1;
 	return(*xx - *yy);
+    }
+
+    if (*xx) {
+	for (xx++, yy++; *xx && *xx == *yy; xx++, yy++)
+	    ;
+    }
+    return(*xx - *yy);
 }
 #endif
 
 #ifndef NO_DIRED	/* 91.01.15  by K.Maeda */
 #ifndef	_SYS_STAT_H_
-#if	!defined(__TURBOC__) || __TURBOC__ >= 0x0200
+#if !defined(__TURBOC__) || __TURBOC__ >= 0x0200
 	/* 90.12.28  For Turbo-C 1.5 by Junn Ohta */
 #include <sys/types.h>
 #endif	/* __TURBOC__ */
@@ -890,22 +923,22 @@ char	**x, **y;
 /*
  * Check whether file "dn" is directory.
  */
+int
 ffisdir(dn)
 char *dn;
 {
-	struct	stat	filestat;
-	char dns[NFILEN];
-
-	strcpy(dns, dn);
+    struct stat filestat;
+    char dns[NFILEN];
+    
+    strcpy(dns, dn);
 #ifdef KANJI
-	bufetos(dns, strlen(dns)+1);
+    bufetos(dns, strlen(dns)+1);
 #endif
-
-	if (stat(dns, &filestat) == 0) {
-		return ((filestat.st_mode & S_IFMT) == S_IFDIR);
-	} else {
-		return FALSE;
-	}
+    
+    if (stat(dns, &filestat) == 0)
+	return ((filestat.st_mode & S_IFMT) == S_IFDIR);
+    else
+	return FALSE;
 }
 #endif /* NO_DIRED */
 
@@ -921,212 +954,213 @@ char *dn;
  */
 
 #define	MALLOC_STEP	256
-
+int
 fffiles(name, buf)
 char *name, **buf;
 {
-	char	pathbuf[NFILEN], tmpnam[NFILEN];
+    char pathbuf[NFILEN], tmpnam[NFILEN];
 #ifdef  KANJI
-	char	pathbufs[NFILEN];
+    char pathbufs[NFILEN];
 #endif
-	char	*cp, *dirpart, *nampart;
-	struct	find_t	fileinfo;
-	int	n, len, size, dirpartlen, nampartlen;
-	char	*buffer;
-	void	*malloc(), *realloc();
+    char *cp, *dirpart, *nampart;
+    struct find_t fileinfo;
+    int n, len, size, dirpartlen, nampartlen;
+    char *buffer;
 #ifdef	HOMEDIR
-	char	*home;
-	int	homelen;
-	
-	if(name[0] == '~' && (name[1]=='/' || name[1]=='\\') &&
-	   (home = getenv("HOME"))) {
-		homelen = strlen(home) - 1;
-		strncpy(pathbuf, home, sizeof(pathbuf));
-		pathbuf[NFILEN-1] = '\0';
-		strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
-	} else {
-		home = NULL;
-		homelen = 0;
-		strncpy(pathbuf, name, sizeof(pathbuf));
-		pathbuf[NFILEN-1] = '\0';
-    	}
-#else
+    char *home;
+    int homelen;
+    
+    if (name[0] == '~' && (name[1]=='/' || name[1]=='\\') &&
+	(home = getenv("HOME"))) {
+	homelen = strlen(home) - 1;
+	strncpy(pathbuf, home, sizeof(pathbuf));
+	pathbuf[NFILEN-1] = '\0';
+	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
+    }
+    else {
+	home = NULL;
+	homelen = 0;
 	strncpy(pathbuf, name, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
-#endif
-	dirpart = NULL;
-	for (cp = pathbuf; *cp; cp++) {
-		if (*cp == '/') {
-			*cp = '\\';
-			dirpart = cp;
-		} else if (*cp == '\\') {
-			dirpart = cp;
-		} else if (dirpart == NULL && *cp == ':') {
-			dirpart = cp;
-		}
-	}
-	if (dirpart) {
-		*++dirpart = '\0';
-		dirpartlen = dirpart - pathbuf;
-	} else {
-		strcpy(pathbuf, ".\\");	/* 90.05.30  by A.Shirahashi */
-		dirpartlen = 0;
-	}
-#ifdef	HOMEDIR
-	nampart = name + dirpartlen - homelen;
+    }
 #else
-	nampart = name + dirpartlen;
+    strncpy(pathbuf, name, sizeof(pathbuf));
+    pathbuf[NFILEN-1] = '\0';
 #endif
-	nampartlen = strlen(nampart);
-	for (cp = nampart; *cp; cp++) {		/* _dos_find*() return	*/
-		/* 90.05.30  by A.Shirahashi: Use "toupper()". */
-		/* 90.06.06  by S.Yoshida: Reused "TOUPPER()".  */
-		/*			   And add "ISLOWER()". */
-		if (ISLOWER(*cp)) {
-			*cp = TOUPPER(*cp);	/* upper case name.	*/
-		}
+    dirpart = NULL;
+    for (cp = pathbuf; *cp; cp++) {
+	if (*cp == '/') {
+	    *cp = '\\';
+	    dirpart = cp;
 	}
+	else if (*cp == '\\') {
+	    dirpart = cp;
+	}
+	else if (dirpart == NULL && *cp == ':') {
+	    dirpart = cp;
+	}
+    }
+    if (dirpart) {
+	*++dirpart = '\0';
+	dirpartlen = dirpart - pathbuf;
+    }
+    else {
+	strcpy(pathbuf, ".\\");	/* 90.05.30  by A.Shirahashi */
+	dirpartlen = 0;
+    }
+#ifdef	HOMEDIR
+    nampart = name + dirpartlen - homelen;
+#else
+    nampart = name + dirpartlen;
+#endif
+    nampartlen = strlen(nampart);
+    for (cp = nampart; *cp; cp++) {		/* _dos_find*() return	*/
+	/* 90.05.30  by A.Shirahashi: Use "toupper()". */
+	/* 90.06.06  by S.Yoshida: Reused "TOUPPER()".  */
+	/*			   And add "ISLOWER()". */
+	if (ISLOWER(*cp)) {
+	    *cp = TOUPPER(*cp);	/* upper case name.	*/
+	}
+    }
 
 #ifndef	NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
-	(VOID) strcat(pathbuf, "*.*");
+    strcat(pathbuf, "*.*");
 #ifdef KANJI
-	strcpy(pathbufs, pathbuf);
-	bufetos(pathbufs, strlen(pathbufs)+1);
-	if (_dos_findfirst(pathbufs, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
-			&fileinfo) != 0) {
+    strcpy(pathbufs, pathbuf);
+    bufetos(pathbufs, strlen(pathbufs)+1);
+    if (_dos_findfirst(pathbufs, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
+		       &fileinfo) != 0) {
 #else /* not KANJI */
-	if (_dos_findfirst(pathbuf, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
-			&fileinfo) != 0) {
+    if (_dos_findfirst(pathbuf, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
+		       &fileinfo) != 0) {
 #endif /* KANJI */
-		return (-1);
-	}
+	return (-1);
+    }
 #endif	/* NEW_COMPLETE */
-
-	buffer = malloc(MALLOC_STEP);
-	if (buffer == NULL) {
-		return (-1);
-	}
-	size = MALLOC_STEP;
-	len = 0;
-	n = 0;
+    
+    buffer = malloc(MALLOC_STEP);
+    if (buffer == NULL)
+	return (-1);
+    size = MALLOC_STEP;
+    len = 0;
+    n = 0;
 
 #ifdef	NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
-	(VOID) strcat(pathbuf, "*.*");
+    strcat(pathbuf, "*.*");
 #ifdef KANJI
-	strcpy(pathbufs, pathbuf);
-	bufetos(pathbufs, strlen(pathbufs)+1);
-	if (_dos_findfirst(pathbufs, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
-			&fileinfo) != 0) {
+    strcpy(pathbufs, pathbuf);
+    bufetos(pathbufs, strlen(pathbufs)+1);
+    if (_dos_findfirst(pathbufs, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
+		       &fileinfo) != 0) {
 #else /* not KANJI */
-	if (_dos_findfirst(pathbuf, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
-			&fileinfo) != 0) {
+    if (_dos_findfirst(pathbuf, _A_NORMAL | _A_RDONLY | _A_SUBDIR,
+		       &fileinfo) != 0) {
 #endif /* KANJI */
-		*buf = buffer;
-		buffer[0] = '\0';
-		return (0);
-	}
-#endif	/* NEW_COMPLETE */
-
-	do {
-		register int l;
-		char ff_namee[NFILEN];
-
-#ifdef __TURBOC__ /* 90.05.30  by A.Shirahashi */
-		strcpy(ff_namee, fileinfo.ff_name);
-#else
-		strcpy(ff_namee, fileinfo.name);
-#endif
-		bufstoe(ff_namee, strlen(ff_namee)+1);
-		if (strncmp(nampart, ff_namee, nampartlen) != 0)
-			continue;		/* no-case-sensitive comparison */
-		strncpy(tmpnam, pathbuf, dirpartlen);
-
-		strcpy(tmpnam + dirpartlen, ff_namee);
-		if (fileinfo.attrib & _A_SUBDIR) {
-			strcat(tmpnam, "\\");
-		}
-		l = strlen(tmpnam)+1;
-		/* 90.05.30  by A.Shirahashi */
-		if (l > 5 && (stricmp(&tmpnam[l-5],".OBJ") == 0 ||
-			      stricmp(&tmpnam[l-5],".EXE") == 0 ||
-			      stricmp(&tmpnam[l-5],".COM") == 0))
-		/* 90.05.30  by A.Shirahashi */
-			continue;
-		if (l + len >= size) {
-				/* make room for double null */
-			if ((buffer = realloc(buffer, size += MALLOC_STEP)) == NULL) {
-				return(-1);
-			}
-		}
-		/* 90.06.08  by A.Shirahashi: from */
-                for (cp = tmpnam; *cp; cp++) {
-                    if (ISUPPER(*cp)) {
-                        *cp = TOLOWER(*cp);
-                    }
-                }
-		/* 90.06.08  by A.Shirahashi: to */
-		/* 00.12.28  by amura.. contributed by sahf */
-#ifdef HOMEDIR
-		if(home) {
-			strcpy(buffer+len, "~");
-			strcat(buffer+len, tmpnam+homelen+1);
-			l -= homelen;
-		} else
-#endif
-		strcpy(buffer + len, tmpnam);
-		len += l;
-		n++;
-	} while (_dos_findnext(&fileinfo) == 0);
-
 	*buf = buffer;
-	buffer[len] = '\0';
-	return(n);
+	buffer[0] = '\0';
+	return (0);
+    }
+#endif	/* NEW_COMPLETE */
+    
+    do {
+	register int l;
+	char ff_namee[NFILEN];
+	
+#ifdef __TURBOC__ /* 90.05.30  by A.Shirahashi */
+	strcpy(ff_namee, fileinfo.ff_name);
+#else
+	strcpy(ff_namee, fileinfo.name);
+#endif
+	bufstoe(ff_namee, strlen(ff_namee)+1);
+	if (strncmp(nampart, ff_namee, nampartlen) != 0)
+	    continue;		/* no-case-sensitive comparison */
+	strncpy(tmpnam, pathbuf, dirpartlen);
+	
+	strcpy(tmpnam + dirpartlen, ff_namee);
+	if (fileinfo.attrib & _A_SUBDIR)
+	    strcat(tmpnam, "\\");
+	l = strlen(tmpnam)+1;
+	/* 90.05.30  by A.Shirahashi */
+	if (l > 5 && (stricmp(&tmpnam[l-5],".OBJ") == 0 ||
+		      stricmp(&tmpnam[l-5],".EXE") == 0 ||
+		      stricmp(&tmpnam[l-5],".COM") == 0))
+	    /* 90.05.30  by A.Shirahashi */
+	    continue;
+	if (l + len >= size) {
+	    /* make room for double null */
+	    if ((buffer = realloc(buffer, size += MALLOC_STEP)) == NULL)
+		return(-1);
+	}
+	/* 90.06.08  by A.Shirahashi: from */
+	for (cp = tmpnam; *cp; cp++) {
+	    if (ISUPPER(*cp)) {
+		*cp = TOLOWER(*cp);
+	    }
+	}
+	/* 90.06.08  by A.Shirahashi: to */
+	/* 00.12.28  by amura.. contributed by sahf */
+#ifdef HOMEDIR
+	if (home) {
+	    strcpy(buffer+len, "~");
+	    strcat(buffer+len, tmpnam+homelen+1);
+	    l -= homelen;
+	}
+	else
+#endif
+	strcpy(buffer + len, tmpnam);
+	len += l;
+	n++;
+    } while (_dos_findnext(&fileinfo) == 0);
+    
+    *buf = buffer;
+    buffer[len] = '\0';
+    return (n);
 }
 #endif	/* NO_FILECOMP */
 
 /* 90.07.01  Add function to convert strings into lower case by S.Yoshida */
-char	*
+char *
 fftolower(name)
-char	*name;
+char *name;
 {
-	register char	*p;
-
-	if ((p = name) != NULL) {
-		while(*p != '\0') {
-			if (ISUPPER(*p)) {
-				*p = TOLOWER(*p);
-			}
-			p++;
-		}
+    register char *p;
+    
+    if ((p = name) != NULL) {
+	while(*p != '\0') {
+	    if (ISUPPER(*p)) {
+		*p = TOLOWER(*p);
+	    }
+	    p++;
 	}
-	return(name);
+    }
+    return (name);
 }
 
 #ifdef	NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
 char *
-file_name_part (s)
-char	*s;
+file_name_part(s)
+char *s;
 {
-	int	i;
-
-	for (i = strlen (s) - 1; i > 0; i--) {
-		if (s[i - 1] == '/' || s[i - 1] == '\\' || s[i - 1] == ':')
-			break;
-	}
-	return (s + i);
+    int i;
+    
+    for (i = strlen (s) - 1; i > 0; i--) {
+	if (s[i - 1] == '/' || s[i - 1] == '\\' || s[i - 1] == ':')
+	    break;
+    }
+    return (s + i);
 }
 
 char *
-copy_dir_name (d, s)
-char	*d;
-char	*s;
+copy_dir_name(d, s)
+char *d;
+char *s;
 {
-	int	i;
-
-	i = file_name_part (s) - s;
-	strncpy (d, s, i);
-	d[i] = '\0';
-	return (d);
+    int i;
+    
+    i = file_name_part (s) - s;
+    strncpy (d, s, i);
+    d[i] = '\0';
+    return (d);
 }
 #endif	/* NEW_COMPLETE */
 

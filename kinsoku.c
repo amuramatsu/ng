@@ -1,4 +1,4 @@
-/* $Id: kinsoku.c,v 1.4 2001/02/18 17:07:26 amura Exp $ */
+/* $Id: kinsoku.c,v 1.5 2001/11/23 11:56:39 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kinsoku.c,v $
+ * Revision 1.5  2001/11/23 11:56:39  amura
+ * Rewrite all sources
+ *
  * Revision 1.4  2001/02/18 17:07:26  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -24,10 +27,10 @@
  */
 /* 90.01.29	Created by S.Yoshida */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
+#include "config.h"	/* 90.12.20  by S.Yoshida */
 
-#ifdef	KINSOKU	/* 90.01.29  by S.Yoshida */
-#include	"def.h"
+#ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
+#include "def.h"
 
 #define	MAXBOLKC	128		/* Maximum number of BOL (begin	*/
 					/* of line) KINSOKU chars.	*/
@@ -59,15 +62,15 @@ static unsigned short	bolkchar[MAXBOLKC] = {
 
 /* EOL KINSOKU char list (EUC).	*/
 /* This table must be sorted.	*/
-static unsigned short	eolkchar[MAXEOLKC] = {
+static unsigned short eolkchar[MAXEOLKC] = {
 	'(',	'[',	'{',	0xa1c6,	0xa1c8,	/*  5 */
 	0xa1ca,	0xa1cc,	0xa1ce,	0xa1d0,	0xa1d2,	/* 10 */
 	0xa1d4,	0xa1d6,	0xa1d8,	0xa1da,	0xa1eb,	/* 15 */
 	0xa1ec,	0xa1ed,	0xa1ee,	0xa1f7,	0xa1f8	/* 20 */
 };
 
-static int	nbolkc = 86;		/* Number of BOL KINSOKU chars.	*/
-static int	neolkc = 20;		/* Number of EOL KINSOKU chars.	*/
+static int nbolkc = 86;		/* Number of BOL KINSOKU chars.	*/
+static int neolkc = 20;		/* Number of EOL KINSOKU chars.	*/
 
 /*
  * FUNCTION: list-kinsoku-chars
@@ -75,96 +78,112 @@ static int	neolkc = 20;		/* Number of EOL KINSOKU chars.	*/
  * in the *Kinsoku Chars* buffer.
  */
 /*ARGSUSED*/
+int
 kc_list_char(f, n)
+int f, n;
 {
-	register unsigned short	*p;	/* KINSOKU char list pointer.	*/
-	register unsigned short	*eop;	/* End of KINSOKU char list.	*/
-	register char		c;
-	register char		*l;	/* Display line buffer pointer.	*/
-	register char		*eol;	/* End of display line buffer.	*/
-	register BUFFER		*bp;
-	register WINDOW		*wp;
+    register unsigned short *p;		/* KINSOKU char list pointer.	*/
+    register unsigned short *eop;	/* End of KINSOKU char list.	*/
+    register char c;
+    register char *l;			/* Display line buffer pointer.	*/
+    register char *eol;			/* End of display line buffer.	*/
+    register BUFFER *bp;
+    register WINDOW *wp;
 #define	DISPLEN	64
-	char	line[DISPLEN + 1];	/* Display line buffer.		*/
+    char line[DISPLEN + 1];		/* Display line buffer.		*/
 
-	if ((bp = bfind("*Kinsoku Chars*", TRUE)) == NULL) return FALSE;
-#ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
-	bp->b_flag &= ~(BFCHG | BFACHG);	/* Blow away old.	*/
+    if ((bp = bfind("*Kinsoku Chars*", TRUE)) == NULL)
+	return FALSE;
+#ifdef AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
+    bp->b_flag &= ~(BFCHG | BFACHG);		/* Blow away old.	*/
 #else
-	bp->b_flag &= ~BFCHG;			/* Blow away old.	*/
+    bp->b_flag &= ~BFCHG;			/* Blow away old.	*/
 #endif	/* AUTOSAVE	*/
-	if (bclear(bp) != TRUE) return FALSE;
+    if (bclear(bp) != TRUE)
+	return FALSE;
 
-	strcpy(line, "kinsoku-bol-chars:"); /* BOL KINSOKU char list. */
-	if (addline(bp, line) == FALSE) return FALSE;
-	l   = line;
-	*l++ = '\t';			/* List line start with TAB.	*/
-	eol = &line[DISPLEN];
-	p   = bolkchar;
-	eop = &bolkchar[nbolkc];
-	while (p < eop) {
-		if (l >= eol) {
-			*l = '\0';
-			if (addline(bp, line) == FALSE) return FALSE;
-			l = line;
-			*l++ = '\t';	/* List line start with TAB.	*/
-		} else {
-			if ((c = (*p >> 8) & 0xff) != 0) {
-				*l++ = c;
-			}
-			c = *p++ & 0xff;
-			if (ISCTRL(c)) { /* This may be needless...	*/
-				*l++ = '^';
-				*l++ = CCHR(c);
-			} else {
-				*l++ = c;
-			}
-		}
+    strcpy(line, "kinsoku-bol-chars:"); /* BOL KINSOKU char list. */
+    if (addline(bp, line) == FALSE)
+	return FALSE;
+    l   = line;
+    *l++ = '\t';			/* List line start with TAB.	*/
+    eol = &line[DISPLEN];
+    p   = bolkchar;
+    eop = &bolkchar[nbolkc];
+    while (p < eop) {
+	if (l >= eol) {
+	    *l = '\0';
+	    if (addline(bp, line) == FALSE)
+		return FALSE;
+	    l = line;
+	    *l++ = '\t';	/* List line start with TAB.	*/
 	}
-	if (l > line) {			/* Not shown line exists.	*/
-		*l = '\0';
-		if (addline(bp, line) == FALSE) return FALSE;
+	else {
+	    if ((c = (*p >> 8) & 0xff) != 0) {
+		*l++ = c;
+	    }
+	    c = *p++ & 0xff;
+	    if (ISCTRL(c)) { /* This may be needless...	*/
+		*l++ = '^';
+		*l++ = CCHR(c);
+	    }
+	    else {
+		*l++ = c;
+	    }
 	}
-	line[0] = '\0';
-	if (addline(bp, line) == FALSE) return FALSE;
+    }
+    if (l > line) {			/* Not shown line exists.	*/
+	*l = '\0';
+	if (addline(bp, line) == FALSE)
+	    return FALSE;
+    }
+    line[0] = '\0';
+    if (addline(bp, line) == FALSE)
+	return FALSE;
 
-	strcpy(line, "kinsoku-eol-chars:"); /* EOL KINSOKU char list.	*/
-	if (addline(bp, line) == FALSE) return FALSE;
-	l   = line;
-	*l++ = '\t';			/* List line start with TAB.	*/
-	eol = &line[DISPLEN];
-	p   = eolkchar;
-	eop = &eolkchar[neolkc];
-	while (p < eop) {
-		if (l >= eol) {
-			*l = '\0';
-			if (addline(bp, line) == FALSE) return FALSE;
-			l = line;
-			*l++ = '\t';	/* List line start with TAB.	*/
-		} else {
-			if ((c = (*p >> 8) & 0xff) != 0) {
-				*l++ = c;
-			}
-			c = *p++ & 0xff;
-			if (ISCTRL(c)) { /* This may be needless...	*/
-				*l++ = '^';
-				*l++ = CCHR(c);
-			} else {
-				*l++ = c;
-			}
-		}
+    strcpy(line, "kinsoku-eol-chars:"); /* EOL KINSOKU char list.	*/
+    if (addline(bp, line) == FALSE)
+	return FALSE;
+    l   = line;
+    *l++ = '\t';			/* List line start with TAB.	*/
+    eol = &line[DISPLEN];
+    p   = eolkchar;
+    eop = &eolkchar[neolkc];
+    while (p < eop) {
+	if (l >= eol) {
+	    *l = '\0';
+	    if (addline(bp, line) == FALSE)
+		return FALSE;
+	    l = line;
+	    *l++ = '\t';	/* List line start with TAB.	*/
 	}
-	if (l > line) {			/* Not shown line exists.	*/
-		*l = '\0';
-		if (addline(bp, line) == FALSE) return FALSE;
+	else {
+	    if ((c = (*p >> 8) & 0xff) != 0) {
+		*l++ = c;
+	    }
+	    c = *p++ & 0xff;
+	    if (ISCTRL(c)) { /* This may be needless...	*/
+		*l++ = '^';
+		*l++ = CCHR(c);
+	    }
+	    else {
+		*l++ = c;
+	    }
 	}
+    }
+    if (l > line) {			/* Not shown line exists.	*/
+	*l = '\0';
+	if (addline(bp, line) == FALSE)
+	    return FALSE;
+    }
 
-	if ((wp = popbuf(bp)) == NULL)	return FALSE;
-	bp->b_dotp = lforw(bp->b_linep); /* put dot at beginning of buffer */
-	bp->b_doto = 0;
-	wp->w_dotp = bp->b_dotp;	/* fix up if window already on screen */
-	wp->w_doto = bp->b_doto;
-	return TRUE;
+    if ((wp = popbuf(bp)) == NULL)
+	return FALSE;
+    bp->b_dotp = lforw(bp->b_linep); /* put dot at beginning of buffer */
+    bp->b_doto = 0;
+    wp->w_dotp = bp->b_dotp;	/* fix up if window already on screen */
+    wp->w_doto = bp->b_doto;
+    return TRUE;
 }
 
 /*
@@ -173,32 +192,34 @@ kc_list_char(f, n)
  * (kinsoku-bol-chars = bolkchar[]).
  */
 /*ARGSUSED*/
+int
 kc_add_bol(f, n)
+int f, n;
 {
-	register int	s;
-	register short	c;
-	register char	*p;
-	char	kchar[NFILEN];
+    register int s;
+    register short c;
+    register char *p;
+    char kchar[NFILEN];
 
-	if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE) {
-		return (s);
-	}
+    if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE) {
+	return (s);
+    }
 
-	for (p = kchar; *p;) {
-		c = *p++ & 0xff;
-		if (ISKANJI(c)) {
-			c = (c << 8) | (*p++ & 0xff);
-		}
-		if (nbolkc < MAXBOLKC) {
-			if (kcinsert(bolkchar, c, nbolkc)) {
-				nbolkc++;
-			}
-		} else {
-			ewprintf("Too many kinsoku-bol-chars!");
-			return FALSE;
-		}
+    for (p = kchar; *p;) {
+	c = *p++ & 0xff;
+	if (ISKANJI(c))
+	    c = (c << 8) | (*p++ & 0xff);
+	if (nbolkc < MAXBOLKC) {
+	    if (kcinsert(bolkchar, c, nbolkc)) {
+		nbolkc++;
+	    }
 	}
-	return TRUE;
+	else {
+	    ewprintf("Too many kinsoku-bol-chars!");
+	    return FALSE;
+	}
+    }
+    return TRUE;
 }
 
 /*
@@ -207,32 +228,32 @@ kc_add_bol(f, n)
  * (kinsoku-bol-chars = bolkchar[]).
  */
 /*ARGSUSED*/
+int
 kc_del_bol(f, n)
+int f, n;
 {
-	register int	s;
-	register short	c;
-	register char	*p;
-	char	kchar[NFILEN];
+    register int s;
+    register short c;
+    register char *p;
+    char kchar[NFILEN];
+    
+    if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE)
+	return (s);
 
-	if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE) {
-		return (s);
+    for (p = kchar; *p;) {
+	c = *p++ & 0xff;
+	if (ISKANJI(c))
+	    c = (c << 8) | (*p++ & 0xff);
+	if (nbolkc > 0) {
+	    if (kcdelete(bolkchar, c, nbolkc))
+		nbolkc--;
 	}
-
-	for (p = kchar; *p;) {
-		c = *p++ & 0xff;
-		if (ISKANJI(c)) {
-			c = (c << 8) | (*p++ & 0xff);
-		}
-		if (nbolkc > 0) {
-			if (kcdelete(bolkchar, c, nbolkc)) {
-				nbolkc--;
-			}
-		} else {
-			ewprintf("No kinsoku-bol-chars!");
-			return FALSE;
-		}
+	else {
+	    ewprintf("No kinsoku-bol-chars!");
+	    return FALSE;
 	}
-	return TRUE;
+    }
+    return TRUE;
 }
 
 /*
@@ -241,32 +262,33 @@ kc_del_bol(f, n)
  * (kinsoku-eol-chars = eolkchar[]).
  */
 /*ARGSUSED*/
+int
 kc_add_eol(f, n)
+int f, n;
 {
-	register int	s;
-	register short	c;
-	register char	*p;
-	char	kchar[NFILEN];
+    register int s;
+    register short c;
+    register char *p;
+    char kchar[NFILEN];
 
-	if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE) {
-		return (s);
-	}
+    if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE)
+	return (s);
 
-	for (p = kchar; *p;) {
-		c = *p++ & 0xff;
-		if (ISKANJI(c)) {
-			c = (c << 8) | (*p++ & 0xff);
-		}
-		if (neolkc < MAXEOLKC) {
-			if (kcinsert(eolkchar, c, neolkc)) {
-				neolkc++;
-			}
-		} else {
-			ewprintf("Too many kinsoku-eol-chars!");
-			return FALSE;
-		}
+    for (p = kchar; *p;) {
+	c = *p++ & 0xff;
+	if (ISKANJI(c))
+	    c = (c << 8) | (*p++ & 0xff);
+	if (neolkc < MAXEOLKC) {
+	    if (kcinsert(eolkchar, c, neolkc)) {
+		neolkc++;
+	    }
 	}
-	return TRUE;
+	else {
+	    ewprintf("Too many kinsoku-eol-chars!");
+	    return FALSE;
+	}
+    }
+    return TRUE;
 }
 
 /*
@@ -275,32 +297,32 @@ kc_add_eol(f, n)
  * (kinsoku-eol-chars = eolkchar[]).
  */
 /*ARGSUSED*/
+int
 kc_del_eol(f, n)
+int f, n;
 {
-	register int	s;
-	register short	c;
-	register char	*p;
-	char	kchar[NFILEN];
+    register int s;
+    register short c;
+    register char *p;
+    char kchar[NFILEN];
 
-	if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE) {
-		return (s);
-	}
+    if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE)
+	return (s);
 
-	for (p = kchar; *p;) {
-		c = *p++ & 0xff;
-		if (ISKANJI(c)) {
-			c = (c << 8) | (*p++ & 0xff);
-		}
-		if (neolkc > 0) {
-			if (kcdelete(eolkchar, c, neolkc)) {
-				neolkc--;
-			}
-		} else {
-			ewprintf("No kinsoku-eol-chars!");
-			return FALSE;
-		}
+    for (p = kchar; *p;) {
+	c = *p++ & 0xff;
+	if (ISKANJI(c))
+	    c = (c << 8) | (*p++ & 0xff);
+	if (neolkc > 0) {
+	    if (kcdelete(eolkchar, c, neolkc))
+		neolkc--;
 	}
-	return TRUE;
+	else {
+	    ewprintf("No kinsoku-eol-chars!");
+	    return FALSE;
+	}
+    }
+    return TRUE;
 }
 
 /*
@@ -311,30 +333,27 @@ int
 kcinsert(unsigned short *kclist, unsigned short kc, int nkc)
 #else
 kcinsert(kclist, kc, nkc)
-unsigned short	*kclist;		/* KINSOKU char list.	*/
-unsigned short	kc;			/* Target KINSOKU char.	*/
-int		nkc;			/* Current number of KINSOKU chars. */
+unsigned short *kclist;			/* KINSOKU char list.	*/
+unsigned short kc;			/* Target KINSOKU char.	*/
+int nkc;				/* Current number of KINSOKU chars. */
 #endif
 {
-	unsigned short	*p = kclist;	/* Start of KINSOKU char list.	  */
-	unsigned short	*eop = &kclist[nkc]; /* End of KINSOKU char list. */
-	unsigned short	*pp;
-
-	for (; p < eop; p++) {
-		if (kc < *p) {
-			break;
-		} else if (kc == *p) {	/* Already exist.	*/
-			return FALSE;
-		}
-	}
-	if (p < eop) {
-		pp = eop;
-		for (; pp > p; pp--) {
-			*pp = pp[-1];
-		}
-	}
-	*p = kc;
-	return TRUE;
+    unsigned short *p = kclist;		/* Start of KINSOKU char list.	  */
+    unsigned short *eop = &kclist[nkc];	/* End of KINSOKU char list. */
+    unsigned short *pp;
+    
+    for (; p < eop; p++) {
+	if (kc < *p)
+	    break;
+	else if (kc == *p)	/* Already exist.	*/
+	    return FALSE;
+    }
+    if (p < eop) {
+	for (pp=eop; pp > p; pp--)
+	    *pp = pp[-1];
+    }
+    *p = kc;
+    return TRUE;
 }
 
 /*
@@ -345,71 +364,65 @@ int
 kcdelete(unsigned short *kclist, unsigned short kc,int nkc)
 #else
 kcdelete(kclist, kc, nkc)
-unsigned short	*kclist;		/* KINSOKU char list.	*/
-unsigned short	kc;			/* Target KINSOKU char.	*/
-int		nkc;			/* Current number of KINSOKU chars. */
+unsigned short *kclist;			/* KINSOKU char list.	*/
+unsigned short kc;			/* Target KINSOKU char.	*/
+int nkc;				/* Current number of KINSOKU chars. */
 #endif
 {
-	unsigned short	*p = kclist;	/* Start of KINSOKU char list.	  */
-	unsigned short	*eop = &kclist[nkc]; /* End of KINSOKU char list. */
+    unsigned short *p = kclist;		/* Start of KINSOKU char list.	  */
+    unsigned short *eop = &kclist[nkc];	/* End of KINSOKU char list. */
 
-	for (; p < eop; p++) {
-		if (kc == *p) {
-			break;
-		}
-	}
-	if (p == eop) {			/* Not exist that char.	*/
-		return FALSE;
-	}
-	for (; p < eop; p++) {
-		*p = p[1];
-	}
-	return TRUE;
+    for (; p < eop; p++) {
+	if (kc == *p)
+	    break;
+    }
+    if (p == eop)			/* Not exist that char.	*/
+	return FALSE;
+    for (; p < eop; p++)
+	*p = p[1];
+    return TRUE;
 }
 
 /*
  * Is this BOL (begin of line) KINSOKU char ?
  * c1 must be KANJI 1st byte or 0 (when c2 is ASCII).
  */
+int
 isbolkchar(c1, c2)
-int	c1;
-int	c2;
+int c1, c2;
 {
-	register unsigned short	c = ((c1 & 0xff) << 8) | (c2 & 0xff);
-	register unsigned short	*p = &bolkchar[0];
-	register unsigned short	*eop = &bolkchar[nbolkc];
+    register unsigned short c = ((c1 & 0xff) << 8) | (c2 & 0xff);
+    register unsigned short *p = &bolkchar[0];
+    register unsigned short *eop = &bolkchar[nbolkc];
 
-	if (c < *p || c > eop[-1]) {
+    if (c < *p || c > eop[-1])
 		return FALSE;
-	}
-	while (p < eop) {
-		if (c == *p++) {
-			return TRUE;
-		}
-	}
-	return FALSE;
+    while (p < eop) {
+	if (c == *p++)
+	    return TRUE;
+    }
+    return FALSE;
 }
 
 /*
  * Is this EOL (end of line) KINSOKU char ?
  * c1 must be KANJI 1st byte or 0 (when c2 is ASCII).
  */
+int
 iseolkchar(c1, c2)
-int	c1;
-int	c2;
+int c1, c2;
 {
-	register unsigned short	c = ((c1 & 0xff) << 8) | (c2 & 0xff);
-	register unsigned short	*p = &eolkchar[0];
-	register unsigned short	*eop = &eolkchar[neolkc];
+    register unsigned short c = ((c1 & 0xff) << 8) | (c2 & 0xff);
+    register unsigned short *p = &eolkchar[0];
+    register unsigned short *eop = &eolkchar[neolkc];
 
-	if (c < *p || c > eop[-1]) {
+    if (c < *p || c > eop[-1])
 		return FALSE;
+    while (p < eop) {
+	if (c == *p++) {
+	    return TRUE;
 	}
-	while (p < eop) {
-		if (c == *p++) {
-			return TRUE;
-		}
-	}
-	return FALSE;
+    }
+    return FALSE;
 }
 #endif	/* KINSOKU */

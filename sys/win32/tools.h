@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.4 2000/11/16 14:21:31 amura Exp $ */
+/* $Id: tools.h,v 1.5 2001/11/23 11:56:56 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: tools.h,v $
+ * Revision 1.5  2001/11/23 11:56:56  amura
+ * Rewrite all sources
+ *
  * Revision 1.4  2000/11/16 14:21:31  amura
  * merge Ng for win32 0.5
  *
@@ -42,54 +45,54 @@
 extern "C" {
 #endif
 
-BOOL	Fopen( LPCTSTR path, LPCTSTR modestr ) ;
-void	Fclose( void ) ;
-int		Fgetc( void ) ;
-char*	Fgets( char *buf, int size ) ;
-int		Fputc( int c ) ;
-int		Fputs( const char *buf ) ;
-void	Fwrite( const char *buf, int size ) ;
-BOOL	Ferror( void ) ;
-void	slash2backslash( LPTSTR str ) ;
-void	catdir( LPTSTR body, LPCTSTR adddir, LPTSTR pPrevDir ) ;
-void	rel2abs( LPTSTR newPath, LPCTSTR oldPath, LPCTSTR adddir ) ;
-int		SendClipboard( const char *sjis ) ;
-int ReceiveClipboard(char *sjis, int bufsize);
+BOOL  Fopen(LPCTSTR, LPCTSTR);
+void  Fclose(void);
+int   Fgetc(void);
+char* Fgets(char *, int);
+int   Fputc(int);
+int   Fputs(const char *);
+void  Fwrite(const char *, int);
+BOOL  Ferror(void);
+void  slash2backslash(LPTSTR);
+void  catdir(LPTSTR, LPCTSTR, LPTSTR);
+void  rel2abs(LPTSTR, LPCTSTR, LPCTSTR);
+int   SendClipboard(const char *);
+int   ReceiveClipboard(char *, int);
 
-int unicode2sjis(const char *src, unsigned char *dst, int max);
-int sjis2unicode(const unsigned char *src, char *dst, int max);
-TCHAR sjis2unicode_char(WORD sjis);
-WORD unicode2sjis_char(TCHAR unicode);
-LONG RegQueryString(HKEY, LPCTSTR, LPTSTR, LPTSTR, DWORD*);
-LONG RegSetString(HKEY, LPCTSTR, LPTSTR, LPTSTR);
-LONG RegSetBinary(HKEY, LPCTSTR, LPTSTR, LPBYTE, DWORD);
-LONG RegSetDWord(HKEY, LPCTSTR, LPTSTR, DWORD);
+int   unicode2sjis(const char *, unsigned char *, int);
+int   sjis2unicode(const unsigned char *, char *, int);
+TCHAR sjis2unicode_char(WORD);
+WORD  unicode2sjis_char(TCHAR);
+LONG  RegQueryString(HKEY, LPCTSTR, LPTSTR, LPTSTR, DWORD *);
+LONG  RegSetString(HKEY, LPCTSTR, LPTSTR, LPTSTR);
+LONG  RegSetBinary(HKEY, LPCTSTR, LPTSTR, LPBYTE, DWORD);
+LONG  RegSetDWord(HKEY, LPCTSTR, LPTSTR, DWORD);
 DWORD RegQueryDWord(HKEY, LPCTSTR, LPTSTR);
-LONG RegRemoveValue(HKEY, LPCTSTR, LPTSTR);
+LONG  RegRemoveValue(HKEY, LPCTSTR, LPTSTR);
 #ifdef	__cplusplus
-} ;
+};
 #endif
 
 #ifdef KANJI
-#define NGREGKEY TEXT("Software\\mg-developers\\Ng")
-#define NGDEFAULTINIFILE TEXT("\\ng.ini")
+#define NGREGKEY		TEXT("Software\\mg-developers\\Ng")
+#define NGDEFAULTINIFILE	TEXT("\\ng.ini")
 #else
-#define NGREGKEY TEXT("Software\\mg-developers\\MG")
-#define NGDEFAULTINIFILE TEXT("\\mg.ini")
+#define NGREGKEY		TEXT("Software\\mg-developers\\MG")
+#define NGDEFAULTINIFILE	TEXT("\\mg.ini")
 #endif
-#define NGSTARTUPFILEVAL TEXT("Startup File")
-#define NGCTRLKEYMAPVAL TEXT("Control Key Mapping")
-#define NGBEEPSOUNDVAL TEXT("Beep Sound")
-#define NGBEEPFILEVAL TEXT("Beep Sound File")
-#define NGFONTNAMEVAL TEXT("Font Name")
-#define NGFONTSIZEVAL TEXT("Font Size")
-#define NGLINESPACEVAL TEXT("Line Space")
-#define NGPREVPOSVAL TEXT("Previous Position")
-#define NGKEYBOARDLOCALEVAL TEXT("Keyboard Locale")
+#define NGSTARTUPFILEVAL	TEXT("Startup File")
+#define NGCTRLKEYMAPVAL		TEXT("Control Key Mapping")
+#define NGBEEPSOUNDVAL		TEXT("Beep Sound")
+#define NGBEEPFILEVAL		TEXT("Beep Sound File")
+#define NGFONTNAMEVAL		TEXT("Font Name")
+#define NGFONTSIZEVAL		TEXT("Font Size")
+#define NGLINESPACEVAL		TEXT("Line Space")
+#define NGPREVPOSVAL		TEXT("Previous Position")
+#define NGKEYBOARDLOCALEVAL	TEXT("Keyboard Locale")
 
-#define NGKEYBOARD_US  1
-#define NGKEYBOARD_JP 81
+#define NGKEYBOARD_US		1
+#define NGKEYBOARD_JP		81
 
-#define NG_WAVE_OFFSET 2
+#define NG_WAVE_OFFSET		2
 
 #endif	/* APP_TOOLS1 */

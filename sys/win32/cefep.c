@@ -1,4 +1,4 @@
-/* $Id: cefep.c,v 1.1 2000/11/16 14:21:28 amura Exp $ */
+/* $Id: cefep.c,v 1.2 2001/11/23 11:56:52 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -27,6 +27,9 @@
 
 /*
  * $Log: cefep.c,v $
+ * Revision 1.2  2001/11/23 11:56:52  amura
+ * Rewrite all sources
+ *
  * Revision 1.1  2000/11/16 14:21:28  amura
  * merge Ng for win32 0.5
  *
@@ -35,166 +38,170 @@
 #ifndef STRICT
 #define	STRICT
 #endif
-#include	<windows.h>
-#include	<tchar.h>
+#include <windows.h>
+#include <tchar.h>
 #include "config.h"
 #include "def.h"
 
 #if defined(KANJI) && defined(USE_KCTRL)
-#include	"cefep.h"
+#include "cefep.h"
 
-#define		NO_CTRLSPACE
+#define NO_CTRLSPACE
 
-#define		GawaroBaseKey			TEXT("Software\\Gawaro")
-#define		VAR_FEPNAME				TEXT("FepName")
-#define		VAR_FEPPROGRAM			TEXT("FepProgram")
-#define		VAR_USECTRL				TEXT("UseCtrl")
+#define GawaroBaseKey			TEXT("Software\\Gawaro")
+#define VAR_FEPNAME			TEXT("FepName")
+#define VAR_FEPPROGRAM			TEXT("FepProgram")
+#define VAR_USECTRL			TEXT("UseCtrl")
 
-TCHAR		g_szFepName[ MAX_PATH ] = TEXT("KANJIIN") ;
-TCHAR		g_szFepProgram[ MAX_PATH ] = TEXT("KanjiIn.exe") ;
-BOOL		g_fKanji = FALSE ;
-BOOL		g_fUseCtrl = FALSE ;
-BOOL		g_fFepOption = FALSE ;
+TCHAR g_szFepName[MAX_PATH]    = TEXT("KANJIIN");
+TCHAR g_szFepProgram[MAX_PATH] = TEXT("KanjiIn.exe");
+BOOL g_fKanji = FALSE;
+BOOL g_fUseCtrl = FALSE;
+BOOL g_fFepOption = FALSE;
 
 /*
  * Initilize FEP
  */
 BOOL
-InitFep( void )
+InitFep()
 {
-	HKEY	hk ;
-	LONG	lret ;
-	LPCTSTR	name ;
-	LPBYTE	lpData ;
-	TCHAR	sValue[ 256 ] ;
-	DWORD	dwType, cbData, dwValue ;
-
-	/* Open Registory */
-	lret = RegOpenKeyEx( HKEY_CURRENT_USER, GawaroBaseKey, 0,
-						 KEY_QUERY_VALUE, &hk ) ;
-	if ( lret == ERROR_SUCCESS ) {
-		/* FEP name */
-		name = VAR_FEPNAME ;
-		dwType = REG_SZ ;
-		lpData = (LPBYTE) sValue ;
-		cbData = sizeof sValue ;
-		if ( RegQueryValueEx( hk, name, NULL, &dwType, lpData, &cbData ) == ERROR_SUCCESS ) {
-			_tcscpy( g_szFepName, sValue ) ;
-		}
-		/* FEP Program Name */
-		name = VAR_FEPPROGRAM ;
-		dwType = REG_SZ ;
-		lpData = (LPBYTE) sValue ;
-		cbData = sizeof sValue ;
-		if ( RegQueryValueEx( hk, name, NULL, &dwType, lpData, &cbData ) == ERROR_SUCCESS ) {
-			_tcscpy( g_szFepProgram, sValue ) ;
-		}
-		/* CTRL/ALT swapping */
-		name = VAR_USECTRL ;
-		dwType = REG_DWORD ;
-		lpData = (LPBYTE) &dwValue ;
-		cbData = sizeof dwValue ;
-		if ( RegQueryValueEx( hk, name, NULL, &dwType, lpData, &cbData ) == ERROR_SUCCESS ) {
-			g_fUseCtrl = dwValue ;
-		}
-		/* Close Registory */
-		RegCloseKey( hk ) ;
+    HKEY hk;
+    LONG lret;
+    LPCTSTR name;
+    LPBYTE lpData;
+    TCHAR sValue[ 256 ];
+    DWORD dwType, cbData, dwValue;
+    
+    /* Open Registory */
+    lret = RegOpenKeyEx(HKEY_CURRENT_USER, GawaroBaseKey, 0,
+			 KEY_QUERY_VALUE, &hk);
+    if (lret == ERROR_SUCCESS) {
+	/* FEP name */
+	name = VAR_FEPNAME;
+	dwType = REG_SZ;
+	lpData = (LPBYTE) sValue;
+	cbData = sizeof sValue;
+	if (RegQueryValueEx(hk, name, NULL, &dwType, lpData, &cbData)
+	    == ERROR_SUCCESS) {
+	    _tcscpy(g_szFepName, sValue);
 	}
-	return TRUE ;
+	/* FEP Program Name */
+	name = VAR_FEPPROGRAM;
+	dwType = REG_SZ;
+	lpData = (LPBYTE) sValue;
+	cbData = sizeof sValue;
+	if (RegQueryValueEx(hk, name, NULL, &dwType, lpData, &cbData)
+	    == ERROR_SUCCESS) {
+	    _tcscpy(g_szFepProgram, sValue);
+	}
+	/* CTRL/ALT swapping */
+	name = VAR_USECTRL;
+	dwType = REG_DWORD;
+	lpData = (LPBYTE) &dwValue;
+	cbData = sizeof dwValue;
+	if (RegQueryValueEx(hk, name, NULL, &dwType, lpData, &cbData)
+	    == ERROR_SUCCESS) {
+	    g_fUseCtrl = dwValue;
+	}
+	/* Close Registory */
+	RegCloseKey(hk);
+    }
+    return TRUE;
 }
 
 /*
  * Open FEP
  */
 void
-Fep_Execute( HWND hWnd )
+Fep_Execute(HWND hWnd)
 {
-	HWND	hWndFep ;
-
-	hWndFep = FindWindow( g_szFepName, NULL ) ;
-	if ( hWndFep ) {
-		/* If FEP process exist, change it state */
-		g_fKanji = SendMessage( hWndFep, WM_COMMAND, IDM_FEPGETMODE, 0 ) ;
-		SendMessage( hWndFep, WM_COMMAND, IDM_FEPSETMODE, g_fKanji ? 0 : 1 ) ;
+    HWND hWndFep;
+    
+    hWndFep = FindWindow(g_szFepName, NULL);
+    if (hWndFep) {	/* If FEP process exist, change it state */
+	g_fKanji = SendMessage(hWndFep, WM_COMMAND, IDM_FEPGETMODE, 0);
+	SendMessage(hWndFep, WM_COMMAND, IDM_FEPSETMODE, g_fKanji ? 0 : 1);
+    }
 #ifdef	_WIN32_WCE
-	} else {
-		/* FEP process is not exist */
-		PROCESS_INFORMATION	pi ;
-		TCHAR				param[ 20 ] ;
-		wsprintf( param, TEXT("%d"), hWnd ) ;
-		g_fKanji = CreateProcess( g_szFepProgram, param,
-						NULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi ) ;
+    else {		/* FEP process is not exist */
+	PROCESS_INFORMATION pi;
+	TCHAR param[20];
+	wsprintf(param, TEXT("%d"), hWnd);
+	g_fKanji = CreateProcess(g_szFepProgram, param,
+				 NULL, NULL, FALSE, 0, NULL, NULL, NULL, &pi);
+    }
 #endif	/* _WIN32_WCE */
-	}
 }
 
 /*
  * WM_CHAR
  */
 BOOL
-Fep_WM_CHAR( HWND hWnd, TCHAR chCharCode, LONG lKeyData )
+Fep_WM_CHAR(HWND hWnd, TCHAR chCharCode, LONG lKeyData)
 {
-	HWND	hWndFep ;
+    HWND hWndFep;
 
 #ifndef	NO_CTRLSPACE
-	if ( chCharCode == TEXT(' ') ) {
-		if ( g_fUseCtrl && (GetKeyState( VK_CONTROL) & 0x80) ) {
-			/* Pressed CTRL + SPACE */
-			Fep_Execute( hWnd ) ;
-			return TRUE ;
-		}
-		return FALSE ;
+    if (chCharCode == TEXT(' ')) {
+	if (g_fUseCtrl && (GetKeyState(VK_CONTROL) & 0x80)) {
+	    /* Pressed CTRL + SPACE */
+	    Fep_Execute(hWnd);
+	    return TRUE;
 	}
+	return FALSE;
+    }
 #endif	/* NO_CTRLSPACE */
-	if ( chCharCode < TEXT(' ') ) {
-		return FALSE ;
-	}
-	hWndFep = FindWindow( g_szFepName, NULL ) ;
-	if ( hWndFep ) {
-		g_fKanji = SendMessage( hWndFep, WM_COMMAND, IDM_FEPGETMODE, 0 ) ? FALSE : TRUE ;
-	} else {
-		g_fKanji = FALSE ;
-	}
-	if ( g_fKanji && (chCharCode != TEXT(' ')) ) {
-		SendMessage( hWndFep, WM_COMMAND, MAKEWPARAM( IDM_ACTIVATE_HWND, chCharCode ), (LPARAM) hWnd ) ;
-		return TRUE ;
-	}
-	return FALSE ;
+    if (chCharCode < TEXT(' '))
+	return FALSE;
+    hWndFep = FindWindow(g_szFepName, NULL);
+    if (hWndFep) {
+	g_fKanji = SendMessage(hWndFep, WM_COMMAND, IDM_FEPGETMODE, 0)
+	    ? FALSE : TRUE;
+    }
+    else {
+	g_fKanji = FALSE;
+    }
+    if (g_fKanji && (chCharCode != TEXT(' '))) {
+	SendMessage(hWndFep, WM_COMMAND,
+		    MAKEWPARAM(IDM_ACTIVATE_HWND, chCharCode), (LPARAM) hWnd);
+	return TRUE;
+    }
+    return FALSE;
 }
 
 /*
  * WM_SYSCHAR
  */
 BOOL
-Fep_WM_SYSCHAR( HWND hWnd, TCHAR chCharCode, LONG lKeyData )
+Fep_WM_SYSCHAR(HWND hWnd, TCHAR chCharCode, LONG lKeyData)
 {
 #ifndef	NO_CTRLSPACE
-	if ( chCharCode == TEXT(' ') ) {
-		if ( !g_fUseCtrl && (lKeyData & 0x20000000) ) {
-			/* Pressed ALT + SPACE */
-			Fep_Execute( hWnd ) ;
-			return TRUE ;
-		}
+    if (chCharCode == TEXT(' ')) {
+	if (!g_fUseCtrl && (lKeyData & 0x20000000)) {
+	    /* Pressed ALT + SPACE */
+	    Fep_Execute(hWnd);
+	    return TRUE;
 	}
+    }
 #endif	/* NO_CTRLSPACE */
-	return FALSE ;
+    return FALSE;
 }
 
 BOOL
-Fep_WM_ACTIVATE( HWND hWnd, WORD fActive, BOOL fMinimize, HWND hWndDeactive )
+Fep_WM_ACTIVATE(HWND hWnd, WORD fActive, BOOL fMinimize, HWND hWndDeactive)
 {
-	if ( g_fFepOption ) {
-		if ( fActive == WA_ACTIVE || fActive == WA_CLICKACTIVE ) {
-			HWND	hWndFep = FindWindow( g_szFepName, NULL ) ;
-			if ( hWndFep ) {
-				g_fKanji = SendMessage( hWndFep, WM_COMMAND, IDM_FEPGETMODE, 0 ) ? FALSE : TRUE ;
-				if ( g_fKanji ) {
-					SendMessage( hWndFep, WM_COMMAND, IDM_FEPSETMODE, 1 ) ;
-				}
-			}
-		}
+    if (g_fFepOption) {
+	if (fActive == WA_ACTIVE || fActive == WA_CLICKACTIVE) {
+	    HWND hWndFep = FindWindow(g_szFepName, NULL);
+	    if (hWndFep) {
+		g_fKanji = SendMessage(hWndFep, WM_COMMAND,
+				       IDM_FEPGETMODE, 0) ? FALSE : TRUE;
+		if (g_fKanji)
+		    SendMessage(hWndFep, WM_COMMAND, IDM_FEPSETMODE, 1);
+	    }
 	}
-	return FALSE ;
+    }
+    return FALSE;
 }
 
 #endif /* defined(KANJI) && defined(USE_KCTRL) */

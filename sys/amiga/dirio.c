@@ -1,4 +1,4 @@
-/* $Id: dirio.c,v 1.5 2001/10/29 04:30:43 amura Exp $ */
+/* $Id: dirio.c,v 1.6 2001/11/23 11:56:44 amura Exp $ */
 /*
  * Name:	MG 2x
  *		Directory I/O routines, by Stephen Walton
@@ -7,6 +7,9 @@
 
 /*
  * $Log: dirio.c,v $
+ * Revision 1.6  2001/11/23 11:56:44  amura
+ * Rewrite all sources
+ *
  * Revision 1.5  2001/10/29 04:30:43  amura
  * let BUGFIX code enable always
  *
@@ -31,50 +34,56 @@
 #include "def.h"
 #include <libraries/dosextens.h>
 #include <exec/memory.h>
+#ifdef INLINE_PRAGMAS
+#include <pragmas/exec_pragmas.h>
+#else
+#include <clib/exec_protos.h>
+#endif
 
-extern	char	MyDirName[NFILEN];
-extern	char	*wdir, *startdir;
+extern char MyDirName[NFILEN];
+extern char *wdir, *startdir;
+long PathName _PRO((BPTR, char *, long));
 
-char *getcwd(path, len)
+char *
+getcwd(path, len)
 char *path;
+int len;
 {
-	strncpy(path, MyDirName, len);
-	path[len-1] = '\0';
-	return path;
+    strncpy(path, MyDirName, len);
+    path[len-1] = '\0';
+    return path;
 }
 
+int
 chdir(path)
 char *path;
 {
-	BPTR Lock(), AttemptLock, CurrentDir();
-	long PathName(), len;
-	struct FileInfoBlock *fib;
-	void *AllocMem();
-	int retval;
-
-	AttemptLock = Lock(path, ACCESS_READ);
-	if (!AttemptLock)
-		return -1;
-	fib = (struct FileInfoBlock *) AllocMem((long)
-					        sizeof(struct FileInfoBlock),
-						MEMF_CHIP | MEMF_CLEAR);
-	if (fib == NULL) {
-		UnLock(AttemptLock);
-		return -1;
-	}
-	Examine(AttemptLock, fib);
-	if (fib->fib_DirEntryType < 0) {
-		retval = -1;
-		UnLock(AttemptLock);
-		goto clean;
-	}
-	UnLock(CurrentDir(AttemptLock));	/* do the thing		*/
-	if (PathName(AttemptLock, MyDirName, NFILEN/31L) == 0)
-		MyDirName[0] = '\0';
-	retval = 0;				/* Success!		*/
-    clean:
-	FreeMem((void *) fib, (long) sizeof(struct FileInfoBlock));
-	return retval;
+    BPTR AttemptLock;
+    struct FileInfoBlock *fib;
+    int retval;
+    
+    AttemptLock = Lock(path, ACCESS_READ);
+    if (!AttemptLock)
+	return -1;
+    fib = (struct FileInfoBlock *)AllocMem((long)sizeof(struct FileInfoBlock),
+					   MEMF_CHIP | MEMF_CLEAR);
+    if (fib == NULL) {
+	UnLock(AttemptLock);
+	return -1;
+    }
+    Examine(AttemptLock, fib);
+    if (fib->fib_DirEntryType < 0) {
+	retval = -1;
+	UnLock(AttemptLock);
+	goto clean;
+    }
+    UnLock(CurrentDir(AttemptLock));	/* do the thing		*/
+    if (PathName(AttemptLock, MyDirName, NFILEN/31L) == 0)
+	MyDirName[0] = '\0';
+    retval = 0;				/* Success!		*/
+clean:
+    FreeMem((void *)fib, (long)sizeof(struct FileInfoBlock));
+    return retval;
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.5 2001/10/29 04:30:43 amura Exp $ */
+/* $Id: sysdef.h,v 1.6 2001/11/23 11:56:45 amura Exp $ */
 /*
  * Name:	MicroEMACS
  * Version:	MG 2a
@@ -7,6 +7,9 @@
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.6  2001/11/23 11:56:45  amura
+ * Rewrite all sources
+ *
  * Revision 1.5  2001/10/29 04:30:43  amura
  * let BUGFIX code enable always
  *
@@ -24,7 +27,9 @@
  *
  */
 
-#include	<stdio.h>	/* Dec. 16, 1992 by H.Ohkubo */
+#include <stdio.h>		/* Dec. 16, 1992 by H.Ohkubo */
+#include <stdlib.h>
+#include <string.h>
 
 /* Neither can lattice 4 */
 extern char *offset_dummy;		/* Manx 3.2 can't handle 0->	*/
@@ -40,13 +45,7 @@ extern char *offset_dummy;		/* Manx 3.2 can't handle 0->	*/
 #endif
 
 #ifndef SUPPORT_ANSI
-# ifdef LATTICE
-#  define SUPPORT_ANSI	1
-# endif
-# ifdef _DCC
-#  define SUPPORT_ANSI	1
-# endif
-# ifdef __GNUC__
+# if defined(LATTICE) || defined(_DCC) || defined(__GNUC__)
 #  define SUPPORT_ANSI	1
 # endif
 #endif
@@ -74,7 +73,7 @@ extern char *offset_dummy;		/* Manx 3.2 can't handle 0->	*/
 #ifndef	NO_SHELL	/* Dec. 15, 1992 by H.Ohkubo */
 #define	CMDLINELENGTH	NFILEN		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
-#define	BSMAP	FALSE	/* Dec.18,1992 Add by H.Ohkubo */
+#define	BSMAP		FALSE		/* Dec.18,1992 Add by H.Ohkubo */
 /*
  * Macros used by the buffer name making code.
  * Start at the end of the file name, scan to the left
@@ -95,34 +94,63 @@ typedef short	KCHAR;	/* type used to represent Emacs characters */
 typedef	long	RSIZE;	/* size of a region	*/
 
 #ifndef __GNUC__
-#define	bcopy(src,dest,len) movmem(src,dest,len)
-#define	bzero(s,n)	memset(s,0,n)	/* Dec. 16, 1992 Add by H.Ohkubo */
-#define	bcmp(s,d,n)	memcmp(s,d,n)	/* Dec. 16, 1992 Add by H.Ohkubo */
+#define	bcopy(src,dest,len)	movmem(src,dest,len)
+#define	bzero(s,n)		memset(s,0,n)
+#define	bcmp(s,d,n)		memcmp(s,d,n)
 #endif
 
-#define fncmp Strcmp
+/* System includes */
+#include <exec/types.h>
+#ifdef INLINE
+#include <pragmas/dos_pragmas.h>
+#else
+#include <clib/dos_protos.h>
+#endif
 
+#define fncmp(s1,s2)	Strcmp(s1,s2)
+#define unlink(s1)	(DeleteFile(s1) == -1 ? 0 : -1)
 #ifndef NO_DIRED
-#define rename(s1,s2) (Rename(s1,s2) == -1 ? 0 : -1)
-#define unlinkdir(s1) (DeleteFile(s1) == -1 ? 0 : -1)
+#define rename(s1,s2)	(Rename(s1,s2) == -1 ? 0 : -1)
+#define unlinkdir(s1)	(DeleteFile(s1) == -1 ? 0 : -1)
 #endif
 #ifndef	NO_DIR
 #define	rchdir(dir)	chdir(dir)
 #define	dirend()	(VOID)0
 #endif
 
+#ifdef	SUPPORT_ANSI
+extern int   Chdir(char *);
+extern void  Putc(int);
+extern void  sysinit(void);
+extern void  syscleanup(void);
+extern int   Strcmp(char *, char *);
+#else
+extern int   Chdir();
+extern void  Putc();
+extern void  sysinit();
+extern void  syscleanup();
+extern int   Strcmp();
+#endif
+
 #ifdef	KANJI	/* Dec.17,1992 by H.Ohkubo */
 #ifndef	AMIGA_STDIO
-extern	int	FlushBuf();
+# ifdef SUPPORT_ANSI
+extern void FlushBuf(void);
+# else
+extern void FlushBuf();
+# endif
 typedef	struct	{
-	int	*niobuf;
-	int	bufmax;
-	unsigned char	*iobuf;
-}	My_FILE;
-#define	FILE	My_FILE
+    int	*niobuf;
+    int bufmax;
+    unsigned char *iobuf;
+} My_FILE;
+#define	FILE		My_FILE
 #define	AMIGA_FAST_FILE
-#define	Putc(c,fp)	{if (*(fp)->niobuf == (fp)->bufmax) FlushBuf();\
-				(fp)->iobuf[(*(fp)->niobuf)++] = (c);}
+#define	Putc(c,fp) do {				\
+    if (*(fp)->niobuf == (fp)->bufmax)		\
+	FlushBuf();				\
+    (fp)->iobuf[(*(fp)->niobuf)++] = (c);	\
+} while (/*CONSTCOND*/0)
 #ifdef putc
 # undef putc
 #endif

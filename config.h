@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.16 2001/10/29 04:30:41 amura Exp $ */
+/* $Id: config.h,v 1.17 2001/11/23 11:56:35 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -67,11 +67,6 @@
 			/* If defined, ADDFUNC must be also. */
 
 #define	MINIBUF_EDIT	/* minibuffer edit like GNU emacs (by Kakugawa)	*/
-
-#define	NEXTLINE 1	/* next-line-add-newlines (by S.Yoshida) */
-
-#define EMACS_QUERY_KEYS /* isearch/query-replace key bindings compatible */
-			/* with GNU Emacs 19 and later (by Shimbo)*/
 
 #define	UNDO		/* enable buffer undo */
 
@@ -149,7 +144,7 @@
 #ifdef	MSDOS		/* Do not edit this line. */
 /*................................................*/
 
-/*#undef TCCONIO*/	/* Use Turbo C console IO  (by amura) */
+/*#undef TCCONIO*/	/* Use Turbo C console IO */
 
 /*#undef IBMPC*/	/* Create Ng for IBM PC compatible	*/
 			/* (include Toshiba J-3100)		*/
@@ -158,7 +153,7 @@
 
 #define BACKSLASH	/* Display backslash instead of \ (PC-9801 only) */
 
-#define HOMEDIR		/* Home directory support for MSDOS (by amura) */
+#define HOMEDIR		/* Home directory support for MSDOS */
 
 #define FEPCTRL		/* Enable FEP auto control. */
 
@@ -221,7 +216,7 @@
 
 #undef	V11		/* No Ver1.1 AmigaDOS */
 
-#define V2		/* Don't support AmigaDOS 1.x (by amura) */
+#define V2		/* Don't support AmigaDOS 1.x */
 
 #define	DO_MENU		/* Enable Menu selection */
 
@@ -235,10 +230,12 @@
 
 #define	CHANGE_FONT	/* Enable font setting */
 
+#define	INLINE_PRAGMAS	/* Use #pragma for Amiga System calls */
+
 #undef	USE_ARP		/* Enable ARP Library */
 			/* Undefined by H.Konishi for SAS */ 
 
-#define	LAMIGA_META	/* Assume Left Amiga to META key (by amura) */
+#define	LAMIGA_META	/* Assume Left Amiga to META key */
 
 #undef	MODE_RENDITION	/* Set Default */
 #undef	TEXT_RENDITION	/* Set Default */
@@ -249,8 +246,8 @@
 
 #define ASL             /* Enable ASL Requester (by H.Konishi) */
 
-#undef	AMIGA_STDIO	/* Using ANSI-Standard FILE IO library (by amura) */
-#define	CLIPBOARD	/* AMIGA Clipboard support (by amura) */
+#undef	AMIGA_STDIO	/* Using ANSI-Standard FILE IO library */
+#define	CLIPBOARD	/* AMIGA Clipboard support */
 
 /*................................................*/
 #endif			/* Do not edit this line. */

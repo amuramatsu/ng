@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.2 2001/01/05 14:07:06 amura Exp $ */
+/* $Id: ttydef.h,v 1.3 2001/11/23 11:56:45 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Amiga console device virtual terminal header file
@@ -9,6 +9,9 @@
 
 /*
  * $Log: ttydef.h,v $
+ * Revision 1.3  2001/11/23 11:56:45  amura
+ * Rewrite all sources
+ *
  * Revision 1.2  2001/01/05 14:07:06  amura
  * first implementation of Hojo Kanji support
  *
@@ -152,18 +155,18 @@
  */
 #define	MN_OFFSET	' '		/* menu char - ' ' = real code */
 struct MenuBinding {
-	char	*Command;
+    char *Command;
 #ifdef	SUPPORT_ANSI
-	int	(*Function)(int,int);
+    int (*Function)(int,int);
 #else
-	int	(*Function)();
+    int (*Function)();
 #endif
 };
 
 struct MenuInfo {
-	char *Name;			/* name of menu			*/
-	short NumItems;			/* # of items			*/
-	struct MenuBinding *Items;	/* item name, internal binding	*/
+    char *Name;			/* name of menu			*/
+    short NumItems;		/* # of items			*/
+    struct MenuBinding *Items;	/* item name, internal binding	*/
 };
 
 #define NITEMS(arr) (sizeof(arr) / (sizeof(arr[0])))
@@ -218,10 +221,10 @@ struct MenuInfo {
  * the default font for a window.
  */
 
-#define	FontWidth(w) (w)->RPort->TxWidth
-#define	FontHeight(w) (w)->RPort->TxHeight
+#define	FontWidth(w)		((w)->RPort->TxWidth)
+#define	FontHeight(w)		((w)->RPort->TxHeight)
 
 /* Dec.17,1992 Add by H.Ohkubo */
 #ifdef	KANJI	/* 90.02.05  by S.Yoshida */
-#define	ungetkbd(c)	(ttungetc(c))
+#define	ungetkbd(c)		(ttungetc(c))
 #endif	/* KANJI */

@@ -1,4 +1,4 @@
-/* $Id: fepctrl.h,v 1.1 2000/06/27 01:47:58 amura Exp $ */
+/* $Id: fepctrl.h,v 1.2 2001/11/23 11:56:47 amura Exp $ */
 /*
  * fepctrl.h 1.2 1990/11/25	Public Domain.
  *
@@ -9,8 +9,11 @@
 
 /*
  * $Log: fepctrl.h,v $
- * Revision 1.1  2000/06/27 01:47:58  amura
- * Initial revision
+ * Revision 1.2  2001/11/23 11:56:47  amura
+ * Rewrite all sources
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:58  amura
+ * import to CVS
  *
  */
 
@@ -22,8 +25,8 @@
 
 #define	NFEPS        2	/* Number of FEPs defined */
 
-int	fep_init();
-void	fep_term();
-void	fep_on(), fep_off();
-void	fep_force_on(), fep_force_off();
-int	fep_getmode();
+int fep_init();
+void fep_term();
+void fep_on(), fep_off();
+void fep_force_on(), fep_force_off();
+int fep_getmode();

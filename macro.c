@@ -1,14 +1,17 @@
-/* $Id: macro.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: macro.c,v 1.2 2001/11/23 11:56:40 amura Exp $ */
 /* keyboard macros for MicroGnuEmacs 1x */
 
 /*
  * $Log: macro.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2001/11/23 11:56:40  amura
+ * Rewrite all sources
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
+#include "config.h"	/* 90.12.20  by S.Yoshida */
 
 #ifndef NO_MACRO
 #include "def.h"
@@ -18,36 +21,38 @@
 #include "macro.h"
 
 /*ARGSUSED*/
+int
 definemacro(f, n)
-int	f, n;
+int f, n;
 {
-	register LINE *lp1;
-	LINE *lp2;
+    register LINE *lp1;
+    LINE *lp2;
 
-	macrocount = 0;
-	if(macrodef) {
-	    ewprintf("already defining macro");
-	    return macrodef = FALSE;
-	}
-	/* free lines allocated for string arguments */
-	if(maclhead != NULL) {
-	    for(lp1 = maclhead->l_fp; lp1 != maclhead; lp1 = lp2) {
-		lp2 = lp1->l_fp;
-		free((char *)lp1);
-	    }
+    macrocount = 0;
+    if (macrodef) {
+	ewprintf("already defining macro");
+	return macrodef = FALSE;
+    }
+    /* free lines allocated for string arguments */
+    if (maclhead != NULL) {
+	for (lp1 = maclhead->l_fp; lp1 != maclhead; lp1 = lp2) {
+	    lp2 = lp1->l_fp;
 	    free((char *)lp1);
 	}
-	if((maclhead = lp1 = lalloc(0)) == NULL) return FALSE;
-	ewprintf("Defining Keyboard Macro...");
-	maclcur = lp1->l_fp = lp1->l_bp = lp1;
-	return macrodef = TRUE;
+	free((char *)lp1);
+    }
+    if ((maclhead = lp1 = lalloc(0)) == NULL) return FALSE;
+    ewprintf("Defining Keyboard Macro...");
+    maclcur = lp1->l_fp = lp1->l_bp = lp1;
+    return macrodef = TRUE;
 }
 
-int finishmacro pro((int, int));
+int finishmacro _PRO((int, int));
 
 /*ARGSUSED*/
+int
 finishmacro(f, n)
-int	f, n;
+int f, n;
 {
     macrodef = FALSE;
     ewprintf("End Keyboard Macro Definition");
@@ -55,31 +60,33 @@ int	f, n;
 }
 
 /*ARGSUSED*/
+int
 executemacro(f, n)
-int	f, n;
+int f, n;
 {
-	int	i, j;
-	PF	funct;
-	int	universal_argument pro((int, int));
-	int	flag, num;
-
-    if(macrodef ||
-	    (macrocount >= MAXMACRO && macro[MAXMACRO].m_funct != finishmacro))
+    int i, j;
+    PF funct;
+    int universal_argument _PRO((int, int));
+    int flag, num;
+	
+    if (macrodef ||
+	(macrocount >= MAXMACRO && macro[MAXMACRO].m_funct != finishmacro))
 	return FALSE;
-    if(macrocount == 0) return TRUE;
+    if (macrocount == 0)
+	return TRUE;
     inmacro = TRUE;
-    for(i = n; i > 0; i--) {
+    for (i = n; i > 0; i--) {
 	maclcur = maclhead->l_fp;
 	flag = 0;
 	num = 1;
-	for(j = 0; j < macrocount-1; j++) {
+	for (j = 0; j < macrocount-1; j++) {
 	    funct = macro[j].m_funct;
-	    if(funct == universal_argument) {
+	    if (funct == universal_argument) {
 		flag = FFARG;
 		num = macro[++j].m_count;
 		continue;
 	    }
-	    if((*funct)(flag, num) != TRUE) {
+	    if ((*funct)(flag, num) != TRUE) {
 		inmacro = FALSE;
 		return FALSE;
 	    }
@@ -92,4 +99,4 @@ int	f, n;
     inmacro = FALSE;
     return TRUE;
 }
-#endif
+#endif /* !NO_MACRO */

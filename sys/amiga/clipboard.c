@@ -1,4 +1,4 @@
-/* $Id: clipboard.c,v 1.2 2000/09/29 17:22:16 amura Exp $ */
+/* $Id: clipboard.c,v 1.3 2001/11/23 11:56:44 amura Exp $ */
 /*   
  * clipboard.c
  *   Amiga clipboard support routine.
@@ -42,10 +42,10 @@
 
 /*
  * $Log: clipboard.c,v $
- * Revision 1.2  2000/09/29 17:22:16  amura
- * change license to BSD style
+ * Revision 1.3  2001/11/23 11:56:44  amura
+ * Rewrite all sources
  *
- * Revision 1.2  2000/09/29 17:14:40  amura
+ * Revision 1.2  2000/09/29 17:22:16  amura
  * change license to BSD style
  *
  * Revision 1.1.1.1  2000/06/27 01:48:00  amura
@@ -56,8 +56,8 @@
  *
  */
 
-#include	"config.h"	/* Dec.19,1992 Add by H.Ohkubo */
-#include	"def.h"
+#include "config.h"
+#include "def.h"
 
 #ifdef CLIPBOARD
 
@@ -69,7 +69,11 @@
 #include <libraries/dosextens.h>
 #include <libraries/dos.h>
 
+#ifdef INLINE_PRAGMAS
+#include <pragmas/exec_pragmas.h>
+#else
 #include <clib/exec_protos.h>
+#endif
 #include <clib/alib_protos.h>
 
 #include <string.h>
@@ -82,27 +86,25 @@
 #define ID_CHRS		MAKE_ID('C','H','R','S')
 
 
-static struct IOClipReq *CBOpen pro((ULONG));
-static VOID CBClose pro((struct IOClipReq *));
-static int  CBWriteFTXT pro((struct IOClipReq *, char *, long));
-static int  WriteLong pro((struct IOClipReq *, long*));
-static int  CBQueryFTXT pro((struct IOClipReq *));
-static int  CBReadCHRS pro((struct IOClipReq *, char *));
-static int  ReadLong pro((struct IOClipReq *, ULONG *));
-static int  FillCBData pro((struct IOClipReq *, char *, ULONG));
-static VOID CBReadDone pro((struct IOClipReq *));
+static struct IOClipReq *CBOpen _PRO((ULONG));
+static VOID CBClose _PRO((struct IOClipReq *));
+static int  CBWriteFTXT _PRO((struct IOClipReq *, char *, long));
+static int  WriteLong _PRO((struct IOClipReq *, long*));
+static int  CBQueryFTXT _PRO((struct IOClipReq *));
+static int  CBReadCHRS _PRO((struct IOClipReq *, char *));
+static int  ReadLong _PRO((struct IOClipReq *, ULONG *));
+static int  FillCBData _PRO((struct IOClipReq *, char *, ULONG));
+static VOID CBReadDone _PRO((struct IOClipReq *));
 
-
-struct IOClipReq *CBOpen(unit)
+static struct IOClipReq *
+CBOpen(unit)
 ULONG unit;
 {
     struct MsgPort *mp;
     struct IOStdReq *ior;
 
-    if (mp = CreatePort(0L,0L))
-    {
-	if (ior=(struct IOStdReq *)CreateExtIO(mp,sizeof(struct IOClipReq)))
-        {
+    if (mp = CreatePort(0L,0L)) {
+	if (ior=(struct IOStdReq *)CreateExtIO(mp,sizeof(struct IOClipReq))) {
 	    if (!(OpenDevice("clipboard.device",unit,
 			     (struct IORequest *)ior,0L)))
                 return((struct IOClipReq *)ior);
@@ -113,7 +115,8 @@ ULONG unit;
     return(NULL);
 }
 
-void CBClose(ior)
+static VOID
+CBClose(ior)
 struct IOClipReq *ior;
 {
     struct MsgPort *mp;
@@ -127,34 +130,30 @@ struct IOClipReq *ior;
 }
 
 
-int CBWriteFTXT(ior, string, slen)
+static int
+CBWriteFTXT(ior, string, slen)
 struct IOClipReq *ior;
 char *string;
 long slen;
 {
     BOOL odd;
-    int success;
     long length;
 
     odd = (slen & 1);               /* pad byte flag */
-
     length = (odd) ? slen+1 : slen;
 
     /* initial set-up for Offset, Error, and ClipID */
-
     ior->io_Offset = 0;
     ior->io_Error  = 0;
     ior->io_ClipID = 0;
 
-
     /* Create the IFF header information */
-
-    WriteLong(ior, (long *) "FORM");     /* "FORM"             */
-    length+=12L;                         /* + "[size]FTXTCHRS" */
-    WriteLong(ior, &length);             /* total length       */
-    WriteLong(ior, (long *) "FTXT");     /* "FTXT"             */
-    WriteLong(ior, (long *) "CHRS");     /* "CHRS"             */
-    WriteLong(ior, &slen);               /* string length      */
+    WriteLong(ior, (long *)"FORM");	/* "FORM"             */
+    length+=12L;			/* + "[size]FTXTCHRS" */
+    WriteLong(ior, &length);		/* total length       */
+    WriteLong(ior, (long *)"FTXT");	/* "FTXT"             */
+    WriteLong(ior, (long *)"CHRS");	/* "CHRS"             */
+    WriteLong(ior, &slen);		/* string length      */
 
     /* Write string */
     ior->io_Data    = (STRPTR)string;
@@ -163,83 +162,75 @@ long slen;
     DoIO( (struct IORequest *) ior);
 
     /* Pad if needed */
-    if (odd)
-    {
+    if (odd) {
         ior->io_Data   = (STRPTR)"";
         ior->io_Length = 1L;
-        DoIO( (struct IORequest *) ior);
+        DoIO((struct IORequest *)ior);
     }
 
     /* Tell the clipboard we are done writing */
-
     ior->io_Command=CMD_UPDATE;
-    DoIO( (struct IORequest *) ior);
+    DoIO((struct IORequest *)ior);
 
     /* Check if io_Error was set by any of the preceding IO requests */
-    success = ior->io_Error ? FALSE : TRUE;
-
-    return(success);
+    return ior->io_Error ? FALSE : TRUE;
 }
 
 
-int WriteLong(ior, ldata)
+static int
+WriteLong(ior, ldata)
 struct IOClipReq *ior;
 long *ldata;
 {
     ior->io_Data    = (STRPTR)ldata;
     ior->io_Length  = 4L;
     ior->io_Command = CMD_WRITE;
-    DoIO( (struct IORequest *) ior);
+    DoIO((struct IORequest *)ior);
 
     if (ior->io_Actual == 4)
-	return( ior->io_Error ? FALSE : TRUE);
+	return ior->io_Error ? FALSE : TRUE;
 
-    return(FALSE);
+    return FALSE;
 }
 
-
-int CBQueryFTXT(ior)
+static int
+CBQueryFTXT(ior)
 struct IOClipReq *ior;
 {
     ULONG cbuff[4];
 
     /* initial set-up for Offset, Error, and ClipID */
-
     ior->io_Offset = 0;
     ior->io_Error  = 0;
     ior->io_ClipID = 0;
 
     /* Look for "FORM[size]FTXT" */
-
     ior->io_Command = CMD_READ;
     ior->io_Data    = (STRPTR)cbuff;
     ior->io_Length  = 12;
 
-    DoIO( (struct IORequest *) ior);
-
+    DoIO((struct IORequest *)ior);
 
     /* Check to see if we have at least 16 bytes */
 
-    if (ior->io_Actual == 12L)
-    {
+    if (ior->io_Actual == 12L) {
         /* Check to see if it starts with "FORM" */
-        if (cbuff[0] == ID_FORM)
-            {
+        if (cbuff[0] == ID_FORM) {
             /* Check to see if its "FTXT" */
             if (cbuff[2] == ID_FTXT)
                 return TRUE;
-            }
+	}
 
         /* It's not "FORM[size]FTXT", so tell clipboard we are done */
-        }
+    }
 
     CBReadDone(ior);
-
     return FALSE;
 }
 
 
-int CBReadCHRS(ior, buffer)
+static int
+CBReadCHRS(ior, buffer)
 struct IOClipReq *ior;
 char *buffer;
 {
@@ -247,26 +238,18 @@ char *buffer;
     int looking, res = 0;
 
     /* Find next CHRS chunk */
-    
     looking = TRUE;
-    
-    while (looking)
-    {
+    while (looking) {
 	looking = FALSE;
 	
-	if (ReadLong(ior,&chunk))       /* Is CHRS chunk */
-	{
-	    if (chunk == ID_CHRS)
-	    {
+	if (ReadLong(ior,&chunk)) {	/* Is CHRS chunk */
+	    if (chunk == ID_CHRS) {
 		/* Get size of chunk, and copy data */
-		if (ReadLong(ior,&size))
-		{
-		    if (size)
-		    {
+		if (ReadLong(ior,&size)) {
+		    if (size != 0) {
 			if (buffer)
 			    res = FillCBData(ior, buffer, size);
-			else
-			{
+			else {
 			    res = size;
 			    ior->io_Offset += (size&1) ? size+1 : size;
 			}
@@ -275,10 +258,8 @@ char *buffer;
 		        looking = TRUE;
                 }
             }
-            else                        /* If not, skip to next chunk */
-            {
-                if (ReadLong(ior,&size))
-                {
+            else {			/* If not, skip to next chunk */
+                if (ReadLong(ior,&size)) {
                     looking = TRUE;
                     /* if odd size, add pad byte */
 		    ior->io_Offset += (size&1) ? size+1 : size;
@@ -288,12 +269,12 @@ char *buffer;
     }
 
     CBReadDone(ior);			/* tell clipboard we are done */
-
     return res;
 }
 
 
-int ReadLong(ior, ldata)
+static int
+ReadLong(ior, ldata)
 struct IOClipReq *ior;
 ULONG *ldata;
 {
@@ -301,15 +282,15 @@ ULONG *ldata;
     ior->io_Data    = (STRPTR)ldata;
     ior->io_Length  = 4L;
 
-    DoIO( (struct IORequest *) ior);
+    DoIO((struct IORequest *)ior);
 
     if (ior->io_Actual == 4)
-        return( ior->io_Error ? FALSE : TRUE);
-
-    return(FALSE);
+        return ior->io_Error ? FALSE : TRUE;
+    return FALSE;
 }
 
-int FillCBData(ior,buffer,size)
+static int
+FillCBData(ior,buffer,size)
 struct IOClipReq *ior;
 char *buffer;
 ULONG size;
@@ -329,7 +310,8 @@ ULONG size;
     return FALSE;
 }
 
-VOID CBReadDone(ior)
+static VOID
+CBReadDone(ior)
 struct IOClipReq *ior;
 {
     char buffer[256];
@@ -338,39 +320,31 @@ struct IOClipReq *ior;
     ior->io_Data    = (STRPTR)buffer;
     ior->io_Length  = 254;
 
-
     /* falls through immediately if io_Actual == 0 */
-
-    while (ior->io_Actual)
-    {
-        if (DoIO( (struct IORequest *) ior))
+    while (ior->io_Actual) {
+        if (DoIO((struct IORequest *)ior))
             break;
     }
 }
 
-/*
- *
- */
-size_clipboard_(void)
+int
+size_clipboard_()
 {
     struct IOClipReq *ior;
     int len, size=0;
 
     /* Open clipboard.device unit 0 */
 
-    if (ior=CBOpen(0L))
-    {
+    if (ior=CBOpen(0L)) {
         /* Look for FTXT in clipboard */
-        if (CBQueryFTXT(ior))
-	{
-            /* Obtain a copy of the contents of each CHRS chunk */
+        if (CBQueryFTXT(ior)) {
 
+            /* Obtain a copy of the contents of each CHRS chunk */
 	    while (len = CBReadCHRS(ior, NULL))
 		size += len;
 
             /* The next call is not really needed if you are sure */
             /* you read to the end of the clip.                   */
-
 	}
 	CBReadDone(ior);
 	CBClose(ior);
@@ -387,6 +361,7 @@ size_clipboard_(void)
  * Read, and output FTXT in the clipboard.
  *
  */
+int
 recieve_clipboard_(buf)
 char *buf;
 {
@@ -395,25 +370,21 @@ char *buf;
     char *p1,*p2;
 
     /* Open clipboard.device unit 0 */
-
-    if (ior=CBOpen(0L))
-    {
+    if (ior=CBOpen(0L)) {
         /* Look for FTXT in clipboard */
-        if (CBQueryFTXT(ior))
-        {
+        if (CBQueryFTXT(ior)) {
+	    
             /* Obtain a copy of the contents of each CHRS chunk */
-
-	    while (len = CBReadCHRS(ior, buf))
-	    {
-	        for (p1 = p2 = buf; p1<buf+len; *p1++)
+	    while (len = CBReadCHRS(ior, buf)) {
+	        for (p1=p2=buf; p1<buf+len; p1++) {
 		    if (*p1)
 			*p2++ = *p1;
+		}
 		buf = p2;
 	    }
 
             /* The next call is not really needed if you are sure */
             /* you read to the end of the clip.                   */
-
             CBReadDone(ior);
 	}
     CBClose(ior);
@@ -429,6 +400,7 @@ char *buf;
  * Write a string to the clipboard
  *
  */
+int
 send_clipboard_(string, len)
 char *string;
 int  len;
@@ -436,16 +408,13 @@ int  len;
 
     struct IOClipReq *ior;
 
-    if (string == NULL)
-    {
+    if (string == NULL) {
 	panic("No string argument given");
 	return FALSE;
     }
 
     /* Open clipboard.device unit 0 */
-
-    if (ior = CBOpen(0L))
-    {
+    if (ior = CBOpen(0L)) {
 	if (!(CBWriteFTXT(ior, string, len)))
 	    panic("Error writing to clipboard: io_Error");
 	CBClose(ior);

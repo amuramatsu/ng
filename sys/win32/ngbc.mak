@@ -1,7 +1,10 @@
-# $Id: ngbc.mak,v 1.5 2001/03/02 08:48:32 amura Exp $
+# $Id: ngbc.mak,v 1.6 2001/11/23 11:56:55 amura Exp $
 # Makefile for Ng at Win32 with Borland C++ 5.2/5.5
 #
 # $Log: ngbc.mak,v $
+# Revision 1.6  2001/11/23 11:56:55  amura
+# Rewrite all sources
+#
 # Revision 1.5  2001/03/02 08:48:32  amura
 # now AUTOSAVE feature implemented almost all (except for WIN32
 #
@@ -74,7 +77,7 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  skg.c jump.c undo.c autosave.c
 
 OINCS =	sys/default/ttydef.h sys/default/chrdef.h sys/$(SYS)/sysdef.h
-INCS =	config.h def.h
+INCS =	config.h def.h extern.h
 REINCS = regex_e.h regex_j.h regex_j.c regex_e.h kanji_.h kanji_.c
 
 .path.obj=$(INTDIR)

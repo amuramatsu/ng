@@ -1,4 +1,4 @@
-/* $Id: amiga_maps.c,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: amiga_maps.c,v 1.2 2001/11/23 11:56:44 amura Exp $ */
 /*
  * Name:	MG 2a
  *		keymap.c setup for Amiga-specific function keys.
@@ -17,93 +17,96 @@
 
 /*
  * $Log: amiga_maps.c,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2001/11/23 11:56:44  amura
+ * Rewrite all sources
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 
-static	PF	amiga_keys[] = {
+static PF amiga_keys[] = {
 #ifdef	FKEYS
-	backline,	/* Up			(0x100)	*/
-	forwline,	/* Down				*/
-	backchar,	/* Left				*/
-	forwchar,	/* Right			*/
-	gotobop,	/* Shift-Up			*/
-	gotoeop,	/* Shift-Down			*/
-	backword,	/* Shift-Left			*/
-	forwword,	/* Shift-Right			*/
-	desckey,	/* Help			(0x108)	*/
+    backline,		/* Up			(0x100)	*/
+    forwline,		/* Down				*/
+    backchar,		/* Left				*/
+    forwchar,		/* Right			*/
+    gotobop,		/* Shift-Up			*/
+    gotoeop,		/* Shift-Down			*/
+    backword,		/* Shift-Left			*/
+    forwword,		/* Shift-Right			*/
+    desckey,		/* Help			(0x108)	*/
 #else
-	/* 9 unbound keys */
-	rescan, rescan, rescan, rescan, rescan, rescan, rescan, rescan, rescan, 
+    /* 9 unbound keys */
+    rescan, rescan, rescan, rescan, rescan, rescan, rescan, rescan, rescan, 
 #endif
 
 #ifdef	DO_MENU
-	amigamenu,	/* Menu selction	(0x109)	*/
+    amigamenu,		/* Menu selction	(0x109)	*/
 #else
-	rescan,		/* Menu selection	(0x109)	*/
+    rescan,		/* Menu selection	(0x109)	*/
 #endif
-	refresh,	/* Resize window	(0x10A)	*/
-	rescan,		/* used to be Mouse		*/
+    refresh,		/* Resize window	(0x10A)	*/
+    rescan,		/* used to be Mouse		*/
 
 #ifdef	FKEYS
-	filevisit,	/* F1			(0x10C)	*/
-	filesave,	/* F2				*/
-	forwpage,	/* F3				*/
-	enlargewind,	/* F4				*/
-	fillpara,	/* F5				*/
-	splitwind,	/* F6				*/
-	twiddle,	/* F7				*/
-	definemacro,	/* F8				*/
-	executemacro,	/* F9				*/
-	listbuffers,	/* F10				*/
-	poptofile,	/* Shift-F1		(0x116)	*/
-	filewrite,	/* Shift-F2			*/
-	backpage,	/* Shift-F3			*/
-	shrinkwind,	/* Shift-F4			*/
-	queryrepl,	/* Shift-F5			*/
-	onlywind,	/* Shift-F6			*/
-	justone,	/* Shift-F7			*/
-	finishmacro,	/* Shift-F8			*/
-	wallchart,	/* Shift-F9			*/
-	quit,		/* Shift-F10		(0x11F)	*/
+    filevisit,		/* F1			(0x10C)	*/
+    filesave,		/* F2				*/
+    forwpage,		/* F3				*/
+    enlargewind,	/* F4				*/
+    fillpara,		/* F5				*/
+    splitwind,		/* F6				*/
+    twiddle,		/* F7				*/
+    definemacro,	/* F8				*/
+    executemacro,	/* F9				*/
+    listbuffers,	/* F10				*/
+    poptofile,		/* Shift-F1		(0x116)	*/
+    filewrite,		/* Shift-F2			*/
+    backpage,		/* Shift-F3			*/
+    shrinkwind,		/* Shift-F4			*/
+    queryrepl,		/* Shift-F5			*/
+    onlywind,		/* Shift-F6			*/
+    justone,		/* Shift-F7			*/
+    finishmacro,	/* Shift-F8			*/
+    wallchart,		/* Shift-F9			*/
+    quit,		/* Shift-F10		(0x11F)	*/
 #else
-	rescan, rescan, rescan, rescan, rescan,	/* 20 unbound keys */
-	rescan, rescan, rescan, rescan, rescan,
-	rescan, rescan, rescan, rescan, rescan,
-	rescan, rescan, rescan, rescan, rescan,
+    rescan, rescan, rescan, rescan, rescan,	/* 20 unbound keys */
+    rescan, rescan, rescan, rescan, rescan,
+    rescan, rescan, rescan, rescan, rescan,
+    rescan, rescan, rescan, rescan, rescan,
 #endif
 
 #ifdef	MOUSE
-	amigamouse,	/* Mouse		(0x120)	*/
-	mforwdel,	/* Ctrl-Mouse			*/
-	mreposition,	/* Shift-Mouse			*/
-	mdelwhite,	/* Shift-Ctrl-Mouse		*/
-	mdelfword,	/* Meta-Mouse			*/
-	mkillregion,	/* Meta-Ctrl-Mouse		*/
-	mkillline,	/* Meta-Shift-Mouse		*/
-	myank,		/* Meta-Shift-Ctrl-Mouse	*/
-	mforwpage,	/* Mode-Mouse		(0x128)	*/
-	mgotobob,	/* Ctrl-Mode-Mouse		*/
-	mbackpage,	/* Shift-Mode-Mouse		*/
-	mgotoeob,	/* Shift-Ctrl-Mode-Mouse	*/
-	msplitwind,	/* Meta-Mode-Mouse		*/
-	menlargewind,	/* Meta-Ctrl-Mode-Mouse		*/
-	mdelwind,	/* Meta-Shift-Mode-Mouse	*/
-	mshrinkwind,	/* Meta-Shift-Ctrl-Mode-Mouse	*/
+    amigamouse,		/* Mouse		(0x120)	*/
+    mforwdel,		/* Ctrl-Mouse			*/
+    mreposition,	/* Shift-Mouse			*/
+    mdelwhite,		/* Shift-Ctrl-Mouse		*/
+    mdelfword,		/* Meta-Mouse			*/
+    mkillregion,	/* Meta-Ctrl-Mouse		*/
+    mkillline,		/* Meta-Shift-Mouse		*/
+    myank,		/* Meta-Shift-Ctrl-Mouse	*/
+    mforwpage,		/* Mode-Mouse		(0x128)	*/
+    mgotobob,		/* Ctrl-Mode-Mouse		*/
+    mbackpage,		/* Shift-Mode-Mouse		*/
+    mgotoeob,		/* Shift-Ctrl-Mode-Mouse	*/
+    msplitwind,		/* Meta-Mode-Mouse		*/
+    menlargewind,	/* Meta-Ctrl-Mode-Mouse		*/
+    mdelwind,		/* Meta-Shift-Mode-Mouse	*/
+    mshrinkwind,	/* Meta-Shift-Ctrl-Mode-Mouse	*/
 #ifdef	DO_ICONIFY
-	tticon,		/* Echo-Mouse		(0x130)	*/
+    tticon,		/* Echo-Mouse		(0x130)	*/
 #else
-	usebuffer,	/* Echo-Mouse		(0x130)	*/
+    usebuffer,		/* Echo-Mouse		(0x130)	*/
 #endif
-	spawncli,	/* Ctrl-Echo-Mouse		*/
-	killbuffer,	/* Shift-Echo-Mouse		*/
-	quit,		/* Shift-Ctrl-Echo-Mouse	*/
-	desckey,	/* Meta-Echo-Mouse		*/
-	listbuffers,	/* Meta-Ctrl-Echo-Mouse		*/
-	wallchart,	/* Meta-Shift-Echo-Mouse	*/
-	togglewindow,	/* Meta-Shift-Ctrl-Echo-Mouse	*/
-#endif	MOUSE
+    spawncli,		/* Ctrl-Echo-Mouse		*/
+    killbuffer,		/* Shift-Echo-Mouse		*/
+    quit,		/* Shift-Ctrl-Echo-Mouse	*/
+    desckey,		/* Meta-Echo-Mouse		*/
+    listbuffers,	/* Meta-Ctrl-Echo-Mouse		*/
+    wallchart,		/* Meta-Shift-Echo-Mouse	*/
+    togglewindow,	/* Meta-Shift-Ctrl-Echo-Mouse	*/
+#endif	/* MOUSE */
 };
 
 

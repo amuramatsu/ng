@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.7 2000/11/05 01:59:20 amura Exp $ */
+/* $Id: undo.h,v 1.8 2001/11/23 11:56:42 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: undo.h,v $
+ * Revision 1.8  2001/11/23 11:56:42  amura
+ * Rewrite all sources
+ *
  * Revision 1.7  2000/11/05 01:59:20  amura
  * ploblem with big undo is fixed
  *
@@ -45,14 +48,14 @@
 #define	UDFIRST		0x10
 
 typedef struct UNDO_DATA {
-    int    u_type;
-    int    u_dotlno;
-    short  u_doto;
-    RSIZE  u_size;
-    char   u_code[2];
+    int u_type;
+    int u_dotlno;
+    short u_doto;
+    RSIZE u_size;
+    char u_code[2];
     struct UNDO_DATA* u_next;
-    RSIZE  u_used;
-    char   *u_buffer;
+    RSIZE u_used;
+    char *u_buffer;
 } UNDO_DATA;
 
 extern UNDO_DATA** undoptr;
@@ -61,12 +64,12 @@ extern UNDO_DATA** undobefore;
 
 /* undo support functions */
 
-VOID ublock_open  pro((register BUFFER *));
-VOID ublock_close pro((register BUFFER *));
-VOID ublock_clear pro((register UNDO_DATA **));
-VOID undo_clean   pro((BUFFER*));
-int  undo_balloc pro((register UNDO_DATA*, register RSIZE));
-int  undo_bgrow  pro((register UNDO_DATA*, register RSIZE));
+VOID ublock_open  _PRO((register BUFFER *));
+VOID ublock_close _PRO((register BUFFER *));
+VOID ublock_clear _PRO((register UNDO_DATA **));
+VOID undo_clean   _PRO((BUFFER*));
+int  undo_balloc  _PRO((register UNDO_DATA*, register RSIZE));
+int  undo_bgrow   _PRO((register UNDO_DATA*, register RSIZE));
 
 /* undo support functions (implemented by macro for SPEED) */
 
@@ -104,4 +107,4 @@ int  undo_bgrow  pro((register UNDO_DATA*, register RSIZE));
 } while (/*CONSTCOND*/0)
 
 /* in line.c */
-int get_lineno   pro((BUFFER*, LINE*));
+int get_lineno   _PRO((BUFFER*, LINE*));

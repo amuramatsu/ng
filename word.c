@@ -1,4 +1,4 @@
-/* $Id: word.c,v 1.3 2001/01/05 14:07:06 amura Exp $ */
+/* $Id: word.c,v 1.4 2001/11/23 11:56:43 amura Exp $ */
 /*
  *		Word mode commands.
  * The routines in this file
@@ -9,6 +9,9 @@
 
 /*
  * $Log: word.c,v $
+ * Revision 1.4  2001/11/23 11:56:43  amura
+ * Rewrite all sources
+ *
  * Revision 1.3  2001/01/05 14:07:06  amura
  * first implementation of Hojo Kanji support
  *
@@ -21,13 +24,13 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
-#include	"def.h"
-#ifdef	UNDO
-#include	"undo.h"
+#include "config.h"	/* 90.12.20  by S.Yoshida */
+#include "def.h"
+#ifdef UNDO
+#include "undo.h"
 #endif
 
-#ifdef	HOJO_KANJI
+#ifdef HOJO_KANJI
 #define	CHAR_LENGTH()	(ishojo() ? 3 : (iskanji() ? 2 : 1))
 #else
 #define	CHAR_LENGTH()	(iskanji() ? 2 : 1)
@@ -40,27 +43,30 @@
  * routines.
  */
 /*ARGSUSED*/
+int
 backword(f, n)
+int f, n;
 {
-	if (n < 0) return forwword(f | FFRAND, -n);
-	if (backchar(FFRAND, 1) == FALSE)
-		return FALSE;
-	while (n--) {
-		while (inword() == FALSE) {
-			if (backchar(FFRAND, 1) == FALSE)
-				return TRUE;
-		}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		initcategory(0);	/* Set category of start char. */
-		while (inword() != FALSE && incategory()) {
-#else	/* NOT KANJI */
-		while (inword() != FALSE) {
-#endif	/* KANJI */
-			if (backchar(FFRAND, 1) == FALSE)
-				return TRUE;
-		}
+    if (n < 0)
+	return forwword(f | FFRAND, -n);
+    if (backchar(FFRAND, 1) == FALSE)
+	return FALSE;
+    while (n--) {
+	while (inword() == FALSE) {
+	    if (backchar(FFRAND, 1) == FALSE)
+		return TRUE;
 	}
-	return forwchar(FFRAND, 1);
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	initcategory(0);	/* Set category of start char. */
+	while (inword() != FALSE && incategory()) {
+#else /* NOT KANJI */
+	while (inword() != FALSE) {
+#endif /* KANJI */
+	    if (backchar(FFRAND, 1) == FALSE)
+		return TRUE;
+	}
+    }
+    return forwchar(FFRAND, 1);
 }
 
 /*
@@ -69,26 +75,28 @@ backword(f, n)
  * motion is done by "forwchar".
  */
 /*ARGSUSED*/
+int
 forwword(f, n)
+int f, n;
 {
-	if (n < 0)
-		return backword(f | FFRAND, -n);
-	while (n--) {
-		while (inword() == FALSE) {
-			if (forwchar(FFRAND, 1) == FALSE)
-				return TRUE;
-		}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		initcategory(1);	/* Set category of start char. */
-		while (inword() != FALSE && incategory()) {
-#else	/* NOT KANJI */
-		while (inword() != FALSE) {
-#endif	/* KANJI */
-			if (forwchar(FFRAND, 1) == FALSE)
-				return TRUE;
-		}
+    if (n < 0)
+	return backword(f | FFRAND, -n);
+    while (n--) {
+	while (inword() == FALSE) {
+	    if (forwchar(FFRAND, 1) == FALSE)
+		return TRUE;
 	}
-	return TRUE;
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	initcategory(1);	/* Set category of start char. */
+	while (inword() != FALSE && incategory()) {
+#else /* NOT KANJI */
+	while (inword() != FALSE) {
+#endif /* KANJI */
+	    if (forwchar(FFRAND, 1) == FALSE)
+		return TRUE;
+	}
+    }
+    return TRUE;
 }
 
 /*
@@ -97,43 +105,46 @@ forwword(f, n)
  * convert any characters to upper case.
  */
 /*ARGSUSED*/
+int
 upperword(f, n)
+int f, n;
 {
-	register int	c;
+    register int c;
 
-#ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-	if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
-		warnreadonly();		/* do only displaying warning.	*/
+#ifdef READONLY	/* 91.01.05  by S.Yoshida */
+    if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
+	warnreadonly();			/* do only displaying warning.	*/
+	return TRUE;
+    }
+#endif /* READONLY */
+    
+    if (n < 0)
+	return FALSE;
+#ifdef UNDO
+    undo_reset(curbp);			/* this function cannot undo */
+#endif
+    while (n--) {
+	while (inword() == FALSE) {
+	    if (forwchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
-#endif	/* READONLY */
-
-	if (n < 0) return FALSE;
-#ifdef	UNDO
-	undo_reset(curbp);		/* this function cannot undo */
-#endif
-	while (n--) {
-		while (inword() == FALSE) {
-			if (forwchar(FFRAND, 1) == FALSE)
-				return TRUE;
-		}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		initcategory(1);	/* Set category of start char. */
-		while (inword() != FALSE && incategory()) {
-#else	/* NOT KANJI */
-		while (inword() != FALSE) {
-#endif	/* KANJI */
-			c = lgetc(curwp->w_dotp, curwp->w_doto);
-			if (ISLOWER(c) != FALSE) {
-				c = TOUPPER(c);
-				lputc(curwp->w_dotp, curwp->w_doto, c);
-				lchange(WFHARD);
-			}
-			if (forwchar(FFRAND, 1) == FALSE)
-				return TRUE;
-		}
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	initcategory(1);	/* Set category of start char. */
+	while (inword() != FALSE && incategory()) {
+#else /* NOT KANJI */
+	while (inword() != FALSE) {
+#endif /* KANJI */
+	    c = lgetc(curwp->w_dotp, curwp->w_doto);
+	    if (ISLOWER(c) != FALSE) {
+		c = TOUPPER(c);
+		lputc(curwp->w_dotp, curwp->w_doto, c);
+		lchange(WFHARD);
+	    }
+	    if (forwchar(FFRAND, 1) == FALSE)
+		return TRUE;
 	}
-	return TRUE;
+    }
+    return TRUE;
 }
 
 /*
@@ -142,43 +153,46 @@ upperword(f, n)
  * convert characters to lower case.
  */
 /*ARGSUSED*/
+int
 lowerword(f, n)
+int f, n;
 {
-	register int	c;
+    register int c;
 
-#ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-	if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
-		warnreadonly();		/* do only displaying warning.	*/
+#ifdef READONLY	/* 91.01.05  by S.Yoshida */
+    if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
+	warnreadonly();			/* do only displaying warning.	*/
+	return TRUE;
+    }
+#endif /* READONLY */
+
+    if (n < 0)
+	return FALSE;
+#ifdef UNDO
+    undo_reset(curbp);			/* this function cannot undo */
+#endif
+    while (n--) {
+	while (inword() == FALSE) {
+	    if (forwchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
-#endif	/* READONLY */
-
-	if (n < 0) return FALSE;
-#ifdef	UNDO
-	undo_reset(curbp);		/* this function cannot undo */
-#endif
-	while (n--) {
-		while (inword() == FALSE) {
-			if (forwchar(FFRAND, 1) == FALSE)
-				return TRUE;
-		}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		initcategory(1);	/* Set category of start char. */
-		while (inword() != FALSE && incategory()) {
-#else	/* NOT KANJI */
-		while (inword() != FALSE) {
-#endif	/* KANJI */
-			c = lgetc(curwp->w_dotp, curwp->w_doto);
-			if (ISUPPER(c) != FALSE) {
-				c = TOLOWER(c);
-				lputc(curwp->w_dotp, curwp->w_doto, c);
-				lchange(WFHARD);
-			}
-			if (forwchar(FFRAND, 1) == FALSE)
-				return TRUE;
-		}
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	initcategory(1);	/* Set category of start char. */
+	while (inword() != FALSE && incategory()) {
+#else /* NOT KANJI */
+	while (inword() != FALSE) {
+#endif /* KANJI */
+	    c = lgetc(curwp->w_dotp, curwp->w_doto);
+	    if (ISUPPER(c) != FALSE) {
+		c = TOLOWER(c);
+		lputc(curwp->w_dotp, curwp->w_doto, c);
+		lchange(WFHARD);
+	    }
+	    if (forwchar(FFRAND, 1) == FALSE)
+		return TRUE;
 	}
-	return TRUE;
+    }
+    return TRUE;
 }
 
 /*
@@ -189,121 +203,126 @@ lowerword(f, n)
  * if you try and move past the end of the buffer.
  */
 /*ARGSUSED*/
+int
 capword(f, n)
+int f, n;
 {
-	register int	c;
-	VOID		lchange();
+    register int c;
+    VOID lchange _PRO((int));
 
-#ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-	if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
-		warnreadonly();		/* do only displaying warning.	*/
+#ifdef READONLY	/* 91.01.05  by S.Yoshida */
+    if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
+	warnreadonly();			/* do only displaying warning.	*/
+	return TRUE;
+    }
+#endif /* READONLY */
+
+    if (n < 0)
+	return FALSE;
+#ifdef UNDO
+    undo_reset(curbp);		/* this function cannot undo */
+#endif
+    while (n--) {
+	while (inword() == FALSE) {
+	    if (forwchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
-#endif	/* READONLY */
-
-	if (n < 0) return FALSE;
-#ifdef	UNDO
-	undo_reset(curbp);		/* this function cannot undo */
-#endif
-	while (n--) {
-		while (inword() == FALSE) {
-			if (forwchar(FFRAND, 1) == FALSE)
-				return TRUE;
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	initcategory(1);	/* Set category of start char. */
+	if (inword() != FALSE && incategory()) {
+#else /* NOT KANJI */
+	if (inword() != FALSE) {
+#endif /* KANJI */
+	    c = lgetc(curwp->w_dotp, curwp->w_doto);
+	    if (ISLOWER(c) != FALSE) {
+		c = TOUPPER(c);
+		lputc(curwp->w_dotp, curwp->w_doto, c);
+		lchange(WFHARD);
+	    }
+	    if (forwchar(FFRAND, 1) == FALSE)
+		return TRUE;
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	    while (inword() != FALSE && incategory()) {
+#else /* NOT KANJI */
+	    while (inword() != FALSE) {
+#endif /* KANJI */
+		c = lgetc(curwp->w_dotp, curwp->w_doto);
+		if (ISUPPER(c) != FALSE) {
+		    c = TOLOWER(c);
+		    lputc(curwp->w_dotp, curwp->w_doto, c);
+		    lchange(WFHARD);
 		}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		initcategory(1);	/* Set category of start char. */
-		if (inword() != FALSE && incategory()) {
-#else	/* NOT KANJI */
-		if (inword() != FALSE) {
-#endif	/* KANJI */
-			c = lgetc(curwp->w_dotp, curwp->w_doto);
-			if (ISLOWER(c) != FALSE) {
-				c = TOUPPER(c);
-				lputc(curwp->w_dotp, curwp->w_doto, c);
-				lchange(WFHARD);
-			}
-			if (forwchar(FFRAND, 1) == FALSE)
-				return TRUE;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			while (inword() != FALSE && incategory()) {
-#else	/* NOT KANJI */
-			while (inword() != FALSE) {
-#endif	/* KANJI */
-				c = lgetc(curwp->w_dotp, curwp->w_doto);
-				if (ISUPPER(c) != FALSE) {
-					c = TOLOWER(c);
-					lputc(curwp->w_dotp, curwp->w_doto, c);
-					lchange(WFHARD);
-				}
-				if (forwchar(FFRAND, 1) == FALSE)
-					return TRUE;
-			}
-		}
+		if (forwchar(FFRAND, 1) == FALSE)
+		    return TRUE;
+	    }
 	}
-	return TRUE;
+    }
+    return TRUE;
 }
 
 /*
  * Kill forward by "n" words.
  */
 /*ARGSUSED*/
+int
 delfword(f, n)
+int f, n;
 {
-	register RSIZE	size;
-	register LINE	*dotp;
-	register int	doto;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	register RSIZE	s;			/* Delete char size.	*/
-#endif	/* KANJI */
+    register RSIZE size;
+    register LINE *dotp;
+    register int doto;
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+    register RSIZE s;			/* Delete char size.	*/
+#endif /* KANJI */
 
-#ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-	if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
-		warnreadonly();		/* do only displaying warning.	*/
-		return TRUE;
-	}
-#endif	/* READONLY */
-
-	if (n < 0)
-		return FALSE;
-	if ((lastflag&CFKILL) == 0)		/* Purge kill buffer.	*/
-		kdelete();
-	thisflag |= CFKILL;
-	dotp = curwp->w_dotp;
-	doto = curwp->w_doto;
-	size = 0;
-	while (n--) {
-		while (inword() == FALSE) {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			s = CHAR_LENGTH();
-#endif	/* KANJI */
-			if (forwchar(FFRAND, 1) == FALSE)
-				goto out;	/* Hit end of buffer.	*/
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			size += s;
-#else	/* NOT KANJI */
-			++size;
-#endif	/* KANJI */
+#ifdef READONLY	/* 91.01.05  by S.Yoshida */
+    if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
+	warnreadonly();			/* do only displaying warning.	*/
+	return TRUE;
+    }
+#endif /* READONLY */
+    
+    if (n < 0)
+	return FALSE;
+    if ((lastflag&CFKILL) == 0)		/* Purge kill buffer.	*/
+	kdelete();
+    thisflag |= CFKILL;
+    dotp = curwp->w_dotp;
+    doto = curwp->w_doto;
+    size = 0;
+    while (n--) {
+	while (inword() == FALSE) {
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	    s = CHAR_LENGTH();
+#endif /* KANJI */
+	    if (forwchar(FFRAND, 1) == FALSE)
+		goto out;	/* Hit end of buffer.	*/
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	    size += s;
+#else /* NOT KANJI */
+	    ++size;
+#endif /* KANJI */
 		}
 #ifndef	KANJI	/* 90.01.29  by S.Yoshida */
-		while (inword() != FALSE) {
-#else	/* KANJI */
-		initcategory(1);	/* Set category of start char. */
-		while (inword() != FALSE && incategory()) {
-			s = CHAR_LENGTH();
-#endif	/* KANJI */
-			if (forwchar(FFRAND, 1) == FALSE)
-				goto out;	/* Hit end of buffer.	*/
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			size += s;
-#else	/* NOT KANJI */
-			++size;
-#endif	/* KANJI */
-		}
+	while (inword() != FALSE) {
+#else /* KANJI */
+	initcategory(1);	/* Set category of start char. */
+	while (inword() != FALSE && incategory()) {
+	    s = CHAR_LENGTH();
+#endif /* KANJI */
+	    if (forwchar(FFRAND, 1) == FALSE)
+		goto out;	/* Hit end of buffer.	*/
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	    size += s;
+#else /* NOT KANJI */
+	    ++size;
+#endif /* KANJI */
 	}
+    }
 out:
-	curwp->w_dotp = dotp;
-	curwp->w_doto = doto;
-	return (ldelete(size, KFORW));
+    curwp->w_dotp = dotp;
+    curwp->w_doto = doto;
+    return (ldelete(size, KFORW));
 }
 
 /*
@@ -319,62 +338,65 @@ out:
  * to "M-Backspace".
  */
 /*ARGSUSED*/
+int
 delbword(f, n)
+int f, n;
 {
-	register RSIZE	size;
-	VOID		kdelete();
+    register RSIZE size;
+    VOID kdelete _PRO((void));
 
-#ifdef	READONLY	/* 91.01.05  by S.Yoshida */
-	if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
-		warnreadonly();		/* do only displaying warning.	*/
-		return TRUE;
-	}
-#endif	/* READONLY */
+#ifdef READONLY	/* 91.01.05  by S.Yoshida */
+    if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
+	warnreadonly();			/* do only displaying warning.	*/
+	return TRUE;
+    }
+#endif /* READONLY */
 
-	if (n < 0) return FALSE;
-	if ((lastflag&CFKILL) == 0)		/* Purge kill buffer.	*/
-		kdelete();
-	thisflag |= CFKILL;
-	if (backchar(FFRAND, 1) == FALSE)
-		return (TRUE);			/* Hit buffer start.	*/
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	size = CHAR_LENGTH();
-#else	/* NOT KANJI */	
-	size = 1;				/* One deleted.		*/
-#endif	/* KANJI */
-	while (n--) {
-		while (inword() == FALSE) {
-			if (backchar(FFRAND, 1) == FALSE)
-				goto out;	/* Hit buffer start.	*/
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			size += CHAR_LENGTH();
-#else	/* NOT KANJI */	
-			++size;
-#endif	/* KANJI */
-		}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-		initcategory(0);	/* Set category of start char. */
-		while (inword() != FALSE && incategory()) {
-#else	/* NOT KANJI */
-		while (inword() != FALSE) {
-#endif	/* KANJI */
-			if (backchar(FFRAND, 1) == FALSE)
-				goto out;	/* Hit buffer start.	*/
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-			size += CHAR_LENGTH();
-#else	/* NOT KANJI */	
-			++size;
-#endif	/* KANJI */
-		}
+    if (n < 0)
+	return FALSE;
+    if ((lastflag&CFKILL) == 0)		/* Purge kill buffer.	*/
+	kdelete();
+    thisflag |= CFKILL;
+    if (backchar(FFRAND, 1) == FALSE)
+	return (TRUE);			/* Hit buffer start.	*/
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+    size = CHAR_LENGTH();
+#else /* NOT KANJI */	
+    size = 1;				/* One deleted.		*/
+#endif /* KANJI */
+    while (n--) {
+	while (inword() == FALSE) {
+	    if (backchar(FFRAND, 1) == FALSE)
+		goto out;	/* Hit buffer start.	*/
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	    size += CHAR_LENGTH();
+#else /* NOT KANJI */	
+	    ++size;
+#endif /* KANJI */
 	}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	size -= CHAR_LENGTH();
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	initcategory(0);	/* Set category of start char. */
+	while (inword() != FALSE && incategory()) {
+#else /* NOT KANJI */
+	while (inword() != FALSE) {
 #endif	/* KANJI */
-	if (forwchar(FFRAND, 1) == FALSE)
-		return FALSE;
-	--size;					/* Undo assumed delete. */
+	    if (backchar(FFRAND, 1) == FALSE)
+		goto out;	/* Hit buffer start.	*/
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	    size += CHAR_LENGTH();
+#else /* NOT KANJI */	
+	    ++size;
+#endif /* KANJI */
+	}
+    }
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+    size -= CHAR_LENGTH();
+#endif	/* KANJI */
+    if (forwchar(FFRAND, 1) == FALSE)
+	return FALSE;
+    --size;					/* Undo assumed delete. */
 out:
-	return ldelete(size, KBACK);
+    return ldelete(size, KBACK);
 }
 
 /*
@@ -383,29 +405,31 @@ out:
  * part of a word. The word character list is hard
  * coded. Should be setable.
  */
-inword() {
-/* can't use lgetc in ISWORD due to bug in OSK cpp */
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	register int	c;
-
-	if (curwp->w_doto == llength(curwp->w_dotp)) {
-		return FALSE;
+int
+inword()
+{
+    /* can't use lgetc in ISWORD due to bug in OSK cpp */
+#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+    register int	c;
+    
+    if (curwp->w_doto == llength(curwp->w_dotp)) {
+	return FALSE;
+    }
+    c = lgetc(curwp->w_dotp, curwp->w_doto);
+    if (ISKANJI(c)) {
+#ifdef HOJO_KANJI
+	if (ISHOJO(c)) {
+	    curwp->w_doto++;
+	    c = lgetc(curwp->w_dotp, curwp->w_doto);
 	}
-	c = lgetc(curwp->w_dotp, curwp->w_doto);
-	if (ISKANJI(c)) {
-#ifdef	HOJO_KANJI
-		if (ISHOJO(c)) {
-			curwp->w_doto++;
-			c = lgetc(curwp->w_dotp, curwp->w_doto);
-		}
 #endif
-		return(iskword(c, lgetc(curwp->w_dotp, curwp->w_doto + 1)));
-
-	} else {
-		return (ISWORD(c));
-	}
-#else	/* NOT KANJI */
-	return curwp->w_doto != llength(curwp->w_dotp) && 
-		ISWORD(curwp->w_dotp->l_text[curwp->w_doto]);
-#endif	/* KANJI */
+	return(iskword(c, lgetc(curwp->w_dotp, curwp->w_doto + 1)));
+    }
+    else {
+	return (ISWORD(c));
+    }
+#else /* NOT KANJI */
+    return curwp->w_doto != llength(curwp->w_dotp) && 
+	ISWORD(curwp->w_dotp->l_text[curwp->w_doto]);
+#endif /* KANJI */
 }

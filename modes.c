@@ -1,4 +1,4 @@
-/* $Id: modes.c,v 1.3 2000/12/14 18:12:14 amura Exp $ */
+/* $Id: modes.c,v 1.4 2001/11/23 11:56:40 amura Exp $ */
 /*
  * Commands to toggle modes. Without an argument, toggle mode.
  * Negitive or zero argument, mode off.	 Positive argument, mode on.
@@ -7,6 +7,9 @@
 
 /*
  * $Log: modes.c,v $
+ * Revision 1.4  2001/11/23 11:56:40  amura
+ * Rewrite all sources
+ *
  * Revision 1.3  2000/12/14 18:12:14  amura
  * use alloca() and more memory secure
  *
@@ -26,7 +29,8 @@ int defb_nmodes = 0;
 MAPS *defb_modes[PBMODES] = {&map_table[0]};
 int defb_flag = 0;
 
-static int changemode(f, n, mode)
+static int
+changemode(f, n, mode)
 int f, n;
 char *mode;
 {
@@ -34,30 +38,34 @@ char *mode;
     MAPS *m;
     VOID upmodes();
 
-    if((m = name_mode(mode)) == NULL) {
+    if ((m = name_mode(mode)) == NULL) {
 	ewprintf("Can't find mode %s", mode);
 	return FALSE;
     }
-    if(!(f & FFARG)) {
-	for(i=0; i <= curbp->b_nmodes; i++)
-	    if(curbp->b_modes[i] == m) {
+    if (!(f & FFARG)) {
+	for (i=0; i <= curbp->b_nmodes; i++)
+	    if (curbp->b_modes[i] == m) {
 		n = 0;			/* mode already set */
 		break;
 	    }
     }
-    if(n > 0) {
-	for(i=0; i <= curbp->b_nmodes; i++)
-	    if(curbp->b_modes[i] == m) return TRUE;	/* mode already set */
-	if(curbp->b_nmodes >= PBMODES-1) {
+    if (n > 0) {
+	for( i=0; i <= curbp->b_nmodes; i++)
+	    if (curbp->b_modes[i] == m)
+		return TRUE;	/* mode already set */
+	if (curbp->b_nmodes >= PBMODES-1) {
 	    ewprintf("Too many modes");
 	    return FALSE;
 	}
 	curbp->b_modes[++(curbp->b_nmodes)] = m;
-    } else {
+    }
+    else {
 	/* fundamental is b_modes[0] and can't be unset */
-	for(i=1; i <= curbp->b_nmodes && m != curbp->b_modes[i]; i++) {}
-	if(i > curbp->b_nmodes) return TRUE;		/* mode wasn't set */
-	for(; i < curbp->b_nmodes; i++)
+	for (i=1; i <= curbp->b_nmodes && m != curbp->b_modes[i]; i++)
+	    ;
+	if (i > curbp->b_nmodes)
+	    return TRUE;		/* mode wasn't set */
+	for (; i < curbp->b_nmodes; i++)
 	    curbp->b_modes[i] = curbp->b_modes[i+1];
 	curbp->b_nmodes--;
     }
@@ -65,19 +73,28 @@ char *mode;
     return TRUE;
 }
 
+int
 indentmode(f, n)
+int f, n;
 {
     return changemode(f, n, "indent");
 }
 
+int
 fillmode(f, n)
+int f, n;
 {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-    if(changemode(f, n, "fill") == FALSE) return FALSE;
-    if(f & FFARG) {
-	if(n <= 0) curbp->b_flag &= ~BFAUTOFILL;
-	else curbp->b_flag |= BFAUTOFILL;
-    } else curbp->b_flag ^= BFAUTOFILL;
+    if (changemode(f, n, "fill") == FALSE)
+	return FALSE;
+    if (f & FFARG) {
+	if (n <= 0)
+	    curbp->b_flag &= ~BFAUTOFILL;
+	else
+	    curbp->b_flag |= BFAUTOFILL;
+    }
+    else
+	curbp->b_flag ^= BFAUTOFILL;
     return TRUE;
 #else	/* NOT KANJI */
     return changemode(f, n, "fill");
@@ -87,29 +104,40 @@ fillmode(f, n)
 /*
  * Fake the GNU "blink-matching-paren" variable.
  */
+int
 blinkparen(f, n)
+int f, n;
 {
     return changemode(f, n, "blink");
 }
 
 #ifdef	NOTAB
+int
 notabmode(f, n)
+int f, n;
 {
-    if(changemode(f, n, "notab") == FALSE) return FALSE;
-    if(f & FFARG) {
-	if(n <= 0) curbp->b_flag &= ~BFNOTAB;
-	else curbp->b_flag |= BFNOTAB;
-    } else curbp->b_flag ^= BFNOTAB;
+    if (changemode(f, n, "notab") == FALSE)
+	return FALSE;
+    if (f & FFARG) {
+	if (n <= 0)
+	    curbp->b_flag &= ~BFNOTAB;
+	else
+	    curbp->b_flag |= BFNOTAB;
+    }
+    else
+	curbp->b_flag ^= BFNOTAB;
     return TRUE;
 }
 #endif
 
 #ifdef C_MODE	/* 90.07.24  by K.Takano */
+int
 cmode(f, n)
+int f, n;
 {
 #ifdef VARIABLE_TAB
     extern int cmode_tab;
-    int set_tabwidth();
+    int set_tabwidth _PRO((int,int));
 
     if (cmode_tab != 0)
 	set_tabwidth(-1, cmode_tab);
@@ -118,17 +146,24 @@ cmode(f, n)
 }
 #endif
 
+int
 overwrite(f, n)
 int f, n;
 {
-    if(changemode(f, n, "overwrite") == FALSE) return FALSE;
-    if(f & FFARG) {
-	if(n <= 0) curbp->b_flag &= ~BFOVERWRITE;
-	else curbp->b_flag |= BFOVERWRITE;
-    } else curbp->b_flag ^= BFOVERWRITE;
+    if (changemode(f, n, "overwrite") == FALSE)
+	return FALSE;
+    if (f & FFARG) {
+	if (n <= 0)
+	    curbp->b_flag &= ~BFOVERWRITE;
+	else
+	    curbp->b_flag |= BFOVERWRITE;
+    }
+    else
+	curbp->b_flag ^= BFOVERWRITE;
     return TRUE;
 }
 
+int
 set_default_mode(f, n)
 int f, n;
 {
@@ -136,47 +171,62 @@ int f, n;
     register MAPS *m;
     char mode[NINPUT];
 
-    if(eread("Set Default Mode: ", mode, sizeof(mode), EFNEW) != TRUE)
+    if (eread("Set Default Mode: ", mode, sizeof(mode), EFNEW) != TRUE)
     	return ABORT;
-    if((m = name_mode(mode)) == NULL) {
+    if ((m = name_mode(mode)) == NULL) {
     	ewprintf("can't find mode %s", mode);
 	return FALSE;
     }
-    if(!(f & FFARG)) {
-	for(i=0; i <= defb_nmodes; i++)
+    if (!(f & FFARG)) {
+	for (i=0; i <= defb_nmodes; i++) {
 	    if(defb_modes[i] == m) {
 		n = 0;			/* mode already set */
 		break;
 	    }
+	}
     }
-    if(n > 0) {
-	for(i=0; i <= defb_nmodes; i++)
-	    if(defb_modes[i] == m) return TRUE;	/* mode already set */
-	if(defb_nmodes >= PBMODES-1) {
+    if (n > 0) {
+	for (i=0; i <= defb_nmodes; i++) {
+	    if(defb_modes[i] == m)
+		return TRUE;	/* mode already set */
+	}
+	if (defb_nmodes >= PBMODES-1) {
 	    ewprintf("Too many modes");
 	    return FALSE;
 	}
 	defb_modes[++defb_nmodes] = m;
-    } else {
+    }
+    else {
 	/* fundamental is defb_modes[0] and can't be unset */
-	for(i=1; i <= defb_nmodes && m != defb_modes[i]; i++) {}
-	if(i > defb_nmodes) return TRUE;		/* mode wasn't set */
-	for(; i < defb_nmodes; i++)
+	for (i=1; i <= defb_nmodes && m != defb_modes[i]; i++)
+	    ;
+	if (i > defb_nmodes)
+	    return TRUE;		/* mode wasn't set */
+	for (; i < defb_nmodes; i++)
 	    defb_modes[i] = defb_modes[i+1];
 	defb_nmodes--;
     }
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-    if(strcmp(mode, "fill")==0)
-    	if(n<=0) defb_flag &= ~BFAUTOFILL;
-	else defb_flag |= BFAUTOFILL;
+    if (strcmp(mode, "fill")==0) {
+    	if (n<=0)
+	    defb_flag &= ~BFAUTOFILL;
+	else
+	    defb_flag |= BFAUTOFILL;
+    }
 #endif	/* KANJI */
-    if(strcmp(mode, "overwrite")==0)
-    	if(n<=0) defb_flag &= ~BFOVERWRITE;
-	else defb_flag |= BFOVERWRITE;
+    if (strcmp(mode, "overwrite") == 0) {
+    	if (n<=0)
+	    defb_flag &= ~BFOVERWRITE;
+	else
+	    defb_flag |= BFOVERWRITE;
+    }
 #ifdef NOTAB
-    if(strcmp(mode, "notab")==0)
-    	if(n<=0) defb_flag &= ~BFNOTAB;
-	else defb_flag |= BFNOTAB;
+    if (strcmp(mode, "notab") == 0) {
+    	if (n<=0)
+	    defb_flag &= ~BFNOTAB;
+	else
+	    defb_flag |= BFNOTAB;
+    }
 #endif
     return TRUE;
 }

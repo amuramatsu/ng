@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.5 2001/05/20 20:22:51 amura Exp $ */
+/* $Id: sysdef.h,v 1.6 2001/11/23 11:56:50 amura Exp $ */
 /*
  *		MS-DOS based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.6  2001/11/23 11:56:50  amura
+ * Rewrite all sources
+ *
  * Revision 1.5  2001/05/20 20:22:51  amura
  * fix silly bug
  *
@@ -23,6 +26,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef	__TURBOC__	/* 90.03.23  by A.Shirahashi */
 #include <mem.h>
 extern void *alloca(int);		/* defind in alloca.asm		*/
@@ -54,12 +58,11 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
  * stops at end of string (or at the next BDC3 character,
  * if defined). BDC2 and BDC3 are mainly for VMS.
  */
-#define	BDC1	'\\'			/* Buffer names.		*/
+#define	BDC1		'\\'		/* Buffer names.		*/
 
 #define MALLOCROUND(m)	(m+=7,m&=~7)	/* round up to 8 byte boundry	*/
 
 #define	bcopy(s,d,n)	memmove(d,s,n)	/* copy memory area.		*/
 #define	fncmp		strcmp		/* file name comparison		*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
-char *getenv();
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/

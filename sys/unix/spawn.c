@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.5 2000/12/21 16:58:06 amura Exp $ */
+/* $Id: spawn.c,v 1.6 2001/11/23 11:56:51 amura Exp $ */
 /*
  *	Spawn. (for configure)
  * This interracts with the job control stuff
@@ -10,6 +10,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.6  2001/11/23 11:56:51  amura
+ * Rewrite all sources
+ *
  * Revision 1.5  2000/12/21 16:58:06  amura
  * suspend support can enable most of OS
  *
@@ -27,16 +30,16 @@
  *
  */
 
-#include	"config.h"
-#include	"def.h"
+#include "config.h"
+#include "def.h"
 
-#include	<signal.h>
-#include	<string.h>
+#include <signal.h>
+#include <string.h>
 #ifdef	HAVE_VFORK_H
-#include	<vfork.h>
+#include <vfork.h>
 #endif
 #ifdef	HAVE_SYS_WAIT_H
-#include	<sys/wait.h>
+#include <sys/wait.h>
 #endif
 
 /* some system don't have job-control even if SIGTSTP is defined... */
@@ -49,10 +52,8 @@
 #ifndef HAVE_RINDEX
 #define rindex(s,c)	strrchr(s,c)
 #endif
-char	*shellp = NULL;			/* Saved "SHELL" name.		*/
-char	*shname;
-
-extern	char	*getenv();
+static char *shellp = NULL;		/* Saved "SHELL" name.		*/
+static char *shname;
 
 /*
  * This code does a one of 2 different
@@ -69,21 +70,22 @@ extern	char	*getenv();
  *	    work with the ksh.
  */
 /*ARGSUSED*/
-spawncli(f, n) {
-    register pid_t	pid, wpid;
+int
+spawncli(f, n)
+int f, n;
+{
+    register pid_t pid, wpid;
 #ifdef	SIGTSTP
 #ifdef	HAVE_SIGPROCMASK
-    sigset_t		omask,newmask;
+    sigset_t omask, newmask;
 #else
-    register int	omask;
+    register int omask;
 #endif
 #endif	/* SIGTSTP */
-    register RETSIGTYPE	(*oqsig)(),(*oisig)();
-#ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
+    register RETSIGTYPE	(*oqsig)(), (*oisig)();
 #ifdef	SIGWINCH	/* 90.02.14  by S.Yoshida */
     register RETSIGTYPE	(*owsig)();
 #endif	/* SIGWINCH */
-#endif	/* ADDFUNC */
     int status;
 
 #ifdef XKEYS  /* 92.03.16 by Gen KUROKI */
@@ -107,7 +109,8 @@ spawncli(f, n) {
 	    epresf = FALSE;
 	}				/* Csh types a "\n"	*/
 	ttmove(nrow-2, 0);		/* before "Stopped".	*/
-    } else {
+    }
+    else {
 	ttmove(nrow-1, 0);
 	if (epresf != FALSE) {
 	    tteeol();
@@ -123,35 +126,30 @@ spawncli(f, n) {
 #ifdef	HAVE_SIGPROCMASK
 	sigfillset(&newmask);
 	sigprocmask(SIG_UNBLOCK, &newmask, &omask);
-	(void) kill(0, SIGTSTP);
+	kill(0, SIGTSTP);
 	sigprocmask(SIG_SETMASK, &omask, NULL);
 #else
 	omask = sigsetmask(0);
-	(void) kill(0, SIGTSTP);
-	(void) sigsetmask(omask);
+	kill(0, SIGTSTP);
+	sigsetmask(omask);
 #endif
-#ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
 #ifdef	SIGWINCH	/* 90.02.14  by S.Yoshida */
 	refresh(FFRAND, 0);		/* May be resized.	*/
 #endif	/* SIGWINCH */
-#endif	/* ADDFUNC */
-    } else {				/* Bourne shell.	*/
+    }
+    else {				/* Bourne shell.	*/
 #endif	/* SIGTSTP */
 	oqsig = signal(SIGQUIT, SIG_IGN);
 	oisig = signal(SIGINT,	SIG_IGN);
-#ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
-#ifdef	SIGWINCH	/* 90.02.14  by S.Yoshida */
+#ifdef	SIGWINCH
 	owsig = signal(SIGWINCH, SIG_IGN);
-#endif	/* SIGWINCH */
-#endif	/* ADDFUNC */
+#endif
 	if ((pid=vfork()) < 0) {
-	    (void) signal(SIGQUIT, oqsig);
-	    (void) signal(SIGINT,  oisig);
-#ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
-#ifdef	SIGWINCH	/* 90.02.14  by S.Yoshida */
-	    (void) signal(SIGWINCH, owsig);
-#endif	/* SIGWINCH */
-#endif	/* ADDFUNC */
+	    signal(SIGQUIT, oqsig);
+	    signal(SIGINT,  oisig);
+#ifdef	SIGWINCH
+	    signal(SIGWINCH, owsig);
+#endif
 	    ewprintf("Failed to create process");
 	    return (FALSE);
 	}
@@ -164,14 +162,12 @@ spawncli(f, n) {
 	}
 	while ((wpid=wait((int*)&status))>=0 && wpid!=pid)
 	    ;
-	(void) signal(SIGQUIT, oqsig);
-	(void) signal(SIGINT,  oisig);
-#ifdef	ADDFUNC		/* 90.02.14  by S.Yoshida */
-#ifdef	SIGWINCH	/* 90.02.14  by S.Yoshida */
+	signal(SIGQUIT, oqsig);
+	signal(SIGINT,  oisig);
+#ifdef	SIGWINCH
 	(void) signal(SIGWINCH, owsig);
 	refresh(FFRAND, 0);		/* May be resized.	*/
-#endif	/* SIGWINCH */
-#endif	/* ADDFUNC */
+#endif
 #ifdef	SIGTSTP
     }
 #endif
@@ -205,7 +201,7 @@ call_process(command, input)
 char *command;
 char *input;
 {
-    char buf[256];
+    char buf[CMDLINELENGTH];
     static char tmpbuf[20];
     char *tmp;
     int ostdin, ostdout, ostderr, in, out, s;
@@ -248,7 +244,8 @@ char *input;
     close(1); dup(out);
     close(2); dup(out);
 #endif
-    strcpy(buf, command);
+    strncpy(buf, command, sizeof(buf)-1);
+    buf[sizeof(buf)-1] = '\0';
 #ifdef	EXTD_DIR
     ensurecwd();
 #endif

@@ -1,4 +1,4 @@
-/* $Id: iconify.c,v 2.1 2000/09/29 17:24:09 amura Exp $ */
+/* $Id: iconify.c,v 2.2 2001/11/23 11:56:44 amura Exp $ */
 /*
  * iconify.c
  *   Leo Schwab's iconify() compatible iconify routine.
@@ -30,6 +30,9 @@
 
 /*
  * $Log: iconify.c,v $
+ * Revision 2.2  2001/11/23 11:56:44  amura
+ * Rewrite all sources
+ *
  * Revision 2.1  2000/09/29 17:24:09  amura
  * rewrite from scratch
  *
@@ -48,15 +51,21 @@
 #include <dos/dosextens.h>
 #include <workbench/workbench.h>
 #include <workbench/startup.h>
+#ifdef INLINE_PRAGMAS
+#include <pragmas/wb_pragmas.h>
+#include <pragmas/exec_pragmas.h>
+#else
 #include <clib/wb_protos.h>
+#include <clib/exec_protos.h>
+#endif
 
 extern struct Library *WorkbenchBase;
 
 static struct DiskObject icondef = {
     WB_DISKMAGIC,WB_DISKVERSION,
     {NULL, 0, 0, 0/*width*/, 0/*height*/, GFLG_GADGIMAGE|GFLG_GADGHCOMP,
-	GACT_IMMEDIATE, GTYP_BOOLGADGET, NULL/*image*/, NULL, NULL,
-	0, NULL, 0, NULL},
+     GACT_IMMEDIATE, GTYP_BOOLGADGET, NULL/*image*/, NULL, NULL,
+     0, NULL, 0, NULL},
     0, NULL, NULL, NO_ICON_POSITION, NO_ICON_POSITION,
     NULL, NULL, 0 };
 
@@ -86,8 +95,7 @@ APTR etcptr;
 	icon = AddAppIconA(0, 0, NULL, myport,
 			   NULL, &icondef, NULL);
 
-    if (icon == NULL)
-    {
+    if (icon == NULL) {
 	while (msg=(struct AppMessage *)GetMsg(myport))
 	    ReplyMsg((struct Message *)msg);
 	DeleteMsgPort(myport);
@@ -95,11 +103,9 @@ APTR etcptr;
     }
     
     done = FALSE;
-    while (!done)
-    {
+    while (!done) {
 	WaitPort(myport);
-	while (msg = (struct AppMessage *)GetMsg(myport))
-	{
+	while (msg = (struct AppMessage *)GetMsg(myport)) {
 	    if (msg->am_NumArgs == 0L)
 		done = TRUE;
 	    ReplyMsg((struct Message *)msg);
@@ -119,7 +125,13 @@ APTR etcptr;
 #include <graphics/gfxbase.h>
 #include <intuition/intuition.h>
 #include <intuition/intuitionbase.h>
+#ifdef INLINE_PRAGMAS
+#include <pramgas/intuition_pragmas.h>
+#include <pramgas/exec_pragmas.h>
+#else
 #include <clib/intuition_protos.h>
+#include <clib/exec_protos.h>
+#endif
 
 static struct Gadget gadget = {
     NULL, 0, 0, 0/*width*/, 0/*height*/, GFLG_GADGIMAGE|GFLG_GADGHCOMP,
@@ -173,13 +185,10 @@ APTR ptr;
 	
     micros1 = secs1 = 0;
     done = FALSE;
-    while (!done)
-    {
+    while (!done) {
 	Wait((long)(1L << icon->UserPort->mp_SigBit));
-	while (msg = (struct IntuiMessage *)GetMsg(icon->UserPort))
-	{
-	    if (msg->Class == IDCMP_GADGETDOWN)
-	    {
+	while (msg = (struct IntuiMessage *)GetMsg(icon->UserPort)) {
+	    if (msg->Class == IDCMP_GADGETDOWN) {
 		CurrentTime(&secs, &micros);
 		if (DoubleClick(secs1, micros1, secs, micros))
 		    done = TRUE;

@@ -1,4 +1,4 @@
-/* $Id: KgMenus.c,v 1.1 2000/06/27 01:48:00 amura Exp $ */
+/* $Id: KgMenus.c,v 1.2 2001/11/23 11:56:43 amura Exp $ */
 /*********************************************/
 /*                                           */
 /*       Designer (C) Ian OConnor 1994       */
@@ -9,8 +9,11 @@
 
 /*
  * $Log: KgMenus.c,v $
- * Revision 1.1  2000/06/27 01:48:00  amura
- * Initial revision
+ * Revision 1.2  2001/11/23 11:56:43  amura
+ * Rewrite all sources
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:00  amura
+ * import to CVS
  *
  */
 
@@ -39,99 +42,95 @@ APTR Win0VisualInfo;
 struct Gadget *Win0GList;
 struct Gadget *Win0Gadgets[4];
 
-UWORD Win0GadgetTypes[] =
-	{
-	BUTTON_KIND,
-	BUTTON_KIND,
-	BUTTON_KIND,
-	BUTTON_KIND,
-	};
+UWORD Win0GadgetTypes[] = {
+    BUTTON_KIND,
+    BUTTON_KIND,
+    BUTTON_KIND,
+    BUTTON_KIND,
+};
 
-struct NewGadget Win0NewGadgets[] =
-	{
-	24, 21, 58, 12, (UBYTE *)"Top", &topaz800, Win0_Gad0, 16, NULL,  NULL,
-	84, 21, 58, 12, (UBYTE *)"Up", &topaz800, Win0_Gad1, 16, NULL,  NULL,
-	84, 35, 58, 12, (UBYTE *)"Redraw", &topaz800, Win0_Gad2, 16, NULL,  NULL,
-	24, 35, 29, 12, (UBYTE *)"|<", &topaz800, Win0_Gad3, 16, NULL,  NULL,
-	};
+struct NewGadget Win0NewGadgets[] = {
+    24, 21, 58, 12, (UBYTE *)"Top", &topaz800, Win0_Gad0, 16, NULL,  NULL,
+    84, 21, 58, 12, (UBYTE *)"Up", &topaz800, Win0_Gad1, 16, NULL,  NULL,
+    84, 35, 58, 12, (UBYTE *)"Redraw", &topaz800, Win0_Gad2, 16, NULL,  NULL,
+    24, 35, 29, 12, (UBYTE *)"|<", &topaz800, Win0_Gad3, 16, NULL,  NULL,
+};
 UWORD Win0ZoomInfo[4] = { 200, 0, 200, 25 };
 
 struct TextAttr topaz800 = { (STRPTR)"topaz.font", 8, 0, 0 };
 
-int OpenWindowWin0( void )
+int
+OpenWindowWin0()
 {
-struct Screen *Scr;
-UWORD offx, offy;
-UWORD loop;
-struct NewGadget newgad;
-struct Gadget *Gad;
-if (Win0 == NULL)
-	{
-	if (NULL != (Scr = LockPubScreen(NULL)))
-		{
-		offx = Scr->WBorLeft;
-		offy = Scr->WBorTop + Scr->Font->ta_YSize+1;
-		if (NULL != ( Win0VisualInfo = GetVisualInfoA( Scr, NULL)))
-			{
-			Win0GList = NULL;
-			Gad = CreateContext( &Win0GList);
-			for ( loop=0 ; loop<4 ; loop++ )
-				{
-				CopyMem((char * )&Win0NewGadgets[loop], ( char * )&newgad, (long)sizeof( struct NewGadget ));
-				newgad.ng_VisualInfo = Win0VisualInfo;
-				newgad.ng_LeftEdge += offx;
-				newgad.ng_TopEdge += offy;
-				Win0Gadgets[ newgad.ng_GadgetID - Win0FirstID ] = Gad = CreateGadgetA( Win0GadgetTypes[loop], Gad, &newgad, newgad.ng_UserData );
-				}
-			if (Gad != NULL)
-				{
-				if (NULL != (Win0 = OpenWindowTags( NULL, WA_Left, 300,
-								WA_Top, 21,
-								WA_Width, 243+offx,
-								WA_Height, 88+offy,
-								WA_Title, "New Window 0",
-								WA_MinWidth, 150,
-								WA_MinHeight, 25,
-								WA_MaxWidth, 1200,
-								WA_MaxHeight, 1200,
-								WA_DepthGadget, TRUE,
-								WA_Activate, TRUE,
-								WA_Dummy+0x30, TRUE,
-								WA_SmartRefresh, TRUE,
-								WA_AutoAdjust, TRUE,
-								WA_Gadgets, Win0GList,
-								WA_Zoom, Win0ZoomInfo,
-								WA_IDCMP,580,
-								TAG_END)))
-					{
-					GT_RefreshWindow( Win0, NULL);
-					UnlockPubScreen( NULL, Scr);
-					return( 0L );
-					}
-				}
-			FreeGadgets( Win0GList);
-			FreeVisualInfo( Win0VisualInfo );
-			}
-		UnlockPubScreen( NULL, Scr);
+    struct Screen *Scr;
+    UWORD offx, offy;
+    UWORD loop;
+    struct NewGadget newgad;
+    struct Gadget *Gad;
+    if (Win0 == NULL) {
+	if (NULL != (Scr = LockPubScreen(NULL))) {
+	    offx = Scr->WBorLeft;
+	    offy = Scr->WBorTop + Scr->Font->ta_YSize+1;
+	    if (NULL != ( Win0VisualInfo = GetVisualInfoA( Scr, NULL))) {
+		Win0GList = NULL;
+		Gad = CreateContext( &Win0GList);
+		for ( loop=0 ; loop<4 ; loop++ ) {
+		    CopyMem((char *)&Win0NewGadgets[loop],
+			    (char *)&newgad, (long)sizeof(struct NewGadget));
+		    newgad.ng_VisualInfo = Win0VisualInfo;
+		    newgad.ng_LeftEdge += offx;
+		    newgad.ng_TopEdge += offy;
+		    Win0Gadgets[ newgad.ng_GadgetID - Win0FirstID ] =
+			Gad =
+			CreateGadgetA( Win0GadgetTypes[loop], Gad,
+				       &newgad, newgad.ng_UserData );
 		}
+		if (Gad != NULL) {
+		    if (NULL != (Win0 = OpenWindowTags( NULL, WA_Left, 300,
+						WA_Top, 21,
+						WA_Width, 243+offx,
+						WA_Height, 88+offy,
+						WA_Title, "New Window 0",
+						WA_MinWidth, 150,
+						WA_MinHeight, 25,
+						WA_MaxWidth, 1200,
+						WA_MaxHeight, 1200,
+						WA_DepthGadget, TRUE,
+						WA_Activate, TRUE,
+						WA_Dummy+0x30, TRUE,
+						WA_SmartRefresh, TRUE,
+						WA_AutoAdjust, TRUE,
+						WA_Gadgets, Win0GList,
+						WA_Zoom, Win0ZoomInfo,
+						WA_IDCMP,580,
+						TAG_END))) {
+			GT_RefreshWindow( Win0, NULL);
+			UnlockPubScreen( NULL, Scr);
+			return 0;
+		    }
+		}
+		FreeGadgets( Win0GList);
+		FreeVisualInfo( Win0VisualInfo );
+	    }
+	    UnlockPubScreen( NULL, Scr);
 	}
-else
-	{
+    }
+    else {
 	WindowToFront(Win0);
 	ActivateWindow(Win0);
-	return( 0L );
-	}
-return( 1L );
+	return 0;
+    }
+    return 1;
 }
 
-void CloseWindowWin0( void )
+void
+CloseWindowWin0()
 {
-if (Win0 != NULL)
-	{
+    if (Win0 != NULL) {
 	CloseWindow( Win0);
 	Win0 = NULL;
 	FreeVisualInfo( Win0VisualInfo);
 	FreeGadgets( Win0GList);
-	}
+    }
 }
 

@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.8 2001/05/25 15:59:07 amura Exp $ */
+/* $Id: sysdef.h,v 1.9 2001/11/23 11:56:56 amura Exp $ */
 /*
  *		Win32 based systems
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.9  2001/11/23 11:56:56  amura
+ * Rewrite all sources
+ *
  * Revision 1.8  2001/05/25 15:59:07  amura
  * WIN32 version support AUTOSAVE feature
  *
@@ -34,9 +37,9 @@
 #ifdef	_WIN32_WCE
 #ifndef	NULL
 #ifdef	__cplusplus
-#define	NULL	0
+#define	NULL		0
 #else
-#define	NULL	((void *)0)
+#define	NULL		((void *)0)
 #endif
 #endif
 #else	/* _WIN32_WCE */
@@ -44,13 +47,13 @@
 #include <memory.h>			/* need to use memmove().	*/
 #endif	/* _WIN32_WCE */
 
-#define	KBLOCK	1024			/* Kill grow.			*/
-#define	GOOD	0			/* Good exit status.		*/
+#define	KBLOCK		1024		/* Kill grow.			*/
+#define	GOOD		0		/* Good exit status.		*/
 #ifndef	NO_SHELL	/* 91.01.10  by K.Maeda */
 #define	CMDLINELENGTH	NFILEN		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	NO_RESIZE			/* Screen size is constant.	*/
-#define	BSMAP	TRUE			/* Bs map feature can use.	*/
+#define	BSMAP		TRUE		/* Bs map feature can use.	*/
 					/* (default mode is bsmap on)	*/
 
 #ifndef _WIN32_WCE
@@ -86,7 +89,7 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #define bcmp(s,d,n)	memcmp(s,d,n)
 #define	fncmp		strcmp		/* file name comparison		*/
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
-char *getenv();
+char *getenv _PRO((const char *));
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
 #ifndef	NO_DIR
 #define	dirend()	(VOID)0
@@ -101,13 +104,13 @@ char *getenv();
 #ifdef	__cplusplus
 extern "C" {
 #endif
-void	strcat_num(char *str, int num);
-void	strcat_char(char *str, int c);
-int	stricmp(const char *src, const char *dst);
-int	chdir(const char *dir);
-int	rchdir(char *dir);
-int	Fputc(int c);
-int	Sprintf(char *buf, const char *fmt, ... );
+void strcat_num(char *str, int num);
+void strcat_char(char *str, int c);
+int  stricmp(const char *src, const char *dst);
+int  chdir(const char *dir);
+int  rchdir(char *dir);
+int  Fputc(int c);
+int  Sprintf(char *buf, const char *fmt, ... );
 #ifdef	__cplusplus
 }
 #endif
@@ -118,4 +121,5 @@ int	Sprintf(char *buf, const char *fmt, ... );
 #define	putc(c,fp)	Fputc(c)
 #define	exit(rc)	Exit(rc)
 #define	sprintf		Sprintf
+
 

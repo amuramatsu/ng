@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.6 2000/09/21 17:28:29 amura Exp $ */
+/* $Id: jump.c,v 1.7 2001/11/23 11:56:37 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: jump.c,v $
+ * Revision 1.7  2001/11/23 11:56:37  amura
+ * Rewrite all sources
+ *
  * Revision 1.6  2000/09/21 17:28:29  amura
  * replace macro _WIN32 to WIN32 for Cygwin
  *
@@ -28,7 +31,7 @@
  */
 
 #include "config.h"
-#ifdef	JUMPERR
+#ifdef JUMPERR
 
 #include "def.h"
 #ifndef BSD
@@ -37,15 +40,16 @@
 # endif
 #endif	/* BSD */
 
-#ifdef	REGEX_JAPANESE
+#ifdef REGEX_JAPANESE
 #include "regex_j.h"
 #else
 #include "regex_e.h"
 #endif
 #define BYTEWIDTH 8
 
+/* extern int access _PRO((char *, int)); */
 #ifndef	R_OK              /* for access() */
-#  define R_OK 4
+# define R_OK 4
 #endif
 
 #define	BUFLEN	100
@@ -77,19 +81,20 @@ static char compile_command[NLINE]	=  "make";
 #define	DEFAULT_REGEXP   "\\([^ :\n]+\\(:? *\\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\|[^ \n]+ \\(at \\)*line [0-9]+\\)"
 */
 
-static	char *grab_filename();
+static	char *grab_filename _PRO(());
 
 /*
  *
  */
+int
 set_regexp( pat )
-    char *pat;
+char *pat;
 {
     char *message;
     
     re_buff.allocated = 40;
     re_buff.buffer = (char *) malloc (re_buff.allocated);
-    if( re_buff.buffer == NULL ){
+    if (re_buff.buffer == NULL ){
 	ewprintf( "Can't get %d bytes", re_buff.allocated );
 	re_buff.allocated = 0;
 	return FALSE;
@@ -107,47 +112,48 @@ set_regexp( pat )
     return TRUE;
 }
 
-parse_error_message( clp, col, namebuf, ip, parse_end )
-    LINE *clp;
-    char *namebuf;
-    int *ip, *parse_end;
+int
+parse_error_message(clp, col, namebuf, ip, parse_end)
+LINE *clp;
+char *namebuf;
+int *ip, *parse_end;
 {
     struct re_registers regs;
     char buf[BUFLEN+1];
     int i, len;
     char *filename;
     
-    if( re_buff.allocated == 0 && !set_regexp( DEFAULT_REGEXP ) )
+    if (re_buff.allocated == 0 && !set_regexp(DEFAULT_REGEXP))
 	return FALSE;
 
     i = re_search (&re_buff, ltext(clp), llength(clp),
 		   col, llength(clp), &regs);
-     if (i < 0)
-	 return FALSE;
+    if (i < 0)
+	return FALSE;
 
-    if( parse_end ) *parse_end = regs.end[0]+1;
+    if (parse_end != NULL)
+	*parse_end = regs.end[0]+1;
     len = regs.end[0] - regs.start[0];
-    if( len > BUFLEN ) len = BUFLEN;
+    if (len > BUFLEN)
+	len = BUFLEN;
     strncpy( buf, ltext(clp) + regs.start[0], len );
     buf[len] = '\0';
 
-    for(i=len; i>0 && ISDIGIT(buf[i-1]); --i )
+    for (i=len; i>0 && ISDIGIT(buf[i-1]); --i )
 	;
-    if( i < len ){
-	/* we are looking filename-first style. */
+    if (i < len) {	/* we are looking filename-first style. */
 	*ip = atoi( &buf[i] );
 	buf[i] = '\0';
 	filename = grab_filename( buf );
     }
-    else {
-	/* line-number-first style */
+    else {		/* line-number-first style */
 	*ip = atoi(buf);
 	while( ISDIGIT(buf[i]) || buf[i] == ' ' || buf[i] == '\t' )
 	    ++i;
 	filename = grab_filename( buf );
     }
-    if( *filename ){
-	strcpy( namebuf, filename );
+    if (*filename) {
+	strcpy(namebuf, filename);
 	return TRUE;
     }
     return FALSE;
@@ -157,25 +163,24 @@ parse_error_message( clp, col, namebuf, ip, parse_end )
  * jump-to-error
  * Parse current line as a error message, then vist correspoding source code.
  */
+int
 jumptoerror(f,n)
+int f, n;
 {
-    int  lineno;
+    int lineno;
     char buf[BUFLEN+1];
     char *p=buf;
     int col;
     LINE *dlp;
-    extern int access();
-    extern int gotoline();
-    extern int filevisit(), poptofile();
+    extern int gotoline _PRO((int, int));
+    extern int filevisit _PRO((int, int)), poptofile _PRO((int, int));
 	
     dlp = curwp->w_dotp;
-    while (dlp != curbp->b_linep)
-    {
+    while (dlp != curbp->b_linep) {
     /* get filename and line number to visit */
 	col = 0;
 	while (col < llength(dlp) &&
-	       parse_error_message(dlp, col, buf, &lineno, &col ) )
-	{
+	       parse_error_message(dlp, col, buf, &lineno, &col ) ) {
 	    if (0 == access( buf, R_OK )){
 		/* ewprintf( "file:`%s' line %d", buf, lineno ); */
 		/*
@@ -189,15 +194,17 @@ jumptoerror(f,n)
 		    curwp->w_dotp = lforw(dlp);
 		eargset(buf);
 		if (f&FFARG) {
-			if (!filevisit(FFRAND,0)) return FALSE;
-		} else {
-			if (!poptofile(FFRAND,0)) return FALSE;
+		    if (!filevisit(FFRAND,0))
+			return FALSE;
+		}
+		else {
+		    if (!poptofile(FFRAND,0))
+			return FALSE;
 		}
 		gotoline( FFARG, lineno );
 		return TRUE;
 	    }
 	}
-	
 	dlp = lforw(dlp);
     }
     curwp->w_flag |= WFHARD;
@@ -214,15 +221,15 @@ jumptoerror(f,n)
  * extract filename removing punctuations around.
  */
 static char *
-grab_filename( buf )
-    char *buf;
+grab_filename(buf)
+char *buf;
 {
     char *p;
 #ifdef AMIGA
     int colon_has = FALSE;
 #endif
 
-    if( *buf == '"' ){
+    if (*buf == '"') {
 	/* "filename" */
 	for(p=buf+1; *p && *p != '"'; ++p )
 	    ;
@@ -232,10 +239,8 @@ grab_filename( buf )
 
     p = buf;
 #ifdef AMIGA
-    for(;*p && !index(" \t,(", *p); ++p )
-    {
-	if (*p == ':')
-	{
+    for (;*p && !index(" \t,(", *p); ++p ) {
+	if (*p == ':') {
 	    if (colon_has)
 		break;
 	    else
@@ -261,29 +266,37 @@ grab_filename( buf )
  * "compile" command.
  */
 /*ARGSUSED*/
+int
 compile(f, n)
+int f, n;
 {
-    register BUFFER	*bp, *obp;
-    register WINDOW	*wp, *owp;
-    register int	s;
-    char	 buf[NLINE],*result;
-    extern char *call_process();
-    extern int isetmark(), gotobob();
+    register BUFFER *bp, *obp;
+    register WINDOW *wp, *owp;
+    register int s;
+    char  buf[NLINE],*result;
+    extern char *call_process _PRO(());
+    extern int gotobob _PRO((int, int));
 
     if (compile_command[0] == '\0')
-	s=eread("compile: ", buf, NLINE, EFNEW);
+	s = eread("compile: ", buf, NLINE, EFNEW);
     else
-	s=eread("compile: (%s) ", buf, NLINE, EFNEW, compile_command);
-    if (s == ABORT) return s;
-    if (s == TRUE) strcpy(compile_command, buf);
+	s = eread("compile: (%s) ", buf, NLINE, EFNEW, compile_command);
+    if (s == ABORT)
+	return s;
+    if (s == TRUE)
+	strcpy(compile_command, buf);
     
-    if ((bp = bfind("*compilation*", TRUE)) == NULL) return FALSE;
-    if ((wp = popbuf(bp)) == NULL) return FALSE;
-    if (bclear(bp) != TRUE) return FALSE;
+    if ((bp = bfind("*compilation*", TRUE)) == NULL)
+	return FALSE;
+    if ((wp = popbuf(bp)) == NULL)
+	return FALSE;
+    if (bclear(bp) != TRUE)
+	return FALSE;
     obp = curbp; owp = curwp;
     curbp = bp; curwp = wp;
     /* cmode(0,1) */
-    if (addline(bp, compile_command) == FALSE) return FALSE;
+    if (addline(bp, compile_command) == FALSE)
+	return FALSE;
     update();
     if ((result = call_process(compile_command, NULL)) == NULL)
 	return FALSE;
@@ -307,17 +320,21 @@ compile(f, n)
  * goto next error using *compilation* buffer.
  */
 /*ARGSUSED*/
+int
 nexterror(f, n)
+int f, n;
 {
-    register BUFFER	*bp, *obp;
-    register WINDOW	*wp, *owp;
-    register int	s;
+    register BUFFER *bp, *obp;
+    register WINDOW *wp, *owp;
+    register int s;
 
     if (strcmp(curbp->b_bname,"*compilation*") == 0) {
 	nextwind(FFRAND,1);
     }
-    if ((bp = bfind("*compilation*", TRUE)) == NULL) return FALSE;
-    if ((wp = popbuf(bp)) == NULL) return FALSE;
+    if ((bp = bfind("*compilation*", TRUE)) == NULL)
+	return FALSE;
+    if ((wp = popbuf(bp)) == NULL)
+	return FALSE;
     obp = curbp; owp = curwp;
     curbp = bp; curwp = wp;
     if ((s=jumptoerror(0, 1)) != TRUE) {

@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.5 2001/05/25 15:59:08 amura Exp $ */
+/* $Id: ttyio.c,v 1.6 2001/11/23 11:56:57 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -24,6 +24,9 @@
 
 /*
  * $Log: ttyio.c,v $
+ * Revision 1.6  2001/11/23 11:56:57  amura
+ * Rewrite all sources
+ *
  * Revision 1.5  2001/05/25 15:59:08  amura
  * WIN32 version support AUTOSAVE feature
  *
@@ -41,51 +44,45 @@
  *
  */
 
-#include	<windows.h>
-#include	"config.h"
-#include	"def.h"
-#include	"winmain.h"
+#include <windows.h>
+#include "config.h"
+#include "def.h"
+#include n"winmain.h"
 #include "tools.h"
 
-int		nrow ;				/* Terminal size, rows.		*/
-int		ncol ;				/* Terminal size, columns.	*/
-BOOL	bLastChar = FALSE ;
-CHAR	chLastChar = 0 ;
+int nrow;				/* Terminal size, rows.		*/
+int ncol;				/* Terminal size, columns.	*/
+BOOL bLastChar = FALSE;
+CHAR chLastChar = 0;
 
-int
-panic( char *s )
+void
+panic(char *s)
 {
-  TCHAR foo[256];
-
-  sjis2unicode(s, foo, sizeof(foo));
-  MessageBox( NULL, foo, TEXT(""), MB_ICONASTERISK|MB_OK ) ;
-  return 0 ;
+    TCHAR foo[256];
+    
+    sjis2unicode(s, foo, sizeof(foo));
+    MessageBox( NULL, foo, TEXT(""), MB_ICONASTERISK|MB_OK ) ;
 }
 
-int
+void
 ttopen()
 {
-	GetWH( &ncol, &nrow ) ;
-	if (NROW < nrow) {
-		nrow = NROW;
-	}
-	if (NCOL < ncol) {
-		ncol = NCOL;
-	}
-	return 0 ;
+    GetWH(&ncol, &nrow);
+    if (NROW < nrow)
+	nrow = NROW;
+    if (NCOL < ncol)
+	ncol = NCOL;
 }
 
-int
+void
 ttclose()
 {
-	return 0 ;
 }
 
-int
+void
 ttflush()
 {
-	Flush() ;
-	return 0 ;
+    Flush();
 }
 
 /*
@@ -95,27 +92,25 @@ ttflush()
 int
 typeahead()
 {
-	return Kbhit() ;
+    return Kbhit();
 }
 
 /*
  * Write character to the display without ^C check.
  */
-int
-ttputc( int c )
+void
+ttputc(int c)
 {
-	PutChar( (char) c ) ;
-	return 0 ;
+    PutChar((char)c);
 }
 
 /*
  * Write character to the display without ^C check.
  */
-int
-ttputkc( int c1, int c2 )
+void
+ttputkc(int c1, int c2)
 {
-  PutKChar((char)c1, (char)c2);
-  return 0;
+    PutKChar((char)c1, (char)c2);
 }
 
 /*
@@ -126,26 +121,25 @@ ttputkc( int c1, int c2 )
 int
 ttgetc()
 {
-	if ( bLastChar ) {
-		bLastChar = FALSE ;
-		return chLastChar ;
-	}
+    if (bLastChar) {
+	bLastChar = FALSE ;
+	return chLastChar ;
+    }
 #ifdef	AUTOSAVE
-	while (!KbhitSleep(1))
-		autosave_handler();
+    while (!KbhitSleep(1))
+	autosave_handler();
 #endif
-	return GetChar() ;
+    return GetChar() ;
 }
 
 /*
  * Save pre-readed char to read again.
  */
-int
-ttungetc( int c )
+void
+ttungetc(int c)
 {
-	bLastChar = TRUE ;
-	chLastChar = c ;
-	return 0 ;
+    bLastChar = TRUE ;
+    chLastChar = c ;
 }
 
 /*
@@ -155,7 +149,7 @@ ttungetc( int c )
 int
 ttwait()
 {
-	return !KbhitSleep( 1 ) ;
+    return !KbhitSleep(1);
 }
 
 /*
@@ -164,5 +158,5 @@ ttwait()
 void
 setttysize()
 {
-  GetWH(&ncol, &nrow);
+    GetWH(&ncol, &nrow);
 }

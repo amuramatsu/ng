@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.3 2001/02/18 19:29:04 amura Exp $ */
+/* $Id: sysdef.h,v 1.4 2001/11/23 11:56:48 amura Exp $ */
 /*
  *		Human68k system definitions
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.4  2001/11/23 11:56:48  amura
+ * Rewrite all sources
+ *
  * Revision 1.3  2001/02/18 19:29:04  amura
  * split dir.c to port depend/independ
  *
@@ -19,15 +22,17 @@
 /*		MS-DOS system definitions */
 
 #include <stdio.h>
-/* #include <string.h>		 need to use memcpy(). but defined in def.h	*/
+/*
+#include <string.h>		 need to use memcpy(). but defined in def.h
+*/
 
-#define	KBLOCK	1024			/* Kill grow.			*/
-#define	GOOD	0			/* Good exit status.		*/
+#define	KBLOCK		1024		/* Kill grow.			*/
+#define	GOOD		0		/* Good exit status.		*/
 #ifndef	NO_SHELL	/* 91.01.10  by K.Maeda */
 #define	CMDLINELENGTH	NFILEN		/* Maximum length of shell command. */
 #endif	/* NO_SHELL */
 #define	NO_RESIZE			/* Screen size is constant.	*/
-#define	BSMAP	TRUE			/* Bs map feature can use.	*/
+#define	BSMAP		TRUE		/* Bs map feature can use.	*/
 					/* (default mode is bsmap on)	*/
 #define	MAKEBACKUP	FALSE		/* Making backup file is off.	*/
 #define	LOCAL_VARARGS

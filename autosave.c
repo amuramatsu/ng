@@ -1,10 +1,13 @@
-/* $Id: autosave.c,v 1.3 2001/03/02 08:49:04 amura Exp $ */
+/* $Id: autosave.c,v 1.4 2001/11/23 11:56:34 amura Exp $ */
 /*
  Auto save support code programed by M.Suzuki
  Ver	1.0.0	1997/01/07	Create
 */
 /*
  * $Log: autosave.c,v $
+ * Revision 1.4  2001/11/23 11:56:34  amura
+ * Rewrite all sources
+ *
  * Revision 1.3  2001/03/02 08:49:04  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -18,7 +21,7 @@
 
 #include "config.h"
 
-#ifdef	AUTOSAVE
+#ifdef AUTOSAVE
 
 #include "def.h"
 #include <time.h>
@@ -27,17 +30,18 @@ time_t autosave_interval = 10*60;/* Auto save interval time.(sec) */
 int autosave_flag = FALSE;
 int autosaved = FALSE;
 
-extern int getnum pro((char *prompt, int *num));
+extern int getnum _PRO((char *prompt, int *num));
 /* this is port dependent */
-extern VOID autosave_name pro((char *buff, char *name, int buflen));
+extern VOID autosave_name _PRO((char *buff, char *name, int buflen));
 #ifdef	ITIMER
-extern VOID itimer pro((VOID (*func)(void), time_t sec));
+extern VOID itimer _PRO((VOID (*func)(void), time_t sec));
 #else
 static time_t check_time;
 #endif
 
 VOID
 autosave_check(flag)
+int flag;
 {
     if (flag && autosave_interval!=0) {
 	autosave_flag = TRUE;
@@ -78,8 +82,8 @@ autosave_handler()
     curcol = ttcol;
     bp = bheadp;				/* For all buffers	*/
     while (bp != NULL) {
-	if( bp->b_bname[0] != '*' ){		/* Not internal buffer 	*/
-	    if( bp->b_flag & BFACHG ){		/* modified ?	*/
+	if (bp->b_bname[0] != '*') {		/* Not internal buffer 	*/
+	    if (bp->b_flag & BFACHG) {		/* modified ?	*/
 		char fname[NFILEN];
 		autosave_name(fname, bp->b_fname, NFILEN);
 		writeout(bp, fname);
@@ -95,7 +99,7 @@ autosave_handler()
 
 VOID
 del_autosave_file(name)
-char* name;
+char *name;
 {
     char fname[NFILEN];
     
@@ -118,7 +122,9 @@ clean_autosave_file()
  * COMMAND: set-auto-save-interval
  */
 /*ARGSUSED*/
+int
 as_set_interval(f, n)
+int f, n;
 {
     if ((f & FFARG) == 0) {
     	if (getnum("auto-save-interval", &n) == FALSE)

@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.19 2001/09/30 14:01:47 amura Exp $ */
+/* $Id: def.h,v 1.20 2001/11/23 11:56:35 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.20  2001/11/23 11:56:35  amura
+ * Rewrite all sources
+ *
  * Revision 1.19  2001/09/30 14:01:47  amura
  * some prototypes are corrected
  *
@@ -50,11 +53,11 @@
  */
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
-#include	<stdlib.h>
-#include	<string.h>
-#include	"sysdef.h"		/* Order is critical.		*/
-#include	"ttydef.h"
-#include	"chrdef.h"
+#include <stdlib.h>
+#include <string.h>
+#include "sysdef.h"		/* Order is critical.		*/
+#include "ttydef.h"
+#include "chrdef.h"
 
 /*
  * If your system and/or compiler does not support the "void" type
@@ -77,19 +80,18 @@
 #endif /* VOID */
 #endif /* NO_VOID_TYPE */
 
+#ifdef SUPPORT_ANSI
+#define _PRO(x) x
+#else
+#define _PRO(x) ()
+#endif
+
 #ifdef	NO_MACRO
 #ifndef NO_STARTUP
 #define NO_STARTUP			/* NO_MACRO implies NO_STARTUP */
 #endif
 #endif
-
-#ifdef SUPPORT_ANSI
-#define pro(x) x
-#else
-#define pro(x) ()
-#endif
-
-typedef int (*PF) pro((int, int)); /* generaly useful type */
+typedef int (*PF) _PRO((int, int)); /* generaly useful type */
 
 /*
  * Table sizes, etc.
@@ -106,6 +108,7 @@ typedef int (*PF) pro((int, int)); /* generaly useful type */
 #define NBUFN	32			/* Length, buffer name.		*/
 #define NLINE	256			/* Length, line.		*/
 #define NINPUT	32			/* Length, small minibuf input	*/
+#define TERMCAP_BUF_LEN	2048		/* Length, termcap lib buffer	*/
 #define PBMODES 8			/* modes per buffer		*/
 #define NKBDM	256			/* Length, keyboard macro.	*/
 #define NPAT	80			/* Length, pattern.		*/
@@ -383,245 +386,4 @@ typedef struct	{
 	RSIZE	r_size;			/* Length in characters.	*/
 }	REGION;
 
-/*
- * Externals.
- */
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern	int	thisflag;
-extern	int	lastflag;
-extern	int	curgoal;
-extern	int	epresf;
-extern	int	sgarbf;
-extern	int	mode;
-extern	WINDOW	*curwp;
-extern	BUFFER	*curbp;
-extern	WINDOW	*wheadp;
-extern	BUFFER	*bheadp;
-extern	char	pat[];
-extern	BUFFER	*bfind pro((char *, int));
-extern	WINDOW	*popbuf pro((BUFFER *));
-extern	WINDOW	*wpopup pro((void));
-extern	LINE	*lalloc pro((int));
-extern	LINE	*lallocx pro((int));
-#ifdef SUPPORT_ANSI
-extern VOID ewprintf pro((char *fp, ... ));
-#else
-extern VOID ewprintf pro((va_alist));
-#endif
-extern VOID eerase pro((void));
-extern	int	nrow;
-extern	int	ncol;
-extern	int	ttrow;
-extern	int	ttcol;
-extern	int	tceeol;
-extern	int	tcinsl;
-extern	int	tcdell;
-extern	char	cinfo[];
-extern	char	*keystrings[];
-extern	VOID	update pro((void));
-extern	char	*keyname pro((char *, int));
-extern	char	*adjustname pro((char *));
-extern	VOID	kdelete pro((void));
-extern	VOID	lchange pro((int));
-
-/*
-   Should the 'ifdef' be applied for the following function declarations.
-   For example, kttputc() should be declared only if the KANJI macro is
-   defined.
- */
-
-extern int forwchar pro((int, int));
-extern int setmark pro((int, int));
-extern int backline pro((int, int));
-extern VOID warnreadonly pro((void));
-extern int getgoal pro((LINE *));
-extern int backpage pro((int, int));
-extern int countlines pro((LINE	*));
-extern int colrow pro((LINE *, short, int *, int *));
-extern short skipline pro((LINE *, int));
-extern int nextwind pro((int, int));
-#ifdef SUPPORT_ANSI
-extern int ereply pro((char *, char *, int , ... ));
-extern int eread pro((char *, char *, int, int, ...));
-#else
-extern int ereply pro((va_alist));
-extern int eread pro((va_alist));
-#endif
-extern int getcolpos pro((void));
-extern int showbuffer pro((BUFFER *, WINDOW *, int));
-extern int bclear pro((BUFFER *));
-extern int anycb pro((int));
-extern int addline pro((BUFFER *, char *));
-extern int eyorn pro((char *));
-extern int eyesno pro((char *));
-extern int buffsave pro((BUFFER *));
-extern VOID ksetbufcode pro((BUFFER *));
-extern int newline pro((int, int));
-extern int selfinsert pro((int, int));
-extern int cm_indent pro((int, int));
-extern int cm_term pro((int, int));
-extern int linsert pro((int, int));
-extern int ldelete pro((RSIZE, int));
-extern int lnewline pro((void));
-extern int panic pro((char *));
-extern int name_fent pro((char *, int));
-extern int splitwind pro((int, int));
-extern int delwind pro((int, int));
-extern int ttmove pro((int, int));
-extern VOID eargset pro((char *));
-extern int killbuffer pro((int, int));
-extern int forwpage pro((int, int));
-extern int d_undelbak pro((int, int));
-extern int d_makename pro((LINE *, char *, int));
-extern int readin pro((char *));
-extern int fchkreadonly pro((char *));
-#ifdef WIN32
-extern int unlink pro((const char *));
-extern int rmdir pro((const char *));
-extern int rename pro((const char *, const char *));
-#endif
-extern int copy pro((char *, char *));
-extern int ttopen pro((void));
-extern int ttinit pro((void));
-extern int ttcolor pro((int));
-extern int ttnowindow pro((void));
-extern int tteeol pro((void));
-extern int tttidy pro((void));
-extern int ttflush pro((void));
-extern int ttclose pro((void));
-extern int typeahead pro((void));
-extern int tteeop pro((void));
-#ifdef HANKANA
-extern VOID putline pro((int, int, unsigned char *, unsigned char *, short));
-#else
-extern VOID putline pro((int, int, unsigned char *, short));
-#endif
-extern int vtputs pro((char *));
-extern int kdispbufcode pro((BUFFER *));
-extern int ttinsl pro((int, int, int));
-extern int ttdell pro((int, int, int));
-extern int fepmode_off pro((void));
-extern int getkey pro((int));
-extern VOID ungetkey pro((int));
-extern int ctrlg pro((int, int));
-extern int complete_del_list pro((void));
-extern int complete_scroll_down pro((void));
-extern int complete_scroll_up pro((void));
-extern int complete_list_names pro((char *, int));
-extern int ttputc pro((int));
-extern int kttputc pro((int));
-extern int excline pro((char *));
-extern int load pro((char *));
-extern int ffropen pro((char *));
-extern VOID ksetfincode pro((BUFFER *));
-extern int ffgetline pro((char *, int, int *));
-extern int kcodeconv pro((char *, int, BUFFER *, int));
-extern int ffclose pro((void));
-extern int insertfile pro((char *, char *));
-extern int ffisdir pro((char *));
-extern int dired pro((int, int));
-extern int cmode pro((int, int));
-extern int kcodecount pro((char *, int));
-extern int ldelnewline pro((void));
-extern int writeout pro((BUFFER *, char *));
-extern int fgetfilemode pro((char *));
-extern int fbackupfile pro((char *));
-extern int ffwopen pro((char *));
-extern int ffputbuf pro((BUFFER *));
-extern int popbuftop pro((BUFFER *));
-extern VOID upmodes pro((BUFFER *));
-extern VOID vtputc pro((int));
-extern int ttgetc pro((void));
-extern int ttungetc pro((int));
-extern int bufjtoe pro((char *, int));
-extern int bufstoe pro((char *, int));
-extern VOID bufetos pro((char *, int));
-extern int charcategory pro((int, int));
-extern VOID PutLine pro((int, unsigned char *, short));
-extern VOID kgetkeyflush pro((void));
-extern VOID kdselectcode pro((int));
-extern VOID kfselectcode pro((FILE *, int));
-extern VOID initcategory pro((int));
-extern int ttwait pro((void));
-extern int kgetkey pro((void));
-extern int fepmode_on pro((void));
-extern int negative_argument pro((int, int));
-extern int digit_argument pro((int, int));
-extern int fillword pro((int, int));
-extern int kcinsert pro((unsigned short *, unsigned short, int));
-extern int kcdelete pro((unsigned short *, unsigned short, int));
-extern int kinsert pro((int, int));
-extern int kgrow pro((int));
-extern int backchar pro((int, int));
-extern int printversion pro((void));
-extern VOID Exit pro((int));
-extern int printoptions pro((void));
-extern VOID dirinit pro((void));
-extern VOID dirend pro((void));
-extern int doin pro((void));
-extern int ttbeep pro((void));
-extern int gotoeop pro((int, int));
-extern int inword pro((void));
-extern int isbolkchar pro((int, int));
-extern int iseolkchar pro((int, int));
-extern int killregion pro((int, int));
-extern int delwhite pro((int, int));
-extern int backdel pro((int, int));
-extern int receive_clipboard pro((void));
-extern int kremove pro((int));
-extern int re_readpattern pro((char *));
-extern int re_forwsrch pro((void));
-extern int re_backsrch pro((void));
-extern int re_doreplace pro((RSIZE, char *, int));
-extern int lreplace pro((RSIZE, char *, int));
-extern int killmatches pro((int));
-extern int countmatches pro((int));
-extern int getregion pro((REGION *));
-extern int setprefix pro((int, int));
-extern int forwline pro((int, int));
-extern int readpattern pro((char *));
-extern int forwsrch pro((void));
-extern int backsrch pro((void));
-extern int isearch pro((int));
-extern VOID vtsetsize pro((int, int));
-extern int ttresize pro((void));
-extern int shrinkwind pro((int, int));
-extern int forwword pro((int, int));
-extern int incategory pro((void));
-extern int iskanji pro((void));
-#ifdef	HOJO_KANJI
-extern int ishojo pro((void));
-#endif
-extern int iskword pro((int, int));
-extern int gotobol pro((int, int));
-#ifdef	EXTD_DIR
-extern VOID ensurecwd pro((void));
-extern VOID edefset pro((char *));
-#endif
-extern int rescan pro((int, int));
-#ifdef	AUTOSAVE
-extern VOID autosave_check pro((int));
-extern VOID autosave_handler pro((void));
-extern VOID autosave_name pro((char*, char*, int));
-extern VOID del_autosave_file pro((char*));
-extern VOID clean_autosave_file pro((void));
-#endif
-
-/*
- * Standard I/O.
- */
-#ifndef SUPPORT_ANSI
-extern VOIDptr malloc();
-extern VOIDptr realloc();
-#endif
-
-#ifdef	CANNA
-VOID canna_init();
-VOID canna_end();
-#endif
-
-#ifdef __cplusplus
-}
-#endif
+#include "extern.h"			/* include extern definitions */

@@ -1,4 +1,4 @@
-/* $Id: zz_pointer.c,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: zz_pointer.c,v 1.2 2001/11/23 11:56:46 amura Exp $ */
 /**************************************
 *  ZZ_POINTER.C  08/05/90
 *  Written by Timm Martin
@@ -7,22 +7,30 @@
 
 /*
  * $Log: zz_pointer.c,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2001/11/23 11:56:46  amura
+ * Rewrite all sources
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
+
+#include "config.h"
+#include "def.h"
 
 #ifndef	AMIGA_STDIO
 
 #include <exec/memory.h>
 #include <exec/types.h>
-#ifndef SAS6
-# ifndef __GNUC__
-#  ifndef _DCC
-#   include <functions.h>
-#  endif
-# endif
+#if !(defined(SAS6)||defined(__GNUC__)||defined(_DCC))
+#  include <functions.h>
 #endif
+#ifdef INLINE_PRAGMAS
+#include <pragmas/exec_pragmas.h>
+#else
+#include <clib/exec_protos.h>
+#endif
+
 #include "zz_pointer.h"
 
 /**********************
@@ -32,8 +40,7 @@
 #define POINTER_DATA 54
 #define POINTER_SIZE (long)(POINTER_DATA*2)
 
-USHORT zz_pointer_data[POINTER_DATA] =
-{
+USHORT zz_pointer_data[POINTER_DATA] = {
   0x0000, 0x0000,
 
   0x0000, 0x0FE0,
@@ -74,14 +81,13 @@ USHORT *zz_pointer = NULL;  /* GLOBAL */
 /*
 This procedure frees the CHIP RAM memory used by the ZZ pointer.
 */
-
-void zz_pointer_close( void )
+VOID
+zz_pointer_close()
 {
-  if (zz_pointer)
-  {
-    FreeMem( zz_pointer, POINTER_SIZE );
-    zz_pointer = NULL;
-  }
+    if (zz_pointer) {
+	FreeMem( zz_pointer, POINTER_SIZE );
+	zz_pointer = NULL;
+    }
 }
 
 /*******************
@@ -93,13 +99,14 @@ This function attempts to copy the ZZ pointer image data into CHIP RAM.  It
 returns TRUE or FALSE whether memory was allocated.
 */
 
-BOOL zz_pointer_open( void )
+BOOL
+zz_pointer_open()
 {
-  /* if could allocate CHIP RAM to hold pointer data */
-  if (zz_pointer = (USHORT *)AllocMem( POINTER_SIZE, MEMF_CHIP ))
-    CopyMemQuick( zz_pointer_data, zz_pointer, POINTER_SIZE );
-
-  return (zz_pointer != NULL );
+    /* if could allocate CHIP RAM to hold pointer data */
+    if (zz_pointer = (USHORT *)AllocMem( POINTER_SIZE, MEMF_CHIP ))
+	CopyMemQuick( zz_pointer_data, zz_pointer, POINTER_SIZE );
+    
+    return (zz_pointer != NULL );
 }
 
 #endif	/* AMIGA_STDIO */

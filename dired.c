@@ -1,9 +1,12 @@
-/* $Id: dired.c,v 1.8 2001/02/18 19:29:29 amura Exp $ */
+/* $Id: dired.c,v 1.9 2001/11/23 11:56:35 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
 /*
  * $Log: dired.c,v $
+ * Revision 1.9  2001/11/23 11:56:35  amura
+ * Rewrite all sources
+ *
  * Revision 1.8  2001/02/18 19:29:29  amura
  * split dir.c to port depend/independ
  *
@@ -32,26 +35,24 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include <string.h>
 
 #ifndef NO_DIRED
-
-BUFFER *dired_();
-#ifndef strncpy
-extern char* strncpy();
+extern BUFFER *dired_ _PRO((char*));
+#ifndef	max
+#define	max(a,b)	(((a)<(b))?(b):(a))
 #endif
 
 #ifdef	CHGMISC		/* 99.8.11 by M.Suzuki	*/
-static int SearchDir(dirname)
-char* dirname;
+static int
+SearchDir(dirname)
+char *dirname;
 {
     LINE *llp;
 
     for (llp=curbp->b_linep; lforw(llp)!=curbp->b_linep; llp=lforw(llp)){
-#ifndef	max
-#define	max(a,b)	(((a)<(b))?(b):(a))
-#endif
 	if (strncmp(dirname, llp->l_text, max(strlen(dirname),llength(llp)))
-	   == 0 ){
+	    == 0 ){
 	    curwp->w_dotp = llp;
 	    curwp->w_flag |= WFEDIT | WFMOVE;
 	    curwp->w_doto = llength(llp);
@@ -63,8 +64,9 @@ char* dirname;
 #endif	/* CHGMISC	*/
 
 /*ARGSUSED*/
+int
 dired(f, n)
-int f, n;
+int f,n;
 {
     char dirname[NFILEN];
     BUFFER *bp;
@@ -80,22 +82,23 @@ int f, n;
 
     dirname[0] = '\0';
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if(eread("Dired: ", dirname, NFILEN, EFNEW | EFCR | EFFILE) == ABORT)
+    if (eread("Dired: ", dirname, NFILEN, EFNEW | EFCR | EFFILE) == ABORT)
 #else	/* NO_FILECOMP */
-    if(eread("Dired: ", dirname, NFILEN, EFNEW | EFCR) == ABORT)
+    if (eread("Dired: ", dirname, NFILEN, EFNEW | EFCR) == ABORT)
 #endif	/* NO_FILECOMP */
 	return ABORT;
 #ifdef	CHGMISC		/* 1999.8.17 by M.Suzuki	*/
-    if((fname = adjustname(dirname)) == NULL) {
+    if ((fname = adjustname(dirname)) == NULL) {
 	ewprintf("Bad directory name");
 	return FALSE;
     }
-    if( !ffisdir(fname) ){
+    if (!ffisdir(fname))
 	return filevisit_(fname,f,n);
-    }
-    if((bp = dired_(fname)) == NULL) return FALSE;
+    if ((bp = dired_(fname)) == NULL)
+	return FALSE;
 #else
-    if((bp = dired_(dirname)) == NULL) return FALSE;
+    if ((bp = dired_(dirname)) == NULL)
+	return FALSE;
 #endif	/* CHGMISC	*/
     curbp = bp;
 #ifdef	EXTD_DIR
@@ -139,8 +142,9 @@ int f, n;
 }
 
 /*ARGSUSED*/
+int
 d_otherwindow(f, n)
-int f, n;
+int f,n;
 {
     char dirname[NFILEN];
     BUFFER *bp;
@@ -153,38 +157,44 @@ int f, n;
 
     dirname[0] = '\0';
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if(eread("Dired other window: ", dirname, NFILEN, EFNEW | EFCR | EFFILE) == ABORT)
+    if (eread("Dired other window: ", dirname,
+	      NFILEN, EFNEW | EFCR | EFFILE) == ABORT)
 #else	/* NO_FILECOMP */
-    if(eread("Dired other window: ", dirname, NFILEN, EFNEW | EFCR) == ABORT)
+    if (eread("Dired other window: ", dirname, NFILEN, EFNEW | EFCR) == ABORT)
 #endif	/* NO_FILECOMP */
 	return ABORT;
 #ifdef	CHGMISC		/* 99.6.18 by M.Suzuki	*/
-    if((bp = dired_(dirname)) == NULL) return FALSE;
+    if ((bp = dired_(dirname)) == NULL)
+	return FALSE;
 #else
-    if((bp = dired_(dirname)) == NULL) return FALSE;
+    if ((bp = dired_(dirname)) == NULL)
+	return FALSE;
 #endif	/* CHGMISC	*/
 #ifdef	READONLY	/* 91.01.15  by K.Maeda */
     bp->b_flag |= BFRONLY;
 #endif	/* READONLY */
-    if((wp = popbuf(bp)) == NULL) return FALSE;
+    if ((wp = popbuf(bp)) == NULL)
+	return FALSE;
     curbp = bp;
     curwp = wp;
     return TRUE;
 }
 
 /*ARGSUSED*/
+int
 d_del(f, n)
-int f, n;
+int f,n;
 {
-    if(n < 0) return FALSE;
-    while(n--) {
-	if(llength(curwp->w_dotp) > 0)
+    if (n < 0)
+	return FALSE;
+    while (n--) {
+	if (llength(curwp->w_dotp) > 0)
 #ifdef	CHGMISC		/* 99.6.18 by M.Suzuki	*/
-	    if(lgetc(curwp->w_dotp,0) != '/' &&
-	       strncmp(curwp->w_dotp->l_text, "  total", 7) )
+	    if (lgetc(curwp->w_dotp,0) != '/' &&
+		strncmp(curwp->w_dotp->l_text, "  total", 7) )
 #endif	/* CHGMISC	*/
 	    lputc(curwp->w_dotp, 0, 'D');
-	if(lforw(curwp->w_dotp) != curbp->b_linep)
+	if (lforw(curwp->w_dotp) != curbp->b_linep)
 	    curwp->w_dotp = lforw(curwp->w_dotp);
     }
     curwp->w_flag |= WFEDIT | WFMOVE;
@@ -193,18 +203,20 @@ int f, n;
 }
 
 /*ARGSUSED*/
+int
 d_undel(f, n)
 int f, n;
 {
-    if(n < 0) return d_undelbak(f, -n);
-    while(n--) {
-	if(llength(curwp->w_dotp) > 0)
+    if (n < 0)
+	return d_undelbak(f, -n);
+    while (n--) {
+	if (llength(curwp->w_dotp) > 0)
 #ifdef	CHGMISC		/* 99.6.18 by M.Suzuki	*/
-	    if( lgetc(curwp->w_dotp,0) != '/' &&
-		strncmp(curwp->w_dotp->l_text,"  total",7) )
+	    if (lgetc(curwp->w_dotp,0) != '/' &&
+		strncmp(curwp->w_dotp->l_text,"  total",7))
 #endif	/* CHGMISC	*/
 	    lputc(curwp->w_dotp, 0, ' ');
-	if(lforw(curwp->w_dotp) != curbp->b_linep)
+	if (lforw(curwp->w_dotp) != curbp->b_linep)
 	    curwp->w_dotp = lforw(curwp->w_dotp);
     }
     curwp->w_flag |= WFEDIT | WFMOVE;
@@ -213,6 +225,7 @@ int f, n;
 }
 
 /*ARGSUSED*/
+int
 d_undelbak(f, n)
 int f, n;
 {
@@ -229,36 +242,37 @@ int f, n;
 }
 
 /*ARGSUSED*/
+int
 d_flag(f, n)
-int f, n;
+int f,n;
 {
-  struct LINE *lp;
-  char flag = (f & FFARG) ? ' ' : 'D';
-  int nflags = 0, len;
+    struct LINE *lp;
+    char flag = (f & FFARG) ? ' ' : 'D';
+    int nflags = 0, len;
 
-  lp = curbp->b_linep;
-  do {
-    len = llength(lp);
-    if (len > 0 && lgetc(lp, len - 1) == '~') {
-      lputc(lp, 0, flag);
-      nflags++;
-    }
-    lp = lforw(lp);
-  } while (lp != curbp->b_linep);
-  curwp->w_flag |= WFEDIT | WFMOVE;
-  ewprintf(flag == 'D' ? 
-	   "%d backup file%s flagged." : "%d backup file%s unmarked.",
-	   nflags, nflags == 1 ? "" : "s");
-  return TRUE;
+    lp = curbp->b_linep;
+    do {
+	len = llength(lp);
+	if (len > 0 && lgetc(lp, len - 1) == '~') {
+	    lputc(lp, 0, flag);
+	    nflags++;
+	}
+	lp = lforw(lp);
+    } while (lp != curbp->b_linep);
+    curwp->w_flag |= WFEDIT | WFMOVE;
+    ewprintf(flag == 'D' ? 
+	     "%d backup file%s flagged." : "%d backup file%s unmarked.",
+	     nflags, nflags == 1 ? "" : "s");
+    return TRUE;
 }
 
 /*
  * unified routine for d_findfile and d_ffotherwindow
  */
 
-static
+static int
 d_fileopen(f, n, popup)
-int f, n, popup;
+int f,n,popup;
 {
     char fname[NFILEN];
     register BUFFER *bp;
@@ -269,40 +283,41 @@ int f, n, popup;
     if ((s = d_makename(curwp->w_dotp, fname, sizeof(fname))) == ABORT)
 	return FALSE;
     if ((bp = (s ? dired_(fname) : findbuffer(fname))) == NULL)
-      return FALSE;
+	return FALSE;
 #ifdef	READONLY	/* 91.01.16  by S.Yoshida */
     if (s) {			/* If dired buffer,	*/
 	bp->b_flag |= BFRONLY;	/* mark as read-only.	*/
     }
 #endif	/* READONLY */
     if (popup) {
-      if ((wp = popbuf(bp)) == NULL)
-	return FALSE;
-      curbp = bp;
-      curwp = wp;
+	if ((wp = popbuf(bp)) == NULL)
+	    return FALSE;
+	curbp = bp;
+	curwp = wp;
     }
     else {
-      curbp = bp;
-      if (showbuffer(bp, curwp, WFHARD) != TRUE)
-	return FALSE;
+	curbp = bp;
+	if (showbuffer(bp, curwp, WFHARD) != TRUE)
+	    return FALSE;
     }
     if (bp->b_fname != NULL)
-      return TRUE;
+	return TRUE;
     s = readin(fname);
 #ifdef	READONLY	/* 91.01.16  by S.Yoshida */
-    if (fchkreadonly(bp->b_fname)) { /* If no write permission, */
-	    bp->b_flag |= BFRONLY;	 /* mark as read-only.      */
-	    ewprintf("File is write protected");
+    if (fchkreadonly(bp->b_fname)) {	 /* If no write permission, */
+	bp->b_flag |= BFRONLY;		 /* mark as read-only.      */
+	ewprintf("File is write protected");
     }
 #endif	/* READONLY */
     return s;
 }
 
 /*ARGSUSED*/
+int
 d_findfile(f, n)
-int f, n;
+int f,n;
 {
-  return d_fileopen(f, n, FALSE);
+    return d_fileopen(f, n, FALSE);
 }
 
 #ifdef READONLY
@@ -311,24 +326,26 @@ int
 d_viewfile(f, n)
 int f, n;
 {
-  int res;
+    int res;
 
-  res = d_findfile(f, n);
-  if (res) {
-    curbp->b_flag |= BFRONLY; /* set read-only bit. */
-  }
-  return res;
+    res = d_findfile(f, n);
+    if (res) {
+	curbp->b_flag |= BFRONLY; /* set read-only bit. */
+    }
+    return res;
 }
 #endif
 
 /*ARGSUSED*/
+int
 d_ffotherwindow(f, n)
 int f, n;
 {
-  return d_fileopen(f, n, TRUE);
+    return d_fileopen(f, n, TRUE);
 }
 
 /*ARGSUSED*/
+int
 d_expunge(f, n)
 int f, n;
 {
@@ -340,25 +357,25 @@ int f, n;
     ensurecwd();
 #endif
 
-    for(lp = lforw(curbp->b_linep); lp != curbp->b_linep; lp = nlp) {
+    for (lp = lforw(curbp->b_linep); lp != curbp->b_linep; lp = nlp) {
 	nlp = lforw(lp);
-	if(llength(lp) && lgetc(lp, 0) == 'D') {
-	    switch(d_makename(lp, fname, sizeof(fname))) {
-		case ABORT:
-		    ewprintf("Bad line in dired buffer");
+	if (llength(lp) && lgetc(lp, 0) == 'D') {
+	    switch (d_makename(lp, fname, sizeof(fname))) {
+	    case ABORT:
+		ewprintf("Bad line in dired buffer");
+		return FALSE;
+	    case FALSE:
+		if (unlink(fname) < 0) {
+		    ewprintf("Could not delete '%s'", fname);
 		    return FALSE;
-		case FALSE:
-		    if(unlink(fname) < 0) {
-			ewprintf("Could not delete '%s'", fname);
-			return FALSE;
-		    }
-		    break;
-		case TRUE:
-		    if(unlinkdir(fname) < 0) {
-			ewprintf("Could not delete directory '%s'", fname);
-			return FALSE;
-		    }
-		    break;
+		}
+		break;
+	    case TRUE:
+		if (unlinkdir(fname) < 0) {
+		    ewprintf("Could not delete directory '%s'", fname);
+		    return FALSE;
+		}
+		break;
 	    }
 	    lfree(lp);
 	    curwp->w_flag |= WFHARD;
@@ -371,24 +388,25 @@ static char *
 filename(path)
 char *path;
 {
-  char *cp1;
+    char *cp1;
 
-  cp1 = path;
-  while (*cp1 != 0) {
-    ++cp1;
-  }
-  --cp1; /* insure at least 1 character ! */
-  while (cp1!= path && cp1[-1] != BDC1
+    cp1 = path;
+    while (*cp1 != 0) {
+	++cp1;
+    }
+    --cp1; /* insure at least 1 character ! */
+    while (cp1!= path && cp1[-1] != BDC1
 #ifdef	BDC2
-	 && cp1[-1] != BDC2
+	   && cp1[-1] != BDC2
 #endif
-	 ) {
-    --cp1;
-  }
-  return cp1;
+	   ) {
+	--cp1;
+    }
+    return cp1;
 }
 
 /*ARGSUSED*/
+int
 d_copy(f, n)
 int f, n;
 {
@@ -401,15 +419,15 @@ int f, n;
 
     switch (d_makename(curwp->w_dotp, frname, sizeof(frname))) {
     case TRUE:
-      ewprintf("Not a file");
-      return FALSE;
-
+	ewprintf("Not a file");
+	return FALSE;
+	
     case ABORT:
-      return FALSE;
-
+	return FALSE;
+	
     case FALSE:
-      /* nothing to do */
-      break;
+	/* nothing to do */
+	break;
     }
   
     fr = filename(frname);
@@ -418,9 +436,10 @@ int f, n;
 #endif
 
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if((stat = eread("Copy %s to: ", toname, NFILEN, EFNEW | EFCR | EFFILE, fr))
+    if ((stat = eread("Copy %s to: ", toname, NFILEN,
+		      EFNEW | EFCR | EFFILE, fr))
 #else	/* NO_FILECOMP */
-    if((stat = eread("Copy %s to: ", toname, NFILEN, EFNEW | EFCR, fr))
+    if ((stat = eread("Copy %s to: ", toname, NFILEN, EFNEW | EFCR, fr))
 #endif	/* NO_FILECOMP */
 	!= TRUE) {
 	return stat;
@@ -430,6 +449,7 @@ int f, n;
 }
 
 /*ARGSUSED*/
+int
 d_rename(f, n)
 int f, n;
 {
@@ -442,15 +462,15 @@ int f, n;
 
     switch (d_makename(curwp->w_dotp, frname, sizeof(frname))) {
     case TRUE:
-      ewprintf("Not a file");
-      return FALSE;
-
+	ewprintf("Not a file");
+	return FALSE;
+	
     case ABORT:
-      return FALSE;
-
+	return FALSE;
+	
     case FALSE:
-      /* nothing to do */
-      break;
+	/* nothing to do */
+	break;
     }
 
     fr = filename(frname);
@@ -459,10 +479,10 @@ int f, n;
 #endif
 
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if((stat = eread("Rename %s to: ", toname, NFILEN, EFNEW | EFCR | EFFILE,
-		     fr))
+    if ((stat = eread("Rename %s to: ", toname, NFILEN,
+		      EFNEW | EFCR | EFFILE, fr))
 #else	/* NO_FILECOMP */
-    if((stat = eread("Rename %s to: ", toname, NFILEN, EFNEW | EFCR, fr))
+    if ((stat = eread("Rename %s to: ", toname, NFILEN, EFNEW | EFCR, fr))
 #endif	/* NO_FILECOMP */
 	!= TRUE) {
       return stat;
@@ -477,28 +497,23 @@ d_execute(f, n)
 int f, n;
 {
 #ifdef WIN32
-  char fname[NFILEN];
-  register int s;
-  extern void WinExecute(char *);
+    char fname[NFILEN];
+    register int s;
+    extern VOID WinExecute _PRO((char *));
 
-  s = d_makename(curwp->w_dotp, fname, sizeof(fname));
-  if (s == ABORT) {
-    return FALSE;
-  }
-  else if (s) { /* that is, fname points to a directory */
+    s = d_makename(curwp->w_dotp, fname, sizeof(fname));
+    if (s == ABORT)
+	return FALSE;
+    else if (s) { /* that is, fname points to a directory */
 #if !defined(_WIN32_WCE) || 200 <= _WIN32_WCE
-    goto noproblem;
+	return FALSE;
 #endif
-    return FALSE;
-  }
-  else {
-noproblem:
+    }
     WinExecute(fname);
     return TRUE;
-  }
-#else	/* not WIN32 */
+#else /* not WIN32 */
   return TRUE;
-#endif	/* WIN32 */
+#endif /* WIN32 */
 }
 
-#endif	/* NO_DIRED */
+#endif /* NO_DIRED */

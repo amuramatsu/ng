@@ -1,7 +1,10 @@
-# $Id: Makefile.in,v 1.5 2001/08/17 19:15:07 amura Exp $
+# $Id: Makefile.in,v 1.6 2001/11/23 11:56:51 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # $Log: Makefile.in,v $
+# Revision 1.6  2001/11/23 11:56:51  amura
+# Rewrite all sources
+#
 # Revision 1.5  2001/08/17 19:15:07  amura
 # first try of unicode support (unix only/win32 on the way)
 #
@@ -70,7 +73,7 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  kinsoku.c skg.c jump.c undo.c
 
 OINCS =	ttydef.h sysdef.h chrdef.h
-INCS =	config.h def.h sysconfig.h
+INCS =	config.h def.h sysconfig.h extern.h
 REINCS = regex_e.h regex_j.h regex_j.c regex_e.h kanji_.h kanji_.c
 
 #PROG = mg

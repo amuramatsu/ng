@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.15 2001/10/29 04:30:44 amura Exp $ */
+/* $Id: fileio.c,v 1.16 2001/11/23 11:56:51 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: fileio.c,v $
+ * Revision 1.16  2001/11/23 11:56:51  amura
+ * Rewrite all sources
+ *
  * Revision 1.15  2001/10/29 04:30:44  amura
  * let BUGFIX code enable always
  *
@@ -32,45 +35,31 @@
  * Revision 1.8  2001/01/05 13:55:28  amura
  * filename completion fixed
  *
- * Revision 1.7  2000/12/28 07:25:40  amura
- * fix filename complition
- *
- * Revision 1.6  2000/12/27 16:55:43  amura
- * change d_makename() params for conservative reason, and bugfix in dires_()
- *
- * Revision 1.5  2000/12/22 20:02:14  amura
- * readonly check is more correctly
- *
- * Revision 1.4  2000/12/21 16:56:25  amura
- * filename length become flexible
- *
- * Revision 1.3  2000/12/14 18:16:50  amura
- * filename length become flexible and
- * expand HOME directory in completion
- *
- * Revision 1.2  2000/12/01 09:51:23  amura
- * fix problems open "/" and sybolic link directory, remove typos
+ * - snip -
  *
  * Revision 1.1  2000/11/19 18:35:00  amura
  * support GNU configure system
  *
  */
 
-#include	"config.h"
-#include	"def.h"
+#include "config.h"
+#include "def.h"
 
-static	FILE	*ffp;
-#ifdef	STDC_HEADERS
+static FILE *ffp;
+#ifdef STDC_HEADERS
 #include <string.h>
 #else
-extern	char	*getenv(), *strncpy();
+extern char *strncpy _PRO((char *, char *, int));
 #endif
-char	*adjustname();
+char *adjustname _PRO((char *));
 
 /*
  * Open a file for reading.
  */
-ffropen(fn) char *fn; {
+int
+ffropen(fn)
+char *fn;
+{
     if ((ffp=fopen(fn, "r")) == NULL)
 	return (FIOFNF);
     return (FIOSUC);
@@ -81,7 +70,10 @@ ffropen(fn) char *fn; {
  * Return TRUE if all is well, and
  * FALSE on error (cannot create).
  */
-ffwopen(fn) char *fn; {
+int
+ffwopen(fn)
+char *fn;
+{
     if ((ffp=fopen(fn, "w")) == NULL) {
 	ewprintf("Cannot open file for writing");
 	return (FIOERR);
@@ -93,7 +85,9 @@ ffwopen(fn) char *fn; {
  * Close a file.
  * Should look at the status.
  */
-ffclose() {
+int
+ffclose()
+{
     (VOID) fclose(ffp);
     return (FIOSUC);
 }
@@ -105,6 +99,7 @@ ffclose() {
  * Check only at the newline and
  * end of buffer.
  */
+int
 ffputbuf(bp)
 BUFFER *bp;
 {
@@ -126,7 +121,7 @@ BUFFER *bp;
     do {
 	cp = &ltext(lp)[0];		/* begining of line	*/
 	cpend = &cp[llength(lp)];	/* end of line		*/
-	while(cp != cpend) {
+	while (cp != cpend) {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 	    kputc(*cp, ffp, kfio);
 #else	/* NOT KANJI */
@@ -140,15 +135,17 @@ BUFFER *bp;
 	}
 #endif	/* KANJI */
 	lp = lforw(lp);
-	if(lp == lpend) break;		/* no implied newline on last line */
+	if (lp == lpend)	/* no implied newline on last line */
+	    break;
 #ifdef	USE_UNICODE
 	if (kfio == UCS2) {
-		putc(0, ffp);
+	    putc(0, ffp);
 	}
 #endif	/* USE_UNICODE */
 	putc('\n', ffp);
-    } while(!ferror(ffp));
-    if(ferror(ffp)) {
+    } while (!ferror(ffp));
+    
+    if (ferror(ffp)) {
 	ewprintf("Write I/O error");
 	return FIOERR;
     }
@@ -161,18 +158,20 @@ BUFFER *bp;
  * line.  When FIOEOF is returned, there is a valid line
  * of data without the normally implied \n.
  */
+int
 ffgetline(buf, nbuf, nbytes)
-register char	*buf;
-register int	nbuf;
-register int	*nbytes;
+register char *buf;
+register int nbuf;
+register int *nbytes;
 {
-    register int	c;
-    register int	i;
+    register int c;
+    register int i;
 
     i = 0;
-    while((c = getc(ffp))!=EOF && c!='\n') {
+    while ((c = getc(ffp))!=EOF && c!='\n') {
 	buf[i++] = c;
-	if (i >= nbuf) return FIOLONG;
+	if (i >= nbuf)
+	    return FIOLONG;
     }
     if (c == EOF  && ferror(ffp) != FALSE) {
 	ewprintf("File read error");
@@ -192,19 +191,21 @@ register int	*nbytes;
  * right thing here; I don't care that much as
  * I don't enable backups myself.
  */
-fbackupfile(fn) char *fn; {
-    register char	*nname;
-    
+int
+fbackupfile(fn)
+char *fn;
+{
+    register char *nname;
     if ((nname=alloca((unsigned)(strlen(fn)+1+1))) == NULL) {
 	ewprintf("Can't get %d bytes", strlen(fn) + 1);
 	return (ABORT);
     }
-    (void) strcpy(nname, fn);
-    (void) strcat(nname, "~");
-    (void) unlink(nname);			/* Ignore errors.	*/
+    strcpy(nname, fn);
+    strcat(nname, "~");
+    unlink(nname);			/* Ignore errors.	*/
     if (rename(fn, nname) < 0)
-	return (FALSE);
-    return (TRUE);
+	return FALSE;
+    return TRUE;
 }
 
 #ifndef	_SYS_STAT_H_
@@ -214,21 +215,23 @@ fbackupfile(fn) char *fn; {
 /*
  * Get file mode of a file fn.
  */
+int
 fgetfilemode(fn)
-char	*fn;
+char *fn;
 {
-    struct	stat	filestat;
+    struct stat filestat;
     
     stat(fn, &filestat);
-    return(filestat.st_mode & 0x0fff);
+    return (filestat.st_mode & 0x0fff);
 }
 
 /*
  * Set file mode of a file fn to the specified mode.
  */
+VOID
 fsetfilemode(fn, mode)
-char	*fn;
-int	mode;
+char *fn;
+int mode;
 {
     chmod(fn, mode);
 }
@@ -245,10 +248,11 @@ int	mode;
 /*
  * Check whether file is read-only of a file fn.
  */
+int
 fchkreadonly(fn)
-char	*fn;
+char *fn;
 {
-    struct	stat	filestat;
+    struct stat filestat;
     
     if (stat(fn, &filestat) == 0) {
 	if (filestat.st_mode&S_IWOTH)
@@ -262,26 +266,26 @@ char	*fn;
 	    num = getgroups(0, NULL);
 	    if (num!=0 && (gids=alloca(sizeof(gid_t)*num))!=NULL) {
 		num = getgroups(num, gids);
-		for (i=0; i<num; i++)
+		for (i=0; i<num; i++) {
 		    if (filestat.st_gid == gids[i])
 			return FALSE;
+		}
 	    }
 	}
 #endif
 	if (filestat.st_mode&S_IWUSR && filestat.st_uid==geteuid())
 	    return FALSE;
 	return TRUE;
-    } else {
-	return FALSE;
     }
+    return FALSE;
 }
 #endif	/* READONLY */
 
 #ifndef NO_DIR
 #ifdef	HAVE_GETCWD
-char	*getcwd();
+char *getcwd();
 #else
-char	*getwd();
+char *getwd();
 #endif
 
 extern char *wdir;
@@ -311,6 +315,7 @@ dirinit()
     }
 }
 
+int
 rchdir(dir)
 char *dir;
 {
@@ -345,7 +350,8 @@ char *dir;
 #endif	/* HAVE_SYMLINK */
 #include <pwd.h>
 
-char *adjustname(fn)
+char *
+adjustname(fn)
 register char *fn;
 {
     register char *cp;
@@ -357,99 +363,111 @@ register char *fn;
     char linkbuf[NFILEN];
 #endif
 
-    switch(*fn) {
-    	case '/':
-	    cp = fnb;
-	    *cp++ = *fn++;
-	    break;
-	case '~':
-	    fn++;
-	    if(*fn == '/' || *fn == '\0') {
-		(VOID) strcpy(fnb, getenv("HOME"));
-		cp = fnb + strlen(fnb);
-	    	if(*fn) fn++;
-		break;
-	    } else {
-		cp = fnb;
-		while(*fn && *fn != '/') *cp++ = *fn++;
-		*cp = '\0';
-		if((pwent = getpwnam(fnb)) != NULL) {
-		    (VOID) strcpy(fnb, pwent->pw_dir);
-		    cp = fnb + strlen(fnb);
-		    break;
-		} else {
-		    fn -= strlen(fnb) + 1;
-		    /* can't find ~user, continue to default case */
-		}
-	    }
-	default:
-#ifndef	NO_DIR
-	    strcpy(fnb, wdir);
+    switch (*fn) {
+    case '/':
+	cp = fnb;
+	*cp++ = *fn++;
+	break;
+    case '~':
+	fn++;
+	if (*fn == '/' || *fn == '\0') {
+	    strcpy(fnb, getenv("HOME"));
 	    cp = fnb + strlen(fnb);
+	    if (*fn)
+		fn++;
 	    break;
+	}
+	else {
+	    cp = fnb;
+	    while (*fn && *fn != '/')
+		*cp++ = *fn++;
+	    *cp = '\0';
+	    if ((pwent = getpwnam(fnb)) != NULL) {
+		strcpy(fnb, pwent->pw_dir);
+		cp = fnb + strlen(fnb);
+		break;
+	    }
+	    else {
+		fn -= strlen(fnb) + 1;
+		/* can't find ~user, continue to default case */
+	    }
+	}
+    default:
+#ifndef	NO_DIR
+	strcpy(fnb, wdir);
+	cp = fnb + strlen(fnb);
+	break;
 #else
-	    return fn;				/* punt */
+	return fn;				/* punt */
 #endif
     }
-    if(cp != fnb && cp[-1] != '/') *cp++ = '/';
-    while(*fn) {
-    	switch(*fn) {
-	    case '.':
-		switch(fn[1]) {
-	            case '\0':
-		    	*--cp = '\0';
-		    	return fnb;
-	    	    case '/':
-	    	    	fn += 2;
-		    	continue;
-		    case '.':
-		    	if(fn[2]=='/' || fn[2] == '\0') {
-#ifdef HAVE_SYMLINK
-			    cp[-1] = '\0';
-			    for(j = MAXSYMLINKS; j-- && 
-			    	    lstat(fnb, &statbuf) != -1 && 
-			    	    (statbuf.st_mode&S_IFMT) == S_IFLNK &&
-			    	    (i = readlink(fnb, linkbuf, sizeof linkbuf))
-				    != -1 ;) {
-				if(linkbuf[0] != '/') {
-				    --cp;
-				    while(cp > fnb && *--cp != '/') {}
-				    ++cp;
-				    (VOID) strncpy(cp, linkbuf, i);
-				    cp += i;
-				} else {
-				    (VOID) strncpy(fnb, linkbuf, i);
-				    cp = fnb + i;
-				}
-				if(cp[-1]!='/') *cp++ = '\0';
-				else cp[-1] = '\0';
-			    }
-			    cp[-1] = '/';
-#endif	/* HAVE_SYMLINK */
-			    --cp;
-			    while(cp > fnb && *--cp != '/') {}
-			    ++cp;
-			    if(fn[2]=='\0') {
-			        *--cp = '\0';
-			        return fnb;
-			    }
-		            fn += 3;
-		            continue;
-		        }
-		        break;
-		    default:
-		    	break;
-	        }
-		break;
+    if (cp != fnb && cp[-1] != '/')
+	*cp++ = '/';
+    while (*fn) {
+    	switch (*fn) {
+	case '.':
+	    switch (fn[1]) {
+	    case '\0':
+		*--cp = '\0';
+		return fnb;
 	    case '/':
-	    	fn++;
-	    	continue;
+		fn += 2;
+		continue;
+	    case '.':
+		if (fn[2]=='/' || fn[2]=='\0') {
+#ifdef HAVE_SYMLINK
+		    cp[-1] = '\0';
+		    for (j = MAXSYMLINKS; j-- && 
+			     lstat(fnb, &statbuf) != -1 && 
+			     (statbuf.st_mode&S_IFMT) == S_IFLNK &&
+			     (i = readlink(fnb, linkbuf, sizeof linkbuf))
+			     != -1 ;) {
+			if (linkbuf[0] != '/') {
+			    --cp;
+			    while (cp > fnb && *--cp != '/')
+				;
+			    ++cp;
+			    strncpy(cp, linkbuf, i);
+			    cp += i;
+			}
+			else {
+			    strncpy(fnb, linkbuf, i);
+			    cp = fnb + i;
+			}
+			if (cp[-1] != '/')
+			    *cp++ = '\0';
+			else
+			    cp[-1] = '\0';
+		    }
+		    cp[-1] = '/';
+#endif /* HAVE_SYMLINK */
+		    --cp;
+		    while (cp > fnb && *--cp != '/')
+			;
+		    ++cp;
+		    if (fn[2] == '\0') {
+			*--cp = '\0';
+			return fnb;
+		    }
+		    fn += 3;
+		    continue;
+		}
+		break;
 	    default:
-	    	break;
+		break;
+	    }
+	    break;
+	case '/':
+	    fn++;
+	    continue;
+	default:
+	    break;
 	}
-	while(*fn && (*cp++ = *fn++) != '/') {}
+	while (*fn && (*cp++ = *fn++) != '/')
+	    ;
     }
-    if((cp-1)!=fnb && cp[-1]=='/') --cp;
+    if ((cp-1)!=fnb && cp[-1]=='/')
+	--cp;
     *cp = '\0';
     return fnb;
 }
@@ -477,30 +495,32 @@ startupfile(suffix)
 #endif
 char *suffix;
 {
-    register char	*file;
-    static char		home[NFILEN];
-    char		*getenv();
-
-
+    register char *file;
+    static char home[NFILEN];
 #ifdef	ADDOPT
     if (ngrcfile == NULL)
 	ngrcfile = getenv("NGRC");
-    if (ngrcfile != NULL)
-	if (access(ngrcfile, F_OK) == 0)  return ngrcfile;
+    if (ngrcfile != NULL) {
+	if (access(ngrcfile, F_OK) == 0)
+	    return ngrcfile;
+    }
 #endif
-    if ((file = getenv("HOME")) == NULL) goto notfound;
-    if (strlen(file)+7 >= NFILEN - 1) goto notfound;
-    (VOID) strcpy(home, file);
+    if ((file = getenv("HOME")) == NULL)
+	goto notfound;
+    if (strlen(file)+7 >= NFILEN - 1)
+	goto notfound;
+    strcpy(home, file);
 #ifdef	KANJI	/* 90.02.10  by S.Yoshida */
-    (VOID) strcat(home, "/.ng");
+    strcat(home, "/.ng");
 #else	/* NOT KANJI */
-    (VOID) strcat(home, "/.mg");
+    strcat(home, "/.mg");
 #endif	/* KANJI */
     if (suffix != NULL) {
 	(VOID) strcat(home, "-");
 	(VOID) strcat(home, suffix);
     }
-    if (access(home, F_OK ) == 0) return home;
+    if (access(home, F_OK ) == 0)
+	return home;
 
 notfound:
 #ifdef	STARTUPFILE
@@ -511,7 +531,8 @@ notfound:
 	(VOID) strcat(home, suffix);
 	file = home;
     }
-    if (access(file, F_OK ) == 0) return file;
+    if (access(file, F_OK ) == 0)
+	return file;
 #endif
     
     return NULL;
@@ -529,8 +550,13 @@ notfound:
 #include "kbd.h"
 
 #ifndef CP_CMD
-#define CP_CMD	"/bin/cp"
+#define CP_CMD		"/bin/cp"
 #endif
+#ifndef LS_CMD
+#define LS_CMD		"/bin/ls"
+#endif
+
+int
 copy(frname, toname)
 char *frname, *toname;
 {
@@ -538,20 +564,20 @@ char *frname, *toname;
     char *eargv[3];
     int status; 	/* change for Digital UNIX */
 
-    if((pid = vfork()) == 0) {
+    if ((pid = vfork()) == 0) {
 	execl(CP_CMD, "cp", frname, toname, (char *)NULL);
 	_exit(1);	/* shouldn't happen */
     }
-    if(pid == -1)	return	-1;
-    while(wait((int*)&status) != pid) {}
+    if (pid == -1)
+	return	-1;
+    while (wait((int*)&status) != pid)
+	;
 
     return status == 0;
 }
 
-#ifndef LS_CMD
-#define LS_CMD "/bin/ls"
-#endif
-BUFFER *dired_(dirname)
+BUFFER *
+dired_(dirname)
 char *dirname;
 {
     register BUFFER *bp;
@@ -560,47 +586,51 @@ char *dirname;
     FILE *dirpipe;
     FILE *popen();
 
-    if((dirname = adjustname(dirname)) == NULL) {
+    if ((dirname = adjustname(dirname)) == NULL) {
 	ewprintf("Bad directory name");
 	return NULL;
     }
-    if(dirname[strlen(dirname)-1] != '/') (VOID) strcat(dirname, "/");
-    if((bp = findbuffer(dirname)) == NULL) {
+    if (dirname[strlen(dirname)-1] != '/')
+	strcat(dirname, "/");
+    if ((bp = findbuffer(dirname)) == NULL) {
 	ewprintf("Could not create buffer");
 	return NULL;
     }
-    if(bclear(bp) != TRUE) return FALSE;
+    if (bclear(bp) != TRUE)
+	return FALSE;
 #ifdef	EXTD_DIR
-    if(bp->b_cwd != NULL) free(bp->b_cwd);
-    if((bp->b_cwd=malloc(strlen(dirname)+1)) == NULL) {
+    if (bp->b_cwd != NULL)
+	free(bp->b_cwd);
+    if ((bp->b_cwd=malloc(strlen(dirname)+1)) == NULL) {
 	ewprintf("Could not create buffer");
 	return NULL;
     }
     strcpy(bp->b_cwd, dirname);
     ensurecwd();
 #endif
-    (VOID) strncpy(line, LS_CMD " -al '", sizeof(line));
+    strncpy(line, LS_CMD " -al '", sizeof(line));
     line[sizeof(line)-1] = '\0';
-    (VOID) strncat(line, dirname, sizeof(line)-strlen(line)-1);
-    (VOID) strncat(line, "' 2>&1", sizeof(line)-strlen(line)-1);
-    if((dirpipe = popen(line, "r")) == NULL) {
+    strncat(line, dirname, sizeof(line)-strlen(line)-1);
+    strncat(line, "' 2>&1", sizeof(line)-strlen(line)-1);
+    if ((dirpipe = popen(line, "r")) == NULL) {
 	ewprintf("Problem opening pipe to ls");
 	return NULL;
     }
     line[0] = line[1] = ' ';
-    while(fgets(&line[2], 254, dirpipe) != NULL) {
+    while (fgets(&line[2], 254, dirpipe) != NULL) {
 	line[strlen(line) - 1] = '\0';		/* remove ^J	*/
-	(VOID) addline(bp, line);
+	addline(bp, line);
     }
-    if(pclose(dirpipe) == -1) {
+    if (pclose(dirpipe) == -1) {
 	ewprintf("Problem closing pipe to ls");
 	return NULL;
     }
     bp->b_dotp = lforw(bp->b_linep);		/* go to first line */
-    if(bp->b_fname != NULL) free(bp->b_fname);
-    if((bp->b_fname=malloc(strlen(dirname)+1)) != NULL)
-	(VOID)strcpy(bp->b_fname, dirname);
-    if((bp->b_modes[0] = name_mode("dired")) == NULL) {
+    if (bp->b_fname != NULL)
+	free(bp->b_fname);
+    if ((bp->b_fname=malloc(strlen(dirname)+1)) != NULL)
+	strcpy(bp->b_fname, dirname);
+    if ((bp->b_modes[0] = name_mode("dired")) == NULL) {
 	bp->b_modes[0] = &map_table[0];
 	ewprintf("Could not find mode dired");
 	return NULL;
@@ -609,62 +639,64 @@ char *dirname;
     return bp;
 }
 
+int
 d_makename(lp, fn, buflen)
 register LINE *lp;
 register char *fn;
+int buflen;
 {
-  char* cp;
-  int l,l1,len;
-  char c;
+    char* cp;
+    int l, l1, len;
+    char c;
 
-  /* '30' is a magic number and is not correct always */
-
-  if ( llength( lp ) <= 30 ) {
-    return ABORT ;
-  }
-  l = llength(lp); 
-
-  if (lgetc(lp, 2) == 'l') {
-    do {
-      while (l > 2 && lgetc(lp, l) != ' ')
-        l--;
-      if (bcmp(lp->l_text + l - 3, " -> ", 4) == 0)
-        break;
-      l--;
-    } while (l > 2);
-  }
-  else {
-    do {
-      while (l > 2 && lgetc(lp, l)!=' ')
-        l--;
-      l1 = l;
-      while (l > 2 && lgetc(lp, l)==' ')
-        l--;
-      while (l > 2 && (c=lgetc(lp, l))!=' ') {
-	if (c!=':' && (c<'0'||c>'9')) {
-          break;
-        }
-        l--;
-      }
-    } while (l > 2 && c != ' ');
-    l = l1;
-  }
-  if (l <= 2)
-    return ABORT;
-  l++;
-
-  len = llength(lp) - l + 1;
-  if (buflen <= len+strlen(curbp->b_fname)) return ABORT;
-  cp = fn;
-  strcpy(cp, curbp->b_fname);
-  cp += strlen(cp);
-  bcopy(lp->l_text + l, cp, len);
-  cp[len-1] = '\0';
+    /* '30' is a magic number and is not correct always */
+    if (llength( lp ) <= 30) {
+	return ABORT ;
+    }
+    l = llength(lp); 
+    
+    if (lgetc(lp, 2) == 'l') {
+	do {
+	    while (l > 2 && lgetc(lp, l) != ' ')
+		l--;
+	    if (bcmp(lp->l_text + l - 3, " -> ", 4) == 0)
+		break;
+	    l--;
+	} while (l > 2);
+    }
+    else {
+	do {
+	    while (l > 2 && lgetc(lp, l)!=' ')
+		l--;
+	    l1 = l;
+	    while (l > 2 && lgetc(lp, l)==' ')
+		l--;
+	    while (l > 2 && (c=lgetc(lp, l))!=' ') {
+		if (c!=':' && (c<'0'||c>'9')) {
+		    break;
+		}
+		l--;
+	    }
+	} while (l > 2 && c != ' ');
+	l = l1;
+    }
+    if (l <= 2)
+	return ABORT;
+    l++;
+    
+    len = llength(lp) - l + 1;
+    if (buflen <= len+strlen(curbp->b_fname))
+	return ABORT;
+    cp = fn;
+    strcpy(cp, curbp->b_fname);
+    cp += strlen(cp);
+    bcopy(lp->l_text + l, cp, len);
+    cp[len-1] = '\0';
 #ifdef	HAVE_SYMLINK
-  if (lgetc(lp, 2) == 'l')
-    return ffisdir(curbp->b_fname);
+    if (lgetc(lp, 2) == 'l')
+	return ffisdir(curbp->b_fname);
 #endif
-  return lgetc(lp, 2) == 'd';
+    return lgetc(lp, 2) == 'd';
 }
 
 /*
@@ -679,18 +711,20 @@ register char *fn;
 
 #ifndef HAVE_RMDIR
 #ifndef RMDIR_CMD
-#define RMDIR_CMD "/bin/rmdir"
+#define RMDIR_CMD	"/bin/rmdir"
 #endif
+int
 unlinkdir(f)	/* System V Release 2 don't have rmdir(2)? */
 char *f;
 {
     int status, pid, wpid;
-
+    
     if ((pid = vfork()) == 0)
 	execl(RMDIR_CMD, "rmdir", f, (char *)NULL);
-    else if (pid > 0)
+    else if (pid > 0) {
 	while ((wpid = wait(&status)) && wpid != pid)
 	    ;
+    }
     else
 	return FALSE;
     return status == 0;
@@ -699,8 +733,9 @@ char *f;
 
 #ifndef HAVE_RENAME
 #ifndef MV_CMD
-#define MV_CMD "/bin/mv"
+#define MV_CMD		"/bin/mv"
 #endif
+int
 rename(f1, f2)	/* System V Release 2/3 don't have rename(2)? */
 char *f1, *f2;
 {
@@ -708,9 +743,10 @@ char *f1, *f2;
 
     if ((pid = vfork()) == 0)
 	execl(MV_CMD, "mv", f1, f2, (char *)NULL);
-    else if (pid > 0)
+    else if (pid > 0) {
 	while ((wpid = wait(&status)) && wpid != pid)
 	    ;
+    }
     else
 	return FALSE;
     return status == 0;
@@ -728,14 +764,16 @@ char *f1, *f2;
 /*
  * Check whether file "dn" is directory.
  */
+int
 ffisdir(dn)
 char *dn;
 {
-    struct	stat	filestat;
+    struct stat filestat;
     
     if (stat(dn, &filestat) == 0) {
 	return ((filestat.st_mode & S_IFMT) == S_IFDIR);
-    } else {
+    }
+    else {
 	return FALSE;
     }
 }
@@ -762,7 +800,7 @@ char *dn;
  */
 
 #define	MALLOC_STEP	256
-
+int
 fffiles(name, buf)
 char *name, **buf;
 {
@@ -786,13 +824,14 @@ char *name, **buf;
     char *home;
     int homelen;
 
-    if(name[0] == '~' && name[1] == '/' && (home = getenv("HOME"))) {
+    if (name[0] == '~' && name[1] == '/' && (home = getenv("HOME"))) {
 	homelen = strlen(home) - 1;
 	strncpy(pathbuf, home, sizeof(pathbuf));
 	pathbuf[NFILEN-1] = '\0';
 	strncat(pathbuf, &name[1], sizeof(pathbuf)-strlen(pathbuf)-1);
 	cp = pathbuf + homelen;
-    } else {
+    }
+    else {
 	home = NULL;
 	homelen = 0;
 	strncpy(pathbuf, name, sizeof(pathbuf));
@@ -807,7 +846,8 @@ char *name, **buf;
     if (dirpart) {
 	*++dirpart = '\0';
 	dirpartlen = dirpart - pathbuf;
-    } else {
+    }
+    else {
 	strcpy(pathbuf, "./");
 	dirpartlen = 0;
     }
@@ -847,7 +887,8 @@ char *name, **buf;
 #endif
 	register int l;
 #ifndef	HAVE_OPENDIR
-	if (dirent->d_ino == 0) continue;
+	if (dirent->d_ino == 0)
+	    continue;
 #endif
 	if (strncmp(nampart, dirent->d_name, nampartlen) != 0)
 	    goto nomatch;		/* case-sensitive comparison */
@@ -864,11 +905,12 @@ char *name, **buf;
 	    if ((buffer = realloc(buffer, size += MALLOC_STEP)) == NULL)
 		return -1;
 	}
-	if(home) {
+	if (home) {
 	    strcpy(buffer+len, "~");
 	    strcat(buffer+len, tmpnam+homelen+1);
 	    l -= homelen;
-	} else
+	}
+	else
 	    strcpy(buffer+len, tmpnam);
 	len += l;
 	n++;
@@ -889,24 +931,23 @@ nomatch:;
 #ifdef	NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
 char *
 file_name_part (s)
-    char    *s;
+char *s;
 {
-    int    i;
+    int i;
 
-    for (i = strlen (s); i > 0; i--)
-      {
+    for (i = strlen (s); i > 0; i--) {
         if (s[i - 1] == '/')
-	  break;
-      }
+	    break;
+    }
     return (s + i);
 }
 
 char *
 copy_dir_name (d, s)
-    char    *d;
-    char    *s;
+char *d;
+char *s;
 {
-    int    i;
+    int i;
 
     i = file_name_part (s) - s;
     strncpy (d, s, i);
@@ -915,20 +956,20 @@ copy_dir_name (d, s)
 }
 #endif	/* NEW_COMPLETE */
 
-#ifdef	AUTOSAVE
+#ifdef AUTOSAVE
 VOID
 autosave_name(buff, name, buflen)
 char* buff;
 char* name;
+int buflen;
 {
     strcpy(buff, name);
     if (strlen(name)) {
 	char *fn = rindex(name, '/');
-	if (fn == NULL){
+	if (fn == NULL)
 	    fn = buff;
-	} else {
+	else
 	    fn++;
-	}
 	strcpy(&buff[strlen(buff)-strlen(fn)], "#");
 	strcat(buff, fn);
 	strcat(buff, "#");

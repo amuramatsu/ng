@@ -1,4 +1,4 @@
-/* $Id: termcap.c,v 1.1 2000/06/27 01:48:02 amura Exp $ */
+/* $Id: termcap.c,v 1.2 2001/11/23 11:56:47 amura Exp $ */
 /*
  * termcap.c - termcap library routines for MS-DOS and OS/2
  *
@@ -12,45 +12,42 @@
 
 /*
  * $Log: termcap.c,v $
- * Revision 1.1  2000/06/27 01:48:02  amura
- * Initial revision
+ * Revision 1.2  2001/11/23 11:56:47  amura
+ * Rewrite all sources
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:02  amura
+ * import to CVS
  *
  */
 
-/* 90.07.24  by S.Yoshida: Ng don't need this file.
-#include "env.h" */
+#include "config.h"
+#include "def.h"
 
-/* 90.07.24  by S.Yoshida: Ng always need termcap library.
-#ifdef TERMCAP */
-/* 97.09.12  by amura: Ng don't need termcap when using TurboC conio */
-#ifndef TCCONIO
-
+#ifndef WITHOUT_TERMCAP
 #include <stdio.h>
-
-#define	TBSIZE	1024	/* size of termcap buffer (termcap dependent) */
+#include <string.h>
 
 /*
  * termcap tcbuf; retained for later use of termcap routines
  */
-static	char	*tcbuf;
+static char *tcbuf;
 
 /*
  * dummy variables; for compatibility with UNIX termcap
  */
-extern	char	PC;
-extern	short	ospeed;
-
-extern	char	*getenv(), *strcpy(), *strchr();
+extern char PC;
+extern short ospeed;
+extern char *getenv _PRO((char*));
 
 /*
  * error exit
  */
-static void
+static VOID
 error(s)
-	char	*s;
+char  *s;
 {
-	fprintf(stderr, "termcap: %s\n", s);
-	exit(1);
+    fprintf(stderr, "termcap: %s\n", s);
+    exit(1);
 }
 
 /*
@@ -58,74 +55,73 @@ error(s)
  */
 static int
 getentry(fp, buf, room, name)
-	FILE *fp;
-	char *buf;
-	int room;
-	char *name;
+FILE *fp;
+char *buf;
+int room;
+char *name;
 {
-	register char *p, *q;
-	int cont, len, c;
-	char line[TBSIZE];
-
+    register char *p, *q;
+    int cont, len, c;
+    char line[TERMCAP_BUF_LEN];
 next:
-	for (;;) {
-		if ((p = fgets(line, TBSIZE, fp)) == NULL) {
-			*buf = 0;
-			return 0;
-		}
-		line[TBSIZE-1] = 0;
-		if (*p >= 'A' && *p <= 'Z' || *p >= 'a' && *p <= 'z')
-			break;
+    for (;;) {
+	if ((p = fgets(line, TERMCAP_BUF_LEN, fp)) == NULL) {
+	    *buf = 0;
+	    return 0;
 	}
+	line[TERMCAP_BUF_LEN-1] = 0;
+	if (*p >= 'A' && *p <= 'Z' || *p >= 'a' && *p <= 'z')
+	    break;
+    }
+    for (p = line; *p && *p != '\r' && *p != '\n'; p++)
+	;
+    if (cont = (p > line && p[-1] == '\\'))
+	p--;
+    *p = 0;
+    p = line;
+    for (;;) {
+	for (q = p; *q && *q != '|' && *q != ':'; q++)
+	    ;
+	if (*q == 0)
+	    goto next;
+	c = *q;
+	*q = 0;
+	if (!strcmp(name, p)) {
+	    *q = c;
+	    break;
+	}
+	*q = c;
+	p = q + 1;
+    }
+    while (*p != ':')
+	p++;
+    len = strlen(p);
+    if (room <= len)
+	error("tcbuf too long");
+    strcpy(buf, p);
+    buf += len;
+    room -= len;
+    while (cont) {
+	if ((p = fgets(line, TERMCAP_BUF_LEN, fp)) == NULL)
+	    error("unexpected eof");
+	line[TERMCAP_BUF_LEN-1] = 0;
 	for (p = line; *p && *p != '\r' && *p != '\n'; p++)
-		;
+	    ;
 	if (cont = (p > line && p[-1] == '\\'))
-		p--;
+	    p--;
 	*p = 0;
-	p = line;
-	for (;;) {
-		for (q = p; *q && *q != '|' && *q != ':'; q++)
-			;
-		if (*q == 0)
-			goto next;
-		c = *q;
-		*q = 0;
-		if (!strcmp(name, p)) {
-			*q = c;
-			break;
-		}
-		*q = c;
-		p = q + 1;
-	}
-	while (*p != ':')
-		p++;
+	for (p = line; *p == ' ' || *p == '\t'; p++)
+	    ;
+	if (!*p || *p == '#')
+	    continue;
 	len = strlen(p);
 	if (room <= len)
-		error("tcbuf too long");
+	    error("tcbuf too long");
 	strcpy(buf, p);
 	buf += len;
 	room -= len;
-	while (cont) {
-		if ((p = fgets(line, TBSIZE, fp)) == NULL)
-			error("unexpected eof");
-		line[TBSIZE-1] = 0;
-		for (p = line; *p && *p != '\r' && *p != '\n'; p++)
-			;
-		if (cont = (p > line && p[-1] == '\\'))
-			p--;
-		*p = 0;
-		for (p = line; *p == ' ' || *p == '\t'; p++)
-			;
-		if (!*p || *p == '#')
-			continue;
-		len = strlen(p);
-		if (room <= len)
-			error("tcbuf too long");
-		strcpy(buf, p);
-		buf += len;
-		room -= len;
-	}
-	return 1;
+    }
+    return TRUE;
 }
 
 /*
@@ -133,21 +129,21 @@ next:
  */
 static char *
 getcap(name)
-	register char *name;
+register char *name;
 {
-	register char *p;
-
-	if (tcbuf == NULL)
-		return NULL;
-
-	p = tcbuf;
-	while (*p) {
-		if (*p++ != ':')
-			continue;
-		if (*p == *name && p[1] == name[1])
-			return p + 2;
-	}
+    register char *p;
+    
+    if (tcbuf == NULL)
 	return NULL;
+    
+    p = tcbuf;
+    while (*p) {
+	if (*p++ != ':')
+	    continue;
+	if (*p == *name && p[1] == name[1])
+	    return p + 2;
+    }
+    return NULL;
 }
 
 /*
@@ -155,33 +151,33 @@ getcap(name)
  */
 int
 tgetent(buf, name)
-	char *buf;
-	char *name;
+char *buf;
+char *name;
 {
-	register char *p, *q;
-	char *file;
-	FILE *fp;
-	int ret;
-
-	if ((file = getenv("TERMCAP")) == NULL)
-		file = "/etc/termcap";
+    register char *p, *q;
+    char *file;
+    FILE *fp;
+    int ret;
+    
+    if ((file = getenv("TERMCAP")) == NULL)
+	file = "/etc/termcap";
+    if ((fp = fopen(file, "r")) == NULL)
+	return -1;
+    p = buf;
+    if ((ret = getentry(fp, p, TERMCAP_BUF_LEN, name)) == 1)
+	tcbuf = buf;
+    fclose(fp);
+    while (p = getcap("tc")) {
+	for (q = p; *q && *q != ':'; q++)
+	    ;
+	*q = 0;
+	p -= 2;
 	if ((fp = fopen(file, "r")) == NULL)
-		return -1;
-	p = buf;
-	if ((ret = getentry(fp, p, TBSIZE, name)) == 1)
-		tcbuf = buf;
+	    return -1;
+	ret = getentry(fp, p, TERMCAP_BUF_LEN-(int)(p-tcbuf), p+3);
 	fclose(fp);
-	while (p = getcap("tc")) {
-		for (q = p; *q && *q != ':'; q++)
-			;
-		*q = 0;
-		p -= 2;
-		if ((fp = fopen(file, "r")) == NULL)
-			return -1;
-		ret = getentry(fp, p, TBSIZE-(int)(p-tcbuf), p+3);
-		fclose(fp);
-	}
-	return ret;
+    }
+    return ret;
 }
 
 /*
@@ -189,11 +185,11 @@ tgetent(buf, name)
  */
 int
 tgetflag(name)
-	char *name;
+char *name;
 {
-	register char *p;
-
-	return ((p = getcap(name)) != NULL && *p == ':');
+    register char *p;
+    
+    return ((p = getcap(name)) != NULL && *p == ':');
 }
 
 /*
@@ -201,17 +197,17 @@ tgetflag(name)
  */
 int
 tgetnum(name)
-	char *name;
+char *name;
 {
-	register char *p;
-	int num;
-
-	if ((p = getcap(name)) == NULL || *p++ != '#')
-		return -1;
-	num = 0;
-	while (*p && *p != ':')
-		num = num * 10 + (*p++ - '0');
-	return num;
+    register char *p;
+    int num;
+    
+    if ((p = getcap(name)) == NULL || *p++ != '#')
+	return -1;
+    num = 0;
+    while (*p && *p != ':')
+	num = num * 10 + (*p++ - '0');
+    return num;
 }
 
 /*
@@ -219,49 +215,49 @@ tgetnum(name)
  */
 char *
 tgetstr(name, bufp)
-	char *name;
-	char **bufp;
+char *name;
+char **bufp;
 {
-	register char *p, *q;
-	char *ret;
-	int c;
-
-	if ((p = getcap(name)) == NULL || *p++ != '=')
-		return NULL;
-	ret = q = *bufp;
-	while (*p && *p != ':') {
-		if (*p == '^') {
-			p++;
-			*q++ = *p++ & 0x1f;
-			continue;
-		}
-		if (*p != '\\') {
-			*q++ = *p++;
-			continue;
-		}
-		p++;
-		if (*p >= '0' && *p <= '7') {
-			c = *p++ - '0';
-			if (*p >= '0' && *p <= '7')
-				c = (c << 3) + *p++ - '0';
-			if (*p >= '0' && *p <= '7')
-				c = (c << 3) + *p++ - '0';
-			*q++ = c;
-			continue;
-		}
-		switch (c = *p++) {
-		case 'E': c = '\033'; break;
-		case 'n': c = '\n';   break;
-		case 'r': c = '\r';   break;
-		case 'f': c = '\f';   break;
-		case 't': c = '\t';   break;
-		case 'b': c = '\b';   break;
-		}
-		*q++ = c;
+    register char *p, *q;
+    char *ret;
+    int c;
+    
+    if ((p = getcap(name)) == NULL || *p++ != '=')
+	return NULL;
+    ret = q = *bufp;
+    while (*p && *p != ':') {
+	if (*p == '^') {
+	    p++;
+	    *q++ = *p++ & 0x1f;
+	    continue;
 	}
-	*q++ = 0;
-	*bufp = q;
-	return ret;
+	if (*p != '\\') {
+	    *q++ = *p++;
+	    continue;
+	}
+	p++;
+	if (*p >= '0' && *p <= '7') {
+	    c = *p++ - '0';
+	    if (*p >= '0' && *p <= '7')
+		c = (c << 3) + *p++ - '0';
+	    if (*p >= '0' && *p <= '7')
+		c = (c << 3) + *p++ - '0';
+	    *q++ = c;
+	    continue;
+	}
+	switch (c = *p++) {
+	case 'E': c = '\033'; break;
+	case 'n': c = '\n';   break;
+	case 'r': c = '\r';   break;
+	case 'f': c = '\f';   break;
+	case 't': c = '\t';   break;
+	case 'b': c = '\b';   break;
+	}
+	*q++ = c;
+    }
+    *q++ = 0;
+    *bufp = q;
+    return ret;
 }
 
 /*
@@ -269,93 +265,91 @@ tgetstr(name, bufp)
  */
 char *
 tgoto(cm, col, row)
-	char *cm;
-	int col, row;
+char *cm;
+int col, row;
 {
-	register char *p, *q;
-	char *fmt;
-	int *val, tmp;
-	static char buf[20];
-
-	val = &row;
-	for (p = cm, q = buf; *p; p++) {
-		if (*p != '%') {
-			*q++ = *p;
-			continue;
-		}
-		switch (*++p) {
-		case 'd':
-			fmt = "%dX";
-			goto num;
-		case '2':
-			fmt = "%02dX";
-			goto num;
-		case '3':
-			fmt = "%03dX";
-		num:
-			sprintf(q, fmt, *val);
-			while (*q != 'X')
-				q++;
-			val = &col;
-			break;
-		case '.':
-			*q++ = *val;
-			val = &col;
-			break;
-		case '+':
-			*q++ = *val + *++p;
-			val = &col;
-			break;
-		case '>':
-			p++;
-			if (*val > *p++)
-				*val += *p;
-			break;
-		case 'r':
-			tmp = row;
-			row = col;
-			col = tmp;
-			break;
-		case 'i':
-			row++;
-			col++;
-			break;
-		case 'n':
-			row ^= 0140;
-			col ^= 0140;
-			break;
-		case 'B':
-			*val += 6 * (*val / 10);
-			break;
-		case 'D':
-			*val -= 2 * (*val % 16);
-			break;
-		case '%':
-			*q++ = '%';
-			break;
-		default:
-			return "OOPS";
-		}
+    register char *p, *q;
+    char *fmt;
+    int *val, tmp;
+    static char buf[20];
+    
+    val = &row;
+    for (p = cm, q = buf; *p; p++) {
+	if (*p != '%') {
+	    *q++ = *p;
+	    continue;
 	}
-	*q = 0;
-	return buf;
+	switch (*++p) {
+	case 'd':
+	    fmt = "%dX";
+	    goto num;
+	case '2':
+	    fmt = "%02dX";
+	    goto num;
+	case '3':
+	    fmt = "%03dX";
+    num:
+	    sprintf(q, fmt, *val);
+	    while (*q != 'X')
+		q++;
+	    val = &col;
+	    break;
+	case '.':
+	    *q++ = *val;
+	    val = &col;
+	    break;
+	case '+':
+	    *q++ = *val + *++p;
+	    val = &col;
+	    break;
+	case '>':
+	    p++;
+	    if (*val > *p++)
+		*val += *p;
+	    break;
+	case 'r':
+	    tmp = row;
+	    row = col;
+	    col = tmp;
+	    break;
+	case 'i':
+	    row++;
+	    col++;
+	    break;
+	case 'n':
+	    row ^= 0140;
+	    col ^= 0140;
+	    break;
+	case 'B':
+	    *val += 6 * (*val / 10);
+	    break;
+	case 'D':
+	    *val -= 2 * (*val % 16);
+	    break;
+	case '%':
+	    *q++ = '%';
+	    break;
+	default:
+	    return "OOPS";
+	}
+    }
+    *q = 0;
+    return buf;
 }
 
 /*
  * tputs
  */
-void
+VOID
 tputs(p, lines, outc)
-	register char *p;
-	int lines;
-	int (*outc)();
+register char *p;
+int lines;
+int (*outc)();
 {
-	while (*p == '.' || *p == '*' || *p >= '0' && *p <= '9')
-		p++;
-	while (*p)
-		(*outc)(*p++);
+    while (*p == '.' || *p == '*' || *p >= '0' && *p <= '9')
+	p++;
+    while (*p)
+	(*outc)(*p++);
 }
 
-#endif /* TCCONIO */
-/* 90.07.24  by S.Yoshida: Ng always need termcap library.
-#endif /*TERMCAP*/
+#endif /* WITHOUT_TERMCAP */

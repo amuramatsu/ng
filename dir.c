@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.13 2001/02/18 19:29:29 amura Exp $ */
+/* $Id: dir.c,v 1.14 2001/11/23 11:56:35 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -8,6 +8,9 @@
 
 /*
  * $Log: dir.c,v $
+ * Revision 1.14  2001/11/23 11:56:35  amura
+ * Rewrite all sources
+ *
  * Revision 1.13  2001/02/18 19:29:29  amura
  * split dir.c to port depend/independ
  *
@@ -23,26 +26,7 @@
  * Revision 1.9  2000/07/22 17:54:09  amura
  * fix typo bug
  *
- * Revision 1.8  2000/07/18 20:30:34  amura
- * rewrite some description (for Win32)
- *
- * Revision 1.7  2000/07/18 12:40:34  amura
- * for Win32, enable to handle japanese directory
- *
- * Revision 1.6  2000/06/27 01:49:42  amura
- * import to CVS
- *
- * Revision 1.5  2000/06/04  05:42:59  amura
- * win32 drive support
- *
- * Revision 1.4  2000/06/01  05:22:25  amura
- * More robust
- *
- * Revision 1.3  2000/03/28  02:37:46  amura
- * Added startdir.
- *
- * Revision 1.2  2000/03/10  21:26:50  amura
- * Merge Ng for win32 0.4
+ * -- snip --
  *
  * Revision 1.1  1999/05/21  02:20:08  amura
  * Initial revision
@@ -54,12 +38,12 @@
 #include "def.h"
 
 #ifndef NO_DIR
-#ifdef	EXTD_DIR
-extern VOID makepath pro((char *dname, char *fname, int len)); /* file.c */
+#ifdef EXTD_DIR
+extern VOID makepath _PRO((char *dname, char *fname, int len)); /* file.c */
 #endif
 
-char	*startdir = NULL;
-char	*wdir;
+char *startdir = NULL;
+char *wdir;
 
 #ifdef EXTD_DIR
 /*
@@ -85,7 +69,7 @@ BUFFER *bp;
 	    path[NFILEN-1] = '\0';
 	    lastchar = strlen(path)-1;
 	    if (path[lastchar] != BDC1
-#ifdef	BDC2
+#ifdef BDC2
 		&& path[lastchar] != BDC2
 #endif
 		) {
@@ -117,15 +101,15 @@ char *newdir;
 }
 
 VOID
-ensurecwd pro((VOID))
+ensurecwd()
 {
     if (curbp) {
-      if (curbp->b_cwd == NULL) {
-	  storecwd(curbp);
-      }
-      if (curbp->b_cwd != NULL) {
-	  rchdir(curbp->b_cwd); /* ensure we are in the current dir */
-      }
+	if (curbp->b_cwd == NULL) {
+	    storecwd(curbp);
+	}
+	if (curbp->b_cwd != NULL) {
+	    rchdir(curbp->b_cwd); /* ensure we are in the current dir */
+	}
     }
 }
 
@@ -133,7 +117,9 @@ ensurecwd pro((VOID))
  * Change current working directory
  */
 /*ARGSUSED*/
+int
 changedir(f, n)
+int f, n;
 {
     register int s;
     int len;
@@ -182,14 +168,16 @@ changedir(f, n)
  * Change current working directory
  */
 /*ARGSUSED*/
+int
 changedir(f, n)
+int f, n;
 {
     register int s;
     char bufc[NFILEN];
 
 #ifndef	NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if ((s=eread("Change default directory: ", bufc, NFILEN, EFNEW|EFFILE|EFCR))
-	!= TRUE)
+    if ((s=eread("Change default directory: ", bufc,
+		 NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
 #else	/* NO_FILECOMP */
     if ((s=ereply("Change default directory: ", bufc, NFILEN)) != TRUE)
 #endif	/* NO_FILECOMP */
@@ -210,16 +198,17 @@ changedir(f, n)
  * Show current directory
  */
 /*ARGSUSED*/
+int
 showcwdir(f, n)
+int f, n;
 {
 #ifdef	EXTD_DIR
     char dirname[NFILEN];
     int  len;
     
     if (curbp) {
-	if (curbp->b_cwd == NULL) {
+	if (curbp->b_cwd == NULL)
 	    storecwd(curbp);
-	}
 	if (curbp->b_cwd == NULL) 
 	    dirname[0] = '\0';
 	else {

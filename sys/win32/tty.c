@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.2 2000/10/23 16:52:51 amura Exp $ */
+/* $Id: tty.c,v 1.3 2001/11/23 11:56:56 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.3  2001/11/23 11:56:56  amura
+ * Rewrite all sources
+ *
  * Revision 1.2  2000/10/23 16:52:51  amura
  * add GPL copyright to header
  *
@@ -29,68 +32,64 @@
  *
  */
 
-#include	<windows.h>
-#include	"config.h"
-#include	"def.h"
-#include	"winmain.h"
+#include <windows.h>
+#include "config.h"
+#include "def.h"
+#include "winmain.h"
 #include "tools.h"
 
-extern	int	ttrow ;
-extern	int	ttcol ;
-extern	int	tttop ;
-extern	int	ttbot ;
-extern	int	tthue ;
+extern int ttrow ;
+extern int ttcol ;
+extern int tttop ;
+extern int ttbot ;
+extern int tthue ;
 
-int		SG = 0 ;
-int		tceeol ;			/* Costs are set later */
-int		tcinsl ;
-int		tcdell ;
+int SG = 0 ;
+int tceeol ;			/* Costs are set later */
+int tcinsl ;
+int tcdell ;
 
-int
+void
 ttinit()
 {
-	tceeol = ttcol ;
-	tcdell = NROW * NCOL ;
-	tcinsl = NROW * NCOL ;
-	return 0 ;
+    tceeol = ttcol ;
+    tcdell = NROW * NCOL ;
+    tcinsl = NROW * NCOL ;
 }
 
-int
+void
 tttidy()
 {
-	return 0 ;
 }
 
-int
-ttmove( int row, int col )
+void
+ttmove(int row, int col)
 {
-	if ( ttrow != row || ttcol != col ) {
-		GotoXY( col, row ) ;
-		ttrow = row ;
-		ttcol = col ;
-	}
-	return 0 ;
+    if (ttrow != row || ttcol != col) {
+	GotoXY(col, row) ;
+	ttrow = row ;
+	ttcol = col ;
+    }
+    return 0 ;
 }
 
 /*
  * Erase to end of line.
  */
-int
+void
 tteeol()
 {
-	GotoXY( ttcol, ttrow ) ;
-	EraseEOL() ;
-	return 0 ;
+    GotoXY(ttcol, ttrow);
+    EraseEOL();
 }
 
-int
+void
 ttnowindow()
 {
-	ttrow = HUGE ;
-	ttcol = HUGE ;
-	tttop = HUGE ;
-	ttbot = HUGE ;
-	return 0 ;
+    ttrow = HUGE;
+    ttcol = HUGE;
+    tttop = HUGE;
+    ttbot = HUGE;
 }
 
 /*
@@ -102,24 +101,21 @@ ttnowindow()
  * line by line basis, so don't bother sending
  * out the color shift.
  */
-int
-ttcolor( int color )
+void
+ttcolor(int color)
 {
-    if ( color != tthue ) {
-		tthue = color ;			/* Save the color.	*/
-    }
-	return 0 ;
+    if (color != tthue)
+	tthue = color ;			/* Save the color.	*/
 }
 
 /*
  * Erase to end of page.
  */
-int
+void
 tteeop()
 {
-	GotoXY( ttcol, ttrow ) ;
-	EraseEOP() ;
-	return 0 ;
+    GotoXY(ttcol, ttrow);
+    EraseEOP();
 }
 
 /*
@@ -130,12 +126,11 @@ tteeop()
  * lines.  The presence of the echo area makes a
  * boundry condition go away.
  */
-int
-ttdell( int row, int bot, int nchunk )
+void
+ttdell(int row, int bot, int nchunk)
 {
-	ttrow = HUGE ;
-	ttcol = HUGE ;
-	return 0 ;
+    ttrow = HUGE ;
+    ttcol = HUGE ;
 }
 
 /*
@@ -146,49 +141,47 @@ ttdell( int row, int bot, int nchunk )
  * If no scrolling region, use a set
  * of insert and delete line sequences
  */
-int
-ttinsl( int row, int bot, int nchunk )
+void
+ttinsl(int row, int bot, int nchunk)
 {
-	ttrow = HUGE ;
-	ttcol = HUGE ;
-	return 0 ;
+    ttrow = HUGE ;
+    ttcol = HUGE ;
 }
 
 /*
  * Make a noise.
  */
-int
+void
 ttbeep()
 {
-  extern DWORD g_beepsound;
-  extern TCHAR g_beepfile[];
-
-  switch (g_beepsound) {
-  case 0:
-    /* no sounds */
-    break;
-
+    extern DWORD g_beepsound;
+    extern TCHAR g_beepfile[];
+    
+    switch (g_beepsound) {
+    case 0:
+	/* no sounds */
+	break;
+	
 #ifndef TARGET_WCEVER_IS_100
-  case 1: /* play specified sound file */
-    if (g_beepfile[0]) {
-      sndPlaySound(g_beepfile, SND_ASYNC | SND_NODEFAULT);
-      break;
-    }
+    case 1: /* play specified sound file */
+	if (g_beepfile[0]) {
+	    sndPlaySound(g_beepfile, SND_ASYNC | SND_NODEFAULT);
+	    break;
+	}
 #endif
-
-  default:
-    MessageBeep(0xFFFFFFFF); /* Default wave sound */
-    break;
-
-  case MB_OK + NG_WAVE_OFFSET:
-  case MB_ICONASTERISK + NG_WAVE_OFFSET:
-  case MB_ICONEXCLAMATION + NG_WAVE_OFFSET:
-  case MB_ICONHAND + NG_WAVE_OFFSET:
-  case MB_ICONQUESTION + NG_WAVE_OFFSET:
-    MessageBeep(g_beepsound - NG_WAVE_OFFSET);
-    break;
-  }
-  return 0;
+	
+    default:
+	MessageBeep(0xFFFFFFFF); /* Default wave sound */
+	break;
+	
+    case MB_OK + NG_WAVE_OFFSET:
+    case MB_ICONASTERISK + NG_WAVE_OFFSET:
+    case MB_ICONEXCLAMATION + NG_WAVE_OFFSET:
+    case MB_ICONHAND + NG_WAVE_OFFSET:
+    case MB_ICONQUESTION + NG_WAVE_OFFSET:
+	MessageBeep(g_beepsound - NG_WAVE_OFFSET);
+	break;
+    }
 }
 
 /*
@@ -200,10 +193,10 @@ ttbeep()
  * with a screen NROW by NCOL. Look in "window.c" to
  * see how the caller deals with a change.
  */
-int
+void
 ttresize()
 {
-        extern void setttysize pro((void));
-	setttysize();
-	return 0;
+    void setttysize(void);
+    setttysize();
+    return 0;
 }

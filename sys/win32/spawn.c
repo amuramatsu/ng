@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.4 2000/12/14 18:12:14 amura Exp $ */
+/* $Id: spawn.c,v 1.5 2001/11/23 11:56:55 amura Exp $ */
 /*
  *		Spawn CLI for Win32.
  *
@@ -7,6 +7,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.5  2001/11/23 11:56:55  amura
+ * Rewrite all sources
+ *
  * Revision 1.4  2000/12/14 18:12:14  amura
  * use alloca() and more memory secure
  *
@@ -28,7 +31,7 @@
 #include "tools.h"
 
 int
-spawncli( int f, int n)
+spawncli(int f, int n)
 {
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
@@ -59,7 +62,7 @@ tticon( int f, int n )
 #ifdef	_WIN32_WCE
 #if 0
     HWND next;
-
+    
     next = GetWindow(g_hwndMain, GW_HWNDNEXT);
     if (next) {
 #ifdef CTRLMAP
@@ -87,14 +90,14 @@ tticon( int f, int n )
 #endif
 #endif	/* 1 */
 #else	/* not _WIN32_WCE */
-	CloseWindow(g_hwndMain);
+    CloseWindow(g_hwndMain);
 #endif	/* _WIN32_WCE */
     return TRUE;
 }
 
 #ifndef NO_SHELL	/* 91.01.10  by K.Maeda / Modified by sahf and amura */
 
-char tempfile[NFILEN];
+char tempfile[CMDLINELENGTH];
 
 /*
  *	Call process in subshell.
@@ -111,7 +114,7 @@ call_process(command, input)
 char *command;
 char *input;
 {
-    extern char *mktemp();
+    extern char *mktemp(const char *);
     int  cmdlen;
     char *sbuf, *tmp, *temp_path, *shell;
     LPTSTR buf;
@@ -160,12 +163,10 @@ char *input;
     
     tmp = tempfile;
     if (temp_path && *temp_path) {
-	while (*tmp = *temp_path++) {
+	while (*tmp = *temp_path++)
 	    tmp++;
-	}
-	if (tmp[-1] != '/' && tmp[-1] != '\\') {
+	if (tmp[-1] != '/' && tmp[-1] != '\\')
 	    *tmp++ = '/';
-	}
     }
     strcpy(tmp, "ngXXXXXX");
     if ((tmp = mktemp(tempfile)) == NULL) {

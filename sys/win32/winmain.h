@@ -1,4 +1,4 @@
-/* $Id: winmain.h,v 1.2 2000/10/23 16:52:52 amura Exp $ */
+/* $Id: winmain.h,v 1.3 2001/11/23 11:56:58 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -21,6 +21,9 @@
 
 /*
  * $Log: winmain.h,v $
+ * Revision 1.3  2001/11/23 11:56:58  amura
+ * Rewrite all sources
+ *
  * Revision 1.2  2000/10/23 16:52:52  amura
  * add GPL copyright to header
  *
@@ -32,18 +35,18 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-	int		Main( int argc, char *argv[] ) ;
-	int		Kbhit( void ) ;
-	int		KbhitSleep( DWORD sec ) ;
-	int		GetChar( void ) ;
-	void	GotoXY( int x, int y ) ;
-	void	EraseEOL( void ) ;
-	void	EraseEOP( void ) ;
-	void	PutChar( char c ) ;
-	void	PutKChar( char c1, char c2 ) ;
-	void	Flush( void ) ;
-	void	Exit( int code ) ;
-	void	GetWH( int *w, int *h ) ;
+int  Main(int, char *[]);
+int  Kbhit(void);
+int  KbhitSleep(DWORD);
+int  GetChar(void);
+void GotoXY(int, int);
+void EraseEOL(void);
+void EraseEOP(void);
+void PutChar(char);
+void PutKChar(char, char);
+void Flush(void );
+void Exit(int);
+void GetWH(int *, int *);
 #ifdef	__cplusplus
-} ;
+};
 #endif

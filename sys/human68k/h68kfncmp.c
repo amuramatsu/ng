@@ -1,12 +1,15 @@
-/* $Id: h68kfncmp.c,v 1.1 2000/06/27 01:47:57 amura Exp $ */
+/* $Id: h68kfncmp.c,v 1.2 2001/11/23 11:56:48 amura Exp $ */
 /*
  *		Human68k file name comparison
  */
 
 /*
  * $Log: h68kfncmp.c,v $
- * Revision 1.1  2000/06/27 01:47:57  amura
- * Initial revision
+ * Revision 1.2  2001/11/23 11:56:48  amura
+ * Rewrite all sources
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:57  amura
+ * import to CVS
  *
  */
 /* 90.11.14	Created for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
@@ -14,15 +17,14 @@
 #include    "def.h"
 
 int
-h68kfncmp (s1, s2)
-    char    *s1;
-    char    *s2;
+h68kfncmp(s1, s2)
+register char *s1;
+register char *s2;
 {
-    int    c1;
-    int    c2;
+    register int c1;
+    register int c2;
 
-    while (*s1 != '\0' && *s2 != '\0')
-    {
+    while (*s1 != '\0' && *s2 != '\0') {
         c1 = *s1++;
 	c2 = *s2++;
 	if (ISUPPER (c1))

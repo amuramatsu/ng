@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.3 2001/01/20 15:48:47 amura Exp $ */
+/* $Id: tty.c,v 1.4 2001/11/23 11:56:50 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,6 +28,9 @@
 
 /*
  * $Log: tty.c,v $
+ * Revision 1.4  2001/11/23 11:56:50  amura
+ * Rewrite all sources
+ *
  * Revision 1.3  2001/01/20 15:48:47  amura
  * very big terminal supported
  *
@@ -39,37 +42,36 @@
  *
  */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
-#include	"def.h"
+#include "config.h"	/* 90.12.20  by S.Yoshida */
+#include "def.h"
 #ifdef TCCONIO
-#include	<conio.h>
+#include <conio.h>
 #endif
 
 #define BEL	0x07			/* BEL character.		*/
 
-extern	int	ttrow;
-extern	int	ttcol;
-extern	int	tttop;
-extern	int	ttbot;
-extern	int	tthue;
+extern int ttrow;
+extern int ttcol;
+extern int tttop;
+extern int ttbot;
+extern int tthue;
 
-int	tceeol;			/* Costs are set later */
-int	tcinsl;
-int	tcdell;
+int tceeol;			/* Costs are set later */
+int tcinsl;
+int tcdell;
 
 #ifdef NO_RESIZE
-static	setttysize();
+static VOID setttysize _PRO((void));
 #endif
 
-int	ttputc();
+VOID ttputc _PRO((int));
 #ifndef TCCONIO
-char	*tgetstr();
-char	*tgoto();
+char *tgetstr _PRO((char *));
+char *tgoto _PRO((char *, int, int));
+static int charcost _PRO((char *))
 
-static	int	insdel;		/* Do we have both insert & delete line? */
-
-#define TCAPSLEN 1024
-char tcapbuf[TCAPSLEN];
+static int insdel;		/* Do we have both insert & delete line? */
+char tcapbuf[TERMCAP_BUF_LEN];
 
 /* PC, UP, and BC are used by termlib, so must be extern and have these
  * names unless you have a non-standard termlib.
@@ -107,105 +109,119 @@ int	SG;	/* number of glitches, 0 for invisible, -1 for none	*/
  * Initialize the terminal when the editor
  * gets started up.
  */
-static char tcbuf[1024];
+static char tcbuf[TERMCAP_BUF_LEN];
 #endif /* TCCONIO */
 
-ttinit() {
+VOID
+ttinit()
+{
 #ifdef	TCCONIO
-	ttresize();			/* set nrow & ncol	*/
-	tceeol = 1;
-	tcinsl = 1;
-	tcdell = 1;
+    ttresize();			/* set nrow & ncol	*/
+    tceeol = 1;
+    tcinsl = 1;
+    tcdell = 1;
 
 #else
-	char *tv_stype;
-	char *t, *p, *tgetstr();
+    char *tv_stype;
+    char *t, *p;
 # ifndef gettermtype		/* (avoid declaration if #define) */
-	char *gettermtype();	/* system dependent function to determin terminal type */
+    char *gettermtype _PRO((void));
+    /* system dependent function to determin terminal type */
 # endif
-
-	if((tv_stype = gettermtype()) == NULL)
-		panic("Could not determine terminal type");
-	if((tgetent(tcbuf, tv_stype)) != 1) {
-		(VOID) strcpy(tcbuf, "Unknown terminal type ");
-		(VOID) strcat(tcbuf, tv_stype);
-		panic(tcbuf);
+    
+    if ((tv_stype = gettermtype()) == NULL)
+	panic("Could not determine terminal type");
+    if ((tgetent(tcbuf, tv_stype)) != 1) {
+	(VOID) strcpy(tcbuf, "Unknown terminal type ");
+	(VOID) strcat(tcbuf, tv_stype);
+	panic(tcbuf);
+    }
+    
+    p = tcapbuf;
+    t = tgetstr("pc", &p);
+    if(t) PC = *t;
+    
+    LI = tgetnum("li");
+    CD = tgetstr("cd", &p);
+    CM = tgetstr("cm", &p);
+    CE = tgetstr("ce", &p);
+    UP = tgetstr("up", &p);
+    BC = tgetstr("bc", &p);
+    IM = tgetstr("im", &p);
+    IC = tgetstr("ic", &p);
+    EI = tgetstr("ei", &p);
+    DC = tgetstr("dc", &p);
+    AL = tgetstr("al", &p);
+    DL = tgetstr("dl", &p);
+    pAL= tgetstr("AL", &p);	/* parameterized insert and del. line */
+    pDL= tgetstr("DL", &p);
+    TI = tgetstr("ti", &p);
+    TE = tgetstr("te", &p);
+    SO = tgetstr("so", &p);
+    SE = tgetstr("se", &p);
+    CS = tgetstr("cs", &p);	/* set scrolling region */
+    SF = tgetstr("sf", &p);
+    if (!SF || !*SF) {		/* this is what GNU Emacs does */
+	SF = tgetstr("do", &p);
+	if (!SF || !*SF) {
+	    SF = tgetstr("nl", &p);
+	    if (!SF || !*SF)
+		SF = "\n";
 	}
-
-	p = tcapbuf;
-	t = tgetstr("pc", &p);
-	if(t) PC = *t;
-
-	LI = tgetnum("li");
-	CD = tgetstr("cd", &p);
-	CM = tgetstr("cm", &p);
-	CE = tgetstr("ce", &p);
-	UP = tgetstr("up", &p);
-	BC = tgetstr("bc", &p);
-	IM = tgetstr("im", &p);
-	IC = tgetstr("ic", &p);
-	EI = tgetstr("ei", &p);
-	DC = tgetstr("dc", &p);
-	AL = tgetstr("al", &p);
-	DL = tgetstr("dl", &p);
-	pAL= tgetstr("AL", &p);	/* parameterized insert and del. line */
-	pDL= tgetstr("DL", &p);
-	TI = tgetstr("ti", &p);
-	TE = tgetstr("te", &p);
-	SO = tgetstr("so", &p);
-	SE = tgetstr("se", &p);
-	CS = tgetstr("cs", &p); /* set scrolling region */
-	SF = tgetstr("sf", &p);
-	if(!SF || !*SF) {	/* this is what GNU Emacs does */
-		SF = tgetstr("do", &p);
-		if(!SF || !*SF) {
-		SF = tgetstr("nl", &p);
-		if(!SF || !*SF) SF = "\n";
-		}
-	}
-	SR = tgetstr("sr", &p);
-	SG = tgetnum("sg");	/* standout glitch	*/
+    }
+    SR = tgetstr("sr", &p);
+    SG = tgetnum("sg");		/* standout glitch	*/
 # ifdef	XKEYS
-	KS = tgetstr("ks", &p);	/* keypad start, keypad end	*/
-	KE = tgetstr("ke", &p);
+    KS = tgetstr("ks", &p);	/* keypad start, keypad end	*/
+    KE = tgetstr("ke", &p);
 # endif
+    if (CM == NULL || UP == NULL)
+	panic("This terminal is to stupid to run MicroGnuEmacs\n");
+    
+    ttresize();			/* set nrow & ncol	*/
+    
+    /* watch out for empty capabilities (sure to be wrong)	*/
+    if (CE && !*CE) CE = NULL;
+    if (CS && !*CS) CS = NULL;
+    if (SR && !*SR) SR = NULL;
+    if (AL && !*AL) AL = NULL;
+    if (DL && !*DL) DL = NULL;
+    if (pAL && !*pAL) pAL = NULL;
+    if (pDL && !*pDL) pDL = NULL;
+    if (CD && !*CD) CD = NULL;
 
-	if(CM == NULL || UP == NULL)
-		panic("This terminal is to stupid to run MicroGnuEmacs\n");
+    if (!CE)
+	tceeol = ncol;
+    else
+	tceeol = charcost(CE);
+    
+    /* Estimate cost of inserting a line */
+    if (CS && SR)
+	tcinsl = charcost(CS)*2 + charcost(SR);
+    else if (pAL)
+	tcinsl = charcost(pAL);
+    else if (AL)
+	tcinsl = charcost(AL);
+    else
+	tcinsl = NROW * NCOL;	/* make this cost high enough */
+    
+    /* Estimate cost of deleting a line */
+    if (CS)
+	tcdell = charcost(CS)*2 + charcost(SF);
+    else if (pDL)
+	tcdell = charcost(pDL);
+    else if (DL)
+	tcdell = charcost(DL);
+    else
+	tcdell = NROW * NCOL;	/* make this cost high enough */
 
-	ttresize();			/* set nrow & ncol	*/
-
-	/* watch out for empty capabilities (sure to be wrong)	*/
-	if (CE && !*CE) CE = NULL;
-	if (CS && !*CS) CS = NULL;
-	if (SR && !*SR) SR = NULL;
-	if (AL && !*AL) AL = NULL;
-	if (DL && !*DL) DL = NULL;
-	if (pAL && !*pAL) pAL = NULL;
-	if (pDL && !*pDL) pDL = NULL;
-	if (CD && !*CD) CD = NULL;
-
-	if(!CE) tceeol = ncol;
-	else	tceeol = charcost(CE);
-
-	/* Estimate cost of inserting a line */
-	if (CS && SR)	tcinsl = charcost(CS)*2 + charcost(SR);
-	else if (pAL)	tcinsl = charcost(pAL);
-	else if (AL)	tcinsl = charcost(AL);
-	else		tcinsl = NROW * NCOL;	/* make this cost high enough */
-
-	/* Estimate cost of deleting a line */
-	if (CS)		tcdell = charcost(CS)*2 + charcost(SF);
-	else if (pDL)	tcdell = charcost(pDL);
-	else if (DL)	tcdell = charcost(DL);
-	else		tcdell = NROW * NCOL;	/* make this cost high enough */
-
-	/* Flag to indicate that we can both insert and delete lines */
-	insdel = (AL || pAL) && (DL || pDL);
-
-	if (p >= &tcapbuf[TCAPSLEN])
-		panic("Terminal description too big!\n");
-	if (TI && *TI) putpad(TI, 1);	/* init the term */
+    /* Flag to indicate that we can both insert and delete lines */
+    insdel = (AL || pAL) && (DL || pDL);
+    
+    if (p >= &tcapbuf[TERMCAP_BUF_LEN])
+	panic("Terminal description too big!\n");
+    if (TI && *TI)
+	putpad(TI, 1);	/* init the term */
 #endif	/* TCCONIO */
 }
 
@@ -217,13 +233,17 @@ ttinit() {
  * query the display for the increment, and put it
  * back to what it was.
  */
-tttidy() {
+VOID
+tttidy()
+{
 #ifndef TCCONIO
-	if (TE && *TE) putpad(TE, 1);	/* set the term back to normal mode */
-	putpad(tgoto(CM, 0, ttrow), 1);	/* not nrow */
-	if (CE && *CE) putpad(CE, 1);	/* erase one line */
+    if (TE && *TE)
+	putpad(TE, 1);	/* set the term back to normal mode */
+    putpad(tgoto(CM, 0, ttrow), 1);	/* not nrow */
+    if (CE && *CE)
+	putpad(CE, 1);	/* erase one line */
 # ifdef	XKEYS
-	ttykeymaptidy();
+    ttykeymaptidy();
 # endif
 #endif /* TCCONIO */
 }
@@ -235,78 +255,86 @@ tttidy() {
  * have left the cursor in the right
  * location last time!
  */
-ttmove(row, col) {
-	if (ttrow!=row || ttcol!=col) {
+VOID
+ttmove(row, col)
+int row, col;
+ {
+     if (ttrow!=row || ttcol!=col) {
 #ifdef TCCONIO
-	ttflush();
-	gotoxy(col+1, row+1);
+	 ttflush();
+	 gotoxy(col+1, row+1);
 #else
-	putpad(tgoto(CM, col, row), 1);
+	 putpad(tgoto(CM, col, row), 1);
 #endif
-	ttrow = row;
-	ttcol = col;
-	}
+	 ttrow = row;
+	 ttcol = col;
+     }
 }
 
 /*
  * Erase to end of line.
  */
+VOID
 tteeol() {
 #ifdef TCCONIO
-	ttflush();
-	clreol();
+    ttflush();
+    clreol();
 #else
-	if(CE) putpad(CE, 1);
-	else {
-	register int i=ncol-ttcol;
-	while(i--) ttputc(' ');
+    if (CE)
+	putpad(CE, 1);
+    else {
+	register int i = ncol-ttcol;
+	while(i--)
+	    ttputc(' ');
 	ttrow = ttcol = HUGE;
-	}
+    }
 #endif
 }
 
 /*
  * Erase to end of page.
  */
-tteeop() {
+VOID
+tteeop()
+{
 #ifdef TCCONIO
-	ttflush();
-	clreol();
-	{
+    ttflush();
+    clreol();
+    {
 	register int line;
-	for (line = ttrow + 1; line <= nrow; ++line)
-	{
-		gotoxy(1,line+1);
-		clreol();
+	for (line = ttrow + 1; line <= nrow; ++line) {
+	    gotoxy(1, line+1);
+	    clreol();
 	}
 	ttrow = ttcol = HUGE;
-	}
+    }
 #else
-	if(CD) putpad(CD, nrow - ttrow);
-	else
-	{
+    if (CD)
+	putpad(CD, nrow - ttrow);
+    else {
+	tteeol();
+	if (insdel)
+	    ttdell(ttrow + 1, LI, LI - ttrow - 1);
+	else {		/* do it by hand */
+	    register int line;
+	    for (line = ttrow + 1; line <= LI; ++line) {
+		ttmove(line, 0);
 		tteeol();
-		if (insdel) ttdell(ttrow + 1, LI, LI - ttrow - 1);
-		else		/* do it by hand */
-		{
-			register int line;
-			for (line = ttrow + 1; line <= LI; ++line)
-			{
-				ttmove(line, 0);
-				tteeol();
-			}
-		}
-	ttrow = ttcol = HUGE;
+	    }
 	}
+	ttrow = ttcol = HUGE;
+    }
 #endif
 }
 
 /*
  * Make a noise.
  */
-ttbeep() {
-	ttputc(BEL);
-	ttflush();
+VOID
+ttbeep()
+{
+    ttputc(BEL);
+    ttflush();
 }
 
 /*
@@ -317,44 +345,58 @@ ttbeep() {
  * If no scrolling region, use a set
  * of insert and delete line sequences
  */
-ttinsl(row, bot, nchunk) {
-	register int	i, nl;
-
-	if (row == bot) {		/* Case of one line insert is	*/
-		ttmove(row, 0);		/*	special			*/
-		tteeol();
-		return;
-	}
+VOID
+ttinsl(row, bot, nchunk)
+int row, bot, nchunk;
+{
+     register int i, nl;
+     
+     if (row == bot) {		/* Case of one line insert is	*/
+	 ttmove(row, 0);	/*	special			*/
+	 tteeol();
+	 return;
+     }
 #ifdef TCCONIO
-	ttflush();
-	window(1, row+1, ncol, bot+1);
-	gotoxy(1, 1);
-	while (nchunk--) insline();
-	window(1, 1, ncol, nrow);
-	ttrow = HUGE;			/* Unknown.		*/
-	ttcol = HUGE;
+     ttflush();
+     window(1, row+1, ncol, bot+1);
+     gotoxy(1, 1);
+     while (nchunk--)
+	 insline();
+     window(1, 1, ncol, nrow);
+     ttrow = HUGE;		/* Unknown.		*/
+     ttcol = HUGE;
 #else
-	if (CS && SR) {		/* Use scroll region and back index	*/
-		nl = bot - row;
-		ttwindow(row,bot);
-		ttmove(row, 0);
-		while (nchunk--) putpad(SR, nl);
-		ttnowindow();
-		return;
-	} else if (insdel) {
-		ttmove(1+bot-nchunk, 0);
-		nl = nrow - ttrow;
-		if (pDL) putpad(tgoto(pDL, 0, nchunk), nl);
-		else for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-				putpad(DL, nl);
-		ttmove(row, 0);
-		nl = nrow - ttrow;	/* ttmove() changes ttrow */
-		if (pAL) putpad(tgoto(pAL, 0, nchunk), nl);
-		else for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-				putpad(AL, nl);
-		ttrow = HUGE;
-		ttcol = HUGE;
-	} else panic("ttinsl: Can't insert/delete line");
+     if (CS && SR) {		/* Use scroll region and back index	*/
+	 nl = bot - row;
+	 ttwindow(row, bot);
+	 ttmove(row, 0);
+	 while (nchunk--)
+	     putpad(SR, nl);
+	 ttnowindow();
+	 return;
+     }
+     else if (insdel) {
+	 ttmove(1+bot-nchunk, 0);
+	 nl = nrow - ttrow;
+	 if (pDL)
+	     putpad(tgoto(pDL, 0, nchunk), nl);
+	 else {
+	     for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
+		 putpad(DL, nl);
+	 }
+	 ttmove(row, 0);
+	 nl = nrow - ttrow;	/* ttmove() changes ttrow */
+	 if (pAL)
+	     putpad(tgoto(pAL, 0, nchunk), nl);
+	 else {
+	     for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
+		 putpad(AL, nl);
+	 }
+	 ttrow = HUGE;
+	 ttcol = HUGE;
+     }
+     else
+	 panic("ttinsl: Can't insert/delete line");
 #endif	/* TCCONIO */
 }
 
@@ -366,45 +408,57 @@ ttinsl(row, bot, nchunk) {
  * lines.  The presence of the echo area makes a
  * boundry condition go away.
  */
+VOID
 ttdell(row, bot, nchunk)
+int row, bot, nchunk
 {
-	register int	i, nl;
-
-	if (row == bot) {		/* One line special case	*/
-		ttmove(row, 0);
-		tteeol();
-		return;
-	}
+    register int i, nl;
+    
+    if (row == bot) {		/* One line special case	*/
+	ttmove(row, 0);
+	tteeol();
+	return;
+    }
 #ifdef TCCONIO
-	ttflush();
-	window(1, row+1, ncol, bot+1);
-	gotoxy(1, 1);
-	while (nchunk--) delline();
-	window(1, 1, ncol, nrow);
-	ttrow = HUGE;			/* Unknown.		*/
-	ttcol = HUGE;
+    ttflush();
+    window(1, row+1, ncol, bot+1);
+    gotoxy(1, 1);
+    while (nchunk--)
+	delline();
+    window(1, 1, ncol, nrow);
+    ttrow = HUGE;			/* Unknown.		*/
+    ttcol = HUGE;
 #else
-	if (CS) {			/* scrolling region	*/
-		nl = bot - row;
-		ttwindow(row, bot);
-		ttmove(bot, 0);
-		while (nchunk--) putpad(SF, nl);
-		ttnowindow();
+    if (CS) {			/* scrolling region	*/
+	nl = bot - row;
+	ttwindow(row, bot);
+	ttmove(bot, 0);
+	while (nchunk--)
+	    putpad(SF, nl);
+	ttnowindow();
+    }
+    else if (insdel) {
+	ttmove(row, 0);			/* Else use insert/delete line	*/
+	nl = nrow - ttrow;
+	if (pDL)
+	    putpad(tgoto(pDL, 0, nchunk), nl);
+	else {
+	    for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
+		putpad(DL, nl);
 	}
-	else if(insdel) {
-		ttmove(row, 0);			/* Else use insert/delete line	*/
-		nl = nrow - ttrow;
-		if (pDL) putpad(tgoto(pDL, 0, nchunk), nl);
-		else for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-				putpad(DL, nl);
-		ttmove(1+bot-nchunk,0);
-		nl = nrow - ttrow;	/* ttmove() changes ttrow */
-		if (pAL) putpad(tgoto(pAL, 0, nchunk), nl);
-		else for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-				putpad(AL, nl);
-		ttrow = HUGE;
-		ttcol = HUGE;
-	} else panic("ttdell: Can't insert/delete line");
+	ttmove(1+bot-nchunk,0);
+	nl = nrow - ttrow;	/* ttmove() changes ttrow */
+	if (pAL
+	    ) putpad(tgoto(pAL, 0, nchunk), nl);
+	else {
+	    for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
+		putpad(AL, nl);
+	}
+	ttrow = HUGE;
+	ttcol = HUGE;
+    }
+    else
+	panic("ttdell: Can't insert/delete line");
 #endif	/* TCCONIO */
 }
 
@@ -420,16 +474,18 @@ ttdell(row, bot, nchunk)
  * moves the cursor).
  *
  */
+VOID
 ttwindow(top, bot)
+int top, bot;
 {
 #ifndef TCCONIO
-	if (CS && (tttop!=top || ttbot!=bot)) {
-		putpad(tgoto(CS, bot, top), nrow - ttrow);
-		ttrow = HUGE;			/* Unknown.		*/
-		ttcol = HUGE;
-		tttop = top;			/* Remember region.	*/
-		ttbot = bot;
-	}
+    if (CS && (tttop!=top || ttbot!=bot)) {
+	putpad(tgoto(CS, bot, top), nrow - ttrow);
+	ttrow = HUGE;			/* Unknown.		*/
+	ttcol = HUGE;
+	tttop = top;			/* Remember region.	*/
+	ttbot = bot;
+    }
 #endif
 }
 
@@ -443,16 +499,17 @@ ttwindow(top, bot)
  * This behavior seems to work right on systems
  * where you can set your terminal size.
  */
+VOID
 ttnowindow()
 {
 #ifndef TCCONIO
-	if (CS) {
+    if (CS) {
 	putpad(tgoto(CS, (nrow > LI ? nrow : LI) - 1, 0), nrow - ttrow);
 	ttrow = HUGE;			/* Unknown.		*/
 	ttcol = HUGE;
 	tttop = HUGE;			/* No scroll region.	*/
 	ttbot = HUGE;
-	}
+    }
 #endif
 }
 
@@ -465,29 +522,33 @@ ttnowindow()
  * line by line basis, so don't bother sending
  * out the color shift.
  */
-ttcolor(color) register int color; {
-	if (color != tthue) {
+VOID
+ttcolor(color)
+register int color;
+{
+    if (color != tthue) {
 #ifdef TCCONIO
 	if (color == CTEXT) {		/* Normal video.	*/
-		ttflush();
-		textattr(WHITE);
-	} else if (color == CMODE) {	/* Reverse video.	*/
+	    ttflush();
+	    textattr(WHITE);
+	}
+	else if (color == CMODE) {	/* Reverse video.	*/
+	    ttflush();
 #ifdef REVERSE
-		textattr(WHITE|REVERSE);
+	    textattr(WHITE|REVERSE);
 #else
-		textbackground(WHITE);
-		textcolor(BLACK);
+	    textbackground(WHITE);
+	    textcolor(BLACK);
 #endif
 	}
 #else
-	if (color == CTEXT) {		/* Normal video.	*/
-		putpad(SE, 1);
-	} else if (color == CMODE) {	/* Reverse video.	*/
-		putpad(SO, 1);
-	}
+	if (color == CTEXT)		/* Normal video.	*/
+	    putpad(SE, 1);
+	else if (color == CMODE)	/* Reverse video.	*/
+	    putpad(SO, 1);
 #endif
 	tthue = color;			/* Save the color.	*/
-	}
+    }
 }
 
 /*
@@ -499,27 +560,31 @@ ttcolor(color) register int color; {
  * with a screen NROW by NCOL. Look in "window.c" to
  * see how the caller deals with a change.
  */
-ttresize() {
-	setttysize();			/* found in "ttyio.c",	*/
+VOID
+ttresize()
+{
+    setttysize();			/* found in "ttyio.c",	*/
 					/* ask OS for tty size	*/
-	if (nrow < 1)			/* Check limits.	*/
-		nrow = 1;
-	if (ncol < 1)
-		ncol = 1;
-	vtsetsize(ncol, nrow);		/* found in "display.c" */
+    if (nrow < 1)			/* Check limits.	*/
+	nrow = 1;
+    if (ncol < 1)
+	ncol = 1;
+    vtsetsize(ncol, nrow);		/* found in "display.c" */
 }
 
 #ifdef NO_RESIZE
-static setttysize() {
+static VOID
+setttysize()
+{
 # ifdef	TCCONIO
-	struct text_info tinfo;
-
-	gettextinfo(&tinfo);
-	nrow = tinfo.screenheight;
-	ncol = tinfo.screenwidth;
+    struct text_info tinfo;
+    
+    gettextinfo(&tinfo);
+    nrow = tinfo.screenheight;
+    ncol = tinfo.screenwidth;
 # else
-	nrow = tgetnum("li");
-	ncol = tgetnum("co");
+    nrow = tgetnum("li");
+    ncol = tgetnum("co");
 # endif
 }
 #endif
@@ -532,14 +597,17 @@ static int		/* fake char output for charcost() */
 fakec(c)
 char c;
 {
-	cci++;
+    cci++;
 }
 
 /* calculate the cost of doing string s */
-charcost (s) char *s; {
-	cci = 0;
-
-	tputs(s, nrow, fakec);
-	return cci;
+static int
+charcost(s)
+char *s;
+{
+    cci = 0;
+    
+    tputs(s, nrow, fakec);
+    return cci;
 }
 #endif /* TCCONIO */

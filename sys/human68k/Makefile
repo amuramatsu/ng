@@ -1,7 +1,10 @@
-# $Id: Makefile,v 1.2 2001/03/02 08:48:31 amura Exp $
+# $Id: Makefile,v 1.3 2001/11/23 11:56:47 amura Exp $
 # Makefile for Ng on Human68k (SHARP X68000)
 #
 # $Log: Makefile,v $
+# Revision 1.3  2001/11/23 11:56:47  amura
+# Rewrite all sources
+#
 # Revision 1.2  2001/03/02 08:48:31  amura
 # now AUTOSAVE feature implemented almost all (except for WIN32
 #
@@ -54,7 +57,7 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  kinsoku.c skg.c jump.c undo.c autosave.c
 
 OINCS =	ttydef.h sysdef.h chrdef.h
-INCS =	config.h def.h
+INCS =	config.h def.h extern.h
 REINCS = regex_e.h regex_j.h regex_j.c regex_e.h kanji_.h kanji_.c
 
 PROG = ng.x

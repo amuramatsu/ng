@@ -1,4 +1,4 @@
-/* $Id: cinfo.c,v 1.2 2001/09/27 18:47:28 amura Exp $ */
+/* $Id: cinfo.c,v 1.3 2001/11/23 11:56:46 amura Exp $ */
 /*
  *		Character class tables.
  * Do it yourself character classification
@@ -9,6 +9,9 @@
 
 /*
  * $Log: cinfo.c,v $
+ * Revision 1.3  2001/11/23 11:56:46  amura
+ * Rewrite all sources
+ *
  * Revision 1.2  2001/09/27 18:47:28  amura
  * Rename all _[A-Z] constant (in chrdef.h) to _NGC_[A-Z],
  * because _L was used by EPOC32 library.
@@ -19,8 +22,8 @@
  */
 /* 90.01.29	Modified for Ng 1.0  by S.Yoshida */
 
-#include	"config.h"	/* 90.12.20  by S.Yoshida */
-#include	"def.h"
+#include "config.h"	/* 90.12.20  by S.Yoshida */
+#include "def.h"
 /*
  * This table, indexed by a character drawn
  * from the 256 member character set, is used by my
@@ -147,7 +150,8 @@ _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	0,		0
  * '\0'.
  */
 
-char *keyname(cp, k)
+char *
+keyname(cp, k)
 register char *cp;
 register int k;
 {
@@ -156,38 +160,39 @@ register int k;
     extern char *keystrings[];
 #endif
 
-    if(k < 0) k = CHARMASK(k);			/* sign extended char */
-    switch(k) {
-	case CCHR('@'): np = "NUL"; break;
-	case CCHR('I'): np = "TAB"; break;
-	case CCHR('J'): np = "LFD"; break; /* yuck, but that's what GNU calls it */
-	case CCHR('M'): np = "RET"; break;
-	case CCHR('['): np = "ESC"; break;
-	case ' ':	np = "SPC"; break; /* yuck again */
-	case CCHR('?'): np = "DEL"; break;
-	default:
+    if (k < 0)
+	k = CHARMASK(k);			/* sign extended char */
+    switch (k) {
+    case CCHR('@'): np = "NUL"; break;
+    case CCHR('I'): np = "TAB"; break;
+    case CCHR('J'): np = "LFD"; break; /* yuck, but that's what GNU calls it */
+    case CCHR('M'): np = "RET"; break;
+    case CCHR('['): np = "ESC"; break;
+    case ' ':	np = "SPC"; break; /* yuck again */
+    case CCHR('?'): np = "DEL"; break;
+    default:
 #ifdef	FKEYS
-	    if(k >= KFIRST && k <= KLAST &&
-		    (np = keystrings[k - KFIRST]) != NULL)
-		break;
+	if (k >= KFIRST && k <= KLAST &&
+	    (np = keystrings[k - KFIRST]) != NULL)
+	    break;
 #endif
-	    if(k > CCHR('?')) {
-		*cp++ = '0';
-		*cp++ = ((k>>6)&7) + '0';
-		*cp++ = ((k>>3)&7) + '0';
-		*cp++ = (k&7) + '0';
-		*cp = '\0';
-		return cp;
-	    }
-	    if(k < ' ') {
-		*cp++ = 'C';
-		*cp++ = '-';
-		k = CCHR(k);
-		if(ISUPPER(k)) k = TOLOWER(k);
-	    }
-	    *cp++ = k;
+	if (k > CCHR('?')) {
+	    *cp++ = '0';
+	    *cp++ = ((k>>6)&7) + '0';
+	    *cp++ = ((k>>3)&7) + '0';
+	    *cp++ = (k&7) + '0';
 	    *cp = '\0';
 	    return cp;
+	}
+	if (k < ' ') {
+	    *cp++ = 'C';
+	    *cp++ = '-';
+	    k = CCHR(k);
+	    if(ISUPPER(k)) k = TOLOWER(k);
+	}
+	*cp++ = k;
+	*cp = '\0';
+	return cp;
     }
     (VOID) strcpy(cp, np);
     return cp + strlen(cp);

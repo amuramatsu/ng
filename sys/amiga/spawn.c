@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.2 2000/10/23 13:17:06 amura Exp $ */
+/* $Id: spawn.c,v 1.3 2001/11/23 11:56:45 amura Exp $ */
 /*
  * Name:	MG
  * Version:	2x
@@ -9,6 +9,9 @@
 
 /*
  * $Log: spawn.c,v $
+ * Revision 1.3  2001/11/23 11:56:45  amura
+ * Rewrite all sources
+ *
  * Revision 1.2  2000/10/23 13:17:06  amura
  * no spawncli() do change directory
  *
@@ -22,7 +25,14 @@
 #undef TRUE
 #undef FALSE
 #include "config.h"	/* Dec. 15, 1992 by H.Ohkubo */
-#include "def.h"		/* AFTER system files to avoid redef's */
+#include "def.h"	/* AFTER system files to avoid redef's */
+#ifdef INLINE_PRAGMAS
+#include <pragmas/dos_pragmas.h>
+#include <pragmas/exec_pragmas.h>
+#else
+#include <clib/dos_protos.h>
+#include <clib/exec_protos.h>
+#endif
 
 /*
  * Create a subjob with a copy of the command intrepreter in it.
@@ -31,23 +41,24 @@
  * of a file handle to nil: to avoid the "endcli" message going out
  * to Emacs's standard output.
  */
-
+int
 spawncli(f, n)
+int f, n;
 {
-	struct FileHandle *nil, *Open();
-	
-	ewprintf("[Starting new CLI]");
-	nil = Open("NIL:", MODE_NEWFILE);
-	if (nil == (struct FileHandle *) 0) { /* highly unlikely */
-		ewprintf("Can't create nil file handle");
-		return (FALSE);
-	}
+    BPTR nil;
+    
+    ewprintf("[Starting new CLI]");
+    nil = Open("NIL:", MODE_NEWFILE);
+    if (nil == (BPTR)0) { /* highly unlikely */
+	ewprintf("Can't create nil file handle");
+	return (FALSE);
+    }
 #ifdef	EXTD_DIR
-	ensurecwd();
+    ensurecwd();
 #endif
-	Execute("NEWCLI \"CON:0/0/640/200/MicroEmacs Subprocess\"",nil,nil);
-	Close(nil);
-	return (TRUE);
+    Execute("NEWCLI \"CON:0/0/640/200/MicroEmacs Subprocess\"", nil, nil);
+    Close(nil);
+    return (TRUE);
 }
 
 
@@ -69,26 +80,26 @@ call_process(command, input)
 char *command;
 char *input;
 {
-	char *tmp;
-	struct	FileHandle *in, *out, *Open();
-	extern char *mktemp();
-
-	if ((tmp = mktemp("RAM:ngXXX.XXX")) == NULL)
-		return NULL;
-	if ((in = Open(input ? input : "NIL:", MODE_NEWFILE)) == NULL)
-		return NULL;
-	if ((out = Open(tmp, MODE_NEWFILE)) == NULL) {
-		Close(in);
-		return NULL;
-	}
-
-#ifdef	EXTD_DIR
-	ensurecwd();
-#endif
-	Execute(command, in, out);
+    char *tmp;
+    BPTR in, out;
+    extern char *mktemp();
+    
+    if ((tmp = mktemp("RAM:ngXXX.XXX")) == NULL)
+	return NULL;
+    if ((in = Open(input ? input : "NIL:", MODE_NEWFILE)) == NULL)
+	return NULL;
+    if ((out = Open(tmp, MODE_NEWFILE)) == NULL) {
 	Close(in);
-	Close(out);
-
-	return tmp;
+	return NULL;
+    }
+    
+#ifdef	EXTD_DIR
+    ensurecwd();
+#endif
+    Execute(command, in, out);
+    Close(in);
+    Close(out);
+    
+    return tmp;
 }
 #endif	/* NO_SHELL */

@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.9 2001/08/17 19:15:06 amura Exp $ */
+/* $Id: undo.c,v 1.10 2001/11/23 11:56:42 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -7,6 +7,9 @@
 
 /*
  * $Log: undo.c,v $
+ * Revision 1.10  2001/11/23 11:56:42  amura
+ * Rewrite all sources
+ *
  * Revision 1.9  2001/08/17 19:15:06  amura
  * first try of unicode support (unix only/win32 on the way)
  *
@@ -36,13 +39,13 @@
  *
  */
 
-#include	"config.h"
-#include	"def.h"
-#ifdef	UNDO
-#include 	"undo.h"
+#include "config.h"
+#include "def.h"
+#ifdef UNDO
+#include "undo.h"
 
-#ifndef	UBLOCK
-#define	UBLOCK	32
+#ifndef UBLOCK
+#define UBLOCK		32
 #endif
 
 UNDO_DATA **undoptr;
@@ -70,8 +73,7 @@ register BUFFER *bp;
 {
     if (undoptr == NULL)
 	return; 
-    if (undoptr != undostart)
-    {
+    if (undoptr != undostart) {
         bp->b_ulast = undobefore;
 	ublock_clear(undoptr);
 	if (undofirst && *undostart!=NULL)
@@ -108,8 +110,7 @@ register UNDO_DATA **upp;
     if (upp == NULL)
 	return; 
     up = *upp;
-    while (up != NULL)
-    {
+    while (up != NULL) {
 	if (up->u_size)
 	    free(up->u_buffer);
 	upold = up;
@@ -130,14 +131,12 @@ register RSIZE size;
     if (undo->u_size<size && (size*4)<undo->u_size)
 	undo_bfree(undo);
 
-    if (undo->u_size < size)
-    {
+    if (undo->u_size < size) {
         size = (size + UBLOCK - 1) / UBLOCK * UBLOCK;
 #ifdef	MALLOCROUND
 	MALLOCROUND(size);
 #endif
-	if (size < undo->u_size)
-	{
+	if (size < undo->u_size) {
 	    ewprintf("Undo buffer too BIG!");
 	    ttwait();
 	    undo_clean(curbp);
@@ -150,8 +149,7 @@ register RSIZE size;
 	    undo->u_size = 0;
 	}
 	newbuffer = malloc(size);
-	if (newbuffer == NULL)
-	{
+	if (newbuffer == NULL) {
 	    ewprintf("Can't get %ld Bytes / Undo buffer clear", size);
 	    ttwait();
 	    undo_clean(curbp);
@@ -172,16 +170,14 @@ RSIZE size;
     char *newbuffer;
     RSIZE newsize = (undo->u_used + size);
 
-    if (newsize < size)
-    {
+    if (newsize < size) {
 	ewprintf("Undo buffer too BIG!");
 	ttwait();
 	undo_clean(curbp);
 	undoptr = NULL;
 	return FALSE;
     }
-    if (newsize > undo->u_size)
-    {
+    if (newsize > undo->u_size) {
 	size = (newsize + UBLOCK - 1) / UBLOCK * UBLOCK;
 #ifdef	MALLOCROUND
 	MALLOCROUND(size);
@@ -189,8 +185,7 @@ RSIZE size;
 	if (size < newsize)
 	    size = newsize;
 	newbuffer = malloc(size);
-	if (newbuffer == NULL)
-	{
+	if (newbuffer == NULL) {
 	    ewprintf("Can't get %ld Bytes / Undo buffer clear", size);
 	    ttwait();
 	    undo_clean(curbp);
@@ -223,8 +218,7 @@ do_undo(f, n)
 	return FALSE;
 
     undoptr = NULL;
-    while (n--)
-    {
+    while (n--) {
 	if (curbp->b_utop == curbp->b_ubottom) {
 	    ewprintf("No more undo data");
 	    ttbeep();
@@ -244,8 +238,7 @@ do_undo(f, n)
 	    undoend = undo;
 
 	    lp = lforw(curbp->b_linep);
-	    for (i=undo->u_dotlno; i>0; i--)
-	    {
+	    for (i=undo->u_dotlno; i>0; i--) {
 		if (lp == curbp->b_linep)
 		    break;
 		lp = lforw(lp);
@@ -267,38 +260,31 @@ do_undo(f, n)
 	    
 	    if (undo->u_type & UDFIRST)
 		firstcheck = TRUE;
-	    switch (undo->u_type & UDMASK)
-	    {
-	      case UDDEL:
-	      case UDBS:
-		if (undo->u_size)
-		{
+	    switch (undo->u_type & UDMASK) {
+	    case UDDEL:
+	    case UDBS:
+		if (undo->u_size) {
 		    p = undo->u_buffer;
-		    for (i=0; i<undo->u_used; i++,p++)
-		    {
+		    for (i=0; i<undo->u_used; i++,p++) {
 			if (*p == '\n')
 			    lnewline();
 			else
 			    linsert(1, *p);
 		    }
 		}
-		else
-		{
+		else {
 		    p = undo->u_code;
 		    if (*p == '\n')
 			lnewline();
-		    else
-		    {
+		    else {
 			linsert(1, *p++);
 			if (*p)
 			    linsert(1, *p);
 		    }
 		}
-		if ((undo->u_type&UDMASK) == UDDEL)
-		{
+		if ((undo->u_type&UDMASK) == UDDEL) {
 		    lp = lforw(curbp->b_linep);
-		    for (i=undo->u_dotlno; i>0; i--)
-		    {
+		    for (i=undo->u_dotlno; i>0; i--) {
 			if (lp == curbp->b_linep)
 			    break;
 			lp = lforw(lp);
@@ -307,31 +293,29 @@ do_undo(f, n)
 		    curwp->w_doto = undo->u_doto;
 		}
 		break;
-#if	UDINSNL != UDINS		
-	      case UDINSNL:
+#if UDINSNL != UDINS		
+	    case UDINSNL:
 #endif
-	      case UDINS:
+	    case UDINS:
 		ldelete(undo->u_used, KNONE);
 		break;
 
-	      case UDTWIDDLE:
+	    case UDTWIDDLE:
 		twiddle(FFRAND, 1);
 		curwp->w_dotp = lp;
 		curwp->w_doto = undo->u_doto;
 		break;
 		
-	      case UDOVER:
+	    case UDOVER:
 		i = 0;
 		while (curwp->w_doto < llength(lp) && i < undo->u_used)
 		    lputc(lp, curwp->w_doto++, undo->u_buffer[i++]);
-		if (i != undo->u_used)
-		{
+		if (i != undo->u_used)  {
 		    ewprintf("do_undo: overwrite data error");
 		    return FALSE;
 		}
 		if (undo->u_code[0]) {
-		    if (curwp->w_doto >= llength(lp))
-		    {
+		    if (curwp->w_doto >= llength(lp)) {
 			ewprintf("do_undo: overwrite data error");
 			undo_reset(curbp);
 			return FALSE;
@@ -342,10 +326,9 @@ do_undo(f, n)
 		lchange(WFEDIT);
 		break;
 		
-	      case UDREPL:
+	    case UDREPL:
 		curwp->w_doto += undo->u_used;
-		if (llength(lp) < curwp->w_doto)
-		{
+		if (llength(lp) < curwp->w_doto) {
 		    ewprintf("do_undo: replace data error");
 		    undo_reset(curbp);
 		    return FALSE;
@@ -353,8 +336,8 @@ do_undo(f, n)
 		lreplace(undo->u_used, undo->u_buffer, TRUE);
 		break;
 
-	      case UDNONE:
-	      default:
+	    case UDNONE:
+	    default:
 		panic("bug: do_undo");
 	    }
 	}
@@ -365,7 +348,8 @@ do_undo(f, n)
 	for (wp = wheadp; wp != NULL; wp = wp->w_wndp) {
 	    if (wp->w_bufp == curbp) {
 		wp->w_flag |= WFMODE;
-		if(wp != curwp) wp->w_flag |= WFHARD;
+		if (wp != curwp)
+		    wp->w_flag |= WFHARD;
 	    }
 	}
     }

@@ -1,4 +1,4 @@
-/* $Id: kanji_.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: kanji_.c,v 1.2 2001/11/23 11:56:38 amura Exp $ */
 /* mskanji.c: ms-kanji handling routines
  * -> kanji_.c: euc kanji handling routines
  *serow / amura
@@ -6,8 +6,11 @@
 
 /*
  * $Log: kanji_.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2001/11/23 11:56:38  amura
+ * Rewrite all sources
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 
@@ -27,45 +30,47 @@ kpart(pLim, pChr)
 char *pLim;
 char *pChr;
 {
-	register char * p  = pChr - 1;
-	register int ct = 0;
-
-	while (ISKANJI(*p) && p >= pLim) {
-		p--;
-		ct++;
-	}
-	return (ct & 1) ? 2 : ISKANJI(*pChr);
+    register char *p  = pChr - 1;
+    register int ct = 0;
+    
+    while (ISKANJI(*p) && p >= pLim) {
+	p--;
+	ct++;
+    }
+    return (ct & 1) ? 2 : ISKANJI(*pChr);
 }
 
 /* jstrlen: return the number of charctors in string.
  */
-int jstrlen(s)
-char * s;
+int
+jstrlen(s)
+char *s;
 {
-	int len;
-
-	for (len = 0; *s; s++, len++) {
-		if (ISKANJI(*s) && s[1])
-			s++;
-	}
-	return len;
+    int len;
+    
+    for (len = 0; *s; s++, len++) {
+	if (ISKANJI(*s) && s[1])
+	    s++;
+    }
+    return len;
 }
 
 /* jnthchar: return with the pointer to n'th charactor in string.
  *           return (char *)0, when jstrlen(s) < n
  */
-char * jnthchar(s, n)
-char * s;
-int    n;
+char *
+jnthchar(s, n)
+char *s;
+int n;
 {
-	if (n) {
-		while (--n) {
-			if (ISKANJI(*s))
-				s++;
-			s++;
-		}
+    if (n) {
+	while (--n) {
+	    if (ISKANJI(*s))
+		s++;
+	    s++;
 	}
-	return s;
+    }
+    return s;
 }
 
 /* jindex: return with the pointer to 'ch' in "string"
@@ -76,16 +81,16 @@ jindex(s, c)
 char *s;
 int   c;
 {
-	while (*s) {
-		if (UCH(*s) == UCH(c))
-			return s;
-
-		if (ISKANJI(*s) && s[1]) {
-			s++;
-		}
-		s++;
+    while (*s) {
+	if (UCH(*s) == UCH(c))
+	    return s;
+	
+	if (ISKANJI(*s) && s[1]) {
+	    s++;
 	}
-	return (char *)0;
+	s++;
+    }
+    return (char *)0;
 }
 /* jrindex: return with the pointer to Right end 'ch' in "string"
  *          return with (char *)0, when not found
@@ -95,32 +100,32 @@ jrindex(s, c)
 char *s;
 int   c;
 {
-	char * olds = (char *)0;
-
-	while (*s) {
-		if (UCH(*s) == UCH(c))
-			olds = s;
-
-		if (ISKANJI(*s) && s[1]) {
-			s++;
-		}
-		s++;
+    char * olds = (char *)0;
+    
+    while (*s) {
+	if (UCH(*s) == UCH(c))
+	    olds = s;
+	
+	if (ISKANJI(*s) && s[1]) {
+	    s++;
 	}
-	return olds;
+	s++;
+    }
+    return olds;
 }
 
 char *
 jstrlower(s)
 char *s;
 {
-	char *ws = s;
+    char *ws = s;
 
-	while (*ws) {
-		if (ISKANJI(*ws) && ws[1])
-			ws++;
-		else
-			*ws = (('A' <= *ws) && (*ws <= 'Z')) ? *ws - 'A' + 'a': *ws;
-		ws++;
-	}
-	return s;
+    while (*ws) {
+	if (ISKANJI(*ws) && ws[1])
+	    ws++;
+	else
+	    *ws = (('A' <= *ws) && (*ws <= 'Z')) ? *ws - 'A' + 'a': *ws;
+	ws++;
+    }
+    return s;
 }

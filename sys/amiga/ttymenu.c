@@ -1,4 +1,4 @@
-/* $Id: ttymenu.c,v 2.3 2000/12/14 18:08:35 amura Exp $ */
+/* $Id: ttymenu.c,v 2.4 2001/11/23 11:56:46 amura Exp $ */
 /*
  * ttymenu.c
  *   Amiga intuition menu handling routine for Ng 1.x
@@ -30,6 +30,9 @@
 
 /*
  * $Log: ttymenu.c,v $
+ * Revision 2.4  2001/11/23 11:56:46  amura
+ * Rewrite all sources
+ *
  * Revision 2.3  2000/12/14 18:08:35  amura
  * filename length become flexible
  *
@@ -50,8 +53,15 @@
 #include <intuition/intuition.h>
 #include <intuition/intuitionbase.h>
 #include <graphics/gfxbase.h>
+#ifdef INLINE_PRAGMAS
+#include <pragmas/exec_pragmas.h>
+#include <pragmas/intuition_pragmas.h>
+#include <pragmas/graphics_pragmas.h>
+#else
 #include <clib/exec_protos.h>
 #include <clib/intuition_protos.h>
+#include <clib/graphics_protos.h>
+#endif
 
 #define	MENU_SUB_ICON	" \273"
 #include "menumap.h"
@@ -60,7 +70,7 @@ struct Menu *    InitEmacsMenu(struct Window *);
 VOID             DisposeMenus(struct Menu *);
 struct MenuItem *MakeMenuItems(MenuMap *, struct TextAttr *);
 VOID             DisposeMenuItems(struct MenuItem *);
-int amigamenu pro((int, int));
+int amigamenu _PRO((int, int));
 
 /*
  * internal function prototypes
@@ -88,8 +98,7 @@ struct Window *win;
     if (menu == NULL)
 	return NULL;
     
-    for (i=0; i<num; i++)
-    {
+    for (i=0; i<num; i++) {
 	menu[i].NextMenu = &menu[i+1];
 	menu[i].Flags    = MENUENABLED;
 	menu[i].MenuName = MgMenus[i].face;
@@ -140,19 +149,15 @@ struct TextAttr *font;
 	return NULL;
     items = (struct MenuItem *)AllocMem(num*sizeof(struct MenuItem),
 					MEMF_PUBLIC|MEMF_CLEAR);
-    if (items == NULL)
-    {
+    if (items == NULL) {
 	FreeMem(texts, num*sizeof(struct IntuiText));
 	return NULL;
     }
 
-    for (i=0; i<num; i++)
-    {
-	if (MENU_TYPE(em[i].type) == MENU_SUB)
-	{
+    for (i=0; i<num; i++) {
+	if (MENU_TYPE(em[i].type) == MENU_SUB) {
 	    items[i].SubItem  =	MakeMenuItems(em[i].func, font);
-	    if (items[i].SubItem == NULL)
-	    {
+	    if (items[i].SubItem == NULL) {
 		
 		for (i--; i>=0; i--)
 		    DisposeMenuItems(items[i].SubItem);
@@ -221,7 +226,9 @@ MaxLength(struct RastPort *textRPort,
     USHORT commCharWidth;
 
 #ifdef	notdef
-    extra_width = char_size;  /* used as padding for each item. */
+    extra_width = char_size;	/* used as padding for each item. */
+#else
+    extra_width = 0;		/* used as padding for each item. */
 #endif
     
     /*
@@ -229,10 +236,8 @@ MaxLength(struct RastPort *textRPort,
      * If found, it will be added to the extra_width field.
      */
     maxCommCharWidth = 0;
-    for (cur_item=first_item; cur_item!=NULL; cur_item=cur_item->NextItem)
-    {
-	if (cur_item->Flags & COMMSEQ)
-	{
+    for (cur_item=first_item; cur_item!=NULL; cur_item=cur_item->NextItem) {
+	if (cur_item->Flags & COMMSEQ) {
 	    commCharWidth = TextLength(textRPort,&(cur_item->Command),1);
 	    if (commCharWidth > maxCommCharWidth)
 		maxCommCharWidth = commCharWidth;
@@ -254,8 +259,7 @@ MaxLength(struct RastPort *textRPort,
      * calculated above.
      */
     maxLength = 0;
-    for (cur_item=first_item; cur_item!=NULL; cur_item=cur_item->NextItem)
-    {
+    for (cur_item=first_item; cur_item!=NULL; cur_item=cur_item->NextItem) {
 	itext = (struct IntuiText *)cur_item->ItemFill;
 	total_textlen = extra_width + itext->LeftEdge +
 	    TextLength(textRPort, itext->IText, strlen(itext->IText));
@@ -286,8 +290,7 @@ adjustItems(struct RastPort *textRPort, struct MenuItem *first_item,
 
     /* Position the items. */
     for (cur_item=first_item,item_num=0; cur_item!=NULL;
-	 cur_item=cur_item->NextItem,item_num++)
-    {
+	 cur_item=cur_item->NextItem,item_num++) {
 	cur_item->TopEdge  = (item_num * height) - level;
 	cur_item->LeftEdge = left_edge;
 	cur_item->Width    = strip_width - left_edge;
@@ -339,8 +342,7 @@ adjustMenus(struct Menu *first_menu, struct Window *win)
     
     /* Step thru the menu structure and adjust it */
     for (cur_menu=first_menu; cur_menu!=NULL;
-	 cur_menu=cur_menu->NextMenu)
-    {
+	 cur_menu=cur_menu->NextMenu) {
 	cur_menu->LeftEdge = start;
 	cur_menu->Width = char_size +
 	    TextLength(win->RPort, cur_menu->MenuName,
@@ -372,26 +374,24 @@ char *buff;
     char *text_OK, *title;
     ULONG asl_flag;
 
-    if (AslBase = OpenLibrary("asl.library", 0L))
-    {
+    if (AslBase = OpenLibrary("asl.library", 0L)) {
 	asl_flag = FILF_PATGAD;
 	buff[0] = '\0';
-	switch (mode)
-	{
-	  case ASL_OPEN:
+	switch (mode) {
+	case ASL_OPEN:
 	    text_OK = "Open";
 	    title   = "Select File to Open";
 	    break;
-	  case ASL_INSERT:
+	case ASL_INSERT:
 	    text_OK = "Insert";
 	    title   = "Select File to Insert";
 	    break;
-	  case ASL_WRITE:
+	case ASL_WRITE:
 	    text_OK = "Save";
 	    title   = "Select File to Save to";
 	    asl_flag |= FILF_SAVE;
 	    break;
-	  default:
+	default:
 	    text_OK = "OK";
 	    title   = "Select File";
 	}
@@ -406,10 +406,8 @@ char *buff;
 			ASL_CancelText,	(ULONG)"Cancel",
 			ASL_FuncFlags,	asl_flag,
 			TAG_DONE
-				     ))
-	{
-	    if (AslRequest(fr, NULL))
-	    {
+				     ))	{
+	    if (AslRequest(fr, NULL)) {
 		strncpy(buff, fr->rf_Dir, NFILEN);
 		buff[NFILEN-1] = '\0';
 		if (!AddPart(buff, fr->rf_File, NFILEN))
@@ -461,6 +459,7 @@ int f, c;
 {
     MenuMap *em;
     int menuNum,itemNum,subNum;
+    int getkbd _PRO((void));
 
     menuNum = getkbd() - MN_OFFSET;
     itemNum = getkbd() - MN_OFFSET;
@@ -469,31 +468,28 @@ int f, c;
     if (menuNum == NOITEM)
 	return TRUE;
     em = MgMenus;
-    switch (MENU_TYPE(em[menuNum].type))
-    {
-      case MENU_LINE:
+    switch (MENU_TYPE(em[menuNum].type)) {
+    case MENU_LINE:
 	return TRUE;
-      case MENU_FUNC:
+    case MENU_FUNC:
 	return ((int (*)())em[menuNum].func)(f, c);
-      case MENU_SUB:
+    case MENU_SUB:
 	if (itemNum == NOITEM)
 	    return TRUE;
 	em = (MenuMap*)(em[menuNum].func);
-	switch (MENU_TYPE(em[itemNum].type))
-	{
-          case MENU_LINE:
+	switch (MENU_TYPE(em[itemNum].type)) {
+	case MENU_LINE:
 	    return TRUE;
-	  case MENU_FUNC:
+	case MENU_FUNC:
 	    return ((int (*)())em[itemNum].func)(f, c);
-	  case MENU_SUB:
+	case MENU_SUB:
 	    if (subNum == NOITEM)
 		return TRUE;
 	    em = (MenuMap*)(em[itemNum].func);
-	    switch (MENU_TYPE(em[subNum].type))
-	    {
-	      case MENU_LINE:
+	    switch (MENU_TYPE(em[subNum].type)) {
+	    case MENU_LINE:
 		return TRUE;
-              case MENU_FUNC:
+	    case MENU_FUNC:
 		return ((int (*)())em[subNum].func)(f, c);
 	    }
 	}

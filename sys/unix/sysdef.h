@@ -1,10 +1,13 @@
-/* $Id: sysdef.h,v 1.5 2001/03/02 08:48:32 amura Exp $ */
+/* $Id: sysdef.h,v 1.6 2001/11/23 11:56:51 amura Exp $ */
 /*
  *	unix based systems (for configure)
  */
 
 /*
  * $Log: sysdef.h,v $
+ * Revision 1.6  2001/11/23 11:56:51  amura
+ * Rewrite all sources
+ *
  * Revision 1.5  2001/03/02 08:48:32  amura
  * now AUTOSAVE feature implemented almost all (except for WIN32
  *
@@ -94,7 +97,6 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 #ifdef	HAVE_RMDIR
 #define	unlinkdir(fn)	rmdir(fn)	/* unlink directory		*/
 #endif
-char *getenv();
 #define	gettermtype()	getenv("TERM")	/* determine terminal type	*/
 #ifndef	NO_DIR
 #define	dirend()	(VOID)0
