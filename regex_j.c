@@ -1,4 +1,4 @@
-/* $Id: regex_j.c,v 1.1 2000/06/27 01:47:56 amura Exp $ */
+/* $Id: regex_j.c,v 1.2 2001/05/08 17:58:57 amura Exp $ */
 /* Extended regular expression matching and search.
    Copyright (C) 1985 Free Software Foundation, Inc.
 
@@ -105,8 +105,11 @@ what you give them.   Help stamp out software-hoarding!  */
 
 /*
  * $Log: regex_j.c,v $
- * Revision 1.1  2000/06/27 01:47:56  amura
- * Initial revision
+ * Revision 1.2  2001/05/08 17:58:57  amura
+ * fix alloca() probrems with Turbo C
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:56  amura
+ * import to CVS
  *
  */
 
@@ -208,7 +211,7 @@ init_syntax_once ()
 #include "regex_j.h"
 
 #ifdef MSDOS
-extern void * alloca(size_t);
+/* extern void * alloca(size_t); */
 
 static  void init_syntax_once(void );
        int re_set_syntax(int syntax);
