@@ -1,12 +1,15 @@
-/* $Id: window.c,v 1.1 2000/06/27 01:47:55 amura Exp $ */
+/* $Id: window.c,v 1.2 2001/05/25 15:36:53 amura Exp $ */
 /*
  *		Window handling.
  */
 
 /*
  * $Log: window.c,v $
- * Revision 1.1  2000/06/27 01:47:55  amura
- * Initial revision
+ * Revision 1.2  2001/05/25 15:36:53  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
+ * Revision 1.1.1.1  2000/06/27 01:47:55  amura
+ * import to CVS
  *
  */
 
@@ -149,8 +152,6 @@ onlywind(f, n)
 		if (--wp->w_bufp->b_nwnd == 0) {
 			wp->w_bufp->b_dotp  = wp->w_dotp;
 			wp->w_bufp->b_doto  = wp->w_doto;
-			wp->w_bufp->b_markp = wp->w_markp;
-			wp->w_bufp->b_marko = wp->w_marko;
 		}
 		free((char *) wp);
 	}
@@ -160,8 +161,6 @@ onlywind(f, n)
 		if (--wp->w_bufp->b_nwnd == 0) {
 			wp->w_bufp->b_dotp  = wp->w_dotp;
 			wp->w_bufp->b_doto  = wp->w_doto;
-			wp->w_bufp->b_markp = wp->w_markp;
-			wp->w_bufp->b_marko = wp->w_marko;
 		}
 		free((char *) wp);
 	}
@@ -211,8 +210,6 @@ splitwind(f, n)
 	wp->w_bufp  = curbp;
 	wp->w_dotp  = curwp->w_dotp;
 	wp->w_doto  = curwp->w_doto;
-	wp->w_markp = curwp->w_markp;
-	wp->w_marko = curwp->w_marko;
 	wp->w_flag  = 0;
 	wp->w_force = 0;
 	ntru = (curwp->w_ntrows-1) / 2;		/* Upper size		*/
@@ -418,8 +415,6 @@ delwind(f, n)
 	if (--wp->w_bufp->b_nwnd == 0) {
 		wp->w_bufp->b_dotp  = wp->w_dotp;
 		wp->w_bufp->b_doto  = wp->w_doto;
-		wp->w_bufp->b_markp = wp->w_markp;
-		wp->w_bufp->b_marko = wp->w_marko;
 	}
 	/* since shrinkwind did't crap out, we know we have a second window */
 	if (wp == wheadp) wheadp = curwp = wp->w_wndp;

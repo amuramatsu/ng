@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.6 2001/02/18 17:07:26 amura Exp $ */
+/* $Id: random.c,v 1.7 2001/05/25 15:37:21 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.7  2001/05/25 15:37:21  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.6  2001/02/18 17:07:26  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -956,8 +959,8 @@ regionlines(f, n)
 	register int	counting;
 
 	totallines = 0;
-	if (curwp->w_dotp == curwp->w_markp) {
-		if (curwp->w_doto != curwp->w_marko) {
+	if (curwp->w_dotp == curbp->b_markp) {
+		if (curwp->w_doto != curbp->b_marko) {
 			totallines = 1;
 		}
 	} else {
@@ -973,9 +976,9 @@ regionlines(f, n)
 				} else {	/* Start of counting. */
 					counting = TRUE;
 				}
-			} else if (lp == curwp->w_markp) {
+			} else if (lp == curbp->b_markp) {
 				if (counting) {	/* End of counting. */
-					if (curwp->w_marko > 0) {
+					if (curbp->b_marko > 0) {
 						totallines++;
 					}
 					break;

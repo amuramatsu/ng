@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.14 2001/02/18 17:07:27 amura Exp $ */
+/* $Id: def.h,v 1.15 2001/05/25 15:36:52 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -11,6 +11,9 @@
 
 /*
  * $Log: def.h,v $
+ * Revision 1.15  2001/05/25 15:36:52  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.14  2001/02/18 17:07:27  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -256,7 +259,7 @@ typedef struct LIST {
  * There is a window structure allocated for
  * every active display window. The windows are kept in a
  * big list, in top to bottom screen order, with the listhead at
- * "wheadp". Each window contains its own values of dot and mark.
+ * "wheadp". Each window contains its own value of dot.
  * The flag field contains some bits that are set by commands
  * to guide redisplay; although this is a bit of a compromise in
  * terms of decoupling, the full blown redisplay is just too
@@ -267,10 +270,8 @@ typedef struct	WINDOW {
 	struct	BUFFER *w_bufp;		/* Buffer displayed in window	*/
 	struct	LINE *w_linep;		/* Top line in the window	*/
 	struct	LINE *w_dotp;		/* Line containing "."		*/
-	struct	LINE *w_markp;		/* Line containing "mark"	*/
 	short	w_lines;		/* Top line displayed line number */
 	short	w_doto;			/* Byte offset for "."		*/
-	short	w_marko;		/* Byte offset for "mark"	*/
 	char	w_toprow;		/* Origin 0 top row of window	*/
 	char	w_ntrows;		/* # of rows of text in window	*/
 	char	w_force;		/* If NZ, forcing row.		*/

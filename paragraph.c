@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.4 2000/10/02 16:24:42 amura Exp $ */
+/* $Id: paragraph.c,v 1.5 2001/05/25 15:36:53 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -6,6 +6,9 @@
 
 /*
  * $Log: paragraph.c,v $
+ * Revision 1.5  2001/05/25 15:36:53  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.4  2000/10/02 16:24:42  amura
  * bugfix by Tillanosoft(Ng for Win32)
  *
@@ -526,8 +529,8 @@ killpara(f, n)
 		(VOID) gotoeop(FFRAND, 1);
 
 		/* set the mark here */
-		curwp->w_markp = curwp->w_dotp;
-		curwp->w_marko = curwp->w_doto;
+		curbp->b_markp = curwp->w_dotp;
+		curbp->b_marko = curwp->w_doto;
 
 		/* go to the begining of the paragraph */
 		(VOID) gotobop(FFRAND, 1);

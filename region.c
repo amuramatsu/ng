@@ -1,4 +1,4 @@
-/* $Id: region.c,v 1.2 2001/02/18 17:07:27 amura Exp $ */
+/* $Id: region.c,v 1.3 2001/05/25 15:37:21 amura Exp $ */
 /*
  *		Region based commands.
  * The routines in this file
@@ -10,6 +10,9 @@
 
 /*
  * $Log: region.c,v $
+ * Revision 1.3  2001/05/25 15:37:21  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.2  2001/02/18 17:07:27  amura
  * append AUTOSAVE feature (but NOW not work)
  *
@@ -267,19 +270,20 @@ getregion(rp) register REGION *rp; {
 	register LINE	*blp;
 	register long	fsize;			/* Long now.		*/
 	register long	bsize;
+	BUFFER		*bp = curwp->w_bufp;
 
-	if (curwp->w_markp == NULL) {
+	if (bp->b_markp == NULL) {
 		ewprintf("No mark set in this window");
 		return (FALSE);
 	}
-	if (curwp->w_dotp == curwp->w_markp) {	/* "r_size" always ok.	*/
+	if (curwp->w_dotp == bp->b_markp) {	/* "r_size" always ok.	*/
 		rp->r_linep = curwp->w_dotp;
-		if (curwp->w_doto < curwp->w_marko) {
+		if (curwp->w_doto < bp->b_marko) {
 			rp->r_offset = curwp->w_doto;
-			rp->r_size = (RSIZE) (curwp->w_marko-curwp->w_doto);
+			rp->r_size = (RSIZE) (bp->b_marko-curwp->w_doto);
 		} else {
-			rp->r_offset = curwp->w_marko;
-			rp->r_size = (RSIZE) (curwp->w_doto-curwp->w_marko);
+			rp->r_offset = bp->b_marko;
+			rp->r_size = (RSIZE) (curwp->w_doto-bp->b_marko);
 		}
 		return TRUE;
 	}
@@ -289,22 +293,22 @@ getregion(rp) register REGION *rp; {
 	while (lforw(flp)!=curbp->b_linep || lback(blp)!=curbp->b_linep) {
 		if (lforw(flp) != curbp->b_linep) {
 			flp = lforw(flp);
-			if (flp == curwp->w_markp) {
+			if (flp == bp->b_markp) {
 				rp->r_linep = curwp->w_dotp;
 				rp->r_offset = curwp->w_doto;
 				return (setsize(rp,
-					(RSIZE) (fsize+curwp->w_marko)));
+					(RSIZE) (fsize+bp->b_marko)));
 			}
 			fsize += llength(flp)+1;
 		}
 		if (lback(blp) != curbp->b_linep) {
 			blp = lback(blp);
 			bsize += llength(blp)+1;
-			if (blp == curwp->w_markp) {
+			if (blp == bp->b_markp) {
 				rp->r_linep = blp;
-				rp->r_offset = curwp->w_marko;
+				rp->r_offset = bp->b_marko;
 				return (setsize(rp,
-					(RSIZE) (bsize-curwp->w_marko)));
+					(RSIZE) (bsize-bp->b_marko)));
 			}
 		}
 	}
@@ -368,7 +372,7 @@ prefixregion(f, n)
 	if ((s = getregion(&region)) != TRUE)
 		return (s);
 	first = region.r_linep;
-	last = (first == curwp->w_dotp) ? curwp->w_markp : curwp->w_dotp;
+	last = (first == curwp->w_dotp) ? curbp->b_markp : curwp->w_dotp;
 	for (nline = 1; first != last; nline++)
 		first = lforw(first);
 

@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.5 2001/04/28 18:54:26 amura Exp $ */
+/* $Id: basic.c,v 1.6 2001/05/25 15:36:51 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: basic.c,v $
+ * Revision 1.6  2001/05/25 15:36:51  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.5  2001/04/28 18:54:26  amura
  * support line-number-mode (based on MATSUURA's patch )
  *
@@ -614,8 +617,8 @@ pagenext(f, n)
 VOID
 isetmark()
 {
-	curwp->w_markp = curwp->w_dotp;
-	curwp->w_marko = curwp->w_doto;
+	curwp->w_bufp->b_markp = curwp->w_dotp;
+	curwp->w_bufp->b_marko = curwp->w_doto;
 }
 
 /*
@@ -643,17 +646,18 @@ swapmark(f, n)
 {
 	register LINE	*odotp;
 	register int	odoto;
+	BUFFER		*bp = curwp->w_bufp;
 
-	if (curwp->w_markp == NULL) {
-		ewprintf("No mark in this window");
+	if (bp->b_markp == NULL) {
+		ewprintf("No mark in this buffer");
 		return FALSE;
 	}
 	odotp = curwp->w_dotp;
 	odoto = curwp->w_doto;
-	curwp->w_dotp  = curwp->w_markp;
-	curwp->w_doto  = curwp->w_marko;
-	curwp->w_markp = odotp;
-	curwp->w_marko = odoto;
+	curwp->w_dotp  = bp->b_markp;
+	curwp->w_doto  = bp->b_marko;
+	bp->b_markp = odotp;
+	bp->b_marko = odoto;
 	curwp->w_flag |= WFMOVE;
 	return TRUE;
 }

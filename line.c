@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.14 2001/04/28 18:54:27 amura Exp $ */
+/* $Id: line.c,v 1.15 2001/05/25 15:36:52 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.15  2001/05/25 15:36:52  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.14  2001/04/28 18:54:27  amura
  * support line-number-mode (based on MATSUURA's patch )
  *
@@ -48,17 +51,7 @@
  * Revision 1.6  2000/07/16 15:44:41  amura
  * undo bug on autofill fixed
  *
- * Revision 1.5  2000/06/27 01:49:44  amura
- * import to CVS
- *
- * Revision 1.4  2000/06/01  05:30:21  amura
- * Formal undo support
- *
- * Revision 1.3  2000/05/01  23:04:58  amura
- * undo test version
- *
- * Revision 1.2  2000/03/10  21:27:42  amura
- * separate win32 depend code
+ * -- snip --
  *
  * Revision 1.1  1999/06/12  19:56:32  amura
  * Initial revision
@@ -168,10 +161,6 @@ lfree(lp) register LINE *lp; {
 		if (wp->w_dotp	== lp) {
 			wp->w_dotp  = lp->l_fp;
 			wp->w_doto  = 0;
-		}
-		if (wp->w_markp == lp) {
-			wp->w_markp = lp->l_fp;
-			wp->w_marko = 0;
 		}
 	}
 	for(bp = bheadp; bp != NULL; bp = bp->b_bufp) {
@@ -285,10 +274,10 @@ int n;
 			}
 			if (wp->w_dotp == lp1)
 				wp->w_dotp = lp2;
-			if (wp->w_markp == lp1)
-				wp->w_markp = lp2;
 		}
 		/*NOSTRICT*/
+		if (curbp->b_markp == lp1)
+		    curbp->b_markp = lp2;
 		curwp->w_doto = n;
 		return TRUE;
 	}
@@ -348,12 +337,12 @@ int n;
 				/*NOSTRICT*/
 				wp->w_doto += n;
 		}
-		if (wp->w_markp == lp1) {
-			wp->w_markp = lp2;
-			if (wp->w_marko > doto)
-				/*NOSTRICT*/
-				wp->w_marko += n;
-		}
+	}
+	if (curbp->b_markp == lp1) {
+		curbp->b_markp = lp2;
+		if (curbp->b_marko > doto)
+			/*NOSTRICT*/
+			curbp->b_marko += n;
 	}
 	return TRUE;
 }
@@ -444,10 +433,10 @@ lnewline()
 			wp->w_dotp = lp2;
 			wp->w_doto -= doto;
 		}
-		if (wp->w_markp == lp1 && wp->w_marko >= doto) {
-			wp->w_markp = lp2;
-			wp->w_marko -= doto;
-		}
+	}
+	if (curbp->b_markp == lp1 && curbp->b_marko >= doto) {
+		curbp->b_markp = lp2;
+		curbp->b_marko -= doto;
 	}
 	return TRUE;
 }
@@ -609,12 +598,12 @@ ldelete(n, kflag) RSIZE n; {
 				if (wp->w_doto < doto)
 					wp->w_doto = doto;
 			}
-			if (wp->w_markp==dotp && wp->w_marko>=doto) {
-				/*NOSTRICT*/
-				wp->w_marko -= (short)chunk;
-			        if (wp->w_marko < doto)
-					wp->w_marko = doto;
-			}
+		}
+		if (curbp->b_markp==dotp && curbp->b_marko>=doto) {
+			/*NOSTRICT*/
+			curbp->b_marko -= (short)chunk;
+		        if (curbp->b_marko < doto)
+				curbp->b_marko = doto;
 		}
 		n -= chunk;
 	}
@@ -664,10 +653,10 @@ ldelnewline() {
 				wp->w_dotp  = lp1;
 				wp->w_doto += lp1->l_used;
 			}
-			if (wp->w_markp == lp2) {
-				wp->w_markp  = lp1;
-				wp->w_marko += lp1->l_used;
-			}
+		}
+		if (curbp->b_markp == lp2) {
+			curbp->b_markp  = lp1;
+			curbp->b_marko += lp1->l_used;
 		}
 		lp1->l_used += lp2->l_used;
 		lp1->l_fp = lp2->l_fp;
@@ -694,12 +683,12 @@ ldelnewline() {
 			wp->w_dotp  = lp3;
 			wp->w_doto += lp1->l_used;
 		}
-		if (wp->w_markp == lp1)
-			wp->w_markp  = lp3;
-		else if (wp->w_markp == lp2) {
-			wp->w_markp  = lp3;
-			wp->w_marko += lp1->l_used;
-		}
+	}
+	if (curbp->b_markp == lp1)
+		curbp->b_markp  = lp3;
+	else if (curbp->b_markp == lp2) {
+		curbp->b_markp  = lp3;
+		curbp->b_marko += lp1->l_used;
 	}
 	free((char *) lp1);
 	free((char *) lp2);

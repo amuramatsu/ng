@@ -1,10 +1,13 @@
-/* $Id: main.c,v 1.7 2000/12/14 18:12:14 amura Exp $ */
+/* $Id: main.c,v 1.8 2001/05/25 15:36:53 amura Exp $ */
 /*
  *		Mainline
  */
 
 /*
  * $Log: main.c,v $
+ * Revision 1.8  2001/05/25 15:36:53  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.7  2000/12/14 18:12:14  amura
  * use alloca() and more memory secure
  *
@@ -265,8 +268,8 @@ edinit() {
 	wp->w_linep = wp->w_dotp = bp->b_linep;
 	wp->w_lines = 0;
 	wp->w_doto  = 0;
-	wp->w_markp = NULL;
-	wp->w_marko = 0;
+	bp->b_markp = NULL;
+	bp->b_marko = 0;
 	wp->w_toprow = 0;
 	wp->w_ntrows = nrow-2;			/* 2 = mode, echo.	*/
 	wp->w_force = 0;

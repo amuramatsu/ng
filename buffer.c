@@ -1,10 +1,13 @@
-/* $Id: buffer.c,v 1.15 2001/05/08 17:52:43 amura Exp $ */
+/* $Id: buffer.c,v 1.16 2001/05/25 15:36:52 amura Exp $ */
 /*
  *		Buffer handling.
  */
 
 /*
  * $Log: buffer.c,v $
+ * Revision 1.16  2001/05/25 15:36:52  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.15  2001/05/08 17:52:43  amura
  * display buffer size in bufferlist
  *
@@ -23,29 +26,7 @@
  * Revision 1.10  2001/01/05 14:06:59  amura
  * first implementation of Hojo Kanji support
  *
- * Revision 1.9  2000/12/22 19:54:34  amura
- * fix some bug in filename handling
- *
- * Revision 1.8  2000/12/14 18:06:23  amura
- * filename length become flexible
- *
- * Revision 1.7  2000/10/02 16:28:46  amura
- * kill without confirmation a buffer to bind nofile
- *
- * Revision 1.6  2000/07/20 12:45:17  amura
- * support undo with auto-fill mode
- *
- * Revision 1.5  2000/06/27 01:49:41  amura
- * import to CVS
- *
- * Revision 1.4  2000/03/10  21:31:53  amura
- * merge Ng for win32 0.4
- *
- * Revision 1.3  2000/01/11  20:19:01  amura
- * merge NG32 rev 04
- *
- * Revision 1.2  1999/05/21  01:57:23  amura
- * some change for variable tab, expect-file-kcode
+ * -- snip --
  *
  * Revision 1.1  1999/05/19  03:47:59  amura
  * Initial revision
@@ -610,9 +591,7 @@ showbuffer(bp, wp, flags) register BUFFER *bp; register WINDOW *wp; {
 		if (--obp->b_nwnd == 0) {
 			obp->b_dotp  = wp->w_dotp;
 			obp->b_doto  = wp->w_doto;
-			obp->b_markp = wp->w_markp;
-			obp->b_marko = wp->w_marko;
-		}
+}
 	}
 
 	/* Now, attach the new buffer to the window */
@@ -621,8 +600,6 @@ showbuffer(bp, wp, flags) register BUFFER *bp; register WINDOW *wp; {
 	if (bp->b_nwnd++ == 0) {		/* First use.		*/
 		wp->w_dotp  = bp->b_dotp;
 		wp->w_doto  = bp->b_doto;
-		wp->w_markp = bp->b_markp;
-		wp->w_marko = bp->b_marko;
 	} else
 	/* already on screen, steal values from other window */
 #ifdef	BUGFIX	/* ? 90.12.08    Sawayanagi Yosirou */
@@ -634,8 +611,6 @@ showbuffer(bp, wp, flags) register BUFFER *bp; register WINDOW *wp; {
 #endif	/* BUGFIX */
 				wp->w_dotp  = owp->w_dotp;
 				wp->w_doto  = owp->w_doto;
-				wp->w_markp = owp->w_markp;
-				wp->w_marko = owp->w_marko;
 				break;
 			}
 	wp->w_flag |= WFMODE|flags;

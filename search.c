@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.3 2001/01/05 14:07:05 amura Exp $ */
+/* $Id: search.c,v 1.4 2001/05/25 15:37:21 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -12,6 +12,9 @@
 
 /*
  * $Log: search.c,v $
+ * Revision 1.4  2001/05/25 15:37:21  amura
+ * now buffers have only one mark (before windows have one mark)
+ *
  * Revision 1.3  2001/01/05 14:07:05  amura
  * first implementation of Hojo Kanji support
  *
@@ -230,8 +233,8 @@ isearch(dir) {
 		case CCHR('M'):
 #endif /* EMACS_QUERY_KEYS */
 			srch_lastdir = dir;
-			curwp->w_markp = clp;
-			curwp->w_marko = cbo;
+			curwp->w_bufp->b_markp = clp;
+			curwp->w_bufp->b_marko = cbo;
 			ewprintf("Mark set");
 			return (TRUE);
 
@@ -348,8 +351,8 @@ isearch(dir) {
 		default:
 			if (ISCTRL(c)) {
 				ungetkey(c);
-				curwp->w_markp = clp;
-				curwp->w_marko = cbo;
+				curwp->w_bufp->b_markp = clp;
+				curwp->w_bufp->b_marko = cbo;
 				ewprintf("Mark set");
 				curwp->w_flag |= WFMOVE;
 				return	TRUE;
