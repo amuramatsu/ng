@@ -1,4 +1,4 @@
-# $Id: CHANGES.1_5,v 1.5.2.2 2003/03/02 17:40:57 amura Exp $
+# $Id: CHANGES.1_5,v 1.5.2.3 2003/03/02 18:52:12 amura Exp $
 ==============================================================================
     CHANGES.doc for Ng (Nihongo micro Gnu emacs)
                                           村松  篤 (amura@tomato.sakura.ne.jp)
@@ -13,20 +13,25 @@
 
     [全版共通]
 
-	a) 複数の window を開けている時に、window の移動、ファイル名の補間等
+	a) minibuffer に履歴機能を追加しました。
+	   (角川さんの patch を元に改変)
+
+	b) 複数の window を開けている時に、window の移動、ファイル名の補間等
 	   した時に落ちるバグを修正しました。
 	   これは、Ng 1.5alpha3 の d) の変更で入ってしまったバグです。
-
-	b) minibuffer に履歴機能を追加しました。
-	   (角川さんの patch を元に改変)
 
     [UNIX 版]
 
         c) canna で変換中の候補一覧が表示されないバグを修正。
 
+    [AMIGA 版]
+
+	d) コンパイルできなくなっていたのを修正。
+	   これは、Ng 1.5alpha3 の d) の変更で入ってしまったバグです。
+
     [Human68k 版]
 
-	d) autosave 機能の動作確認をしました。
+	e) autosave 機能の動作確認をしました。
 
 	f) libc を使ってコンパイルできるように修正。
 
