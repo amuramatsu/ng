@@ -1,0 +1,44 @@
+# $Id: CHANGES.Ami,v 1.1 2000/06/27 01:48:03 amura Exp $
+Kg 4.2.0 (KANgee) --- Alternative 日本語 Micro Emacs(Ng) with GUI Remote BOX,
+
+                       K     A          N       G    E          E
+                      "Kanji Alterntive Nihongo Gnus Emacs-like Editor."   
+
+
+   Amiga用 日本語エディタ "カン・ジィ"("ケージー"とも呼ぶ) です。
+
+   基本的にNgといっしょですが、以下のような不届きな拡張を施してあります。
+
+     (1) 簡易日本語入力変換(SKG)を組込んでいる。(みんな使わないでしょう^^;)
+     (2) ASL Requesterによるファイル Read/Write/Insert をサポート。
+     (3) Intuition Window によるGUI操作(Remote Box)を組込んでいる。
+
+  ここでは、Kg4.2から組込んだ(3)を説明します。これは、Emacs系のコマンドが
+  なかなか習得できない方のためのお手軽リモコンGUIウィンドゥです。
+
+  MENU で "ASL req."の Remote Box をマウスで選択すると、
+  画面中央ちょい右上に Kg Remote Box というタイトルのウィンドウが
+  現われます。だいたい下の図のような感じのものです。
+
+     +---------------------------------------+
+     |  goto: [______________]   [ SetFont ] |
+     |  [ Top  ][ Up ][ PgUp ] [SplitWindow] |
+     |  [|<][<<][<][>][>>][>|] [NextWindow ] |
+     |  [Bottom][Down][PgDown] [CloseWindow] |
+     |                                       |
+     |  [Redraw][Show][BORDER]        [Done] |
+     +---------------------------------------+
+
+  各ガジェットの説明は不要だと思います。クリックしてみて下されば判ると
+ 思います。RemoteBox からぬけるには[Done]をクリックしてください。
+ [SetFont]に関しては、説明が必要です。[Set Font]をすると、ボーダーが消
+ えてしまうと思います。そうしたら、[BORDER]というボタンを何度かクリック
+ してみてください。そうすれば、ボーダーが表示されるようになります。
+
+何かわかったことが ありましたら、連絡してください。
+
+
+                                          小 西   宏 和 (TGK0186)
+                                         ------------------------
+     Commodore Amiga 4000/040 USER,   JAC02372 @ niftyserve.or.jp
+               "Horse 'N' Deer Co.", JAPAN Amiga Community, TAKAI.

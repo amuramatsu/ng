@@ -1,0 +1,185 @@
+# $Id: MANIFEST,v 1.1 2000/06/27 01:47:57 amura Exp $
+   File Name			  Description
+-----------------------------------------------------------
+ COPYING			GNU EMACS GENERAL PUBLIC LICENSE
+ MANIFEST			このファイル
+ basic.c                   	共通部分ソース
+ buffer.c			〃
+ cmode.c			〃
+ complt.c			〃
+ complt.h			〃
+ config.h			〃
+ def.h				〃
+ dot.ng				Ng 初期設定サンプルファイル
+ dir.c				共通部分ソース
+ dired.c			〃
+ display.c			〃
+ docs				ドキュメントディレクトリ
+ docs/CHANGES.doc		Ng チェンジノート(1.3L以前)
+ docs/CHANGES.new		Ng チェンジノート(1.4beta1以降)
+ docs/CHANGES.Ami		Ng AMIGA 版チェンジノート
+ docs/CHANGES.W32		Ng Win32 版チェンジノート
+ docs/Ng.doc			Ng 機能説明
+ docs/Ng.FAQ			Ng Frequentry Asking Question 集
+ docs/Ng.ref			Ng レファレンスガイド
+ docs/Ng.tut			Ng 入門編
+ docs/README			Mg 2a 説明
+ docs/README.Ami		Ng AMIGA 版説明
+ docs/README.DOS		Ng MS-DOS 版説明
+ docs/README.H68		Ng X68000 Human68k 版説明
+ docs/README.Ng			Ng 1.4 説明
+ docs/README.SKG		Simple Kanji Generator説明
+ docs/README.W32		Ng Win32 版説明
+ docs/fepctrl.doc		(MS-DOS/Human68K) FEP 自動制御ライブラリ説明
+ docs/mg2a.change		Mg チェンジノート
+ docs/mgidx.tex			Mg リファレンスマニュアル Index (TeX テキスト)
+ docs/mgprog.doc		Mg プログラム説明書
+ docs/mg.tex			Mg リファレンスマニュアル (TeX テキスト)
+ docs/supdoc.w32		Ng 1.3 for win32 補足説明
+ echo.c				〃
+ extend.c			〃
+ file.c				〃
+ help.c				〃
+ jump.c				〃
+ kanji.c			〃
+ kanji_.c			〃
+ kanji_.h			〃
+ kbd.c				〃
+ kbd.h				〃
+ key.h				〃
+ keymap.c			〃
+ kinit.h			〃
+ kinsoku.c			〃
+ line.c				〃
+ macro.c			〃
+ macro.h			〃
+ main.c				〃
+ match.c			〃
+ modes.c			〃
+ paragraph.c			〃
+ random.c			〃
+ re_search.c			〃
+ regex_e.c			〃
+ regex_e.h			〃
+ regex_j.c			〃
+ regex_j.h			〃
+ region.c			〃
+ search.c			〃
+ shell.c			〃
+ skg.c				〃
+ sys				OS 依存部ディレクトリ
+ sys/amiga			AMIGA 用ディレクトリ
+ sys/amiga/alloca.asm		alloca() がないコンパイラ用のアセンブラソース
+ sys/amiga/amiga_ma???.c	AMIGA 依存部分ソース
+ sys/amiga/clipboard.c		〃
+ sys/amiga/console.c		〃
+ sys/amiga/dirio.c		〃
+ sys/amiga/fileio.c		〃
+ sys/amiga/iconify.c		〃
+ sys/amiga/iconify.h		〃
+ sys/amiga/KGmenus.c		〃
+ sys/amiga/KGmenus.h		〃
+ sys/amiga/KGremote.c		〃
+ sys/amiga/Makefile		SAS C 用の Makefile
+ sys/amiga/Makefile.dice	DICE + Unix like MAKE 用の Makefile
+ sys/amiga/Makefile.gcc		GeekGadgets 用の Makefile
+ sys/amiga/menustack.c		AMIGA 依存部分ソース
+ sys/amiga/offset.c		〃
+ sys/amiga/sleep.c		〃
+ sys/amiga/spawn.c		〃
+ sys/amiga/sysdef.h		〃
+ sys/amiga/sysinit.c		〃
+ sys/amiga/tty.c		〃
+ sys/amiga/ttydef.h		〃
+ sys/amiga/ttyicon.c		〃
+ sys/amiga/ttyio.c		〃
+ sys/amiga/ttykbd.c		〃
+ sys/amiga/ttymenu.c		〃
+ sys/amiga/ttymouse.c		〃
+ sys/amiga/zz_pointer.c		〃
+ sys/amiga/zz_pointer.h		〃
+ sys/bsd			BSD 用ディレクトリ
+ sys/bsd/Makefile		BSD 用 Makefile
+ sys/bsd/fileio.c		BSD 依存部分ソース
+ sys/bsd/spawn.c		〃
+ sys/bsd/sysdef.h		〃
+ sys/bsd/ttyio.c		〃
+ sys/default			低レベル共通部分ディレクトリ
+ sys/default/README		Mg の termcap に関する注意
+ sys/default/alloca.c		alloca() がない機種用の C ソース
+ sys/default/canna.c		canna 対応部分ソース
+ sys/default/chrdef.h		低レベル共通部分ソース
+ sys/default/cinfo.c		〃
+ sys/default/termcap.c		termcap ライブラリがない機種用の C ソース
+ sys/default/tty.c		低レベル共通部分ソース
+ sys/default/ttydef.h		〃
+ sys/default/ttykbd.c		〃
+ sys/default/varargs.h		ローカルな varargs.h を使う場合のヘッダ
+ sys/human68k			Human68k 用ディレクトリ
+ sys/human68k/GNUmakefile	GNU make 用 Makefile
+ sys/human68k/Makefile		Human68k 用 Makefile
+ sys/human68k/dosutil.c		Human68k 依存部分ソース
+ sys/human68k/fepctrl.c		〃
+ sys/human68k/fepctrl.h 	〃
+ sys/human68k/fileio.c		〃
+ sys/human68k/h68kfncmp.c	〃
+ sys/human68k/hentrap.s		〃
+ sys/human68k/objlist		リンク用オブジェクトリスト
+ sys/human68k/spawn.c		Human68k 依存部分ソース
+ sys/human68k/sysdef.h		〃
+ sys/human68k/sysinit.c		〃
+ sys/human68k/termcap		X68000 用 termcap ファイル
+ sys/human68k/ttydef.h		Human68k 依存部分ソース
+ sys/human68k/ttyio.c		〃
+ sys/msdos                 	MS-DOS 用ディレクトリ
+ sys/msdos/alloca.asm      	alloca() がないコンパイラ用のアセンブラソース
+ sys/msdos/dosutil.c		MS-DOS 依存部分ソース
+ sys/msdos/fepctrl.c 		〃
+ sys/msdos/fepctrl.h		MS-DOS 依存部分ソース
+ sys/msdos/fileio.c		〃
+ sys/msdos/linkfile		MS-C 用リンクオブジェクトリスト
+ sys/msdos/linkfile.tc		Trubo-C 用リンクオブジェクトリスト
+ sys/msdos/makefile		MS-C 6.0 付属 nmake 用 Makefile
+ sys/msdos/makefile.msc		MS-C 5.1 付属 make 用 Makefile
+ sys/msdos/makefile.tc		Trubo-C 用 Makefile
+ sys/msdos/ng.ini		Ng 初期設定サンプルファイル
+ sys/msdos/proto.h		MS-DOS 依存部分ソース
+ sys/msdos/putline.c		〃
+ sys/msdos/rawgetc.asm		〃
+ sys/msdos/spawn.c		〃
+ sys/msdos/sysdef.h		〃
+ sys/msdos/termcap		MS-DOS 用 termcap ファイル
+ sys/msdos/tty.c		MS-DOS 依存部分ソース
+ sys/msdos/ttyio.c		〃
+ sys/sysv			System V 用ディレクトリ
+ sys/sysv/Makefile		System V 用 Makefile
+ sys/sysv/fileio.c		System V 依存部分ソース
+ sys/sysv/spawn.c		〃
+ sys/sysv/sysdef.h		〃
+ sys/sysv/ttyio.c		〃
+ sys/win32			Win32 用ディレクトリ
+ sys/win32/appicon.ico		Win32 用アイコン
+ sys/win32/ce1appicon.ico	Win32 用アイコン（白黒）
+ sys/win32/ce2appicon.ico	Win32 用アイコン
+ sys/win32/fileio.c		Win32 依存部分ソース
+ sys/win32/ngbc.mak		Borland C++ 用メイクファイル
+ sys/win32/ng.dsp		Visual C++ 用プロジェクトファイル
+ sys/win32/ng.dsw		Visual C++ 用ワークファイル
+ sys/win32/ng.ini		Ng 初期設定サンプルファイル
+ sys/win32/ng.rc		Win32 依存部分ソース
+ sys/win32/resource.h		〃
+ sys/win32/spawn.c		〃
+ sys/win32/sysdef.h		〃
+ sys/win32/tools.c		〃
+ sys/win32/tools.h		〃
+ sys/win32/tty.c		〃
+ sys/win32/ttyctrl.cpp		〃
+ sys/win32/ttyctrl.h		〃
+ sys/win32/ttyio.c		〃
+ sys/win32/winmain.c		〃
+ sys/win32/winmain.h		〃
+ undo.c				共通部分ソース
+ undo.h				〃
+ version.c			〃
+ window.c			〃
+ word.c				〃

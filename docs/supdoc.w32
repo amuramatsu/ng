@@ -1,0 +1,121 @@
+# $Id: supdoc.w32,v 1.1 2000/06/27 01:48:04 amura Exp $
+Ng for Win32 各種ドキュメントに対する補足事項 (v0.4.1)
+                                   (original)Tillanosoft      1999.6.7
+
+本ドキュメントは下記の各ドキュメントに対する Ng for Win32 での補足説明
+を記述します。
+
+  Ng.doc          Ng の日本語機能についての説明
+  Ng.ref          Ng のリファレンス・マニュアル
+  mg.tex          MG のマニュアル (TeX ファイル)
+
+1. Ng.doc に対する補足事項
+
+以下では Ng.doc に記述されている内容について補足説明します。
+
+1.1 吉田茂樹さんの電子メールアドレス
+
+Ng.doc には、吉田茂樹さんの電子メールアドレスとして shige@csk.CO.JP と
+記されておりますが吉田さんの現在のアドレスは以下になります。
+
+  shige@iamas.ac.jp
+
+2. mg.tex に対する補足事項
+
+以下では mg.tex に記述されている内容について補足説明します。
+
+2.1 電子メールアドレス
+
+残念ながら MG 開発者宛の連絡先アドレスとされている 
+
+  mg-developers@ucbvax.berkeley.edu 
+
+は、現在では無効なアドレスのようです。
+
+2.2 サポートプラットフォーム
+
+mg.tex の「1.1 Implementations of MG」に、サポートプラットフォームの記
+述がありますが、Ng for Win32 では Windows CE, Windows 95/98/NT4.0 をサ
+ポートしています。
+
+2.3 コマンドラインオプション
+
+mg.tex の「1.3 Notation and Conventions」にコマンドラインオプションの
+記述が若干ありますが、Ng for Win32 ではコマンドラインオプションとして
+以下のオプションが追加されております。
+
+ (1) -f コマンド名
+
+   Ng for Win32 起動直後に「コマンド名」で指定したコマンドを実行します。
+   たとえば -f yank を指定することにより Ng 起動後、カットバッファに存
+   在するテキストを Ng に貼り付けます。
+
+2.4 ファイル関連操作
+
+mg.tex の「8.2 Reading and Writing Files」を中心にファイル関連操作の記
+述がありますが、Ng for Win32 では Tillanosoft により find-file 等のファ
+イル関連操作時の動作がより GNU Emacs ライクになっております。
+
+すなわち、ファイルのパスをミニバッファから入力するような操作においては
+カレントディレクトリをミニバッファに表示するようになっております。これ
+に該当するコマンドとしては以下のものがあります。
+
+   cd, find-file, find-file-other-window, find-file-readonly,
+   write-file, insert-file, dired, dired-other-window,
+   dired-copy-file, dired-rename-file, find-alternate-file
+
+2.5 カレントディレクトリ
+
+mg.tex の「8.4 Changing the Directory」を中心にカレントディレクトリ関
+連操作の記述がありますが、Ng for Win32 では Tillanosoft によりカレント
+ディレクトリの取り扱いがより GNU Emacs ライクになっております。
+
+すなわち、今までは Ng 全体で一つのカレントディレクトリを利用していたの
+に対し、Ng for Win32 ではバッファごとにカレントディレクトリを管理する
+ようにしております。したがって、cd や pwd などのコマンドは有効範囲がバッ
+ファ内のみとなります。
+
+2.6 追加されているコマンド
+
+以下のモードやコマンドが吉田茂樹さんあるいは、Tillanosoft により追加さ
+れております。
+
+    C モード                                    C 言語ファイル編集モード
+    Buffer Menu モード                          バッファ一覧表示モード
+
+    ng-version                                  Ng バージョンの詳細の表示
+    configure                                   Windows 関連の設定
+    copy-buffer-as-kill                         KILLバッファへの保存
+    dired-do-shell-command                      ファイルの実行
+    dired-view-file                             ファイルの参照
+    dired-flag-backup-files                     バックアップに削除マーク
+    find-alternate-file                         別ファイルの読み込み
+    Buffer-menu-this-window     f               バッファの選択
+    Buffer-menu-delete          d               削除マークの付与
+    Buffer-menu-unmark          u               削除マークの取り消し
+    Buffer-menu-execute         x               マークされたバッファを削除
+
+    c-mode					C モード
+    c-indent-command		TAB		インデントの自動調整
+    c-newline-and-indent	LFD		改行とインデントの自動調整
+    electric-c-brace		}, {		括弧の挿入とインデントの自
+						  動調整
+    electric-c-semi		:		':' の挿入とインデントの自
+						  動調整
+    electric-c-terminator	;		';' の挿入とインデントの自
+						  動調整
+    list-c-mode-variables			C モード変数の値の表示
+    set-c-argdecl-indent			c-argdecl-indent の値の設定
+    set-c-auto-newline				c-auto-newline モードの設定
+    set-c-brace-imaginary-offset		c-brace-imaginary-offset の
+						  値の設定
+    set-c-brace-offset				c-brace-offset の値の設定
+    set-c-continued-brace-offset		c-continued-brace-offset の
+						  値の設定
+    set-c-continued-statement-offset		c-continued-statement-offset 
+						  の値の設定
+    set-c-indent-level				c-indent-level の値の設定
+    set-c-label-offset				c-label-offset の値の設定
+    set-c-tab-always-indent			c-tab-always-indent モード
+
+以上

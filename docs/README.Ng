@@ -1,0 +1,163 @@
+# $Id: README.Ng,v 1.1 2000/06/27 01:48:04 amura Exp $
+==============================================================================
+    README.Ng for Ng (Micro Nemacs) 1.3				  1991.01.25
+						 吉田茂樹 (shige@iamas.ac.jp)
+                                    1.4 (修正加筆)                2000.04.14
+                                           村松  篤 (amura@ma3.seikyou.ne.jp)
+==============================================================================
+
+1. Ng
+
+    Ng (Micro Nemacs) は、Mg (MicroGnuEmacs) をベースにした日本語エディタで、
+    Nemacs (日本語 GNU emacs) に似た操作感を実現しています。
+
+    最新の Ng のバージョンは Ng 1.4 で、これは Mg 2a をベースにしていて、
+    Nemacs 3.3.2 に準拠しています。Ng 1.3 からの変更点は CHANGES.new をお読
+    みください。
+
+    Ng 1.4 は フルソースファイルセットで配布されています。従って、Ng 1.4 の
+    配布セットのみで Ng 1.4 をコンパイルし利用できます。
+
+    Ng 1.4 は BSD 系の UNIX と System V 系の UNIX および MS-DOS, SHARP
+    X68000 上の Human68k, Microsoft Win32(Windows CE, Windowns 95/98/NT4.0),
+    Commodore AMIGA 上の AmigaOSで利用できます。それ以外の OS では利用できま
+    せん。
+    MS-DOS で利用する方は README.DOS も、Human68k で利用する方は README.H68、
+    AmigaOS では README.Ami、Win32 では README.W32 もお読み下さい。
+
+    Ng 1.4 の日本語機能および Ng で追加された機能に関する詳しい説明について
+    は Ng.doc をお読み下さい。
+
+    Mg 2a に関しては README をお読み下さい。また、プログラムの内部に関しては
+    mgprog.doc をお読み下さい。
+
+
+2. Make & Install
+
+    ここでは、UNIX 版のコンパイルの方法について説明します。それ以外の OS で
+    のコンパイルの方法については、それぞれの README.* をご覧下さい。
+
+    1) まず、適当なディレクトリで配布された Ng 1.4 のソースをばらします。
+
+    2) BSD 系の UNIX でコンパイルするには、
+	    ln sys/bsd/Makefile .
+       を、System V 系の UNIX でコンパイルするには、
+	    ln sys/sysv/Makefile .
+       を実行します。
+
+    3) Ng で日本語を扱うためには、コンパイル時に KANJI オプションをつけてコ
+       ンパイルしないといけません。また、禁則処理を行うためには同じく 
+       KINSOKU オプションをつけてコンパイルする必要があります。デフォルトで
+       は KANJI および、KINSOKU の両方をつけてコンパイルするようになっていま
+       す。
+
+       KANJI, KINSOKU を含めて、コンパイル時オプションは config.h というファ
+       イルで設定を変更できます。デフォルトでは、Ng 1.4 で利用できる機能を全
+       て利用するような設定になっています。利用したい機能に合わせて適宜変更
+       して下さい。
+
+       漢字コードの初期値は、kinit.h で設定されています。必要に応じて変更
+       して下さい。より詳しくは Ng.doc を御覧下さい。
+
+    4) make します。
+
+    5) できた ng を適当なディレクトリにインストールします。
+
+
+3. Manual & Tutorial
+
+    Ng の簡単な使い方の説明が Ng.tut に書いてあります。これをよく読んで、実
+    際に説明の通りに操作してみれば、おおまかな使い方は覚えられると思います。
+
+    実際に操作してみる場合には、Ng.tut のバックアップを作っておいてから、
+	ng Ng.tut
+    を実行して下さい。あとは、書かれている説明に従っていろいろコマンドを実行
+    してみて下さい。
+
+    Ng.tut に説明してあるたいていのコマンドは、Nemacs や GNU emacs でも同じ
+    ように操作することができます。ただし、Nemacs や GNU emacs はより多くの機
+    能を持っていますので、Nemacs や GNU emacs の様々な機能を使いこなすために
+    は、それぞれのマニュアル等を御覧下さい。
+
+    Ng.ref には、Ng で使用することのできる全コマンドの一覧が示してあります。
+    ただし、コンパイル時オプションの設定によっては、利用できないコマンドもあ
+    りますので注意して下さい。
+
+    日本語機能に関する説明は Ng.doc に書かれていますが、それ以外の機能につい
+    ての説明は、mg.tex に TeX のテキストとして書かれています。これを印刷 (プ
+    リンタ等への出力) するには、文書清書システムの TeX が必要です。
+
+
+4. Copyright
+
+    Ng はフリーソフトウェアであり、自由に利用、改造、修正、再配布できます。
+    ただし、営利を目的とされる場合は、条件とはしませんが、著者まで連絡をし
+    てもらうことを期待します。また Ng を利用する事により不利益や障害が発生
+    しても、著者は一切の責を負いません。
+
+    オリジナルの Mg は、ほとんどの部分には著作権がなく、Public Domain に置
+    かれていると宣言されています。
+
+    正規表現ルーチン (re_search.c, regex.h, regex.c) については Richard M.
+    Stallman が著作権を保有しています。GNU emacs の copyright による制限を
+    避けたい時には、この 3 つのソースを空ファイルと置き換えるように、とい
+    う原著作者の記述が README にあります。GNU emacs の copyright は
+    COPYING をご覧ください。
+
+    太田純氏による MS-DOS 用 FEP 自動制御ライブラリ fepctrl.c, fepcsub.asm
+    は、パブリックドメインに置かれたものとして扱われることを期待する旨がドキュ
+    メントに書かれています。また、MS-DOS 用 termcap ライブラリ (termcap.c)
+    は nearly public domain に置かれていると宣言されています。
+
+
+5. Author
+
+    Dave Conroy		古いバージョンの MicroEmacs, v30
+    Dave Brower		古いバージョンの Mg
+    Bob Larson		現在のバージョンの Mg
+    Mic Kaczmarczik	同上
+    Mike Meyer		同上
+    Sandra Loosemore	同上
+    Michael Portuesi	同上
+    Stephen Walton	同上
+    Marion Hakanson	同上
+    吉田茂樹		日本語化 (Ng)、下記以外の追加機能、ドキュメント、
+			  Ng MS-DOS バージョン、J-3100 バージョン
+    高野和博		Ng PC-9801 バージョン、C モード、FEP 自動制御機能
+    白橋明弘		PC-9801 高速バージョン、Turbo-C バージョン
+    前田薫		ファイル名補完機能、shell-command 機能、
+			  細かなバグ修正
+    太田純		termcap ライブラリ、FEP 自動制御ライブラリ、
+			  Turbo-C 1.5/++ バージョン
+    澤柳喜郎		Ng X68000 バージョン、新しい版の補完機能
+    佐々木茂彦		半角仮名対応。
+    H.Ohkubo		Ng AMIGA バージョン
+    小西宏和		Ng AMIGA バージョンの改良、Simple Kanji Generator
+    伊藤栄一郎		Ng WinCE 英語バージョン
+    今井透		Ng Win32 日本語バージョン、新しい dir 制御
+    遠藤康裕		CANNA による日本語入力機能
+    角川裕次		minibuffer での編集機能
+    黒木玄、別所博之、野村ゆうじ、十代田浩児、
+    小柳洋一、新保さん、岡本さん、若林さん、木原英人他
+			Patch の contribute
+    村松篤		Ng 1.4 をまとめた。
+
+6. Bug report
+
+    バグや要望などは、E-mail で以下のアドレスに送って下さい。
+
+	amura@ma3.seikyou.ne.jp
+
+    なお、現在わかっているバグは以下の通りです。
+
+	a) JIS コード入力時に入力された通常の ESC は、続いて入力される文字に
+	   より、漢字選択/ASCII 選択エスケープシークエンスではない事が確定す
+	   るまで有効にはならない。
+
+	b) fill-prefix 文字列および、それを含めた英単語 1 つの長さが、
+	   fill-column より長い場合、動作が保証されない。(core dump または 
+	   hang up)
+
+	d) 日本語と英単語の間に ' ' がある状態での fill-word, fill-paragraph 
+	   の動作がおかしい時がある。
+

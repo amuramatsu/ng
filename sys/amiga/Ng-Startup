@@ -1,0 +1,32 @@
+; $Id: Ng-Startup,v 1.1 2000/06/27 01:48:00 amura Exp $
+;
+;	Ng startup file by amura
+;
+;       selection Font
+;(amiga-set-font 'Mincho '14 )
+;
+;	for No Backup files
+;(make-backup-files nil)
+;	backspace <-> ^H
+(bsmap-mode)
+;	set-mark-command to ^\
+(global-set-key "\^\\" 'set-mark-command)
+;	c-mode setting
+(set-c-argdecl-indent 0)
+(set-c-continued-statement-offset 8)
+(set-c-indent-level 8)
+(set-c-label-offset -8)
+(set-c-tab-always-indent nil)
+;	set regular-exp. re-search
+(global-set-key "\^[\^s" 're-search-forward)
+(global-set-key "\^[\^r" 're-search-backward)
+;       set kanji mode
+;(set-kanji-expected-code 'shift-jis)
+(set-default-fileio-code 'shift-jis)
+(set-kanji-input-code 'euc)
+(set-kanji-display-code 'euc)
+;       set blink matching
+(global-set-key ")" 'blink-matching-paren-hack)
+(global-set-key "}" 'blink-matching-paren-hack)
+(global-set-key "]" 'blink-matching-paren-hack)
+;

@@ -1,0 +1,794 @@
+# $Id: Ng.doc,v 1.1 2000/06/27 01:48:03 amura Exp $
+==============================================================================
+    Ng.doc for Ng (Micro Nemacs) 1.3				  1991.01.25
+						 吉田茂樹 (shige@iamas.ac.jp)
+                                 1.4 (修正加筆)                   2000.04.20
+                                           村松  篤 (amura@ma3.seikyou.ne.jp)
+==============================================================================
+    1. Ng について
+    2. インストール
+    3. 日本語文字コード
+	3.1. 基本項目
+	3.2. 新規バッファ作成
+	3.3. ファイル入出力
+	3.4. キーボード入力
+	3.5. 画面表示
+    4. Ng の日本語機能
+	4.1. 基本項目
+	4.2. 単語
+	4.3. 行詰め
+	4.4. 上書き
+    5. Ng のその他の機能
+	5.1. バージョン表示
+	5.2. C モード
+    6. カスタマイズ
+    7. Nemacs との比較
+    8. バグ、その他
+------------------------------------------------------------------------------
+
+1. Ng について
+
+    Ng (Micro Nemacs) は、Mg (MicroGnuEmacs) をベースにした日本語エディタで、
+    Nemacs (日本語 GNU emacs) に似た操作感を実現しています。
+
+    プログラム名の "Ng" は、"Nihongo Mg" または "Nemacs like Mg" の略ですが、
+    正式名称は "Micro Nemacs" とします。(Ng は "No Good" の略ではありません 
+    :-)
+
+    最新の Ng のバージョンは Ng 1.4 で、これは Mg 2a をベースにしていて、
+    Nemacs 3.3.2 に準拠しています。
+
+    Ng は Nemacs 同様以下の特徴を持っています。
+
+    1) ASCII 文字列と日本語 (かなや漢字など) 文字列が混じった文書を作成し編
+       集できます。また、JIS 1 バイトカタカナの使用も可能となっています。
+
+    2) ファイル入出力、画面表示、キーボード入力のそれぞれに、独立した日本語
+       コード体系を設定することができます。使用できるコード体系は、JIS、シフ
+       ト JIS、EUC の 3 つです。
+
+    Ng 1.4 は BSD 系の UNIX と System V 系の UNIX および MS-DOS, SHARP
+    X68000 上の Human68k, Microsoft Win32(Windows CE, Windowns 95/98/NT4.0),
+    Commodore AMIGA 上の AmigaOSで利用できます。それ以外の OS では利用できま
+    せん。
+    なお、Ng 1.4 には Mg 2a で配布されたファイルのうち、Ng 1.4 が利用できる
+    OS でのコンパイルに必要なファイルだけが含まれています。Mg 2a で配布され
+    たオリジナルファイルのうち、Ng 1.4 でサポートしていない atari, osk, vms
+    用のファイルが必要な方は、別途入手して下さい。
+
+
+2. インストール
+
+    基本的な make の方法は README.Ng の "Make & Install" を見て下さい。
+
+    Ng で日本語を扱うためには、コンパイル時に KANJI オプションをつけてコンパ
+    イルしないといけません。また、禁則処理を行うためには同じく KINSOKU オプ
+    ションをつけてコンパイルする必要があります。デフォルトでは KANJI および、
+    KINSOKU の両方をつけてコンパイルするようになっています。
+
+    漢字コードの初期値は、kinit.h で設定されています。必要に応じて変更して下
+    さい。デフォルトでは、以下のようになっています。(各内部変数の意味は 3. 
+    以降の説明を参照して下さい)
+    Ng 1.4 から fileio 時のエスケープシーケンスのデフォルトが変更されました。
+    (でも普段使う分には意識する必要はありません)
+
+	変数			    AMIGA/UNIX	MS-DOS/Win32/Human68k
+	-------------------------------------------------------------------
+	default-kanji-fileio-code:	NIL		NIL
+	kanji-expected-code:		T		T
+	kanji-input-code:		EUC		SJIS
+	kanji-display-code:		EUC		SJIS
+	to-kanji-fileio:			'B'
+	to-kanji-display:			'@'
+	to-ascii-fileio:			'B'
+	to-ascii-display:			'J'
+	to-kana-fileio:				'7'
+	to-kana-display:			'7'
+
+
+3. 日本語文字コード
+
+3.1. 基本項目
+
+    Ng 1.4 では、JIS、シフト JIS、EUC の 3 つの日本語コード体系を扱うことが
+    できますが、プログラム (バッファ) 内部では全て EUC で取扱いを行い、必要
+    に応じてコード変換を行っています。
+
+    また、ファイル入出力、画面表示、キーボード入力のそれぞれについて、独立に
+    日本語コードを設定することができます。
+
+    なお、今後日本語コードのことを、漢字コードまたは単にコードと呼ぶこともあ
+    ります。
+
+	バッファ漢字コード:
+		Ng 1.4 がバッファの内部コードとして使用する漢字コード。実際
+		には EUC を使用している。
+	ファイル漢字コード:
+		ディスク上のファイルに格納されている漢字コード。
+	キーボード漢字コード:
+		キーボードからの入力コードとして予期する漢字コード。
+	画面漢字コード:
+		バッファの文字列を端末に表示する際の漢字コード。
+
+    それぞれの漢字コードが現在どのように設定されているかは、モードラインの
+    "-EE" の表示で知ることができます。"-EE" は左から「そのバッファのファイル
+    漢字コード (kanji-fileio-code)」、「キーボード漢字コード
+    (kanji-input-code)」、「画面漢字コード (kanji-display-code)」を表します。
+
+	-----Ng: *scratch*                (-EE:fundamental)--All-----------
+	                                   |||
+	バッファのファイル漢字コード  -----+||
+	キーボード漢字コード  --------------+|
+	画面漢字コード  ---------------------+
+
+    「ファイル漢字コード」は各バッファごとに異なった設定ができますが、「キー
+    ボード漢字コード」と「画面漢字コード」はどのバッファでも同じものになりま
+    す。
+
+    "-EE"が表す記号の意味は以下の通りです。
+
+	-	未定義。漢字コードが特定されていない。(ファイル漢字コードのみ)
+	N	無変換。コード変換を行わないで、入出力を行う。
+	S	シフト JIS コード。
+	J	JIS コード。
+	E	EUC。
+
+    Ng 1.4 が保持している漢字コードに関する値には、上記の 3 つを含めて以下の
+    ものがあります。これらは kanji-fileio-code 以外、いずれも全てのバッファ
+    で共通の値を持っています。
+
+    これらの値を確認するには、list-kanji-codes-briefly (C-x C-k c) コマンド
+    か、list-kanji-codes (C-x C-k C) コマンドを実行して下さい。
+
+    <<内部変数>>
+
+	default-kanji-fileio-code:
+		新しく作られるバッファのファイル漢字コード。
+	kanji-expected-code:
+		ファイル入力時に予期する漢字コード。
+	kanji-fileio-code:
+		ファイル入出力時に使用される漢字コード。ただし、ファイル入力
+		時には kanji-expected-code の方が優先される。
+	kanji-input-code:
+		キーボードからの入力時に予期する漢字コード。
+	kanji-display-code:
+		画面表示時に使用される漢字コード。
+	to-kanji-fileio:
+		ファイル出力時の漢字選択エスケープシークエンスの最後の文字。
+	to-ascii-fileio:
+		ファイル出力時の ASCII 選択エスケープシークエンスの最後の文
+		字。
+	to-kana-fileio:
+		ファイル出力時の 1byte カナ文字選択エスケープシークエンスの
+		方法。
+	to-kanji-display:
+		画面出力時の漢字選択エスケープシークエンスの最後の文字。
+	to-ascii-display:
+		画面出力時の ASCII 選択エスケープシークエンスの最後の文字。
+	to-kana-display:
+		画面出力時の 1byte カナ文字選択エスケープシークエンスの方法。
+
+    <<コマンド>>
+
+	list-kanji-codes-briefly:
+		そのバッファの現在の漢字コードに関する値をミニバッファに表示
+		する。デフォルトでは C-x C-k c にバインドされている。
+	list-kanji-codes:
+		そのバッファの現在の漢字コードに関する値を *Kanji Codes* バッ
+		ファに表示する。デフォルトでは C-x C-k C にバインドされてい
+		る。
+
+
+3.2. 新規バッファ作成
+
+    新しくバッファが作成されるときには、defauto-kanji-fileio-code、
+    kanji-input-code、kanji-display-code の値がそのバッファの値として設定さ
+    れます。
+
+    <<内部変数>>
+
+	default-kanji-fileio-code:
+		新しく作られるバッファのファイル漢字コード。
+	kanji-input-code:
+		キーボードからの入力時に予期する漢字コード。
+	kanji-display-code:
+		画面表示時に使用される漢字コード。
+
+    <<コマンド>>
+
+	set-default-fileio-code:
+		default-kanji-fileio-code を設定する。以下の値を指定できる。
+		nil / NIL			未設定
+		0 / noconv / NOCONV		無変換
+		1 / shift-jis / SHIFT-JIS	シフト JIS コード
+		2 / jis / JIS			JIS コード
+		3 / euc / EUC			EUC
+
+
+3.3. ファイル入出力
+
+    ファイル入出力時の漢字コードの扱いは、入力と出力では少し異なっています。
+    ファイルからの入力時には、kanji-expected-code と kanji-fileio-code を参
+    照して、漢字コードの特定と変換が行われます。また、ファイルへの出力時には
+    kanji-fileio-code のみを参照して漢字コードの変換が行われます。
+
+    ファイル入力時の漢字コードの指定は以下のようになります。
+
+				[kanji-expected-code]
+				NIL	T	No-conv	S-JIS	JIS	EUC
+	[kanji-fileio-code]
+	- (NIL)			File	File	Noconv	S-JIS	JIS	EUC
+	N (No-conversion)	Noconv	File	Noconv	S-JIS	JIS	EUC
+	S (Shift-JIS)		S-JIS	File	Noconv	S-JIS	JIS	EUC
+	J (JIS)			JIS	File	Noconv	S-JIS	JIS	EUC
+	E (EUC)			EUC	File	Noconv	S-JIS	JIS	EUC
+
+	凡例			File	ファイル中のコードを調べて判定する。
+				Noconv	無変換で読み込む。
+				S-JIS	シフト JIS コードとして読み込む。
+				JIS	JIS コードとして読み込む。
+				EUC	EUC として読み込む。
+
+    ファイル入力時に読み込むバッファの kanji-fileio-code が未設定 (-, NIL) 
+    の場合は、ファイルを読み込んだ時に指定された漢字コードを 
+    kanji-fileio-code に設定します。
+
+    JIS コードを指定した場合、漢字選択エスケープシークエンスとして ESC-$-@ 
+    と ESC-$-B の両方を認識します。また、ASCII 選択エスケープシークエンスと
+    して ESC-(-J と ESC-(-B、ESC-(-H のいずれも認識します。
+
+    ファイル入力時の find-file (C-x C-f), find-file-other-window (C-x 4 C-f)
+    コマンドに引き数を与えることで、kanji-expected-code を一時的に変更するこ
+    とができます。kanji-expected-code を恒久的に変更したい場合は、
+    set-kanji-expected-code で変更してください。
+
+	C-u -  C-x (4) C-f	kanji-expected-code を NIL にして読み込む。
+	C-u    C-x (4) C-f	kanji-expected-code を T にして読み込む。
+	C-u 0  C-x (4) C-f	kanji-expected-code を無変換にして読み込む。
+	C-u 1  C-x (4) C-f	kanji-expected-code をシフト JIS にする。
+	C-u 2  C-x (4) C-f	kanji-expected-code を JIS にして読み込む。
+	C-u 3  C-x (4) C-f	kanji-expected-code を EUC にして読み込む。
+
+    ファイル出力時の漢字コードの指定は以下のようになります。
+
+	[kanji-fileio-code]
+	- (NIL)			無変換で書き出す。(実際には EUC になる)
+	N (No-conversion)	無変換で書き出す。(実際には EUC になる)
+	S (Shift-JIS)		シフト JIS コードに変換して書き出す。
+	J (JIS)			JIS コードに変換して書き出す。
+	E (EUC)			EUC に変換して書き出す。(実際には無変換)
+
+    JIS コードを指定した場合、漢字選択エスケープシークエンスの最後の文字は
+    to-kanji-fileio で指定されたものを、ASCII 選択エスケープシークエンスの最
+    後の文字は to-ascii-fileio で指定されたものを使用します。
+
+    <<内部変数>>
+
+	kanji-expected-code:
+		ファイル入力時に予期する漢字コード。
+	kanji-fileio-code:
+		ファイル入出力時に使用される漢字コード。ただし、ファイル入力
+		時には kanji-expected-code の方が優先される。
+	to-kanji-fileio:
+		ファイル出力時の漢字選択エスケープシークエンスの最後の文字。
+	to-ascii-fileio:
+		ファイル出力時の ASCII 選択エスケープシークエンスの最後の文
+		字。
+	to-kana-fileio:
+		ファイル出力時の 1byte カナ文字選択エスケープシークエンスの
+		方法。
+
+    <<コマンド>>
+
+	set-kanji-expected-code:
+		kanji-expected-code を設定する。以下の値を指定できる。
+		nil /NIL			kanji-fileio-code の値
+		t / T				自動判定
+		0 / noconv / NOCONV		無変換
+		1 / shift-jis / SHIFT-JIS	シフト JIS コード
+		2 / jis / JIS			JIS コード
+		3 / euc / EUC			EUC
+	set-default-fileio-code:
+		default-kanji-fileio-code を設定する。以下の値を指定できる。
+		nil /NIL			未設定
+		0 / noconv / NOCONV		無変換
+		1 / shift-jis / SHIFT-JIS	シフト JIS コード
+		2 / jis / JIS			JIS コード
+		3 / euc / EUC			EUC
+	change-default-fileio-code:
+		default-kanji-fileio-code を変更する。このコマンドを実行する
+		たびに以下の順に変更される。デフォルトでは C-x C-k F にバイ
+		ンドされている。
+		NIL -> NOCONV -> SHIFT-JIS -> JIS -> EUC -> NIL
+	set-kanji-fileio-code:
+		kanji-fileio-code を設定する。以下の値を指定できる。
+		nil /NIL			未設定
+		0 / noconv / NOCONV		無変換
+		1 / shift-jis / SHIFT-JIS	シフト JIS コード
+		2 / jis / JIS			JIS コード
+		3 / euc / EUC			EUC
+	change-fileio-code:
+		kanji-fileio-code を変更する。このコマンドを実行するたびに以
+		下の順に変更される。デフォルトでは C-x C-k f にバインドされ
+		ている。
+		NIL -> NOCONV -> SHIFT-JIS -> JIS -> EUC -> NIL
+	set-to-ascii-fileio:
+		to-ascii-fileio を設定する。以下の値を指定できる。
+		66 / B				ESC-(-B
+		74 / J				ESC-(-J
+		72 / H				ESC-(-H
+	set-to-kanji-fileio:
+		to-kanji-fileio を設定する。以下の値を指定できる。
+		64 / @				ESC-$-@
+		66 / B				ESC-$-B
+	set-to-kana-fileio:
+		to-kana-fileio を設定する。以下の値を指定できる。
+		55 / 7				SO / SI
+		56 / 8				through
+		73 / I				ESC-(-I
+
+
+3.4. キーボード入力
+
+    キーボードからの入力時には、kanji-input-code を参照して、漢字コードの変
+    換が行われます。
+
+    キーボードからの入力時の漢字コードの指定は以下のようになります。
+
+	[kanji-input-code]
+	N (No-conversion)	無変換で入力する。
+	S (Shift-JIS)		シフト JIS コードと想定して入力する。
+	J (JIS)			JIS コードと想定して入力する。
+	E (EUC)			EUC と想定して入力する。(実際には無変換)
+
+    JIS コードを指定した場合、漢字選択エスケープシークエンスとして ESC-$-@ 
+    と ESC-$-B の両方を認識します。また、ASCII 選択エスケープシークエンスと
+    して ESC-(-J と ESC-(-B、ESC-(-H のいずれも認識します。1 byte カナ選択エ
+    スケープシーケンスは ESC-(-I のみ使用できます。また、8bit目が立っている
+    コードも全て 1byte カナとして扱われます(いわゆる 8bit JIS)。 SI/SO を使っ
+    た 1byte カナ入力はサポートしないので注意してください。(C-p、C-o と区別
+    できないからです)
+
+    <<内部変数>>
+
+	kanji-input-code:
+		キーボードからの入力時に予期する漢字コード。
+
+    <<コマンド>>
+
+	set-kanji-input-code:
+		kanji-input-code を設定する。以下の値を指定できる。
+		0 / noconv / NOCONV		無変換
+		1 / shift-jis / SHIFT-JIS	シフト JIS コード
+		2 / jis / JIS			JIS コード
+		3 / euc / EUC			EUC
+	change-input-code:
+		kanji-input-code を変更する。このコマンドを実行するたびに以
+		下の順に変更される。デフォルトでは C-x C-k i にバインドされ
+		ている。
+		NOCONV -> SHIFT-JIS -> JIS -> EUC -> NOCONV
+
+
+3.5. 画面表示
+
+    画面への出力時には、kanji-display-code を参照して、漢字コードの変換が行
+    われます。
+
+    画面に表示する時の漢字コードの指定は以下のようになります。
+
+	[kanji-display-code]
+	N (No-conversion)	無変換で表示する。(実際には EUC になる)
+	S (Shift-JIS)		シフト JIS コードに変換して表示する。
+	J (JIS)			JIS コードに変換して表示する。
+	E (EUC)			EUC に変換して表示する。(実際には無変換)
+
+    JIS コードを指定した場合、漢字選択エスケープシークエンスの最後の文字は
+    to-kanji-display で指定されたものを、ASCII 選択エスケープシークエンスの
+    最後の文字は to-ascii-display で指定されたものを使用します。
+
+    <<内部変数>>
+
+	kanji-display-code:
+		画面表示時に使用される漢字コード。
+	to-kanji-display:
+		画面出力時の漢字選択エスケープシークエンスの最後の文字。
+	to-ascii-display:
+		画面出力時の ASCII 選択エスケープシークエンスの最後の文字。
+	to-kana-display:
+		画面出力時の 1byte カナ文字選択エスケープシークエンスの方法。
+
+    <<コマンド>>
+
+	set-kanji-display-code:
+		kanji-display-code を変更する。以下の値を指定できる。
+		0 / noconv / NOCONV		無変換
+		1 / shift-jis / SHIFT-JIS	シフト JIS コード
+		2 / jis / JIS			JIS コード
+		3 / euc / EUC			EUC
+	change-display-code:
+		kanji-display-code を変更する。このコマンドを実行するたびに
+		以下の順に変更される。デフォルトでは C-x C-k d にバインドさ
+		れている。
+		NOCONV -> SHIFT-JIS -> JIS -> EUC -> NOCONV
+	set-to-ascii-display:
+		to-ascii-display を設定する。以下の値を指定できる。
+		66 / B				ESC-(-B
+		74 / J				ESC-(-J
+		72 / H				ESC-(-H
+	set-to-kanji-display:
+		to-kanji-display を設定する。以下の値を指定できる。
+		64 / @				ESC-$-@
+		66 / B				ESC-$-B
+	set-to-kana-display:
+		to-kana-display を設定する。以下の値を指定できる。
+		55 / 7				SO / SI
+		56 / 8				8bit through
+		73 / I				ESC-(-I
+
+
+4. Ng の日本語機能
+
+4.1. 基本項目
+
+    Ng 1.4 では、以下の機能に対して日本語が扱えるようになっています。
+
+	○文字の挿入 (文字、文字列、ファイル、行頭文字列)。
+	○カーソルの移動 (文字、単語、行)。
+	○文字の削除 (文字、単語、リージョン)。
+	○文字の検索 (サーチ、インクリメンタルサーチ)。
+	○文字の置換 (query-replace)。
+	○文字の転換 (transpose-chars)。
+	○行詰め (fill-paragraph)。
+	○自動行詰め (auto-fill-mode)。
+	○上書き (overwrite-mode)。
+	○正規表現による検索、置換。
+
+    また、MS-DOS, Human68k, Win32 では、以下の機能もサポートされています。
+
+	○日本語のファイル名。
+
+    その他の機能については、日本語を扱った場合の動作の保証はしません。
+
+
+4.2. 単語
+
+    Ng 1.4 では、単語を単位としたカーソルの移動、文字列の削除には、以下のよ
+    うな日本語を含めた場合の「単語」を扱うように拡張されています。
+
+	単語:
+		ASCII コードにおける「単語」。
+		同一のカテゴリーに属する日本語文字が連続しているもの。
+		および、これらに 1 文字以上の「ひらがな」が続いているもの。
+
+    また、日本語文字のカテゴリーとしては以下のものがあります。
+
+	記号:
+		漢字コードの区点が 1, 2, 8 区のうち、「ひらがな」「カタカナ」
+		「漢字」に含まれないもの。
+	英数字:
+		漢字コードの区点が 3 区のもの。
+	ひらがな:
+		漢字コードの区点が 4 区のものと、「ヽ」「ヾ」「ゝ」「ゞ」。
+	カタカナ:
+		漢字コードの区点が 5 区のものと、「ー」。
+	ギリシャ文字:
+		漢字コードの区点が 6 区のもの。
+	ロシア文字:
+		漢字コードの区点が 7 区のもの。
+	漢字:
+		漢字コードの区点が 16 区以上のものと、「仝」「々」「〆」「〇」。
+
+
+4.3. 行詰め
+
+    Ng 1.4 では、日本語を含む段落を行詰めする場合、以下のような規則に従いま
+    す。
+
+	1) 基本的に 1 行のカラム数は fill column (set-fill-column で設定され
+	   る値) を越えない。
+	2) 行末で分離され得るのは、空白文字、タブ、通常の日本語文字の前後、
+	   である。
+	3) 英単語および日本語文字の前の文字が、行末禁則文字である場合、その
+	   文字間は行末で分離されない。
+	4) 英単語および日本語文字の後の文字が、行頭禁則文字である場合、その
+	   文字間は行末で分離されない。fill column を越える部分が行頭禁則文
+	   字であるかぎり、その行は fill column を越えて長くなる。
+
+    行頭禁則文字とは、句読点「、」「。」や閉じ括弧「）」などのように行の先頭
+    に来るべきではない文字のことを指します。また、行末禁則文字とは、開き括弧
+    「（」などのように行の最後に来るべきではない文字のことを指します。
+
+    行頭禁則文字のリストは内部変数 kinsoku-bol-chars に、行末禁則文字のリス
+    トは内部変数 kinsoku-eol-chars に保存されています。これらの値を見るには、
+    list-kinsoku-chars コマンドを実行してください。また、禁則文字リストに文
+    字を追加するには add-kinsoku-bol-chars および add-kinsoku-eol-chars コマ
+    ンドを、禁則文字リストから文字を削除するには delete-kinsoku-bol-chars お
+    よび delete-kinsoku-eol-chars コマンドを実行してください。
+
+    <<内部変数>>
+
+	kinsoku-bol-chars:
+		行頭禁則文字リスト。初期値は以下の通り:
+		!'),-.:;?]_}~、。，．・：；？！゛゜´｀¨＾￣＿ヽヾゝゞ〃仝
+		々〆〇ー―‐／＼〜‖｜…‥’”）〕］｝〉》」』】°′″℃ぁぃ
+		ぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ
+	kinsoku-eol-chars:
+		行末禁則文字リスト。初期値は以下の通り:
+		([{‘“（〔［｛〈《「『【°′″℃＠§
+
+    <<コマンド>>
+
+	list-kinsoku-chars:
+		禁則文字リストを *Kinsoku Chars* バッファに表示する。
+	add-kinsoku-bol-chars:
+		行頭禁則文字リストに行頭禁則文字を追加する。同時に複数の文字
+		の追加ができる。
+	add-kinsoku-eol-chars:
+		行末禁則文字リストに行末禁則文字を追加する。同時に複数の文字
+		の追加ができる。
+	delete-kinsoku-bol-chars:
+		行頭禁則文字リストから行頭禁則文字を削除する。同時に複数の文
+		字の削除ができる。
+	delete-kinsoku-eol-chars:
+		行末禁則文字リストから行末禁則文字を削除する。同時に複数の文
+		字の削除ができる。
+
+
+4.4. 上書き
+
+    Ng 1.4 では、上書きモードの場合以下のように動作します。
+
+	文字が入力された事により、日本語文字の 2 バイト目だけが残るような場
+	合には、その 2 バイト目は ASCII コードの空白文字に置き換えられる。
+
+
+5. Ng のその他の機能
+
+5.1. バージョン表示
+
+    Ng 1.3 以降から、Ng のバージョン、コンパイル時オプションを表示させる機能
+    が追加になりました。
+
+    Ng の起動中は以下のコマンドを実行します。
+
+	ng-version	Ng の起動中に Ng のバージョン、コンパイル時オプショ
+			ンを知る事ができる。
+
+    Ng を起動しないで知りたい時は、次のようにコマンドラインから実行します。
+
+	ng -v		Ng を起動しないで、Ng のバージョンを知る事ができる。
+	ng -c		Ng を起動しないで、Ng のバージョン、コンパイル時オプ
+			ションを知る事ができる。
+
+    なお、表示されるコンパイル時オプション名は、実際のコンパイル時オプション
+    名の省略形になっているものがありますので注意して下さい。
+
+
+5.2. C モード
+
+    Ng 1.4 では C モードのサブセットが利用できます。利用できる機能は、
+
+	コマンド		キー	内容
+	----------------------------------------------------------------
+	c-mode				C モード
+	c-indent-command	TAB	インデントの自動調整
+	c-newline-and-indent	C-j	改行とインデントの自動調整
+	electric-c-brace		括弧の挿入とインデントの自動調整
+	electric-c-brace-blink	}, {	括弧の挿入とインデントの自動調整
+					  対応する括弧の表示
+	electric-c-semi		:	':' の挿入とインデントの自動調整
+	electric-c-terminator	;	';' の挿入とインデントの自動調整
+
+    です。
+
+    以下のコマンドでは、ファイル名が ".c"、".C"、".cpp"、".cxx" または ".h"、
+    ".hpp"、".hxx" で終わっている場合、読み込んだバッファが自動的に C モード
+    になります。
+
+	コマンド			キーバインド
+	----------------------------------------------------------------
+	find-alternate-file		C-x C-v
+	find-file			C-x C-f
+	find-file-other-window		C-x 4 C-f, C-x 4 f
+	find-file-read-only		C-x C-r
+	dired-find-file			e, f (dired モード時)
+	dired-find-file-other-window	o (dired モード時)
+
+    この動作は use-c-mode コマンドで有効 / 無効の設定ができます。
+
+    本来の Nemacs (および GNU emacs) では、C モードをカスタマイズするための
+    変数がいくつか用意されていますが、Ng 1.4 には「変数」を扱う機能がありま
+    せんので、その値を設定するために、以下のようなコマンドが用意されています。
+
+	コマンド			内容
+	-------------------------------------------------------------------
+	set-c-argdecl-indent		c-argdecl-indent の値の設定
+	set-c-auto-newline		c-auto-newline モードの設定
+	set-c-brace-imaginary-offset	c-brace-imaginary-offset の値の設定
+	set-c-brace-offset		c-brace-offset の値の設定
+	set-c-continued-brace-offset	c-continued-brace-offset の値の設定
+	set-c-continued-statement-offset c-continued-statement-offset の値の
+					 設定
+	set-c-indent-level		c-indent-level の値の設定
+	set-c-label-offset		c-label-offset の値の設定
+	set-c-tab-always-indent		c-tab-always-indent モードの設定
+	list-c-mode-variables		C モード変数の値の表示
+
+    各変数の意味は、以下の通りですが、値だけは設定できても実際にはまだサポー
+    トされていない変数もあります。各変数の意味をより詳しく知りたい時は 
+    GNU emacs のマニュアルをご覧下さい。
+
+	変数			 意味 (デフォルト)
+	--------------------------------------------------------------------
+	c-argdecl-indent	 関数の引き数宣言の字下げ量 (5)
+	c-auto-newline		 '{', '}', ':', ';' が入力された時に、自動的
+				   に改行するかどうかのフラグ (nil)
+	c-brace-imaginary-offset 他の文の後ろにある '{' がこの行の先頭からど
+				   れだけ右にあると考えるかの量 (0)
+	c-brace-offset		 '{' で始まる行に追加する字下げ量 (0)
+	c-continued-brace-offset 前の文に継続する '{' で始まる行に追加する字
+				   下げ量(0)
+	c-continued-statement-offset
+				 前の文に継続する文に追加する字下げ量 (2)
+	c-indent-level		 ブロック内の文の字下げ量 (2)
+	c-label-offset		 ラベル、case、default 行に追加する字下げ量 
+				   (-2)
+	c-tab-always-indent	 TAB を常にインデント調整トリガーにするかど
+				   うかのフラグ (t)
+
+    これらのうち以下のものはまだサポートされていません。
+
+	c-argdecl-indent
+
+
+5.3. Ng 1.4 で追加された起動オプション
+
+    (1) -f コマンド名
+
+	Ng 1.4 起動直後に「コマンド名」で指定したコマンドを実行します。
+	たとえば -f yank を指定することにより Ng 起動後、カットバッファに存
+	在するテキストを Ng に貼り付けます。
+
+    (2) -I ファイル名
+
+	Ng 1.4 の初期設定ファイルとして「ファイル名」で指定したファイルを使
+        用します。
+
+    (3) +行数
+ 
+	Ng 1.4 起動時にファイル名の前に +行数 を追加すると、そのファイルを開
+	いたあと、指定された行に直ちに移動します。
+
+
+6. カスタマイズ
+
+6.1. 全版共通の設定
+
+    Ng 1.4 では、起動時に自動的にコマンドを実行させることにより、自分の好み
+    の設定にすることができます。起動時に実行させたいコマンドは、ホームディレ
+    クトリの .ng という初期設定ファイルに記述しておきます。(MS-DOS, Human68k 
+    版では ng.ini、 Amiga版では ng-startup という名前になります)
+    この初期設定ファイルはコマンドラインオプション -I で起動時に変更できます。
+
+    初期設定ファイルに記述するコマンドは、Emacs Lisp に似た書式を用います。
+    以下にいくつかの初期設定の例を示しておきます。
+
+	C-h と DEL を入れ換える:
+		(bsmap-mode)
+	または:
+		(global-set-key "\^h" 'delete-backward-char)
+		(global-set-key "\^?" 'help-help)
+	C-\ でもマークの設定ができるようにする:
+		(global-set-key "\^\\" 'set-mark-command)
+	入力漢字コードと画面漢字コードをシフト JIS にする:
+		(set-kanji-input-code 'shift-jis)
+		(set-kanji-display-code 'shift-jis)
+	行頭禁則文字から「ぁぃぅぇぉ」を削る:
+		(delete-kinsoku-bol-chars "ぁぃぅぇぉ")
+	括弧の対応を自動的に表示させる:
+		(global-set-key ")" 'blink-matching-paren-hack)
+		(global-set-key "}" 'blink-matching-paren-hack)
+		(global-set-key "]" 'blink-matching-paren-hack)
+	ESC C-s/C-r で正規表現検索をするようにする:
+		(global-set-key "\^[\^s" 're-search-forward)
+		(global-set-key "\^[\^r" 're-search-backward)
+	C モードの変数を一般的な C 言語のスタイルに合わせる:
+		(set-c-argdecl-indent 0)
+		(set-c-continued-statement-offset 8)
+		(set-c-indent-level 8)
+		(set-c-label-offset -4)
+		(set-c-tab-always-indent nil)
+
+6.2 Windows 関連の設定 (configure)
+
+    Ng 1.4 では、コマンド configure が Tillanosoft氏により追加されています。
+    configure は Windows 関連のさまざまな設定を行うためのコマンドです。
+
+    現状、以下の設定が行えます。
+
+	(1) 利用する ng.ini ファイルの絶対パスの指定
+
+	(2) コントロールキーの英数キーへのマッピング
+	    Ng 1.4 ではコントロールキーを「英数」キーにマッピングする機能が
+	    Tillanosoft氏 により追加されました。
+
+	    configure で設定したコントロールキーの「英数」キーへの割り当ては
+	    Ng 内でのみ有効で、他のアプリケーションでは利用できません。また、
+	    IME の各種操作時も利用できませんので注意してください。
+
+	    Ng 1.4 では、GNU Emacs ユーザの多くが VT100 並びのキーボードに慣
+	    れ親しんでいることを考慮して本機能を提供しておりますが、本来コン
+	    トロールキーのマッピング機能は、モバイルギアシリーズで提供されて
+	    いるように、ハードベンダレベルで提供されるべきものです。各ベンダ
+	    がコントロールキーの入れ替え機能を今後提供されることを期待します。
+
+	(3) ビープ音
+
+	(4) フォントの設定 (95/98/NT 版のみ)
+
+    configure 機能を利用するには M-x configure RET のようにして呼び出して
+    ください。
+
+
+7. Nemacs との比較
+
+    Ng 1.4 は Nemacs 3.3.2 に似た機能を実現していますが、以下の点が Nemacs 
+    とは異なっています。これらには、Mg 2a と GNU emacs との違いから来るもの
+    もあります。
+
+	a) 日本語を扱うモードかどうかのフラグ kanji-flag とそれに関するコマ
+	   ンドがない。Ng 1.4 は常に日本語を扱うモードになっている。
+
+	b) プロセス間通信に関する変数やコマンドがない。
+
+	c) JIS コード入力に関するコマンド kanji-jis-start, kanji-jis-end,
+	   jis-code-input がない。JIS コード入力時の漢字/ASCII 選択エスケー
+	   プシークエンスは、内部に組み込みになっていてバインドの変更はでき
+	   ない。
+
+	d) set-kanji-input-code などの漢字コードを設定するコマンドには、正確
+	   な Emacs Lisp の形式で引き数を与えなくても解釈する。
+
+	e) x-set-kfont コマンドがない。
+
+	f) convert-region-kanji-code, kanji-delete-region コマンドがない。
+
+	g) 日本語文字のカテゴリーの分け方が簡単になっている。
+
+	h) インクリメンタルサーチでは、C-k を入れなくても日本語文字を入力で
+	   きる。
+
+	i) 本来の意味での「変数」がないため、禁則文字リストを保存している変
+	   数の内容確認、リストの変更のために新しいコマンドを追加した。
+
+	j) kinsoku-nobashi-limit がない。
+
+	k) 行揃え機能がない。
+
+	l) ピクチャモード、矩形領域処理、略称展開機能がない。
+
+	m) Emacs Lisp に関する機能と関数がない。
+
+	n) undo に制限がある。({up,down}case-* の undo は不可能。また、undo
+	   可能回数はコンパイル時に設定し、redo は一切できない)
+
+	o) C モードがマイナーモードになっている。使える機能はサブセットであ
+	   る。動作が異なる部分がある。
+
+        p) いわゆる 1byte カナを使用する事ができる。
+
+
+8. バグ、その他
+
+    現在判っている Ng のバグは以下の通りです。
+
+	a) JIS コード入力時に入力された通常の ESC は、続いて入力される文字に
+	   より、漢字選択/ASCII 選択エスケープシークエンスではない事が確定す
+	   るまで有効にはならない。
+
+	b) fill-prefix 文字列および、それを含めた英単語 1 つの長さが、
+	   fill-column より長い場合、動作が保証されない。(core dump または 
+	   hung up)
+
+	c) 日本語と英単語の間に ' ' がある状態での fill-word, fill-paragraph 
+	   の動作がおかしい時がある。

@@ -1,0 +1,61 @@
+# $Id: README.Ami,v 1.1 2000/06/27 01:48:03 amura Exp $
+README.Ami -- この file には、Ng Amiga OS におけるソースの変更点につい
+              て記述してあります。[ここに書かれている情報は昔の物です]
+
+
+1.   Ng 各機種共通ソース
+
+    Ng Amiga OS の各機種共通ソースは、Ng 1.3L のものをほぼそのまま使用
+しています。変更点は、
+
+      1) config.h に AmigaDOS 版に固有のコンパイルオプションを追加
+      2) version.c に AmigaDOS 版の version & option 表示を追加
+      3) def.h の一部に AREXX 対応のための変更を行なった。
+
+です。ただし、3) の変更は現在 AREXX 未対応のため、無効となっています。
+
+
+2.   Ng 低レベル共通ソース
+
+    sys/default にあるソースに関しては、Ng 1.3L そのままです。ただし、
+AmigaDOS 版のソースパッケージには AmigaDOS 版を Make するために必要な
+ものだけが含まれています。
+
+
+3.   Ng 低レベル機種依存ソース
+
+    sys/amiga にある機種依存ソースは、mg2b(FredFish#147) のものをベー
+スに、Ng で機能拡張された ReadOnlyMode とか ShellCommand の起動とか、
+TABによる filename 補完などに必要なものを追加した形になっています。追
+加は主に ttyio.c fileio.c に対して行なわれています。その辺りの説明は省
+くとして、アルゴリズム的(?)に mg2b から大きく変更したのは、次の 2 点で
+す。
+
+      1) ttyio.c 内のルーチンで行なわれていた各 Shared Library の
+         Open,Close を、sysinit.c に移動した。(この方がリーズナブルで
+         ある)
+
+      2) RAWkeyConvert によって行なわれていた Keyboard からの入力を、
+         Console Device からの Read に変更した。(日本語対応のため)
+
+また、一部 AREXX への対応のための変更を加えた箇所がありますが、現在
+AREXX 未対応のため無効です。当初、mg3b(FredFish#352) の AREXX 用ルーチ
+ンを利用すれば簡単に対応可能ではと考えたのですが、mg3b ではkeyboardマ
+クロ機能が強化されていて、AREXX ルーチンはこれと無関係ではなく、マクロ
+関連ルーチンまでの変更となるとかなり大掛かりな改造が必要なため、今回は
+見送ってあります。(もっとも、わたしが Ng のkeyboard マクロ及びAREXX に
+精通してないのが見送ることになった最大の要因ではありますが)さらに、
+file R/W 時の Mouse pointer を sleep pointer に変更するためpublic
+domain なソース、zz_pointer.c を追加しました。
+
+
+4.   使用コンパイラ、コンパイル方法
+
+    現在 Ng 1.4 は GeekGadgets　990501 SNAPSHOT、DICE 3.57 でのコンパ
+イルを確認しております。SAS C、Manx 用の Makefile も付属しますが、これは
+SAS C や Manx でコンパイルできるという保証ではありません。
+    コンパイル方法は sys/amiga から、必要な Makefile をカレントディレ
+クトリのコピーして make(or DMake) ですむと思います。
+
+H.Ohkubo (ASCII-net pcs35757)				Dec.31,1992
+amura(村松 篤)				<修正加筆>	Feb.??,2000

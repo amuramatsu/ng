@@ -1,0 +1,13 @@
+basic.obj cmode.obj dir.obj dired.obj file.obj line.obj match.obj +
+parag.obj random.obj region.obj search.obj shell.obj version.obj +
+window.obj word.obj +
+buffer.obj complt.obj display.obj echo.obj extend.obj help.obj kbd.obj +
+keymap.obj macro.obj main.obj modes.obj regex.obj research.obj +
+kanji.obj kinsoku.obj +
+cinfo.obj spawn.obj ttyio.obj tty.obj ttykbd.obj +
+termcap.obj +
+dosutil.obj fepctrl.obj fepcsub.obj rawgetc.obj putline.obj +
+fileio.obj + skg.obj + jump.obj + undo.obj
+c:\msc\lib\setargv.obj
+ng.exe/E/NOE/NOI/ST:3000/F/PACKCODE
+;

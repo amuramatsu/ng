@@ -1,0 +1,247 @@
+# $Id: DMakefile,v 1.1 2000/06/27 01:48:01 amura Exp $
+# Makefile for MicroEMACS. using DICE
+#
+# $Log: DMakefile,v $
+# Revision 1.1  2000/06/27 01:48:01  amura
+# Initial revision
+#
+# Modified for Ng 1.4 AmigaDOS version by amura Mar.17.2000
+# Modified for Ng 1.3 AmigaDOS version by H.Konishi Sep.4,1993
+# Modified for Ng 1.3 AmigaDOS version by H.Ohkubo Dec.20,1992
+
+SYS = amiga
+S = sys/$(SYS)
+
+# If defined USE_ARP, set LIBS ??.
+LIBS =
+
+# set compiler and compile option
+CC = dcc
+CFLAGS = -I. -I$(S) -Isys/default -DAMIGA -2.0 -mC -mD
+LFLAGS = -2.0 -mC -mD
+
+# Now, compile-time options (PREFS) are defined in config.h.
+# XOBJ is used to denote any extra object files needed for these
+# options.  MENUOBJ and MOUSEOBJ denote the extra object files
+# needed for the menu, mouse and Browser.
+
+MOUSEOBJ   = ttymouse.o
+MENUOBJ    = ttymenu.o menustack.o
+OFFSETOBJ  = offset.o
+ICONIFYOBJ = iconify.o ttyicon.o
+CLIPOBJ    = clipboard.o
+REXXOBJ    =
+#REXXOBJ    = rexx.o
+
+XOBJ  = $(MOUSEOBJ) $(MENUOBJ) $(ICONIFYOBJ) $(OFFSETOBJ) $(CLIPOBJ) $(REXXOBJ)
+
+# Objects which only depend on the "standard" includes
+OBJS	= basic.o dir.o dired.o shell.o version.o window.o \
+	  kinsoku.o jump.o
+
+# Those with unique requirements
+IND	= buffer.o complt.o display.o cmode.o echo.o extend.o file.o \
+	  help.o kbd.o keymap.o line.o macro.o main.o match.o modes.o \
+	  paragraph.o random.o region.o regex.o re_search.o search.o \
+	  skg.o kanji.o undo.o word.o
+
+# System dependent objects
+OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o fileio.o sleep.o \
+	sysinit.o console.o dirio.o
+
+OBJ = $(OBJS) $(IND) $(OOBJS) $(XOBJ) zz_pointer.o
+
+OSRCS = cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c fileio.c sleep.c \
+	sysinit.c malloc.c console.c dirio.c
+SRCS  = basic.c dir.c dired.c file.c line.c match.c paragraph.c \
+	random.c region.c search.c version.c window.c word.c \
+	buffer.c display.c echo.c extend.c help.c kbd.c keymap.c \
+	macro.c main.c modes.c regex.c re_search.c undo.c \
+	cmode.c shell.c kinsoku.c complt.c kanji.c compile.c skg.c jump.c
+
+OINCS = $(S)/ttydef.h $(S)/sysdef.h sys/default/chrdef.h
+INCS = def.h config.h
+REINCS = regex_e.h regex_j.h regex_j.c regex_e.h kanji_.h kanji_.c
+
+#PROG = mg
+PROG = ng
+
+
+#
+# the editor
+# Building in Ram: saves a LOT of time in pass 2 of the linker.
+#
+$(PROG): $(OBJ)
+	$(CC) -o ram:$(PROG) $(LFLAGS) $(OBJ) $(LIBS)
+	copy ram:$(PROG) $(PROG)
+	delete ram:$(PROG)
+
+clean:
+	-delete $(OBJ)
+
+
+basic.o: basic.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+dir.o: dir.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+dired.o: dired.c $(INCS) $(OINCS) kbd.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+jump.o: jump.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+kinsoku.o: kinsoku.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+shell.o: shell.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+version.o: version.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+window.o: window.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+word.o: word.c $(INCS) $(OINCS) undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+buffer.o: buffer.c $(INCS) $(OINCS) kbd.h undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+cmode.o: cmode.c $(INCS) $(OINCS) undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+file.o: file.c $(INCS) $(OINCS) undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+line.o: line.c $(INCS) $(OINCS) undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+paragraph.o: paragraph.c $(INCS) $(OINCS) undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+random.o: random.c $(INCS) $(OINCS) undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+region.o: region.c $(INCS) $(OINCS) undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+undo.o: undo.c $(INCS) $(OINCS) undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+complt.o: complt.c $(INCS) $(OINCS) kbd.h complt.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+display.o: display.c $(INCS) $(OINCS) kbd.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+modes.o: modes.c $(INCS) $(OINCS) kbd.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+echo.o:	echo.c $(INCS) $(OINCS) key.h macro.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+extend.o: extend.c $(INCS) $(OINCS) kbd.h macro.h key.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+help.o:	help.c $(INCS) $(OINCS) kbd.h macro.h key.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+kanji.o: kanji.c $(INCS) $(OINCS) kinit.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+kbd.o: kbd.c $(INCS) $(OINCS) macro.h kbd.h key.h undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+macro.o: macro.c $(INCS) $(OINCS) macro.h key.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+skg.o: skg.c $(INCS) $(OINCS) macro.h key.h undo.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+main.o: main.c $(INCS) $(OINCS) macro.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+search.o: search.c $(INCS) $(OINCS) macro.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+match.o: match.c $(INCS) $(OINCS) key.h
+	$(CC) $(CFLAGS) -c -o %(left) %(right:*.c)
+
+re_search.o: re_search.c $(INCS) $(OINCS) $(REINCS)
+	$(CC) $(CFLAGS) -c -o %(left) re_search.c
+
+regex.o: regex.c $(INCS) $(OINCS) $(REINCS)
+	$(CC) $(CFLAGS) -c -o %(left) regex.c
+
+
+keymap.o: keymap.c $(INCS) $(OINCS) $(S)/amiga_maps.c kbd.h
+	$(CC) $(CFLAGS) -c -o keymap.o keymap.c
+
+fileio.o: $(S)/fileio.c $(INCS) $(OINCS) $(S)/zz_pointer.h kbd.h
+	$(CC) $(CFLAGS) -c -o fileio.o $(S)/fileio.c
+
+spawn.o: $(S)/spawn.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o spawn.o $(S)/spawn.c
+
+sleep.o: $(S)/sleep.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o sleep.o $(S)/sleep.c
+
+sysinit.o: $(S)/sysinit.c $(INCS) $(OINCS) $(S)/zz_pointer.h
+	$(CC) $(CFLAGS) -c -o sysinit.o $(S)/sysinit.c
+
+#malloc.o: $(S)/malloc.c $(INCS) $(OINCS)
+#	$(CC) $(CFLAGS) -c -o malloc.o $(S)/malloc.c
+
+offset.o: $(S)/offset.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o offset.o $(S)/offset.c
+
+iconify.o: $(S)/iconify.c $(INCS) $(OINCS) $(S)/iconify.h
+	$(CC) $(CFLAGS) -c -o iconify.o $(S)/iconify.c
+
+tty.o: $(S)/tty.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o tty.o $(S)/tty.c
+
+ttyicon.o: $(S)/ttyicon.c $(INCS) $(OINCS) $(S)/iconify.h
+	$(CC) $(CFLAGS) -I$(S)/iconify -c -o ttyicon.o $(S)/ttyicon.c
+
+ttyio.o: $(S)/ttyio.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o ttyio.o $(S)/ttyio.c
+
+ttykbd.o: $(S)/ttykbd.c $(INCS) $(OINCS) kbd.h
+	$(CC) $(CFLAGS) -c -o ttykbd.o $(S)/ttykbd.c
+
+ttymenu.o: $(S)/ttymenu.c $(INCS) $(OINCS) macro.h $(S)/KgMenus.c $(S)/KgMenus.h
+	$(CC) $(CFLAGS) -c -o ttymenu.o $(S)/ttymenu.c
+
+ttymouse.o: $(S)/ttymouse.c $(INCS) $(OINCS) macro.h
+	$(CC) $(CFLAGS) -c -o ttymouse.o $(S)/ttymouse.c
+
+menustack.o: $(S)/menustack.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o menustack.o $(S)/menustack.c
+
+console.o: $(S)/console.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o console.o $(S)/console.c
+
+dirio.o: $(S)/dirio.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o dirio.o $(S)/dirio.c
+
+#alloca.o:	sys/default/alloca.c
+#		cc $(CFLAGS) -o $@ sys/default/$*.c
+
+cinfo.o: sys/default/cinfo.c $(INCS) $(OINCS)
+	cp sys/default/cinfo.c .
+	$(CC) $(CFLAGS) -c -o cinfo.o cinfo.c
+	rm cinfo.c
+
+#rexx.o:	$(S)/rexx.c $(INCS) $(OINCS)
+#	$(CC) $(CFLAGS) -c -o rexx.o $(S)/rexx.c
+
+zz_pointer.o: $(S)/zz_pointer.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o zz_pointer.o $(S)/zz_pointer.c
+
+clipboard.o: $(S)/clipboard.c $(INCS) $(OINCS)
+	$(CC) $(CFLAGS) -c -o clipboard.o $(S)/clipboard.c
+

@@ -1,0 +1,7 @@
+basic.o cmode.o dir.o dired.o file.o line.o match.o paragraph.o
+random.o region.o search.o shell.o version.o window.o word.o
+buffer.o complt.o display.o echo.o extend.o help.o kbd.o keymap.o
+macro.o main.o modes.o regex.o re_search.o kanji.o kinsoku.o
+cinfo.o spawn.o ttyio.o tty.o ttykbd.o fileio.o
+sysinit.o dosutil.o h68kfncmp.o termcap.o fepctrl.o hentrap.o
+skg.o jump.o undo.o

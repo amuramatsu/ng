@@ -1,0 +1,170 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef NO_MFC
+#include "afxres.h"
+#else
+#include <winuser.h>
+#include <winresrc.h>
+#ifndef IDC_STATIC
+#define IDC_STATIC	(-1)
+#endif
+#endif /* NO_MFC */
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_APPICON             ICON    DISCARDABLE     "appicon.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_STARTUPFILE DIALOG DISCARDABLE  0, 0, 222, 67
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "パス"
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    EDITTEXT        IDC_STARTUPFILE,6,41,189,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_FILEOPENDLG,199,41,15,14
+    GROUPBOX        "初期化ファイルの指定",IDC_STATIC,2,24,217,43
+    LTEXT           "初期化ファイルとして以下に指定したファイルを用います。指定を変更した場合、Ng for Win32 の次の起動時から新しいファイルが使われます。",
+                    IDC_STATIC,4,4,214,17
+END
+
+IDD_KEY DIALOG DISCARDABLE  0, 0, 222, 67
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "キー"
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    LTEXT           "Ng for Win32 で用いるキーの設定を行います。",IDC_STATIC,
+                    4,4,214,17
+    CONTROL         "英数キーをコントロールキーとして用いる",IDC_CONTROLMAP,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,42,134,10
+    GROUPBOX        "キーの設定",IDC_STATIC,2,24,217,43
+END
+
+IDD_BEEP DIALOG DISCARDABLE  0, 0, 222, 67
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "ビープ"
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    CONTROL         "ビープ音を鳴らす",IDC_BEEP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,15,67,10
+    PUSHBUTTON      "Play",IDC_PLAY,84,14,21,11
+    CONTROL         "規定のサウンドから選択",IDC_MESSAGEBEEP,"Button",
+                    BS_AUTORADIOBUTTON,11,34,86,10
+    COMBOBOX        IDC_MESSAGECOMBO,106,31,96,61,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "任意のwaveファイルを指定",IDC_PLAYSOUND,"Button",
+                    BS_AUTORADIOBUTTON,11,50,94,10
+    EDITTEXT        IDC_SOUNDFILE,106,48,96,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_SOUNDBUTTON,204,48,10,14
+    GROUPBOX        "ビープ音の設定",IDC_STATIC,2,2,217,65
+END
+
+IDD_FONT DIALOG DISCARDABLE  0, 0, 222, 67
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "フォント"
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    CONTROL         "Ng for Win32 のデフォルトフォントを利用する (&D)",
+                    IDC_NOSPECIFY,"Button",BS_AUTORADIOBUTTON,10,14,158,10
+    CONTROL         "下記のフォント/行間を用いる (&S)",IDC_SPECIFY,"Button",
+                    BS_AUTORADIOBUTTON,10,27,111,10
+    LTEXT           "フォント(&F)：",IDC_STATIC,15,46,35,8
+    COMBOBOX        IDC_FONTNAME,51,44,70,64,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_POINT,125,44,28,86,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "行間(&L)：",IDC_STATIC,158,47,26,8
+    EDITTEXT        IDC_LINESPACE,186,44,18,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",IDC_SPIN,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_AUTOBUDDY | UDS_ARROWKEYS,203,44,9,14
+    GROUPBOX        "テキストフォントの設定",IDC_STATIC,2,2,217,65
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONFIGNAME          "Ng for Win32の設定"
+    IDS_OK                  "確認"
+    IDS_ICONASTERISK        "情報"
+    IDS_ICONEXCLAMATION     "警告"
+    IDS_ICONHAND            "エラー"
+    IDS_ICONQUESTION        "問い合わせ"
+END
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,55 @@
+; $Id: dot.ng,v 1.1 2000/06/27 01:47:57 amura Exp $
+;
+;	Ng startup file by H.Ohkubo
+;
+; 矢印キーでカーソル移動できるようにする
+;(global-unset-key "\^[[" 'backward-paragraph)
+;(global-set-key "\^[[A" 'previous-line)
+;(global-set-key "\^[[B" 'next-line)
+;(global-set-key "\^[[C" 'forward-char)
+;(global-set-key "\^[[D" 'backward-char)
+; 矢印キーでカーソル移動できるようにする
+(global-set-key "\^[OA" 'previous-line)
+(global-set-key "\^[OB" 'next-line)
+(global-set-key "\^[OC" 'forward-char)
+(global-set-key "\^[OD" 'backward-char)
+;
+;	for No Backup files
+;(make-backup-files nil)
+;	backspace <-> ^H
+(bsmap-mode)
+;	set-mark-command to ^\
+;(global-set-key "\^\\" 'set-mark-command)
+;	set-fep-toggle to ^\
+;(global-set-key "\^\\" 'fep-toggle)
+;
+;漢字コード自動認識、デフォルトはEUC
+(set-kanji-expected-code nil)
+(set-default-fileio-code 'euc)
+;(set-kanji-fileio-code 'euc)
+;
+;	c-mode setting
+(set-c-argdecl-indent 0)
+(set-c-continued-statement-offset 4)
+(set-c-continued-brace-offset -4)
+(set-c-brace-offset -4)
+(set-c-brace-imaginary-offset 0)
+(set-c-indent-level 4)
+(set-c-label-offset -2)
+(set-c-tab-always-indent t)
+;
+;	set regular-exp. re-search
+(global-set-key "\^[\^s" 're-search-forward)
+(global-set-key "\^[\^r" 're-search-backward)
+;
+;	setting for SKG
+;(set-skg-roman-dictionary "/home/anonymous/etc/SKG-ROMAN")
+;(set-skg-kanji-dictionary "/home/anonymous/etc/SKG-JISYO")
+;
+;	other setting
+(global-set-key "\^[g" 'goto-line)
+(set-fill-column 66)
+(global-set-key ")" 'blink-matching-paren-hack)
+(global-set-key "}" 'blink-matching-paren-hack)
+(global-set-key "]" 'blink-matching-paren-hack)
+

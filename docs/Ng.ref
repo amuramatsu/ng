@@ -1,0 +1,834 @@
+# $Id: Ng.ref,v 1.1 2000/06/27 01:48:04 amura Exp $
+==============================================================================
+    Ng.ref for Ng (Micro Nemacs) 1.3				  1991.01.25
+						 吉田茂樹 (shige@iamas.ac.jp)
+                                 1.4 (修正加筆)                   2000.04.14
+                                           村松  篤 (amura@ma3.seikyou.ne.jp)
+==============================================================================
+    Ng レファレンスガイド
+    --------------------------------------------------------------------------
+     0. 記号の説明
+     1. Ng の起動
+     2. Ng の終了
+     3. ファイル
+     4. ヘルプ
+     5. 移動
+     6. 削除
+     7. 挿入
+     8. 検索
+     9. 置換
+    10. マーク
+    11. ウィンドウ
+    12. バッファ
+    13. 文字変換
+    14. 整形
+    15. コマンド
+    16. キーマップ
+    17. ディレクトリエディタ
+    18. C モード
+    19. Buffer Menu モード
+    20. 漢字
+    21. SKG (Simple Kanji Generator)
+    22. その他
+     A. アルファベット順コマンド一覧
+     B. コンパイル時オプション別コマンド一覧
+    ==========================================================================
+    ここに説明してあるコマンドは、Ng のコンパイル時オプションを全て指定した
+    時のものです。お使いの Ng の設定によっては利用できないものもあります。
+    コンパイル時オプションに依存するコマンドの一覧は、B. をご覧下さい。
+
+==============================================================================
+     0. 記号の説明
+    --------------------------------------------------------------------------
+    C-x		コントロールキーを押しながら、x キーを押す。
+    C-x x	C-x を押した後、x キーを押す。
+    C-x C-y	C-x を押した後、C-y を押す。
+    ESC x	ESC キーを押した後、x キーを押す。M-x と表すこともある。
+    ESC C-x	ESC キーを押した後、C-x を押す。
+    --------------------------------------------------------------------------
+    ESC		エスケープコード (<Esc>/C-[)
+    DEL		DEL コード (<Del>/127)
+    SPC		スペース (' ')
+    RET		リターンコード (<Return>/<Enter>/C-m)
+    LFD		ラインフィードコード (C-j)
+    NUL		ヌルコード (C-@/C-SPC)
+==============================================================================
+     1. Ng の起動
+    --------------------------------------------------------------------------
+    コマンドラインから ng と入力する。引き数にファイルを指定することもできる。
+    -v オプションを付けると Ng のバージョンの表示だけを行う。
+    -c オプションを付けると Ng のバージョンとコンパイル時オプションの表示だけ
+       を行う。
+    -f [func] オプションを付けると Ng 起動後直ちに func を実行する。
+    -I [file] オプションを付けると Ng は初期化ファイルとして file を使う。
+    +数字 をファイル名の前に付けると、ファイルを開いた後、指定された行に移動す
+       る。
+==============================================================================
+     2. Ng の終了
+    --------------------------------------------------------------------------
+    save-buffers-kill-emacs	C-x C-c		バッファ書き出し後終了
+    suspend-emacs		C-z		Ng の一時停止
+==============================================================================
+     3. ファイル
+    --------------------------------------------------------------------------
+    ファイル名を入力する時に C-i (TAB) のファイル名補完機能が使える。
+    --------------------------------------------------------------------------
+    find-file			C-x C-f		ファイルの読み込み
+    find-alternate-file		C-x C-v		別ファイルの読み込み
+    find-file-other-window	C-x 4 C-f,	他ウィンドウへのファイルの
+    				C-x 4 f		  読み込み
+    find-file-read-only		C-x C-r		書き込み禁止モードでのファ
+						  イルの読み込み
+    insert-file			C-x i		ファイル内容の挿入
+    make-backup-files				バックアップ作成モード変更
+    save-buffer			C-x C-s		現在のバッファ内容の書き出し
+    save-some-buffers		C-x s		変更済みバッファの書き出し
+    write-file			C-x C-w		指定ファイルへの書き出し
+    keyboard-quit		C-g		コマンドの中断
+==============================================================================
+     4. ヘルプ
+    --------------------------------------------------------------------------
+    help			C-h		ヘルプ
+    help-help			C-h C-h		ヘルプのヘルプ
+    apropos			C-h a		コマンド一覧の表示
+    describe-bindings		C-h b		キーバインド一覧の表示
+    describe-key-briefly	C-h c		バインドコマンドの確認
+    keyboard-quit		C-g		コマンドの中断
+==============================================================================
+     5. 移動
+    --------------------------------------------------------------------------
+    forward-char		C-f		カーソルの一文字前進
+    backward-char		C-b		カーソルの一文字後退
+    forward-word		ESC f		カーソルの一単語前進
+    backward-word		ESC b		カーソルの一単語後退
+    end-of-line			C-e		行の終わりへの移動
+    beginning-of-line		C-a		行の先頭への移動
+    next-line			C-n		次行への移動
+    previous-line		C-p		前行への移動
+    forward-paragraph		ESC ]		カーソルの一段落前進
+    backward-paragraph		ESC [		カーソルの一段落後退
+    scroll-up			C-v		上方向スクロール
+    scroll-down			ESC v		下方向スクロール
+    scroll-other-window		ESC C-v		他ウィンドウの上スクロール
+    end-of-buffer		ESC >		バッファの終わりへの移動
+    beginning-of-buffer		ESC <		バッファの先頭への移動
+    goto-line					指定行への移動
+    goto-matching-fence				対応する括弧への移動
+    jump-to-error				カーソル行のタグへジャンプ
+    next-line-add-newlines			バッファの最後で next-line し
+						  た時、新しい行を作成する
+==============================================================================
+     6. 削除
+    --------------------------------------------------------------------------
+    delete-char			C-d		一文字削除
+    delete-backward-char	DEL		一文字後退削除
+    kill-word			ESC d		カーソル以降の一単語削除
+    backward-kill-word		ESC DEL		一単語後退削除
+    kill-line			C-k		カーソル以降の一行削除
+    kill-paragraph				一段落削除
+    kill-region			C-w		リージョン内削除
+    copy-region-as-kill		ESC w		KILL バッファへの保存
+    copy-buffer-as-kill				KILL バッファへのバッファの
+						  内容全ての保存
+    delete-horizontal-space	ESC \		空白文字の削除
+    delete-blank-lines		C-x C-o		空白行の削除
+    zap-to-char			ESC z		指定文字の手前まで削除
+==============================================================================
+     7. 挿入
+    --------------------------------------------------------------------------
+    self-insert-command				一文字挿入 (通常の文字挿入)
+    quoted-insert		C-q		非表示文字の挿入
+    insert					文字列挿入
+    open-line			C-o		空白行の挿入
+    yank			C-y		KILL バッファ内容の挿入
+    insert-buffer				バッファ内容の挿入
+    insert-file			C-x i		ファイル内容の挿入
+    insert-with-wrap				行詰め挿入
+    prefix-region				接頭文字列挿入
+    set-prefix-string				接頭文字列の設定
+    overwrite-mode				上書きモードの on/off
+==============================================================================
+     8. 検索
+    --------------------------------------------------------------------------
+    isearch-forward		C-s		先方向への会話型検索
+    isearch-backward		C-r		後方向への会話型検索
+    search-forward		ESC s		次方向文字列検索
+    search-backward		ESC r		後方向文字列検索
+    search-again				再検索
+    re-search-forward				次方向正規表現文字列検索
+    re-search-backward				後方向正規表現文字列検索
+    re-search-again				正規表現文字列再検索
+    set-case-fold-search			大小文字区別検索セット
+    keyboard-quit		C-g		コマンドの中断
+==============================================================================
+     9. 置換
+    --------------------------------------------------------------------------
+    query-replace		ESC %		会話型文字列置換
+    query-replace-regexp			会話型正規表現文字列置換
+				SPC, y, Y	置換実施後次の候補へ
+				DEL, n, N	置換しないで次の候補へ
+				ESC, C-m	置換の終了
+				C-g		置換の中断
+==============================================================================
+    10. マーク
+    --------------------------------------------------------------------------
+    set-mark-command		NUL		マークの設定
+    exchange-point-and-mark	C-x C-x		ポイントとマークの交換
+==============================================================================
+    11. ウィンドウ
+    --------------------------------------------------------------------------
+    recenter			C-l		カーソル行の中央移動
+    redraw-display				画面の再表示
+    split-window-vertically	C-x 2		ウィンドウの分割
+    other-window		C-x o		次ウィンドウへの移動
+    scroll-other-window		ESC C-v		他ウィンドウの上スクロール
+    delete-window		C-x 0		現在のウィンドウの消去
+    delete-other-windows	C-x 1		他のウィンドウの消去
+    enlarge-window		C-x ^		現在のウィンドウの拡大
+    shrink-window				現在のウィンドウの縮小
+==============================================================================
+    12. バッファ
+    --------------------------------------------------------------------------
+    list-buffers		C-x C-b		バッファリストの表示
+    switch-to-buffer		C-x b		対象バッファの変更
+    switch-to-buffer-other-window C-x 4 b	他ウィンドウの対象バッファ変更
+    kill-buffer			C-x k		バッファの削除
+    insert-buffer				バッファ内容の挿入
+    not-modified		ESC ~		内容変更フラグの解除
+    toggle-read-only		C-x C-q		書き込み禁止モードのトグル
+    set-default-mode				デフォルトモードの設定
+    save-buffer			C-x C-s		現在のバッファ内容の書き出し
+    save-some-buffers		C-x s		内容変更済みバッファの書き出し
+    keyboard-quit		C-g		コマンドの中断
+==============================================================================
+    13. 文字変換
+    --------------------------------------------------------------------------
+    downcase-word		ESC l		単語の小文字変換
+    upcase-word			ESC u		単語の大文字変換
+    capitalize-word		ESC c		単語の先頭の大文字変換
+    downcase-region		C-x C-l		リージョン内の小文字変換
+    upcase-region		C-x C-u		リージョン内の大文字変換
+    transpose-chars		C-t		文字転換
+==============================================================================
+    14. 整形
+    --------------------------------------------------------------------------
+    fill-paragraph		ESC q		段落内の行詰め
+    set-fill-column		C-x f		行詰め長さの設定
+    set-fill-prefix		C-x .		行詰め時行頭文字列の設定
+    auto-fill-mode				自動行詰めモードの on/off
+    insert-with-wrap				行詰め挿入
+    newline			RET		改行
+    newline-and-indent		LFD		インデント付き改行
+    auto-indent-mode				自動インデントの on/off
+    just-one-space		ESC SPC		空白を一文字にする
+==============================================================================
+    15. コマンド
+    --------------------------------------------------------------------------
+    execute-extended-command	ESC x		コマンドの実行
+    start-kbd-macro		C-x (		キーボードマクロ定義の開始
+    end-kbd-macro		C-x )		キーボードマクロの定義終了
+    call-last-kbd-macro		C-x e		キーボードマクロの実行
+    eval-expression				入力コマンドの評価
+    eval-current-buffer				バッファ内のコマンドの評価
+    load					コマンドファイルの読み込み
+    keyboard-quit		C-g		コマンドの中断
+==============================================================================
+    16. キーマップ
+    --------------------------------------------------------------------------
+    define-key					キーマップの定義
+    global-set-key				キーバインド設定
+    global-unset-key				キーバインド解除
+    local-set-key				バッファ固有キーバインド設定
+    local-unset-key				バッファ固有キーバインド解除
+    bsmap-mode					C-h と DEL との変換モード
+    meta-key-mode				META キーの入力の on/off
+==============================================================================
+    17. ディレクトリエディタ
+    --------------------------------------------------------------------------
+    ディレクトリ名を入力する時に C-i (TAB) のディレクトリ名補完機能が使える。
+    --------------------------------------------------------------------------
+    dired			C-x d		ディレクトリエディタモード
+    dired-backup-unflag		DEL		上方移動をしながらファイル
+						  削除マークを消す
+    dired-copy-file		c		ファイルのコピー
+    dired-do-deletions		x		ファイル削除の実行
+    dired-do-shell-command                      ファイルの実行
+    dired-find-file		e, f		ファイルの読み込み
+    dired-find-file-other-window o		他ウィンドウへのファイルの
+						  読み込み
+    dired-flag-backup-files     ~               バックアップに削除マーク
+    dired-flag-file-deleted	d, C-d		ファイル削除マークを付ける
+    dired-other-window				他ウィンドウでのディレクト
+						  リエディタモード
+    dired-rename-file		r		ファイルの名前変更
+    dired-unflag		u		ファイル削除マークを消す
+    dired-view-file             v               ファイルの参照
+==============================================================================
+    18. C モード
+    --------------------------------------------------------------------------
+    use-c-mode					ファイル読み込み時、自動的に
+						  C モードに入る事の許可
+    c-mode					C モード
+    c-indent-command		TAB		インデントの自動調整
+    c-indent-region				region内のインデントの自動調整
+    c-newline-and-indent	LFD		改行とインデントの自動調整
+    electric-c-brace				括弧の挿入とインデントの自
+						  動調整
+    electric-c-brace-blink	}, {		括弧の挿入とインデントの自
+						  動調整、対応する括弧の表示
+    electric-c-semi		:		':' の挿入とインデントの自
+						  動調整
+    electric-c-terminator	;		';' の挿入とインデントの自
+						  動調整
+    list-c-mode-variables			C モード変数の値の表示
+    set-c-argdecl-indent			c-argdecl-indent の値の設定
+    set-c-auto-newline				c-auto-newline モードの設定
+    set-c-brace-imaginary-offset		c-brace-imaginary-offset の
+						  値の設定
+    set-c-brace-offset				c-brace-offset の値の設定
+    set-c-continued-brace-offset		c-continued-brace-offset の
+						  値の設定
+    set-c-continued-statement-offset		c-continued-statement-offset 
+						  の値の設定
+    set-c-indent-level				c-indent-level の値の設定
+    set-c-label-offset				c-label-offset の値の設定
+    set-c-tab-always-indent			c-tab-always-indent モード
+						  の設定
+==============================================================================
+    19. Buffer Menu モード
+    --------------------------------------------------------------------------
+    Buffer-menu-this-window	f		バッファの選択
+    Buffer-menu-delete		d		削除マークの付与
+    Buffer-menu-unmark		u		削除マークの取り消し
+    Buffer-menu-execute		x		マークされたバッファを実際に
+						削除
+==============================================================================
+    20. 漢字
+    --------------------------------------------------------------------------
+    list-kanji-codes		C-x C-k C	漢字コード設定の表示
+    list-kanji-codes-briefly	C-x C-k c	漢字コード設定の確認
+    change-default-fileio-code	C-x C-k F	デフォルトファイルコードの変更
+    change-fileio-code		C-x C-k f	ファイル漢字コードの変更
+    change-input-code		C-x C-k i	キーボード入力漢字コードの変更
+    change-display-code		C-x C-k d	画面表示漢字コードの変更
+    set-default-fileio-code			デフォルトファイルコードの設定
+    set-kanji-expected-code			想定ファイル漢字コードの設定
+    set-kanji-fileio-code			ファイル漢字コードの設定
+    set-kanji-display-code			画面表示漢字コードの設定
+    set-kanji-input-code			キーボード入力漢字コードの設定
+    set-to-kanji-fileio				ファイル用漢字選択文字の設定
+    set-to-ascii-fileio				ファイル用 ASCII 選択文字の設定
+    set-to-kanji-display			画面用漢字選択文字の設定
+    set-to-ascii-display			画面用 ASCII 選択文字の設定
+    list-kinsoku-chars				禁則文字リストの表示
+    add-kinsoku-bol-chars			行頭禁則文字リストへの追加
+    add-kinsoku-eol-chars			行末禁則文字リストへの追加
+    delete-kinsoku-bol-chars			行頭禁則文字リストからの削除
+    delete-kinsoku-eol-chars			行末禁則文字リストからの削除
+    set-fep-control				FEP/IME 自動制御モードの設定
+    change-fep-control				FEP/IME 自動制御モードの変更
+    fep-toggle			C-\		FEP/IME のオンオフ
+==============================================================================
+    21. SKG (Simple Kanji Generator)
+    --------------------------------------------------------------------------
+    skg-input			ESC C-k		SKG を使った日本語入力モード
+		(入力モード)
+				SPC		変換(候補選択モードへ)
+				RET		無変換(入力バッファの内容をそ
+						のままテキストにインサート)
+				C-g		SKGの終了。
+						(入力バッファに文字列がある場
+						合、クリアする)
+				C-\		ANK/ひらがな入力モード切替
+		(候補選択モード)
+				RET		現在、表示されている候補をイ
+						ンサート。
+				SPC		次候補
+				C-n		次候補(SPCと同じ)
+				C-p		前候補
+				C-g		入力モードへ戻る。
+    set-skg-roman-dictionary			SKG 用のローマ字-かな変換辞書
+						  ファイルの設定
+    set-skg-kanji-dictionary			SKG 用のかな-漢字変換辞書ファ
+						  イルの設定
+==============================================================================
+    22. その他
+    --------------------------------------------------------------------------
+    blink-matching-paren			対応括弧表示モードの on/off
+    blink-matching-paren-hack			対応する括弧表示の実行
+    configure                                   Windows 関連の設定
+    count-lines-page		C-x l		バッファ内の行数の報告
+    count-lines-region		ESC =		リージョン内の行数の報告
+    count-matches				正規表現に一致する行の数
+    count-non-matches				正規表現に一致しない行の数
+    delete-matching-lines			正規表現に一致する行の削除
+    delete-non-matching-lines			正規表現に一致しない行の削除
+    undo			C-x u		アンドゥ
+    emacs-version				Ng バージョンの表示
+    ng-version					Ng バージョンの詳細の表示
+    pwd						現在のディレクトリ表示
+    cd						ディレクトリの移動
+    what-cursor-position	C-x =		カーソル位置の文字種類表示
+    shell-command		ESC !		シェルコマンドの実行
+    j31-set-cursor				IBMPC のカーソル設定
+    ibmpc-set-cursor				IBMPC のカーソル設定
+    set-tab-width				タブ幅の設定
+    set-default-tab-width			デフォルトのタブ幅の設定
+    set-c-tab-width				C モード時のタブ幅の設定
+    compile					プログラムのコンパイル
+    next-error					コンパイルのエラー行へ Jump
+    amiga-iconify				AMIGA アイコン化
+    amiga-menu					AMIGA メニューの使用可否
+    amiga-mode-background			AMIGA モードラインの背景色
+    amiga-mode-foreground			AMIGA モードラインの文字色
+    amiga-mode-rendition			AMIGA モードラインの描画モード
+    amiga-set-font				AMIGA 使用フォント
+    amiga-text-background			AMIGA テキストの背景色
+    amiga-text-foreground			AMIGA テキストの文字色
+    amiga-text-rendition			AMIGA テキストの描画モード
+    amiga-toggle-boarder			AMIGA ボーダーの ON/OFF
+    amiga-zoom-mode				AMIGA ウインドウズーム
+
+==============================================================================
+     A. アルファベット順コマンド一覧
+==============================================================================
+    add-kinsoku-bol-chars			行頭禁則文字リストへの追加
+    add-kinsoku-eol-chars			行末禁則文字リストへの追加
+    amiga-iconify				AMIGA アイコン化
+    amiga-menu					AMIGA メニューの使用可否
+    amiga-mode-background			AMIGA モードラインの背景色
+    amiga-mode-foreground			AMIGA モードラインの文字色
+    amiga-mode-rendition			AMIGA モードラインの描画モード
+    amiga-set-font				AMIGA 使用フォント
+    amiga-text-background			AMIGA テキストの背景色
+    amiga-text-foreground			AMIGA テキストの文字色
+    amiga-text-rendition			AMIGA テキストの描画モード
+    amiga-toggle-boarder			AMIGA ボーダーの ON/OFF
+    amiga-zoom-mode				AMIGA ウインドウズーム
+    apropos			C-h a		コマンドの表示 (ヘルプ)
+    auto-fill-mode				自動行詰めモードの on/off
+    auto-indent-mode				自動インデントの on/off
+    Buffer-menu-delete		d		削除マークの付与
+    Buffer-menu-execute		x		マークされたバッファを削除
+    Buffer-menu-this-window	f		バッファの選択
+    Buffer-menu-unmark		u		削除マークの取り消し
+    backward-char		C-b		カーソルの一文字後退
+    backward-kill-word		ESC DEL		一単語後退削除
+    backward-paragraph		ESC [		カーソルの一段落後退
+    backward-word		ESC b		カーソルの一単語後退
+    beginning-of-buffer		ESC <		バッファの先頭への移動
+    beginning-of-line		C-a		行の先頭への移動
+    blink-matching-paren			対応括弧表示モードの on/off
+    blink-matching-paren-hack			対応する括弧表示の実行
+    bsmap-mode					C-h と DEL との変換モード
+    c-indent-command		TAB		インデントの自動調整
+    c-indent-region				region内のインデントの自動調整
+    c-mode					C モード
+    c-newline-and-indent	LFD		改行とインデントの自動調整
+    call-last-kbd-macro		C-x e		キーボードマクロの実行
+    capitalize-word		ESC c		単語の先頭の大文字変換
+    cd						ディレクトリの移動
+    change-default-fileio-code	C-x C-k F	デフォルトファイルコードの変更
+    change-display-code		C-x C-k d	画面表示漢字コードの変更
+    change-fep-control				FEP 自動制御モードの変更
+    change-fileio-code		C-x C-k f	ファイル漢字コードの変更
+    change-input-code		C-x C-k i	キーボード入力漢字コードの変更
+    compile					プログラムのコンパイル
+    configure                                   Windows 関連の設定
+    copy-buffer-as-kill                         KILL バッファへのバッファ内容
+						  全ての保存
+    copy-region-as-kill		ESC w		KILL バッファへの保存
+    count-lines-page		C-x l		バッファ内の行数の報告
+    count-lines-region		ESC =		リージョン内の行数の報告
+    count-matches				正規表現に一致する行の数
+    count-non-matches				正規表現に一致しない行の数
+    define-key					キーマップの定義
+    delete-backward-char	DEL		一文字後退削除
+    delete-blank-lines		C-x C-o		空白行の削除
+    delete-char			C-d		一文字削除
+    delete-horizontal-space	ESC \		空白文字の削除
+    delete-kinsoku-bol-chars			行頭禁則文字リストからの削除
+    delete-kinsoku-eol-chars			行末禁則文字リストからの削除
+    delete-matching-lines			正規表現に一致する行の削除
+    delete-non-matching-lines			正規表現に一致しない行の削除
+    delete-other-windows	C-x 1		他のウィンドウの消去
+    delete-window		C-x 0		現在のウィンドウの消去
+    describe-bindings		C-h b		キーバインド一覧の表示
+    describe-key-briefly	C-h c		バインドコマンドの確認
+    dired			C-x d		ディレクトリエディタモード
+    dired-backup-unflag		DEL		上方移動をしながらファイル
+						  削除マークを消す
+    dired-copy-file		c		ファイルのコピー
+    dired-do-deletions		x		ファイル削除の実行
+    dired-do-shell-command                      ファイルの実行
+    dired-find-file		e, f		ファイルの読み込み
+    dired-find-file-other-window o		他ウィンドウへのファイルの
+						  読み込み
+    dired-flag-backup-files     ~               バックアップに削除マーク
+    dired-flag-file-deleted	d, C-d		ファイル削除マークを付ける
+    dired-other-window				他ウィンドウでのディレクト
+						  リエディタモード
+    dired-rename-file		r		ファイルの名前変更
+    dired-unflag		u		ファイル削除マークを消す
+    dired-view-file             v               ファイルの参照
+    downcase-region		C-x C-l		リージョン内の小文字変換
+    downcase-word		ESC l		単語の小文字変換
+    electric-c-brace		}, {		括弧の挿入とインデントの自
+						  動調整
+    electric-c-brace-blink			括弧の挿入とインデントの自
+						  動調整、対応する括弧の表示
+    electric-c-semi		:		':' の挿入とインデントの自
+						  動調整
+    electric-c-terminator	;		';' の挿入とインデントの自
+						  動調整
+    emacs-version				Ng バージョンの表示
+    end-kbd-macro		C-x )		キーボードマクロの定義終了
+    end-of-buffer		ESC >		バッファの終わりへの移動
+    end-of-line			C-e		行の終わりへの移動
+    enlarge-window		C-x ^		現在のウィンドウの拡大
+    eval-current-buffer				バッファ内のコマンドの評価
+    eval-expression				入力コマンドの評価
+    exchange-point-and-mark	C-x C-x		ポイントとマークの交換
+    execute-extended-command	ESC x		コマンドの実行
+    fep-toggle			C-\		FEP/IME のオンオフ
+    fill-paragraph		ESC q		段落内の行詰め
+    find-alternate-file         C-x C-v         別ファイルの読み込み
+    find-file			C-x C-f		ファイルの読み込み
+    find-file-other-window	C-x 4 C-f,	他ウィンドウへのファイルの
+    				C-x 4 f		  読み込み
+    find-file-read-only		C-x C-r		書き込み禁止モードでのファ
+						  イルの読み込み
+    forward-char		C-f		カーソルの一文字前進
+    forward-paragraph		ESC ]		カーソルの一段落前進
+    forward-word		ESC f		カーソルの一単語前進
+    global-set-key				キーバインド設定
+    global-unset-key				キーバインド解除
+    goto-line					指定行への移動
+    goto-matching-fence				対応する括弧への移動
+    help			C-h		ヘルプ
+    help-help			C-h C-h		ヘルプのヘルプ
+    ibmpc-set-cursor				IBMPC のカーソル設定
+    insert					文字列挿入
+    insert-buffer				バッファ内容の挿入
+    insert-file			C-x i		ファイル内容の挿入
+    insert-with-wrap				行詰め挿入
+    isearch-backward		C-r		後方向への会話型検索
+    isearch-forward		C-s		先方向への会話型検索
+    j31-set-cursor				IBMPC のカーソル設定
+    jump-to-error				カーソル行のタグへジャンプ
+    just-one-space		ESC SPC		空白を一文字にする
+    keyboard-quit		C-g		コマンドの中断
+    kill-buffer			C-x k		バッファの削除
+    kill-line			C-k		カーソル以降の一行削除
+    kill-paragraph				一段落削除
+    kill-region			C-w		リージョン内削除
+    kill-word			ESC d		カーソル以降の一単語削除
+    list-buffers		C-x C-b		バッファリストの表示
+    list-c-mode-variables			C モード変数の値の表示
+    list-kanji-codes		C-x C-k C	漢字コード設定の表示
+    list-kanji-codes-briefly	C-x C-k c	漢字コード設定の確認
+    list-kinsoku-chars				禁則文字リストの表示
+    load					コマンドファイルの読み込み
+    local-set-key				バッファ固有キーバインド設定
+    local-unset-key				バッファ固有キーバインド解除
+    make-backup-files				バックアップ作成モード変更
+    meta-key-mode				META キーの入力の on/off
+    newline			RET		改行
+    newline-and-indent		LFD		インデント付き改行
+    next-error					コンパイルのエラー行へ Jump
+    next-line			C-n		次行への移動
+    next-line-add-newlines			バッファの最後で next-line し
+						  た時、新しい行を作成する
+    ng-version					Ng バージョンの詳細の表示
+    not-modified		ESC ~		内容変更フラグの解除
+    open-line			C-o		空白行の挿入
+    other-window		C-x o		次ウィンドウへの移動
+    overwrite-mode				上書きモードの on/off
+    prefix-region				接頭文字挿入
+    previous-line		C-p		前行への移動
+    pwd						現在のディレクトリ表示
+    query-replace		ESC %		会話型文字列置換
+    query-replace-regexp			会話型正規表現文字列置換
+    quoted-insert		C-q		非表示文字の挿入
+    re-search-again				正規表現文字列再検索
+    re-search-backward				後方向正規表現文字列検索
+    re-search-forward				次方向正規表現文字列検索
+    recenter			C-l		カーソル行の中央移動
+    redraw-display				画面の再表示
+    save-buffer			C-x C-s		現在のバッファ内容の書き出し
+    save-buffers-kill-emacs	C-x C-c		バッファ書き出し後終了
+    save-some-buffers		C-x s		内容変更済みバッファの書き出し
+    scroll-down			ESC v		下方向スクロール
+    scroll-other-window		ESC C-v		他ウィンドウの上スクロール
+    scroll-up			C-v		上方向スクロール
+    search-again				再検索
+    search-backward		ESC r		後方向文字列検索
+    search-forward		ESC s		次方向文字列検索
+    set-c-argdecl-indent			c-argdecl-indent の値の設定
+    set-c-auto-newline				c-auto-newline モードの設定
+    set-c-brace-imaginary-offset		c-brace-imaginary-offset の
+						  値の設定
+    set-c-brace-offset				c-brace-offset の値の設定
+    set-c-continued-brace-offset		c-continued-brace-offset の
+						  値の設定
+    set-c-continued-statement-offset		c-continued-statement-offset 
+						  の値の設定
+    set-c-indent-level				c-indent-level の値の設定
+    set-c-label-offset				c-label-offset の値の設定
+    set-c-tab-always-indent			c-tab-always-indent モード
+    set-c-tab-width				C モード時のタブ幅の設定
+    set-case-fold-search			大小文字区別検索セット
+    set-default-fileio-code			デフォルトファイルコードの設定
+    set-default-mode				デフォルトモードの設定
+    set-default-tab-width			デフォルトのタブ幅の設定
+    set-fep-control				FEP 自動制御モードの設定
+    set-fill-column		C-x f		行詰め長さの設定
+    set-fill-prefix		C-x .		行詰め時行頭文字列の設定
+    set-kanji-display-code			画面表示漢字コードの設定
+    set-kanji-expected-code			想定ファイル漢字コードの設定
+    set-kanji-fileio-code			ファイル漢字コードの設定
+    set-kanji-input-code			キーボード入力漢字コードの設定
+    set-mark-command		NUL		マークの設定
+    set-prefix-string				接頭文字列の設定
+    set-skg-kanji-dictionary			SKG 用のかな-漢字変換辞書ファ
+						  イルの設定
+    set-skg-roman-dictionary			SKG 用のローマ字-かな変換辞書
+						  ファイルの設定
+    set-tab-width				タブ幅の設定
+    set-to-ascii-display			画面用 ASCII 選択文字の設定
+    set-to-ascii-fileio				ファイル用 ASCII 選択文字の設定
+    set-to-kanji-display			画面用漢字選択文字の設定
+    set-to-kanji-fileio				ファイル用漢字選択文字の設定
+    shell-command		ESC !		シェルコマンドの実行
+    shrink-window				現在のウィンドウの縮小
+    skg-input			ESC C-k		SKG を使った日本語入力モード
+    split-window-vertically	C-x 2		ウィンドウの分割
+    start-kbd-macro		C-x (		キーボードマクロ定義の開始
+    suspend-emacs		C-z		Ng の一時停止
+    switch-to-buffer		C-x b		対象バッファの変更
+    switch-to-buffer-other-window C-x 4 b	他ウィンドウの対象バッファ変更
+    toggle-read-only		C-x C-q		書き込み禁止モードのトグル
+    transpose-chars		C-t		文字転換
+    undo			C-x u		アンドゥ
+    upcase-region		C-x C-u		リージョン内の大文字変換
+    upcase-word			ESC u		単語の大文字変換
+    use-c-mode					ファイル読み込み時、自動的に
+						  C モードに入る事の許可
+    what-cursor-position	C-x =		カーソル位置の文字種類表示
+    write-file			C-x C-w		指定ファイルへの書き出し
+    yank			C-y		KILL バッファ内容の挿入
+    zap-to-char			ESC z		指定文字の手前まで削除
+
+==============================================================================
+     B. コンパイル時オプション別コマンド一覧
+==============================================================================
+    以下に示してあるのは、各コンパイル時オプションの設定に依存するコマンド
+    です。NO_XXXX オプションに依存するコマンドは define されていない時、そ
+    の他のオプションに依存するコマンドは define されている時にだけ有効にな
+    ります。
+    ==========================================================================
+    a. NO_BACKUP
+    --------------------------------------------------------------------------
+    make-backup-files				バックアップ作成モード変更
+    ==========================================================================
+    b. C_MODE
+    --------------------------------------------------------------------------
+    use-c-mode					ファイル読み込み時、自動的に
+						  C モードに入る事の許可
+    c-indent-command		TAB		インデントの自動調整
+    c-indent-region				region内のインデントの自動調整
+    c-mode					C モード
+    c-newline-and-indent	LFD		改行とインデントの自動調整
+    electric-c-brace				括弧の挿入とインデントの自
+						  動調整
+    electric-c-brace-blink	}, {		括弧の挿入とインデントの自
+						  動調整、対応する括弧の表示
+    electric-c-semi		:		':' の挿入とインデントの自
+						  動調整
+    electric-c-terminator	;		';' の挿入とインデントの自
+						  動調整
+    list-c-mode-variables			C モード変数の値の表示
+    set-c-argdecl-indent			c-argdecl-indent の値の設定
+    set-c-auto-newline				c-auto-newline モードの設定
+    set-c-brace-imaginary-offset		c-brace-imaginary-offset の
+						  値の設定
+    set-c-brace-offset				c-brace-offset の値の設定
+    set-c-continued-brace-offset		c-continued-brace-offset の
+						  値の設定
+    set-c-continued-statement-offset		c-continued-statement-offset 
+						  の値の設定
+    set-c-indent-level				c-indent-level の値の設定
+    set-c-label-offset				c-label-offset の値の設定
+    set-c-tab-always-indent			c-tab-always-indent モード
+						  の設定
+    ==========================================================================
+    c. NO_DIR
+    --------------------------------------------------------------------------
+    cd						ディレクトリの移動
+    pwd						現在のディレクトリ表示
+    ==========================================================================
+    d. NO_DIRED
+    --------------------------------------------------------------------------
+    dired			C-x d		ディレクトリエディタモード
+    dired-backup-unflag		DEL		上方移動をしながらファイル
+						  削除マークを消す
+    dired-copy-file		c		ファイルのコピー
+    dired-do-shell-command                      ファイルの実行
+    dired-do-deletions		x		ファイル削除の実行
+    dired-find-file		e, f		ファイルの読み込み
+    dired-find-file-other-window o		他ウィンドウへのファイルの
+						  読み込み
+    dired-flag-backup-files     ~               バックアップに削除マーク
+    dired-flag-file-deleted	d, C-d		ファイル削除マークを付ける
+    dired-other-window				他ウィンドウでのディレクト
+						  リエディタモード
+    dired-rename-file		r		ファイルの名前変更
+    dired-unflag		u		ファイル削除マークを消す
+    dired-view-file             v               ファイルの参照
+    ==========================================================================
+    e. FILLPREFIX
+    --------------------------------------------------------------------------
+    set-fill-prefix		C-x .		行詰め時行頭文字列の設定
+    ==========================================================================
+    f. NO_HELP
+    --------------------------------------------------------------------------
+    apropos			C-h a		コマンド一覧の表示
+    describe-bindings		C-h b		キーバインド一覧の表示
+    describe-key-briefly	C-h c		バインドコマンドの確認
+    help			C-h		ヘルプ
+    help-help			C-h C-h		ヘルプのヘルプ
+    ==========================================================================
+    g. KANJI
+    --------------------------------------------------------------------------
+    change-default-fileio-code	C-x C-k F	デフォルトファイルコードの変更
+    change-display-code		C-x C-k d	画面表示漢字コードの変更
+    change-fileio-code		C-x C-k f	ファイル漢字コードの変更
+    change-input-code		C-x C-k i	キーボード入力漢字コードの変更
+    list-kanji-codes		C-x C-k C	漢字コード設定の表示
+    list-kanji-codes-briefly	C-x C-k c	漢字コード設定の確認
+    set-default-fileio-code			デフォルトファイルコードの設定
+    set-kanji-display-code			画面表示漢字コードの設定
+    set-kanji-expected-code			想定ファイル漢字コードの設定
+    set-kanji-fileio-code			ファイル漢字コードの設定
+    set-kanji-input-code			キーボード入力漢字コードの設定
+    set-to-ascii-display			画面用 ASCII 選択文字の設定
+    set-to-ascii-fileio				ファイル用 ASCII 選択文字の設定
+    set-to-kanji-display			画面用漢字選択文字の設定
+    set-to-kanji-fileio				ファイル用漢字選択文字の設定
+    fep-toggle			C-\		FEP/IME のオンオフ
+    ==========================================================================
+    h. KINSOKU
+    --------------------------------------------------------------------------
+    add-kinsoku-bol-chars			行頭禁則文字リストへの追加
+    add-kinsoku-eol-chars			行末禁則文字リストへの追加
+    delete-kinsoku-bol-chars			行頭禁則文字リストからの削除
+    delete-kinsoku-eol-chars			行末禁則文字リストからの削除
+    list-kinsoku-chars				禁則文字リストの表示
+    ==========================================================================
+    i. NO_MACRO
+    --------------------------------------------------------------------------
+    call-last-kbd-macro		C-x e		キーボードマクロの実行
+    end-kbd-macro		C-x )		キーボードマクロの定義終了
+    start-kbd-macro		C-x (		キーボードマクロ定義の開始
+    ==========================================================================
+    j. DO_METAKEY
+    --------------------------------------------------------------------------
+    meta-key-mode				META キーの入力の on/off
+    ==========================================================================
+    k. PREFIXREGION
+    --------------------------------------------------------------------------
+    prefix-region				接頭文字列挿入
+    set-prefix-string				接頭文字列の設定
+    ==========================================================================
+    l. READONLY
+    --------------------------------------------------------------------------
+    find-file-read-only		C-x C-r		書き込み禁止モードでのファ
+						  イルの読み込み
+    toggle-read-only		C-x C-q		書き込み禁止モードのトグル
+    ==========================================================================
+    m. REGEX
+    --------------------------------------------------------------------------
+    count-matches				正規表現に一致する行の数
+    count-non-matches				正規表現に一致しない行の数
+    delete-matching-lines			正規表現に一致する行の削除
+    delete-non-matching-lines			正規表現に一致しない行の削除
+    query-replace-regexp			会話型正規表現文字列置換
+    re-search-again				正規表現文字列再検索
+    re-search-backward				後方向正規表現文字列検索
+    re-search-forward				次方向正規表現文字列検索
+    set-case-fold-search			大小文字区別検索セット
+    ==========================================================================
+    n. NO_SHELL
+    --------------------------------------------------------------------------
+    shell-command		ESC !		シェルコマンドの実行
+    ==========================================================================
+    o. NO_STARTUP
+    --------------------------------------------------------------------------
+    eval-expression				入力コマンドの評価
+    eval-current-buffer				バッファ内のコマンドの評価
+    load					コマンドファイルの読み込み
+    ==========================================================================
+    p. IBMPC
+    --------------------------------------------------------------------------
+    ibmpc-set-cursor				IBMPC のカーソル設定
+    j31-set-cursor				IBMPC のカーソル設定
+    ==========================================================================
+    q. BUFFER_MODE
+    --------------------------------------------------------------------------
+    Buffer Menu モード
+    Buffer-menu-this-window	f		バッファの選択
+    Buffer-menu-delete		d		削除マークの付与
+    Buffer-menu-unmark		u		削除マークの取り消し
+    Buffer-menu-execute 	x		マークされたバッファを削除
+    ==========================================================================
+    r. VARIABLE_TAB
+    --------------------------------------------------------------------------
+    set-tab-width				タブ幅の設定
+    set-default-tab-width			デフォルトのタブ幅の設定
+    set-c-tab-width				C モード時のタブ幅の設定
+    ==========================================================================
+    s. AMIGA (さらに細かいコンパイルオプションによる設定が可能)
+    --------------------------------------------------------------------------
+    amiga-iconify				AMIGA アイコン化
+    amiga-menu					AMIGA メニューの使用可否
+    amiga-mode-background			AMIGA モードラインの背景色
+    amiga-mode-foreground			AMIGA モードラインの文字色
+    amiga-mode-rendition			AMIGA モードラインの描画モード
+    amiga-set-font				AMIGA 使用フォント
+    amiga-text-background			AMIGA テキストの背景色
+    amiga-text-foreground			AMIGA テキストの文字色
+    amiga-text-rendition			AMIGA テキストの描画モード
+    amiga-toggle-boarder			AMIGA ボーダーの ON/OFF
+    amiga-zoom-mode				AMIGA ウインドウズーム
+    ==========================================================================
+    t. INCLUDE_SKG
+    --------------------------------------------------------------------------
+    skg-input			ESC C-k		SKG を使った日本語入力モード
+    set-skg-roman-dictionary			SKG 用のローマ字-かな変換辞書
+						  ファイルの設定
+    set-skg-kanji-dictionary			SKG 用のかな-漢字変換辞書ファ
+						  イルの設定
+    ==========================================================================
+    u. GOMATCH
+    --------------------------------------------------------------------------
+    goto-matching-fence				対応する括弧への移動
+    ==========================================================================
+    v. ZAPTOCHAR or ZAPTOC_A
+    --------------------------------------------------------------------------
+    zap-to-char			ESC z		指定文字の手前まで削除
+    ==========================================================================
+    w. JUMPERR
+    --------------------------------------------------------------------------
+    jump-to-error				カーソル行のタグへジャンプ
+    compile					プログラムのコンパイル
+    next-error					コンパイルのエラー行へ Jump
+    ==========================================================================
+    x. NEXTLINE
+    --------------------------------------------------------------------------
+    next-line-add-newlines			バッファの最後で next-line し
+						  た時、新しい行を作成する
+    ==========================================================================
+    x. UNDO
+    --------------------------------------------------------------------------
+    undo			C-x u		アンドゥ
+==============================================================================

@@ -1,0 +1,188 @@
+# $Id: makefile.tc,v 1.1 2000/06/27 01:47:58 amura Exp $
+# Makefile for Ng at MS-DOS with Turbo C 1.5 / 2.0 / ++
+#
+# $Log: makefile.tc,v $
+# Revision 1.1  2000/06/27 01:47:58  amura
+# Initial revision
+#
+
+# MACHINE define the MS-DOS machine type.
+#	-DJ3100 and -DPC9801 or none are available.
+#MACHINE	=
+#MACHINE	= -DIBMPC
+MACHINE	= -DPC9801
+
+# CDEFS gets defines, and gets passed to lint. CFLAGS gets flags, and doesn't
+# get passed to lint.
+#
+# Now, compile time options are defined in a "config.h".
+#
+CDEFS	= -DMSDOS $(MACHINE) -DTCCONIO -DSUPPORT_ANSI
+CFLAGS	= -c -O $(CDEFS) -ml -d -w-nod -w-use -w-pro -w-rvi -w-par
+
+TCPATH  = a:\program\tc
+CC	= $(TCPATH)\tcc
+#AS	= optasm
+#AS	= masm /Mx
+AS	= tasm /mx /I$(TCPATH)\lib
+
+# Objects which only depend on the "standard" includes
+OBJS	= basic.obj dir.obj dired.obj shell.obj version.obj window.obj \
+	  kinsoku.obj jump.obj
+
+# Those with unique requirements
+IND	= buffer.obj complt.obj display.obj cmode.obj echo.obj extend.obj \
+	  file.obj help.obj kbd.obj keymap.obj line.obj macro.obj main.obj \
+	  modes.obj match.obj parag.obj random.obj region.obj regex.obj \
+	  research.obj search.obj skg.obj kanji.obj undo.obj word.obj
+
+# System dependent objects
+OOBJS = cinfo.obj spawn.obj tty.obj ttykbd.obj
+
+# termlib objects
+TOBJS = termcap.obj
+
+# MS-DOS additional objects
+DOBJS = dosutil.obj fepctrl.obj rawgetc.obj putline.obj
+
+OBJ = $(OBJS) $(IND) $(OOBJS) $(TOBJS) $(DOBJS) fileio.obj ttyio.obj alloca.obj
+
+OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c
+TSRCS	= termcap.c
+DSRCS	= dosutil.c fepctrl.c rawgetc.c putline.c alloca.c
+SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c parag.c \
+	  random.c region.c search.c version.c window.c word.c \
+	  buffer.c display.c echo.c extend.c help.c kbd.c keymap.c \
+	  macro.c main.c modes.c regex.c research.c kanji.c kinsoku.c \
+	  skg.c jump.c undo.c
+
+OINCS =	ttydef.h sysdef.h chrdef.h
+INCS =	config.h def.h
+REINCS = regex_e.h regex_j.h regex_j.c regex_e.h kanji_.h kanji_.c
+
+.c.obj:
+	$(CC) $(CFLAGS) $*.c
+
+ng.exe:	$(OBJ)
+	tlink $(TCPATH)\lib\c0l.obj @linkfile.tc,ng.exe,nul,$(TCPATH)\lib\cl.lib
+
+# strip mg once you're satisfied it'll run -- makes it much smaller
+#strip:
+#	strip mg
+
+$(OBJS):	$(INCS) $(OINCS)
+
+buffer.obj:	$(INCS) $(OINCS) kbd.h undo.h
+
+cmode.obj:	$(INCS) $(OINCS) undo.h
+
+file.obj:	$(INCS) $(OINCS) undo.h
+
+line.obj:	$(INCS) $(OINCS) undo.h
+
+parag.obj:	$(INCS) $(OINCS) undo.h
+
+random.obj:	$(INCS) $(OINCS) undo.h
+
+region.obj:	$(INCS) $(OINCS) undo.h
+
+undo.obj:	$(INCS) $(OINCS) undo.h
+
+word.obj:	$(INCS) $(OINCS) undo.h
+
+complt.obj:	$(INCS) $(OINCS) kbd.h complt.h
+
+display.obj:	$(INCS) $(OINCS) kbd.h
+
+keymap.obj:	$(INCS) $(OINCS) kbd.h
+
+modes.obj:	$(INCS) $(OINCS) kbd.h
+
+fileio.obj:	$(INCS) $(OINCS) kbd.h
+
+echo.obj:	$(INCS) $(OINCS) key.h varargs.h
+
+extend.obj:	$(INCS) $(OINCS) kbd.h key.h macro.h
+
+help.obj:	$(INCS) $(OINCS) kbd.h key.h macro.h
+
+kanji.obj:	$(INCS) $(OINCS) kinit.h
+
+kbd.obj:	$(INCS) $(OINCS) macro.h kbd.h key.h undo.h
+
+macro.obj:	$(INCS) $(OINCS) macro.h key.h
+
+skg.obj:	$(INCS) $(OINCS) macro.h key.h undo.h
+
+main.obj:	$(INCS) $(OINCS) macro.h
+
+search.obj:	$(INCS) $(OINCS) macro.h
+
+match.obj:	$(INCS) $(OINCS) key.h
+
+research.obj:	$(INCS) $(OINCS) $(REINCS) macro.h
+
+regex.obj:	$(INCS) $(OINCS) $(REINCS)
+
+ttyio.obj:	$(INCS) $(OINCS) fepctrl.h
+
+$(OOBJS):	$(INCS) $(OINCS)
+
+termcap.obj:	$(INCS)
+
+dosutil.obj:	config.h
+
+putline.obj:	config.h
+
+fepctrl.obj:	config.h fepctrl.h
+
+rawgetc.obj:	rawgetc.asm
+	$(AS) /D__TURBOC__ $(MACHINE) rawgetc.asm,rawgetc.obj,nul,nul;
+
+alloca.obj:	alloca.asm
+	$(AS) /D__CDECL__ /D__LARGE__ alloca.asm;
+
+#sysdef.h:	sys/$(SYS)/sysdef.h	# Update links, if needed.
+#	rm -f sysdef.h
+#	ln sys/$(SYS)/sysdef.h .
+
+#ttydef.h:	sys/default/ttydef.h
+#	rm -f ttydef.h
+#	ln sys/default/ttydef.h .
+
+#chrdef.h:	sys/default/chrdef.h
+#	rm -f chrdef.h
+#	ln sys/default/chrdef.h .
+
+#fileio.c:	sys/$(SYS)/fileio.c
+#	rm -f fileio.c
+#	ln sys/$(SYS)/fileio.c .
+
+#spawn.c:	sys/$(SYS)/spawn.c
+#	rm -f spawn.c
+#	ln sys/$(SYS)/spawn.c .
+
+#tty.c:		sys/default/tty.c
+#	rm -f tty.c
+#	ln sys/default/tty.c .
+
+#ttyio.c:	sys/$(SYS)/ttyio.c
+#	rm -f ttyio.c
+#	ln sys/$(SYS)/ttyio.c .
+
+#ttykbd.c:	sys/default/ttykbd.c
+#	rm -f ttykbd.c
+#	ln sys/default/ttykbd.c .
+
+#cinfo.c:	sys/default/cinfo.c
+#	rm -f cinfo.c
+#	ln sys/default/cinfo.c .
+
+#port: $(SRCS) $(INCS)
+#	rm -f port
+#	tar cfb port 1 $?
+
+#clean:
+#	del $(OBJ) $(OSRCS) $(OINCS)
+clean:
+	del *.obj

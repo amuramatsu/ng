@@ -1,0 +1,329 @@
+# $Id: README.W32,v 1.1 2000/06/27 01:48:03 amura Exp $
+Ng for Win32
+Version 0.4 June 7, 1999
+
+1. Ng とは
+
+Ng とは著名なエディタである Emacs と同様の操作感を提供する MicroEmacs
+の一つである MG (Micro GNU Emacs)を吉田茂樹さんが中心となり日本語化し
+たバージョンで、当初は Nihongo micro GNU Emacs、後期には Micro Nemacs
+と呼ばれているものです。
+
+Ng の歴史は大変古く、開発が盛んに行われていたのは 1990 年頃にさかのぼ
+ります。当初は UNIX 上で動作するエディタとして開発され、後に MS-DOS に
+移植されています。
+
+この Ng ですが、Windows 時代の到来とともに動きが不活発になり、1992 年
+の 1.3L を最後に最近まではアップデートが行われておりませんでした。とこ
+ろが、1998年の 12 月頃伊藤栄一郎さんが MS-DOS 版をベースに Windows CE
+の英語版に Ng を移植、Tillanosoft が今回提供するものはこの伊藤栄一郎さ
+んの移植バージョンである 0.12 をベースに日本語版 Windows CE に移植した
+ものです(対応する MGのバージョンは 2a、Ng のバージョンは 1.3L になりま
+す)。
+
+"Micro" Emacs ということで、たとえば GNU Emacs と比較すると機能は大変
+限られたものになります。しかし、キーバインディングはかなり GNU Emacs
+の雰囲気を持っていいますし、「バッファ」を利用して複数のファイルを同時
+に開いたり、一つのファイルを複数の「窓」で表示したりといったエッセンス
+はまさに Emacs であると言えましょう。
+
+また、"Micro" Emacs ということで、GNU Emacs では Lisp ライブラリのイン
+ストールで数十MBのファイルのインストールが必要だったところを、Ng では
+たった一つの実行形式ファイル(200KB前後)のインストールだけで利用するこ
+とが可能です。
+
+上記で述べたことを含め Ng for Win32 の特徴的なポイントをいくつかあげて
+おきます。
+
+(1) Emacs のエッセンスを提供
+
+  キーバインディングはもちろん、バッファの概念、C-x 2 による複数のエディッ
+  トウィンドウなど、そのまんま小型の Emacs となっています。
+
+(2) dired 機能を提供
+
+  GNU Emacs で提供されている dired (ディレクトリエディタ)機能のうち、
+  中心的な機能を提供。また、Tillanosoft により、dired-do-shell-command
+  が追加されており、dired 内からファイルを実行できるようになっています。
+  これにより dired を簡易ランチャーとして利用することができます。
+
+(3) コントロールキーのマップ機能を提供
+
+  Mobile Gear (CS または II)では A キーの左横のキー(英数キーですね)を
+  コントロールキーに割り当てる機能がシステムにより提供されていますが、
+  カシオペアのようにそのような機能が提供されていない H/PC も存在します。
+  Ng for Win32では、Tillanosoft により、英数キーをコントロールキーとし
+  て利用する機能が提供されます。
+
+(4) メールの作成等に最適な auto-fill-mode の提供
+
+  auto-fill-mode とは文章作成時に、決められたコラム位置で自動的に折り
+  返し処理を入れる機能です。たとえばこのドキュメントも auto-fill-mode
+  で作成されています。段落の左右の位置がそろっていることをご確認くださ
+  い。
+
+  Ng (や Emacs)の auto-fill-mode では、左側部分と折り返し位置を指定す
+  ることが可能で、入力後に編集しデコボコになってしまった場合でも再度位
+  置ぞろえをやりなおすことができます(fill-paragraph)。
+
+2. インストール方法
+
+配布パッケージを解凍するといくつかの ng.exe が出てきます。それぞれの
+ng.exe は CPU および Windows CE のバージョンにより以下のフォルダに置い
+てあります。
+
+ ce1mips -- Windows CE 1.0 対応の MIPS 版。動作確認はしておりませんが、
+            Windows CE 2.0 でも動くと思います。
+
+ ce2sh   -- Windows CE 2.0 対応の SH 版。Windows CE 1.0 では動きません。
+
+ w32intel - Windows 95/98/NT4.0 対応の Intel 版。
+
+上記の ng.exe のうちお使いの PC に対応するものをお好みの場所に放り込ん
+でください。また必要に応じてng.iniをお好みの場所に置いてください。
+
+3. アンインストール方法
+
+ng.exe と ng.ini を削除することによりアンインストールできます。
+
+Ng for Win32 は以下のレジストリエントリを利用しています。放置しておい
+ても問題はありませんが、気になる場合はレジストリエディタ等で削除してく
+ださい。
+
+  HKEY_CURRENT_USER\Software\mg-developers\Ng
+
+4. 起動方法
+
+インストールした ng.exe を実行してください。起動オプションについては、
+Ng.ref および SUPDOC.N32.txt をご参照ください。
+
+また、最初の起動時に Ng for Win32 にて、M-x configure RET と入力し初期
+化ファイルとして用いる ng.ini をフルパスで指定してください。この設定は
+次回の Ng の起動時から有効になります。
+
+なお、M-x は Alt キーを押しながら X キーを押すことを、RET は Enter キー
+を押すことを意味します。
+
+5. 終了方法
+
+C-x C-c と続けてキー入力してください。C-x はコントロールキーを押しなが
+ら X キーを、C-c はコントロールキーを押しながら C キーを押すことを意味
+します。
+
+6. ドキュメントファイル
+
+本ファイル以外にも各種ドキュメントファイルに目を通していただけますと
+Ng についてより詳しく知ることができます。必要に応じて目をお通しくださ
+い。
+
+  README.N32.txt  本ファイル
+  CHANGES.N32.txt Ng for Win32 の変更履歴
+  SUPDOC.N32.txt  下記の各ドキュメントに対するNg for Win32 の補足事項
+  README.TXT      伊藤栄一郎氏の Ng for WinCE の README
+  README.DOS      MS-DOS 版の Ng 1.3 についての説明
+  README.Ng       Ng 1.3 の全般的な説明
+  README          MG 2a 全体についての説明
+  Ng.doc          Ng の日本語機能についての説明
+  Ng.tut          Ng の初心者用入門チュートリアル
+  Ng.ref          Ng のリファレンス・マニュアル
+  CHANGES.dos     Ng 1.3 にいたるまでの改版履歴
+  mg.tex          MG のマニュアル (TeX ファイル)
+  mgidx.tex       MG マニュアルの索引 (TeX ファイル)
+  mg2a.change     MG 2A にいたるまでの改版履歴
+  mgprog.doc      MG のソースコードに関する説明
+  COPYING         re_search.c, regex.h, regex.c に適用される著作権記述
+
+7. 著作権表示
+
+Ng for Win32 はフリーソフトウェアであり、Tillanosoft による Ng for
+Win32 のための修正部分に関する権利の主張も特にいたしません。ただし、利
+用に際しては Tillanosoft による修正をはじめとした、Ng for Win32 に起因
+する事由により直接間接を問わずいかなる損害が出た場合においても
+Tillanosoft および Ng 著作者は一切の責任を問われないという条件に同意い
+ただくことを前提とさせていただきます。
+
+なお、Ng for Win32 は伊藤栄一郎氏の Ng for WinCE をベースにしておりま
+すが、伊藤栄一郎氏は特に著作権についての記述を readme には入れておらず、
+単に GNU Emacs の GPL 記述ファイルを配布物件に含め、readme ファイルに
+てそのファイルの内容を簡単に説明しているのみです。これは氏の改造部分の
+権利を GPL にしたがうものにするとの意志のあらわれかと思われます。
+
+また、Ng for Win32 および Ng for WinCE がベースとしている Ng 自身もフ
+リーソフトであることがオリジナル readme ファイルにて明記されています。
+以下に Ng の著作権に関する記述を引用します。
+
+    Ng はフリーソフトウェアであり、営利を目的としない限り自由に利用、改造、
+    修正、再配布できます。ただし、Ng を利用する事により不利益や障害が
+    しても、著者は一切の責を負いません。
+
+    オリジナルの Mg は、ほとんどの部分には著作権がなく、Public Domain に置
+    かれていると宣言されています。
+
+    正規表現ルーチン (re_search.c, regex.h, regex.c) については Richard M.
+    Stallman が著作権を保有しています。GNU emacs の copyright による制限を
+    避けたい時には、この 3 つのソースを空ファイルと置き換えるように、とい
+    う原著作者の記述が README にあります。GNU emacs の copyright は
+    COPYING をご覧ください。
+
+    太田純氏による MS-DOS 用 FEP 自動制御ライブラリ fepctrl.c, fepcsub.asm
+    は、パブリックドメインに置かれたものとして扱われることを期待する旨がドキュ
+    メントに書かれています。また、MS-DOS 用 termcap ライブラリ (termcap.c)
+    は nearly public domain に置かれていると宣言されています。
+
+8. 著作者
+
+著作者の記述を README.Ng から引用し、一部補足します。
+
+    Dave Conroy         古いバージョンの MicroEmacs, v30
+    Dave Brower         古いバージョンの Mg
+    Bob Larson          現在のバージョンの Mg
+    Mic Kaczmarczik     同上
+    Mike Meyer          同上
+    Sandra Loosemore    同上
+    Michael Portuesi    同上
+    Stephen Walton      同上
+    Marion Hakanson     同上
+    吉田茂樹            日本語化 (Ng)、下記以外の追加機能、ドキュメント、 
+                        Ng MS-DOS バージョン、J-3100 バージョン
+    高野和博            Ng PC-9801 バージョン、C モード、FEP 自動制御機能
+    白橋明弘            PC-9801 高速バージョン、Turbo-C バージョン
+    前田薫              ファイル名補完機能、shell-command 機能、
+                        細かなバグ修正
+    太田純              termcap ライブラリ、FEP 自動制御ライブラリ、
+                        Turbo-C 1.5/++ バージョン
+    澤柳喜郎            Ng X68000 バージョン、新しい版の補完機能
+    伊藤栄一郎          英語版 Windows CE バージョン
+    Tillanosoft         日本語版 Windows CE バージョン
+
+9. 制限事項
+
+以下については将来の課題とします。
+
+(1) undo がまったくない
+
+ MG, Ng, Ng for Win CE, Ng for Win32 とも undo をまったくサポートして
+ いません。
+
+(2) mini buffer
+
+ GNU Emacs とは異なりミニバッファはバッファではありません。つまり、通
+ 常の編集操作はミニバッファでは行えませんので注意してください。
+
+ なお、ミニバッファにおけるキーマッピングに関する記述は日本語のドキュ
+ メントには含まれません。mg.tex にキーバインディングが書いてありますが、
+ Ng でのミニバッファのキーバインディングに慣れてしまうと本物の Emacs
+ を使うときに支障が出る恐れがありますのでご注意ください。
+
+(3) ファイル名コンプリーションの制限
+
+ file completionで、パスの最中に .. が入ると completion できなくなりま
+ す。
+
+(4) dired
+
+ dired 上で rename や copy 操作が、実際の dired の画面に反映されません。
+
+ また、些細な問題ですが、dired でのカーソル位置が GNU Emacs とは異なり
+ ます。こちらは近いうちに直したいと思います。
+
+(5) toroku-region がない
+
+ バッファ上に存在する単語を M-x toroku-region で単語登録できるようにし
+ たいですね。
+
+(6) overwite-mode における制限
+
+ マクロの実行中は文字の入力が挿入モードで行われます。
+
+(7) Windows CE 1.0 における dired-do-shell-command における制限
+
+ Windows CE 1.0 以外では、ディレクトリ(フォルダ)に対して
+ dired-do-shell-command を行うと該当するディレクトリを対象としてエクス
+ プローラが起動しますが、Windows CE 1.0 では起動されません。
+
+(8) Windows 95/98/NT4.0 版における dired-do-shell-command の制限
+
+ .htm/.html に IE が割り当てられているときに、.htm/.html ファイルに対
+ する dired-do-shell-command が正常に動作しないようです。
+
+(9) Windows 95/98/NT 版におけるリサイズ時/フォント変更時の制限
+
+ Windows 95/98/NT 版でウィンドウのサイズ変更を行ったり、フォントの変更
+ を行ったときに画面が真っ白になることがあります。その場合、画面をクリッ
+ クする、C-l を入力するなどで画面を再描画してください。
+
+(10) ファイル名長の制限
+
+ ファイル名の長さが 24 バイトを超えるファイルは扱えません。
+
+10. サポートされているプラットフォーム
+
+現在以下のプラットフォームをサポートしています。
+
+         サポート  動作確認機種       該当機種
+ CE1.0
+  SH3      ×
+  MIPS     ○      MobileGear CS12
+ CE2.0
+  SH3      ○      Cassiopeia A-51up  Persona
+  MIPS     ×
+ 95/98/NT4.0
+  Intel    ○      PC-AT互換機
+
+11. ソース環境
+
+Ng for Win32 のビルド環境は UNIX 版の Ng の make 環境をベースに作成さ
+れております。基本的なディレクトリ構成は同等で、sys/ サブディレクトリ
+の下に Win32 特有のファイルを格納している win32/ サブディレクトリを設
+けております。
+
+したがってこのソース一式をベースに UNIX 版および MS-DOS 版の Ng も作成
+できると思います。Tillanosoft では同一ソース環境をベースに Windows CE,
+Windows 95/98/NT および FreeBSD 2.2.5-release を対象にビルドまたは 
+make してひと通りの動作を確認しております。
+
+12. ビルドに必要な開発環境
+
+Ng for Win32 をソースからビルドするには以下の開発環境が必要です。
+
+  Microsoft Windows NT 4.0 Workstation または Server
+  Microsoft Developper Studio 97 Professional Edition Visual C++ V5.0
+  Microsoft Windows CE Toolkit for Visual C++ V5.0
+
+13. ビルド方法
+
+このファイルが存在するディレクトリと同じディレクトリに、ng.dsw が存在
+しますので Developer Studio のメニューの「ファイル」→「ワークスペース
+を開く」にて本ファイルを指定してください。あとは、ターゲット CPU およ
+び Windows CE のバージョンを指定してメニューの「ビルド」→「ビルド」を
+選択すれば OK です。
+
+なお、アイコンビットマップは Windows CE 1.0 用(ce1appicon.ico)と 
+Windows CE 2.0 用(ce2appicon.ico)の 2 つのファイルを用意しております。
+適宜目的の Windows CE バージョンに応じて appicon.ico という名前のファ
+イルにコピーしてご利用ください。(ce2appicon.ico はモノクロマシン用に 4 
+値モノクロアイコンを含んでいますが、Developer Studio で CE 1.0 用のビ
+ルドを行うとカラーアイコンから 4 値アイコンをつくり出そうとしてしまい
+ます。ce1appicon.ico はこのカラーアイコンを含んでいないアイコンです。
+
+14. 変更履歴
+
+※最新版は以下のURLに置かれます。
+
+  http://www.geocities.co.jp/SiliconValley-PaloAlto/5006/downloads.html
+
+ 0.4  1999.6.7  β4版
+  95/98 版サポートなど
+
+ 0.3  1999.5.20  β3版
+  NT 版サポートなど
+
+ 0.2  1999.4.21  β2版
+  configure 項目の追加など
+
+ 0.1  1999.4.15  β1版
+  日本語版 Windows CE 対応
+
+各版の修正内容の詳細は CHANGES.W32 をご参照ください。
+
+以上
