@@ -1,4 +1,4 @@
-/* $Id: kanji.c,v 1.15 2001/09/27 18:56:49 amura Exp $ */
+/* $Id: kanji.c,v 1.16 2001/09/27 19:47:58 amura Exp $ */
 /*
  *		Kanji handling routines.
  *		These are only used when KANJI is #defined.
@@ -8,6 +8,9 @@
 
 /*
  * $Log: kanji.c,v $
+ * Revision 1.16  2001/09/27 19:47:58  amura
+ * Small changes for support EPOC32
+ *
  * Revision 1.15  2001/09/27 18:56:49  amura
  * Small changes for support EPOC32
  *
@@ -799,7 +802,7 @@ reinput:
  * I think this state you don't want to, I disable these.
  *                                                  27 mar 2000, amura
  */
-#ifdef notdef /* HANKANA /* 92.11.21  by S.Sasaki */
+#ifdef notdef /* HANKANA*/ /* 92.11.21  by S.Sasaki */
 	if (global_kinput == JIS && c1 == 0x0e) {
 		kselected = SELKANA;
 		goto reinput;
