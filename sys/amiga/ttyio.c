@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.1 2000/06/27 01:48:01 amura Exp $ */
+/* $Id: ttyio.c,v 1.2 2000/09/29 17:26:17 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Amiga terminal window I/O, with all kinds o' trimmings.
@@ -9,8 +9,11 @@
 
 /*
  * $Log: ttyio.c,v $
- * Revision 1.1  2000/06/27 01:48:01  amura
- * Initial revision
+ * Revision 1.2  2000/09/29 17:26:17  amura
+ * small patch for new ttymenu.c
+ *
+ * Revision 1.1.1.1  2000/06/27 01:48:01  amura
+ * import to CVS
  *
  */
  
@@ -85,6 +88,7 @@ extern	LONG			 Wait();
 #ifdef	DO_MENU
 extern	LONG			 ClearMenuStrip();	/* menu functions */
 extern	struct	Menu		*InitEmacsMenu();
+extern	VOID			 DisposeMenus();
 extern	struct	MenuItem	*ItemAddress();
 extern	LONG			 SetMenuStrip();
 #endif
