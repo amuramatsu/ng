@@ -1,4 +1,4 @@
-/* $Id: keymap.c,v 1.4 2000/06/27 01:49:44 amura Exp $ */
+/* $Id: keymap.c,v 1.5 2000/09/01 19:45:16 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
@@ -7,6 +7,9 @@
 
 /*
  * $Log: keymap.c,v $
+ * Revision 1.5  2000/09/01 19:45:16  amura
+ * add default keybind for "undo"
+ *
  * Revision 1.4  2000/06/27 01:49:44  amura
  * import to CVS
  *
@@ -436,6 +439,7 @@ extern	int	skg_set_dicname _PF();	/* Set Kana->Kanji dict name	*/
 #ifndef NO_STARTUP
 extern int ConfigStartupFilePath _PF();
 #endif
+extern int tticon _PF();
 #endif
 
 #ifdef	AMIGA
@@ -893,7 +897,11 @@ static	PF	fund_esc[] = {
 #endif	/* MSDOS */
 	rescan,		/* ^] */
 	rescan,		/* ^^ */
+#ifdef	UNDO
+	do_undo,	/* _ */
+#else
 	rescan,		/* ^_ */
+#endif
 };
 static	PF	fund_del[] = {
 	backdel,	/* DEL */
@@ -1471,6 +1479,9 @@ FUNCTNAMES	functnames[] = {
 #ifdef	IBMPC	/* 91.01.11  by S.Yoshida */
 	{j31_set_cursor, "ibmpc-set-cursor"},
 #endif	/* IBMPC */
+#if (defined(AMIGA)&&defined(DO_ICONIFY)||defined(_WIN32))
+	{tticon,	"iconify-frame"},
+#endif	/* ICONIFY */
 	{insert,	"insert"},
 	{bufferinsert,	"insert-buffer"},
 	{fileinsert,	"insert-file"},
