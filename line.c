@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.6 2000/07/16 15:44:41 amura Exp $ */
+/* $Id: line.c,v 1.7 2000/09/01 19:44:25 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -21,6 +21,9 @@
 
 /*
  * $Log: line.c,v $
+ * Revision 1.7  2000/09/01 19:44:25  amura
+ * dirty hack for speed optimize of "yank"
+ *
  * Revision 1.6  2000/07/16 15:44:41  amura
  * undo bug on autofill fixed
  *
@@ -47,6 +50,7 @@
 #ifdef	UNDO
 #include	"undo.h"
 static int lineno_cache = FALSE;
+int set_lineno = -1;
 #endif
 
 #ifdef	CLIPBOARD
@@ -909,6 +913,8 @@ LINE *blp;
     static LINE *before_blp;
     static int before_n;
 
+    if (set_lineno != -1)
+	return set_lineno;
     if (lineno_cache && blp==before_blp && bp==before_bp)
 	return before_n;
 

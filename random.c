@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.2 2000/06/27 01:49:45 amura Exp $ */
+/* $Id: random.c,v 1.3 2000/09/01 19:44:25 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -9,6 +9,9 @@
 
 /*
  * $Log: random.c,v $
+ * Revision 1.3  2000/09/01 19:44:25  amura
+ * dirty hack for speed optimize of "yank"
+ *
  * Revision 1.2  2000/06/27 01:49:45  amura
  * import to CVS
  *
@@ -666,23 +669,31 @@ yank(f, n)
 		i = 0;
 #ifdef	UNDO
 	    if (isundo()) {
+		extern int get_lineno pro((BUFFER*,LINE*));
+		extern int set_lineno;
+		set_lineno = get_lineno(curbp, curwp->w_dotp);
 		while ((c=kremove(i)) >= 0) {
 			if (c == '\n') {
-				if (newline(FFRAND, 1) == FALSE)
+				if (newline(FFRAND, 1) == FALSE) {
+					set_lineno == -1;
 					return FALSE;
-				++nline;
+				}
+				++nline; ++set_lineno;
 				run_insert = FALSE;
 			} else {
 				if (run_insert)
 					undoptr = undobefore;
 				else if (*undoptr != NULL)
 					(*undoptr)->u_type = UDNONE;
-				if (linsert(1, c) == FALSE)
+				if (linsert(1, c) == FALSE) {
+					set_lineno == -1;
 					return FALSE;
+				}
 				run_insert = TRUE;
 			}
 			++i;
 		}
+		set_lineno = -1;
 	    } else
 #endif
 		while ((c=kremove(i)) >= 0) {
