@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.9.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: undo.h,v 1.9.2.2 2005/02/20 03:25:59 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -8,6 +8,11 @@
 
 #ifndef __UNDO_H__
 #define __UNDO_H__
+
+#ifdef UNDO
+
+#include "i_buffer.h"
+#include "i_undo.h"
 
 /* undo support functions */
 
@@ -24,6 +29,10 @@ int  undo_bgrow   _PRO((register UNDO_DATA*, register RSIZE));
 #define undo_check(_bp)	((_bp)->b_utop != (_bp)->b_ubottom)
 #define undo_reset(_bp)	((void)((_bp)->b_ubottom = (_bp)->b_utop = 0, \
 				(_bp)->b_ulast = NULL))
+#define undo_init(_bp) do {					\
+    bzero((_bp)->b_ustack, sizeof(UNDO_DATA *)*(UNDOSIZE+1));	\
+    undo_reset((_bp));						\
+} while (/*CONSTCOND*/0)
 #define undo_setup(_u) do {				\
     if (undoptr != NULL) {				\
 	if (*undoptr == NULL) {				\
@@ -56,4 +65,18 @@ int  undo_bgrow   _PRO((register UNDO_DATA*, register RSIZE));
 /* in line.c */
 int get_lineno   _PRO((BUFFER*, LINE*));
 
+#else /* not UNDO */
+
+#define ublock_open(b)
+#define undo_clean(b)		/*void*/
+#define undo_balloc(u,b)
+#define undo_bgrow(u,i)
+
+#define isundo() 		0
+#define undo_check(_bp)		0
+#define undo_init(_bp)		/*void*/
+#define undo_reset(bp)		/*void*/
+#define undo_setup(_u)		/*void*/
+
+#endif /* UNDO */
 #endif /* __UNDO_H__ */

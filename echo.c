@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.1 2003/02/28 17:52:48 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.2 2005/02/20 03:25:59 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -46,6 +46,8 @@ static VOID eputc _PRO((int));
 #ifndef NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
 static int complt _PRO((int, int, char *, int));
 #endif /* NEW_COMPLETE */
+
+#define	GETNUMLEN	6
 
 #ifdef ADDFUNC	/* 91.01.16  by S.Yoshida */
 static int earg_exist = FALSE;		/* Extra argument existing flag. */
@@ -256,6 +258,22 @@ va_dcl
     return i;
 }
 #endif /* SUPPORT_ANSI */
+
+#ifdef USING_GETNUM
+int
+getnum (prompt, num)
+char *prompt;
+int *num;
+{
+    char numstr[GETNUMLEN];
+
+    if (ereply("%s : ", numstr, GETNUMLEN, prompt) == FALSE)
+	return (FALSE);
+    *num = atoi(numstr);
+    return (TRUE);
+}
+#undef USING_GETNUM
+#endif /* USING_GETNUM */
 
 #ifdef NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
 #include "complt.h"

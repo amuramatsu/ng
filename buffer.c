@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.20.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: buffer.c,v 1.20.2.2 2005/02/20 03:25:59 amura Exp $ */
 /*
  *		Buffer handling.
  */
@@ -6,17 +6,24 @@
 
 #include "config.h"		/* 90.12.20  by S.Yoshida */
 #include "def.h"
+
+#include "buffer.h"
 #include "kbd.h"		/* needed for modes */
-#ifdef UNDO
 #include "undo.h"
-#endif
+#include "line.h"
+#include "echo.h"
+#include "file.h"
+#include "autosave.h"
+#include "window.h"
+#include "random.h"
+#include "dir.h"
+#include "tty.h"
 
 #ifdef VARIABLE_TAB
-LINE_OFF_t defb_tab = 8;
-LINE_OFF_t cmode_tab = 0;
+static LINE_OFF_t defb_tab = 8;
+static LINE_OFF_t cmode_tab = 0;
 #endif /* VARIABLE_TAB */
 
-#define	GETNUMLEN	6
 static BUFFER *makelist _PRO((void));
 static long buffersize _PRO((BUFFER*));
 
@@ -242,9 +249,7 @@ int f, n;
 	free(bp->b_cwd);
 #endif
     free(bp->b_bname);			/* Release name block	*/
-#ifdef UNDO
     undo_clean(bp);			/* Release undo data	*/
-#endif
     free((char *) bp);			/* Release buffer block */
     return TRUE;
 }
@@ -499,10 +504,7 @@ int cflag;
 	free((char *) bp);
 	return NULL;
     }
-#ifdef UNDO
-    bzero(bp->b_ustack, sizeof(UNDO_DATA *)*(UNDOSIZE+1));
-    undo_reset(bp);
-#endif
+    undo_init(bp);
     bp->b_altb = bp->b_bufp = NULL;
     bp->b_dotp  = lp;
     bp->b_doto  = 0;
@@ -527,7 +529,6 @@ int cflag;
     bp->b_cwd = NULL;
     if (curbp) {
 	if (curbp->b_cwd == NULL) {
-	    extern VOID storecwd _PRO((BUFFER *bp));
 	    storecwd(curbp);
 	}
 	if (curbp->b_cwd != NULL &&
@@ -808,26 +809,6 @@ register BUFFER *bp;
 }
 #endif
 
-#if defined(CMODE)||defined(VARIABLE_TAB)||defined(AUTOSAVE)
-#define USING_GETNUM	1
-#endif
-
-#ifdef USING_GETNUM
-int
-getnum (prompt, num)
-char *prompt;
-int *num;
-{
-    char numstr[GETNUMLEN];
-
-    if (ereply("%s : ", numstr, GETNUMLEN, prompt) == FALSE)
-	return (FALSE);
-    *num = atoi(numstr);
-    return (TRUE);
-}
-#undef USING_GETNUM
-#endif /* USING_GETNUM */
-
 #ifdef VARIABLE_TAB
 int
 set_default_tabwidth(f, n)
@@ -847,7 +828,6 @@ int
 set_tabwidth(f, n)
 int f, n;
 {
-    extern int refresh _PRO((int, int));
     if ((f & FFARG) == 0) {
 	if (getnum("tab-width", &n) == FALSE)
 	    return (FALSE);

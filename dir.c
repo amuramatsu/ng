@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.16 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: dir.c,v 1.16.2.1 2005/02/20 03:25:59 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -10,11 +10,13 @@
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
 
+#include "dir.h"
+#include "i_buffer.h"
+#include "echo.h"
+#include "file.h"
+#include "fileio.h"
+
 #ifndef NO_DIR
-extern int rchdir _PRO((char *));			/* fileio.c */
-#ifdef EXTD_DIR
-extern VOID makepath _PRO((char *dname, char *fname, int len)); /* file.c */
-#endif
 
 char *startdir = NULL;
 char *wdir;

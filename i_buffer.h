@@ -1,4 +1,4 @@
-/* $Id: i_buffer.h,v 1.1.2.2 2003/03/08 01:34:06 amura Exp $ */
+/* $Id: i_buffer.h,v 1.1.2.3 2005/02/20 03:25:59 amura Exp $ */
 /*
  * This file is the internal buffer definition of the NG
  * display editor.
@@ -6,6 +6,10 @@
 
 #ifndef __I_BUFFER_H__
 #define __I_BUFFER_H__
+
+#include "i_line.h"
+#define UNDOSIZE	10
+typedef unsigned char UNDO_IDX_t;
 
 /*
  * Text is kept in buffers. A buffer header, described
@@ -34,7 +38,7 @@ typedef struct BUFFER {
     char *b_cwd;			/* Current working directory for
 					   this buffer.  By Tillanosoft */
 #endif
-    LANG_MODULE *b_lang;
+    struct LANG_MODULE *b_lang;
     char b_fio;
 #ifdef  VARIABLE_TAB
     char b_tabwidth;			/* Local TAB width		*/
@@ -64,5 +68,8 @@ typedef struct BUFFER {
 #ifdef	AUTOSAVE
 #define	BFACHG		0x80		/* Auto save after changed.	*/
 #endif	/* AUTOSAVE */
+
+extern BUFFER *curbp;
+extern BUFFER *bheadp;
 
 #endif /* __I_BUFFER_H__ */

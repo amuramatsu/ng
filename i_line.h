@@ -1,4 +1,4 @@
-/* $Id: i_line.h,v 1.1.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: i_line.h,v 1.1.2.2 2005/02/20 03:25:59 amura Exp $ */
 /*
  * This file is the internal buffer definition of the NG
  * display editor.
@@ -7,6 +7,7 @@
 #ifndef __I_LINE_H__
 #define __I_LINE_H__
 
+typedef unsigned long LINE_NO_t;	/* line number type */
 typedef short LINE_OFF_t;		/* line offset type */
 typedef unsigned short NG_WCHAR_t;	/* char */
 
@@ -58,8 +59,8 @@ typedef struct LINE {
  */
 typedef struct	{
     struct LINE *r_linep;		/* Origin LINE address.		*/
-    LINE_OFFSET_t r_offset;		/* Origin LINE offset.		*/
-    RSIZE_t r_size;			/* Length in characters.	*/
+    LINE_OFF_t r_offset;		/* Origin LINE offset.		*/
+    RSIZE r_size;			/* Length in characters.	*/
 } REGION;
 
 #endif /* __I_LINE_H__ */

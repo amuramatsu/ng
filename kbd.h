@@ -1,4 +1,4 @@
-/* $Id: kbd.h,v 1.4 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: kbd.h,v 1.4.2.1 2005/02/20 03:25:59 amura Exp $ */
 /*
  * kbd.h: type definitions for symbol.c and kbd.c for mg experimental
  */
@@ -54,18 +54,19 @@ typedef struct {
 
 extern FUNCTNAMES functnames[];
 extern int nfunct;
-extern	MAP_ELEMENT *ele;
+extern MAP_ELEMENT *ele;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern PF doscan _PRO((KEYMAP *, int));
-extern PF name_function _PRO((char *));
-extern char *function_name _PRO((PF));
-extern int complete_function _PRO((char *, int));
-extern KEYMAP *name_map _PRO((char *));
-extern char *map_name _PRO((KEYMAP *));
-extern MAPS *name_mode _PRO((char *));
+int selfinsert _PRO((int, int));
+PF doscan _PRO((KEYMAP *, int));
+PF name_function _PRO((char *));
+char *function_name _PRO((PF));
+int complete_function _PRO((char *, int));
+KEYMAP *name_map _PRO((char *));
+char *map_name _PRO((KEYMAP *));
+MAPS *name_mode _PRO((char *));
 #ifdef __cplusplus
 }
 #endif

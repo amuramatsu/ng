@@ -1,13 +1,22 @@
-/* $Id: dired.c,v 1.10 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: dired.c,v 1.10.2.1 2005/02/20 03:25:59 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#include <string.h>
 
 #ifndef NO_DIRED
-extern BUFFER *dired_ _PRO((char*));
+
+#include "dired.h"
+#include <string.h>
+#include "i_buffer.h"
+#include "dir.h"
+#include "echo.h"
+#include "buffer.h"
+#include "window.h"
+#include "file.h"
+#include "fileio.h"
+
 #ifndef	max
 #define	max(a,b)	(((a)<(b))?(b):(a))
 #endif

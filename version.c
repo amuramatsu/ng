@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.15 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: version.c,v 1.15.2.1 2005/02/20 03:25:59 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -6,7 +6,14 @@
 /* 90.01.29	Modified for Ng 1.0 by S.Yoshida */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
-#include	"def.h"
+#include "def.h"
+
+#include "version.h"
+#include "i_buffer.h"
+#include "i_window.h"
+#include "echo.h"
+#include "buffer.h"
+#include "window.h"
 
 #define	VERSION		"1.9"
 

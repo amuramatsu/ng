@@ -1,4 +1,4 @@
-/* $Id: autosave.c,v 1.5 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: autosave.c,v 1.5.2.1 2005/02/20 03:25:59 amura Exp $ */
 /*
  Auto save support code programed by M.Suzuki
  Ver	1.0.0	1997/01/07	Create
@@ -7,20 +7,21 @@
 #include "config.h"
 
 #ifdef AUTOSAVE
-
 #include "def.h"
 #include <time.h>
 
-time_t autosave_interval = 10*60;/* Auto save interval time.(sec) */
-int autosave_flag = FALSE;
-int autosaved = FALSE;
+#include "autosave.h"
+#include "i_buffer.h"
+#include "echo.h"
+#include "file.h"
+#include "fileio.h"
+#include "tty.h"
+#include "ttyio.h"
 
-extern int getnum _PRO((char *prompt, int *num));
-/* this is port dependent */
-extern VOID autosave_name _PRO((char *buff, char *name, int buflen));
-#ifdef	ITIMER
-extern VOID itimer _PRO((VOID (*func)(void), time_t sec));
-#else
+static time_t autosave_interval = 10*60;/* Auto save interval time.(sec) */
+static int autosave_flag = FALSE;
+static int autosaved = FALSE;
+#ifndef	ITIMER
 static time_t check_time;
 #endif
 

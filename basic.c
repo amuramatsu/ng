@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: basic.c,v 1.11.2.2 2005/02/20 03:25:59 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -12,6 +12,18 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+
+#include "basic.h"
+#include "i_tab.h"
+#include "i_lang.h"
+#include "i_buffer.h"
+#include "i_line.h"
+#include "buffer.h"
+#include "display.h"
+#include "echo.h"
+#include "line.h"
+#include "random.h"
+#include "window.h"
 
 /*
  * Go to beginning of line.
@@ -317,22 +329,15 @@ register LINE *dlp;
     register int col;
     register int newcol;
     register int dbo;
-#ifdef VARIABLE_TAB
-    int tab = curbp->b_tabwidth;
-#endif
-    int (*width)(NG_WCHAR_t) = curbp->lang.lm_width;
+    int (*width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
 
     col = 0;
     dbo = 0;
     while (dbo != llength(dlp)) {
 	c = lgetc(dlp, dbo);
 	newcol = col;
-	if (c == NG_WTAB && !(curbp->b_flag & BFNOTAB)) {
-#ifdef VARIABLE_TAB
-	    newcol = (newcol/tab + 1)*tab - 1;
-#else
-	    newcol |= 0x07;
-#endif
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) {
+	    newcol = tabnext(col, curbp->b_tabwidth);
 	}
 	else
 	    newcol += width(c);

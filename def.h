@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.21.2.3 2003/02/28 17:52:48 amura Exp $ */
+/* $Id: def.h,v 1.21.2.4 2005/02/20 03:25:59 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -28,6 +28,10 @@
  * bytes per window. I feel that this is an acceptable price,
  * considering that there are usually only one or two windows.
  */
+struct WINDOW;
+struct BUFFER;
+struct LANG_MODULE;
+struct LIST;
 typedef struct LIST {
     union {
 	struct WINDOW *l_wp;

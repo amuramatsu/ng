@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: shell.c,v 1.5.2.1 2005/02/20 03:25:59 amura Exp $ */
 /*
  *		Shell commands.
  * The file contains the command
@@ -9,7 +9,13 @@
 #include "config.h"	/* 91.01.10  by S.Yoshida */
 #include "def.h"
 
+
 #ifndef NO_SHELL
+
+#include "shell.h"
+#include "buffer.h"
+#include "echo.h"
+
 /*ARGSUSED*/
 int
 shellcmnd(f, n)

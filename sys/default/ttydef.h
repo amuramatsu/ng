@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.8 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: ttydef.h,v 1.8.2.1 2005/02/20 03:25:59 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
@@ -13,6 +13,8 @@
 #else	/* not !PC9801 && !WIN32 && !EPOC32 */
 #define GOSLING			/* Compile in fancy display.	*/
 #endif
+
+typedef unsigned short DISP_ROW_t;
 
 #if !(defined(NROW)&&defined(NCOL))
 #if defined(MSDOS)	/* 90.04.02  by S.Yoshida */

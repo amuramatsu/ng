@@ -1,10 +1,17 @@
-/* $Id: window.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: window.c,v 1.4.2.1 2005/02/20 03:25:59 amura Exp $ */
 /*
  *		Window handling.
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+
+#include "window.h"
+#include "i_window.h"
+#include "display.h"
+#include "echo.h"
+#include "tty.h"
+#include "ttyio.h"
 
 /*
  * Reposition dot in the current

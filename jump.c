@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.9 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: jump.c,v 1.9.2.1 2005/02/20 03:25:59 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -6,9 +6,20 @@
  */
 
 #include "config.h"
+
 #ifdef JUMPERR
 
 #include "def.h"
+#include "jump.h"
+#include "i_line.h"
+#include "i_buffer.h"
+#include "i_window.h"
+#include "buffer.h"
+#include "window.h"
+#include "echo.h"
+#include "display.h"
+#include "file.h"
+
 #ifndef BSD
 # ifndef index
 #  define index(s,c)	strchr(s,c)

@@ -1,4 +1,4 @@
-/* $Id: i_window.h,v 1.1.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: i_window.h,v 1.1.2.2 2005/02/20 03:25:59 amura Exp $ */
 /*
  * This file is the window structure definition of the NG
  * display editor.
@@ -51,5 +51,7 @@ typedef struct	WINDOW {
 #define WFHARD	0x08			/* Better to a full display.	*/
 #define WFMODE	0x10			/* Update mode line.		*/
 
-#endif /* __I_WINDOW_H__ */
+extern WINDOW *curwp;
+extern WINDOW *wheadp;
 
+#endif /* __I_WINDOW_H__ */

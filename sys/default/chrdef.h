@@ -1,4 +1,4 @@
-/* $Id: chrdef.h,v 1.4 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: chrdef.h,v 1.4.2.1 2005/02/20 03:25:59 amura Exp $ */
 /*
  * sys/default/chardef.h: character set specific #defines for mg 2a
  * Warning: System specific ones exist
@@ -12,9 +12,9 @@
 /*
  * casting should be at least as efficent as anding with 0xff,
  * and won't have the size problems.  Override in sysdef.h if no
- * unsigned char type.
+ * unsigned short type.
  */
-#define	CHARMASK(c)	((unsigned char) (c))
+#define	CHARMASK(c)	((unsigned short) (c))
 #endif
 
 /*
@@ -29,9 +29,6 @@
 #define _NGC_C	0x08			/* Control.			*/
 #define _NGC_P	0x10			/* end of sentence punctuation	*/
 #define	_NGC_D	0x20			/* is decimal digit		*/
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#define	_NGC_K	0x40			/* Kanji 1st/2nd byte. (EUC)	*/
-#endif	/* KANJI */
 
 #define ISWORD(c)	((cinfo[CHARMASK(c)]&_NGC_W)!=0)
 #define ISCTRL(c)	((cinfo[CHARMASK(c)]&_NGC_C)!=0)
@@ -39,9 +36,7 @@
 #define ISLOWER(c)	((cinfo[CHARMASK(c)]&_NGC_L)!=0)
 #define ISEOSP(c)	((cinfo[CHARMASK(c)]&_NGC_P)!=0)
 #define	ISDIGIT(c)	((cinfo[CHARMASK(c)]&_NGC_D)!=0)
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-#define	ISKANJI(c)	((cinfo[CHARMASK(c)]&_NGC_K)!=0)
-#endif	/* KANJI */
+#define	ISMULTIBYTE(c)	((c) > 255)
 #define TOUPPER(c)	((c)-0x20)
 #define TOLOWER(c)	((c)+0x20)
 
