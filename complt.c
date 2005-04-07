@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.1 2005/04/07 14:27:28 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -7,8 +7,19 @@
 #include "config.h"
 #ifdef NEW_COMPLETE
 #include "def.h"
-#include "kbd.h"
 #include "complt.h"
+
+#include "i_buffer.h"
+#include "i_window.h"
+#include "kbd.h"
+#include "buffer.h"
+#include "basic.h"
+#include "echo.h"
+#include "tty.h"
+#include "ttyio.h"
+#include "window.h"
+#include "keymap.h"
+
 #define LIST_COL	35
 
 static BUFFER *bp = NULL;

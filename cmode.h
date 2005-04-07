@@ -1,10 +1,12 @@
-/* $Id: cmode.h,v 1.1.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: cmode.h,v 1.1.2.2 2005/04/07 14:27:28 amura Exp $ */
 /*
  * This file is the header file for cmode parts
  * of the NG display editor.
  */
 #ifndef __CMODE_H__
 #define __CMODE_H__
+
+#ifdef C_MODE
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,4 +19,6 @@ int cm_term _PRO((int, int));
 }
 #endif
 
-#endif __CMODE_H__
+#endif /* C_MODE */
+
+#endif /* __CMODE_H__ */

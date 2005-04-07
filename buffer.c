@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.20.2.2 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: buffer.c,v 1.20.2.3 2005/04/07 14:27:28 amura Exp $ */
 /*
  *		Buffer handling.
  */
@@ -17,6 +17,7 @@
 #include "window.h"
 #include "random.h"
 #include "dir.h"
+#include "modes.h"
 #include "tty.h"
 
 #ifdef VARIABLE_TAB
@@ -476,10 +477,6 @@ int cflag;
     register BUFFER *bp;
     register LINE *lp;
     int i;
-    extern int defb_nmodes;
-    extern MAPS *defb_modes[PBMODES];
-    extern int defb_flag;
-    extern int defb_tab;
     
     bp = bheadp;
     while (bp != NULL) {
@@ -864,14 +861,14 @@ int f, n;
 static int
 b_makename(lp, buf, len)
 LINE *lp;
-char *buf;
+NG_WCHAR_t *buf;
 int len;
 {
-    char *p,*q,*ep;
+    NG_WCHAR_t *p,*q,*ep;
     if (llength(lp) <= BUFNAME_START_COL)
 	return FALSE;
 
-    p = lp->l_text + BUFNAME_START_COL;
+    p = &(lp->l_text[BUFNAME_START_COL]);
     q = buf;
     ep = p + NBUFN;
     while (*ep == ' ') {

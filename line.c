@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.21 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: line.c,v 1.21.2.1 2005/04/07 14:27:28 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -905,7 +905,7 @@ receive_clipboard()
     int size;
     char *buf;
     
-    kdelete() ;
+    kdelete();
     size = size_clipboard_();
     if (size == 0)
 	return TRUE;

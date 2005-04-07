@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.7.2.1 2003/03/08 01:34:06 amura Exp $ */
+/* $Id: cmode.c,v 1.7.2.2 2005/04/07 14:27:28 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -12,9 +12,16 @@
 
 #ifdef C_MODE
 #include "def.h"
-#ifdef UNDO
+#include "cmode.h"
+
 #include "undo.h"
-#endif
+#include "echo.h"
+#include "buffer.h"
+#include "kbd.h"
+#include "line.h"
+#include "basic.h"
+#include "random.h"
+#include "region.h"
 
 static int indent_level			=  2;
 			/* Indentation of C statements with respect to	*

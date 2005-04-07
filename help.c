@@ -1,15 +1,19 @@
-/* $Id: help.c,v 1.6 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: help.c,v 1.6.2.1 2005/04/07 14:27:28 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
 
 #ifndef NO_HELP
+#include "help.h"
+
+#include "i_buffer.h"
+#include "echo.h"
 #include "kbd.h"
 #include "key.h"
-#ifndef NO_MACRO
-# include "macro.h"
-#endif
+#include "macro.h"
+#include "buffer.h"
+#include "cinfo.h"
 
 /* 91.02.06  Move static declaration to here for some compiler. by S.Yoshida */
 static int showall _PRO((char *, KEYMAP *));

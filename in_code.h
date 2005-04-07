@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.2 2003/02/28 17:25:21 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.3 2005/04/07 14:27:28 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -14,6 +14,7 @@ typedef unsigned short NG_WCHAR_t;
  */ 
 #define NG_WSPACE	NG_WCODE(0x20)
 #define NG_WTAB		NG_WCODE(0x08)
+#define NG_WBACKSL	NG_WCODE('\\')
 
 /*
  * 0xFF00-- only available in input key code

@@ -1,4 +1,4 @@
-/* $Id: kbd.h,v 1.4.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: kbd.h,v 1.4.2.2 2005/04/07 14:27:28 amura Exp $ */
 /*
  * kbd.h: type definitions for symbol.c and kbd.c for mg experimental
  */
@@ -67,6 +67,11 @@ int complete_function _PRO((char *, int));
 KEYMAP *name_map _PRO((char *));
 char *map_name _PRO((KEYMAP *));
 MAPS *name_mode _PRO((char *));
+int getkey _PRO((int));
+int rescan _PRO((int, int));
+
+int negative_argument _PRO((int, int));
+int digit_argument _PRO((int, int));
 #ifdef __cplusplus
 }
 #endif

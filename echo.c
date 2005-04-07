@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.2 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.3 2005/04/07 14:27:28 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -15,7 +15,15 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "echo.h"
+
+#include "tty.h"
+#include "ttyio.h"
 #include "key.h"
+#include "kbd.h"
+#include "main.h"
+#include "line.h"
+#include "display.h"
 #ifdef SUPPORT_ANSI
 #  include <stdarg.h>
 #else /* !SUPPPORT_ANSI */
@@ -30,13 +38,6 @@
 #endif
 
 static int veread _PRO((char *, char *, int, int, va_list *));
-#ifdef SUPPORT_ANSI
-VOID ewprintf(char *fp, ...);
-int message(char *fp ,...);
-#else
-VOID ewprintf();
-int message();
-#endif
 
 static VOID eformat _PRO((register char *fp, register va_list *ap));
 static VOID eputi _PRO((int, int));
@@ -60,10 +61,15 @@ VOID
 eargset(earg)
 char *earg;
 {
-    earg_exist = TRUE;
-    earg_text = earg;
+    if (earg) {
+	earg_exist = TRUE;
+	earg_text = earg;
+    }
+    else
+	earg_exist = FALSE;
 }
 #endif /* ADDFUNC */
+
 #ifdef EXTD_DIR
 static char *edef_text;			/* Default argument text body */
 
@@ -347,7 +353,7 @@ static int mb_matchparen _PRO((int, int, int));
 static int mb_col _PRO((struct _Line *, int));
 static int mb_putchar _PRO((int));
 static VOID mb_move _PRO((int));
-static VOID mb_movech _PRO((int));
+/* static VOID mb_movech _PRO((int));*/
 static int mb_fixlines _PRO((int, struct _Line *, int, int *, int *));
 static VOID mb_redisplay _PRO((void));
 static VOID mb_refresh _PRO((int, int));
@@ -1873,6 +1879,7 @@ int m;
     }
 }
 
+#if 0
 static VOID
 mb_movech(n)
 int n;
@@ -1896,6 +1903,7 @@ int n;
 	}
     }
 }
+#endif
 
 static int
 mb_fixlines(col, line, point, colp, ptp)

@@ -1,4 +1,4 @@
-/* $Id: extern.h,v 1.4.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: extern.h,v 1.4.2.2 2005/04/07 14:27:28 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -25,5 +25,16 @@ extern char pat[];
 
 extern char cinfo[];
 extern char *keystrings[];
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+VOID panic _PRO((const char *));	/* tty.h */
+VOID update _PRO((void));		/* display.h */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __NG_EXTERN_H__ */

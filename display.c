@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: display.c,v 1.20.2.2 2005/04/07 14:27:28 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -14,7 +14,17 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "display.h"
+
+#include "i_line.h"
+#include "i_buffer.h"
+#include "i_lang.h"
+#include "i_window.h"
+#include "in_code.h"
+#include "echo.h"
 #include "kbd.h"
+#include "tty.h"
+#include "ttyio.h"
 
 /*
  * You can change these back to the types
@@ -55,7 +65,7 @@ typedef struct {
 #ifndef ZEROARRAY
     NG_WCHAR_t v_text[1];		/* The actual characters.	*/
 #else
-    NG_WCHAR_t v_text[];		/* The actual characters.	*/
+    NG_WCHAR_t v_text[ZEROARRAY];	/* The actual characters.	*/
 #endif
 } VIDEO;
 
@@ -89,8 +99,6 @@ int ttcol = HUGE;			/* Physical cursor column.	*/
 int tttop = HUGE;			/* Top of scroll region.	*/
 int ttbot = HUGE;			/* Bottom of scroll region.	*/
 
-extern int ncol;
-extern int nrow;
 static int vncol = 0;
 static int vnrow = 0;
 
@@ -99,19 +107,19 @@ static VIDEO **pscreen = NULL;		/* Edge vector, physical.	*/
 static VIDEO *video    = NULL;		/* Actual screen data.		*/
 static VIDEO *blanks   = NULL;		/* Blank line image.		*/
 
+static LANG_MODULE *display_lang;
+
 /*
  * Some predeclerations to make ANSI compilers happy
  */
-VOID vtinit _PRO((void));
-VOID vttidy _PRO((void));
-VOID vtputc _PRO((int));
-VOID update _PRO((void));
 static VOID vtmove _PRO((int, int));
 static VOID vtmarkyen _PRO((int));
 static VOID vteeol _PRO((void));
 static VOID ucopy _PRO((VIDEO *, VIDEO *));
 static VOID uline _PRO((int, VIDEO *, VIDEO *));
 static VOID modeline _PRO((WINDOW *));
+static int vtputs _PRO((const NG_WCHAR_t *));
+static int vtputsA _PRO((const char *));
 #ifdef ADDFUNC
 static VOID moderatio _PRO((WINDOW *));
 #endif
@@ -239,7 +247,7 @@ int row, col;
 {
     vtrow = row;
     vtcol = col;
-    vtkmode = display_lang.lm_display_start_code();
+    //vtkmode = display_lang.lm_display_start_code();
 }
 
 /*
@@ -256,7 +264,7 @@ int row, col;
  */
 VOID
 vtputc(c)
-register int c;
+register NG_WCHAR_t c;
 {
     register VIDEO *vp;
 #ifdef VARIABLE_TAB
@@ -358,10 +366,10 @@ vteeol()
 */
 int
 #ifdef SUPPORT_ANSI /* for strict compiler */
-colrow(LINE *lp, LINE_OFF_t offset, int *curcol, int *lines)
+colrow(const LINE *lp, LINE_OFF_t offset, int *curcol, int *lines)
 #else
 colrow(lp, offset, curcol, lines)
-LINE *lp;
+const LINE *lp;
 LINE_OFF_t offset;
 int *curcol;
 int *lines;
@@ -387,7 +395,7 @@ int *lines;
 #endif
 	}
 	else
-	    (*curcol) += display_width(c);
+	    (*curcol) += display_lang->lm_width(c);
 
 	if (*curcol >= ncol -2) {
 	    *curcol = -1;
@@ -420,14 +428,14 @@ int col, row;
     register int i;
     register int curcol;
     register char c;
-    register int width, skipbytes;
-    int (*width)(NG_WCHAR_t) = curbp->b_lang.lm_width;
+    register int width;
+    int (*lm_width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
   
     curcol = 0;
-    for (i=0; i<llength(lp); i += skipbytes) {
+    for (i=0; i<llength(lp); i++) {
 	if (row < 0 || (row == 0 && col < curcol))
 	    return i;
 	c = lgetc(lp, i);
@@ -445,7 +453,7 @@ int col, row;
 	     */
 	}
 	else
-	    width = width(c);
+	    width = lm_width(c);
 	if (row == 0 && col < curcol + (width + 1) / 2) {
 	    return i;
 	}
@@ -467,13 +475,14 @@ int col, row;
  */
 LINE_NO_t
 skipline(lp, lines)
-LINE *lp;
+const LINE *lp;
 int lines;
 {
     register int i;
     register int curcol;
     register char c;
     register int c1;
+    int (*lm_width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
@@ -496,7 +505,7 @@ int lines;
 	    }
 	}
 	else
-	    curcol += width(c);
+	    curcol += lm_width(c);
 	if (curcol >= ncol-1) {
 	    curcol = 0;
 	    --lines;
@@ -513,13 +522,14 @@ int lines;
  */
 int
 countlines(lp)
-LINE *lp;
+const LINE *lp;
 {
     register int i;
     register int curcol;
     register int lines;
     register char c;
     register int c1;
+    int (*lm_width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
@@ -541,7 +551,7 @@ LINE *lp;
 	    }
 	}
 	else
-	    curcol += width(c);
+	    curcol += lm_width(c);
 	if (curcol >= ncol-1) {
 	    curcol=0;
 	    ++lines;
@@ -549,63 +559,6 @@ LINE *lp;
     }
     return lines+1;
 }
-
-#if 0
-static VOID
-vtpute(c)
-int c;
-{
-    register VIDEO	*vp;
-#ifdef VARIABLE_TAB
-    int tab = curwp->w_bufp->b_tabwidth;
-#endif
-
-    vp = vscreen[vtrow];
-
-    if (vtcol >= ncol) {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	if (vtkattr == K2ND) {
-	    vp->v_text[ncol - 2] = '$';
-	}
-#endif /* KANJI */
-	vp->v_text[ncol - 1] = '$';
-    }
-    else if (c == '\t' && !(curbp->b_flag & BFNOTAB)) {
-	do {
-	    vtpute(' ');
-	}
-#ifdef VARIABLE_TAB
-	while (((vtcol + lbound)%tab) != 0 && vtcol < ncol);
-#else
-	while (((vtcol + lbound)&0x07) != 0 && vtcol < ncol);
-#endif /* VARIABLE_TAB */
-    }
-    else if (ISCTRL(c) != FALSE) {
-	vtpute('^');
-	vtpute(CCHR(c));
-    }
-    else {
-	if (vtcol >= 0)
-	    vp->v_text[vtcol] = c;
-	++vtcol;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	if (vtkattr == K1ST) {
-	    vtkattr = K2ND;
-	}
-	else if (ISKANJI(c)) { /* FIXME : unsupported kana */
-	    vtkattr = K1ST;
-	}
-	else {
-	    vtkattr = ASCII;
-	}
-	if (vtcol == 1 && vtkattr == K1ST) {
-	    vtcol--;
-	    lbound++;
-	}
-#endif /* KANJI */
-    }
-}
-#endif
 
 /*
  * Make sure that the display is
@@ -636,10 +589,9 @@ update()
     int	x,y;
     int	lines;
     VOID traceback _PRO((void));
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    extern int no_k2nd;		/* Defined at kbd.c */
-#endif /* KANJI */
-
+    /* 90.01.29  by S.Yoshida */
+    extern int input_continued;		/* Defined at kbd.c */
+    
     if (typeahead())
 	return;
     if (sgarbf) {			/* must update everything */
@@ -648,12 +600,11 @@ update()
 	    wp->w_flag |= WFMODE | WFHARD;
 	    wp = wp->w_wndp;
 	}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	no_k2nd = FALSE;		/* Reset KANJI input condition. */
+	/* 90.01.29  by S.Yoshida */
+	input_continued = FALSE;	/* Reset KANJI input condition. */
     } 
-    else if (no_k2nd) {			/* We don't have KANJI 2nd byte. */
+    else if (input_continued) {		/* We don't have KANJI 2nd byte. */
 	return;
-#endif /* KANJI */
     }
 
     old_curwp = curwp;
@@ -821,8 +772,7 @@ out:
     while (wp != NULL) {
         /* if garbaged then fix up mode lines */
 	if (sgarbf != FALSE)
-	    vscreen[wp->w_toprow+wp->w_ntrows]->v_flag
-							|= VFCHG;
+	    vscreen[wp->w_toprow+wp->w_ntrows]->v_flag |= VFCHG;
 	/* and onward to the next window */
 	wp = wp->w_wndp;
     }
@@ -968,16 +918,13 @@ VIDEO *vvp, *pvp;
     ttflush();	/* 90.06.09  by A.Shirahashi */
     putline(row+1, 1, &vvp->v_text[0], vvp->v_color);
 #else   /* not MEMMAP */
-    register char *cp1;
-    register char *cp2;
-    register char *cp3;
-    char *cp4;
-    char *cp5;
+    register NG_WCHAR_t *cp1;
+    register NG_WCHAR_t *cp2;
+    register NG_WCHAR_t *cp3;
+    NG_WCHAR_t *cp4;
+    NG_WCHAR_t *cp5;
     register int nbflag;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-    register int kselect = FALSE;
-#endif	/* KANJI */
-
+    
     if (vvp->v_color != pvp->v_color) {	/* Wrong color, do a	*/
 	ttmove(row, 0);			/* full redraw.		*/
 #ifdef	STANDOUT_GLITCH
@@ -997,9 +944,10 @@ VIDEO *vvp, *pvp;
 	cp2 = &vvp->v_text[ncol];
 #endif	/* STANDOUT_GLITCH */
 	while (cp1 != cp2) {
-	    ttcol += ttputc(*cp1++);
+	    ttputc(*cp1);
+	    ttcol += display_lang->lm_width(*cp1++);
 	}
-	term_lang.display_code_init();
+	display_lang->lm_display_start_code();
 #ifndef MOVE_STANDOUT
 	ttcolor(CTEXT);
 #endif
@@ -1028,7 +976,7 @@ VIDEO *vvp, *pvp;
     }
     cp5 = cp3;				/* Is erase good?	*/
     if (nbflag==FALSE && vvp->v_color==CTEXT) {
-	while (cp5!=cp1 && cp5[-1]==' ')
+	while (cp5!=cp1 && cp5[-1]==NG_WSPACE)
 	    --cp5;
 	/* Alcyon hack */
 	if ((int)(cp3-cp5) <= tceeol)
@@ -1047,10 +995,10 @@ VIDEO *vvp, *pvp;
 #endif /* STANDOUT_GLITCH */
 	ttcolor(vvp->v_color);
     while (cp1 != cp5) {
-	ttcol += ttputc(*cp1++);
-	++ttcol;
+	ttputc(*cp1);
+	ttcol += display_lang->lm_width(*cp1++) + 1;
     }
-    kdselectcode(kselect);
+    /*kdselectcode(kselect); XXX*/
     if (cp5 != cp3)				/* Do erase.		*/
 	tteeol();
 #ifndef MOVE_STANDOUT	/* 90.03.21  by S.Yoshida */
@@ -1079,8 +1027,8 @@ register WINDOW *wp;
     register BUFFER *bp;
     int mode;
 #ifdef CANNA
-    extern char currentMode[];
-    extern char origMode[];
+    extern NG_WCHAR_t currentMode[];
+    extern NG_WCHAR_t origMode[];
 #endif
 
     n = wp->w_toprow+wp->w_ntrows;		/* Location.		*/
@@ -1091,12 +1039,12 @@ register WINDOW *wp;
 #ifdef CANNA
     if (bp->b_flag & BFCANNA) {
 	if (bp == curbp)
-	     n += vtputs(currentMode);
+	    n += vtputs(currentMode);
 	else
-	     n += vtputs(origMode);
+	    n += vtputs(origMode);
     }
     else
-	n += vtputs("[ -- ]");
+	n += vtputsA("[ -- ]");
 #endif
     vtputc('-'); vtputc('-');
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
@@ -1113,13 +1061,9 @@ register WINDOW *wp;
     }
     vtputc('-');
     n  = 5;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    n += vtputs("Ng: ");
-#else /* NOT KANJI */
-    n += vtputs("Mg: ");
-#endif /* KANJI */
+    n += vtputsA("Ng: ");
     if (bp->b_bname[0] != '\0')
-	n += vtputs(&(bp->b_bname[0]));
+	n += vtputs((NG_WCHAR_t *)bp->b_bname);
     while (n < 42) {			/* Pad out with blanks	*/
 	vtputc(' ');
 	++n;
@@ -1131,7 +1075,7 @@ register WINDOW *wp;
     n += kdispbufcode(bp);			/* Show KANJI code.	*/
 #endif /* KANJI */	
     for (mode=0;;) {
-	n += vtputs(bp->b_modes[mode]->p_name);
+	n += vtputsA(bp->b_modes[mode]->p_name);
 	if (++mode > bp->b_nmodes)
 	    break;
 	vtputc('-');
@@ -1175,10 +1119,8 @@ register WINDOW *wp;
 #else
     n  = 46;
 #endif
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
     /* 90.12.28  Move to here like as Nemacs 3.3. by S.Yoshida */
     n += 4;					/* Show KANJI code.	*/
-#endif /* KANJI */	
     for (mode=0;;) {	/* skip mode names */
 	n += strlen(bp->b_modes[mode]->p_name);
 	if (++mode > bp->b_nmodes)
@@ -1190,7 +1132,7 @@ register WINDOW *wp;
 	extern int get_lineno _PRO((BUFFER*, LINE*));
 	char linestr[NINPUT];	/* XXX now, support only 32bit int */
 	sprintf(linestr, "L%d", get_lineno(bp, wp->w_dotp)+1);
-	vtputs(linestr);
+	vtputsA(linestr);
     }
     {
 	extern int windowpos _PRO((WINDOW *));
@@ -1199,15 +1141,15 @@ register WINDOW *wp;
 	vtputc('-'); vtputc('-');
 	switch (ratio) {
 	case MG_RATIO_ALL:
-	    vtputs("All");
+	    vtputsA("All");
 	    break;
 	    
 	case MG_RATIO_TOP:
-	    vtputs("Top");
+	    vtputsA("Top");
 	    break;
 	  
 	case MG_RATIO_BOT:
-	    vtputs("Bot");
+	    vtputsA("Bot");
 	    break;
 	
 	default:
@@ -1227,18 +1169,35 @@ register WINDOW *wp;
 /*
  * output a string to the mode line, report how long it was.
  */
-int
-vtputs(s)
-register char *s;
+static int
+vtputsA(s)
+register const char *s;
 {
     register int n = 0;
 
     while (*s != '\0') {
-	vtputc(*s++);
-	++n;
+	vtputc(*s & 0x7f);
+	n += display_lang->lm_width(*s++);
     }
     return n;
 }
+
+/*
+ * output a string to the mode line, report how long it was.
+ */
+static int
+vtputs(s)
+register const NG_WCHAR_t *s;
+{
+    register int n = 0;
+
+    while (*s != '\0') {
+	vtputc(*s);
+	n += display_lang->lm_width(*s++);
+    }
+    return n;
+}
+
 #ifdef GOSLING
 /*
  * Compute the hash code for

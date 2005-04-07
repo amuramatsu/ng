@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: file.c,v 1.15.2.1 2005/04/07 14:27:28 amura Exp $ */
 /*
  *		File commands.
  */
@@ -6,13 +6,19 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#ifdef UNDO
-#include "undo.h"
-#endif
 
-BUFFER *findbuffer _PRO(());
-VOID makename _PRO(());
-VOID upmodes _PRO(());
+#include "i_buffer.h"
+#include "i_window.h"
+#include "file.h"
+#include "fileio.h"
+#include "undo.h"
+#include "dir.h"
+#include "dired.h"
+#include "echo.h"
+#include "line.h"
+#include "buffer.h"
+#include "modes.h"
+
 static char *itos _PRO((char *, unsigned int));
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: line.h,v 1.1.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: line.h,v 1.1.2.2 2005/04/07 14:27:28 amura Exp $ */
 /*
  * This file is the header file for line parts
  * of the NG display editor.
@@ -14,9 +14,13 @@ extern "C" {
 
 LINE *lalloc _PRO((int));
 LINE *lallocx _PRO((int));
+int kinsert _PRO((int, int));
+int kremove _PRO((int));
+VOID kdelete _PRO((void));
 int linsert _PRO((int, int));
 int ldelete _PRO((RSIZE, int));
 int lnewline _PRO((void));
+int ldelnewline _PRO((void));
 
 #ifdef __cplusplus
 }

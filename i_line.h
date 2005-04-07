@@ -1,4 +1,4 @@
-/* $Id: i_line.h,v 1.1.2.2 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: i_line.h,v 1.1.2.3 2005/04/07 14:27:28 amura Exp $ */
 /*
  * This file is the internal buffer definition of the NG
  * display editor.
@@ -9,7 +9,7 @@
 
 typedef unsigned long LINE_NO_t;	/* line number type */
 typedef short LINE_OFF_t;		/* line offset type */
-typedef unsigned short NG_WCHAR_t;	/* char */
+#include "in_code.h"
 
 /*
  * All text is kept in circularly linked

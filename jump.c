@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.9.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: jump.c,v 1.9.2.2 2005/04/07 14:27:28 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -122,7 +122,7 @@ int *ip, *parse_end;
     len = regs.end[0] - regs.start[0];
     if (len > BUFLEN)
 	len = BUFLEN;
-    strncpy( buf, ltext(clp) + regs.start[0], len );
+    strncpy( buf, (const char *)&(ltext(clp)[regs.start[0]]), len ); /* XXX */
     buf[len] = '\0';
 
     for (i=len; i>0 && ISDIGIT(buf[i-1]); --i )

@@ -1,4 +1,4 @@
-/* $Id: ttyio.h,v 1.1.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: ttyio.h,v 1.1.2.2 2005/04/07 14:27:28 amura Exp $ */
 /*
  * This file is the header file for ttyio parts
  * of the NG display editor.
@@ -19,7 +19,6 @@ extern "C" {
 #endif
 
 int typeahead _PRO((void));
-VOID panic _PRO((char *));
 int ttgetc _PRO((void));
 VOID ttungetc _PRO((int));
 #ifdef FEPCTRL

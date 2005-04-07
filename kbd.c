@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.1 2005/04/07 14:27:28 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -7,16 +7,18 @@
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
 #include "kbd.h"
-#ifdef UNDO
-#include "undo.h"
-#endif
 
+#include "i_window.h"
+#include "autosave.h"
+#include "echo.h"
+#include "undo.h"
+#include "ttyio.h"
 #define EXTERN
 #include "key.h"
-
-#ifndef NO_MACRO
+#include "line.h"
 #include "macro.h"
-#endif
+#include "buffer.h"
+#include "display.h"
 
 #ifdef CANNA
 #include <canna/jrkanji.h>
@@ -574,8 +576,9 @@ int f, n;
 #else
 		if (undostart==undoptr) {
 #endif
-		    curbp->b_utop--;
-		    if (curbp->b_utop < 0)
+		    if (curbp->b_utop > 0)
+			curbp->b_utop--;
+		    else
 			curbp->b_utop = UNDOSIZE;
 		    undostart = &curbp->b_ustack[curbp->b_utop];
 		}		
@@ -648,8 +651,9 @@ int f, n;
 #else
 	    if (undostart==undoptr) {
 #endif
-		curbp->b_utop--;
-		if (curbp->b_utop < 0)
+		if (curbp->b_utop > 0)
+		    curbp->b_utop--;
+		else
 		    curbp->b_utop = UNDOSIZE;
 		undostart = &curbp->b_ustack[curbp->b_utop];
 	    }			

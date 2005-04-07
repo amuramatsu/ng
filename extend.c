@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7 2003/02/22 08:09:46 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.1 2005/04/07 14:27:28 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -7,23 +7,28 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#include "kbd.h"
+#include "extend.h"
 
-#ifndef NO_MACRO
+#include "i_buffer.h"
+#include "cinfo.h"
+#include "echo.h"
+#include "buffer.h"
+#include "line.h"
+#include "fileio.h"
+#include "kbd.h"
+#include "dir.h"
 #include "macro.h"
-#endif
 
 #ifdef FKEYS
 #include "key.h"
 #ifndef	NO_STARTUP
 #ifndef	BINDKEY
-#define	BINDKEY		/* bindkey is used by FKEYS startup code */
+# define	BINDKEY		/* bindkey is used by FKEYS startup code */
 #endif
 #endif
-#endif
+#endif /* FKEYS */
 #include <string.h>
 
-extern int rescan _PRO((int, int));
 /* 91.02.06  Move static declaration to here for some compiler. by S.Yoshida */
 static KEYMAP *realocmap _PRO((KEYMAP *));
 static VOID fixmap _PRO((KEYMAP *, KEYMAP *, KEYMAP *));
@@ -571,13 +576,14 @@ int f, n;
 {
     register LINE *lp;
     register BUFFER *bp = curbp;
-    register int s;
+    register int s, i;
     static char excbuf[128];
     
     for (lp = lforw(bp->b_linep); lp != bp->b_linep; lp = lforw(lp)) {
 	if (llength(lp) >= 128)
 	    return FALSE;
-	(VOID) strncpy(excbuf, ltext(lp), llength(lp));
+	for (i = 0; i < llength(lp); i++)
+	    excbuf[i] = ltext(lp)[i];
 	excbuf[llength(lp)] = '\0';	/* make sure it's terminated */
 	if ((s = excline(excbuf)) != TRUE)
 	    return s;
@@ -615,7 +621,7 @@ int f, n;
  */
 int
 load(fname)
-char *fname;
+const char *fname;
 {
     int s = TRUE;
     int nbytes;
