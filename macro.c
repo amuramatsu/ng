@@ -1,14 +1,16 @@
-/* $Id: macro.c,v 1.3 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: macro.c,v 1.3.2.1 2005/04/07 17:15:19 amura Exp $ */
 /* keyboard macros for MicroGnuEmacs 1x */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
-
 #ifndef NO_MACRO
 #include "def.h"
+
 #include "key.h"
 #define EXTERN
 #define INIT(i) = (i)
 #include "macro.h"
+#include "echo.h"
+#include "line.h"
 
 /*ARGSUSED*/
 int
@@ -37,8 +39,6 @@ int f, n;
     return macrodef = TRUE;
 }
 
-int finishmacro _PRO((int, int));
-
 /*ARGSUSED*/
 int
 finishmacro(f, n)
@@ -56,7 +56,6 @@ int f, n;
 {
     int i, j;
     PF funct;
-    int universal_argument _PRO((int, int));
     int flag, num;
 	
     if (macrodef ||

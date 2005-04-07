@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.12.2.1 2003/03/08 01:34:06 amura Exp $ */
+/* $Id: paragraph.c,v 1.12.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -7,9 +7,17 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#ifdef UNDO
+#include "paragraph.h"
+
+#include "i_buffer.h"
+#include "i_window.h"
+#include "basic.h"
+#include "random.h"
+#include "region.h"
+#include "line.h"
 #include "undo.h"
-#endif
+#include "echo.h"
+#include "word.h"
 
 static int fillcol = 70 ;
 #define MG_MAXWORD 256
@@ -18,7 +26,7 @@ static int fillcol = 70 ;
 static int fillprefix_col = 0;	/* fill-prefix column length. */
 static int fillprefix_len = 0;	/* fill-prefix byte length. */
 #define PREFIXLENGTH 40
-static char fillprefix[PREFIXLENGTH] = { '\0' };
+static NG_WCHAR_t fillprefix[PREFIXLENGTH] = { '\0' };
 #endif	/* FILLPREFIX */
 
 /*
@@ -52,8 +60,9 @@ int f, n;
 #ifdef	FILLPREFIX	/* 91.01.01  by S.Yoshida */
 	    /* We strip fill-prefix strings to scan back. */
 	    if (llength(lback(curwp->w_dotp)) > fillprefix_len
-		&& strncmp(ltext(curwp->w_dotp),
-			   fillprefix, fillprefix_len) == 0
+		&& memcmp(ltext(curwp->w_dotp),
+			  fillprefix,
+			  sizeof(NG_WCHAR_t)*(1+fillprefix_len)) == 0
 		&& lgetc(curwp->w_dotp,fillprefix_len) != ' '
 		&& lgetc(curwp->w_dotp,fillprefix_len) != '\t')
 #else	/* NOT FILLPREFIX */
@@ -102,8 +111,9 @@ int f, n;
 #ifdef FILLPREFIX	/* 91.01.01  by S.Yoshida */
 	    /* We strip fill-prefix strings to scan forword. */
 	    if (llength(curwp->w_dotp) > fillprefix_len
-		&& strncmp(ltext(curwp->w_dotp),
-			   fillprefix, fillprefix_len) == 0
+		&& memcmp(ltext(curwp->w_dotp),
+			  fillprefix,
+			  sizeof(NG_WCHAR_t)*(1+fillprefix_len)) == 0
 		&& lgetc(curwp->w_dotp,fillprefix_len) != ' '
 		&& lgetc(curwp->w_dotp,fillprefix_len) != '\t')
 #else	/* NOT FILLPREFIX */
@@ -403,7 +413,7 @@ int f, n;
 #ifdef FILLPREFIX	/* 90.12.31  by S.Yoshida */
 		/* and add the fill-prefix strings. */
 		{
-		    char *cp = fillprefix;
+		    NG_WCHAR_t *cp = fillprefix;
 #ifdef UNDO
 		    if (undoptr != NULL) {
 			if (*undoptr != NULL)
@@ -668,7 +678,7 @@ int f, n;
 #ifdef FILLPREFIX	/* 90.12.31  by S.Yoshida */
     /* Add the fill-prefix strings at the begin of line. */
     {
-	char *cp = fillprefix;
+	NG_WCHAR_t *cp = fillprefix;
 
 #ifdef UNDO
 	if (isundo()) {
@@ -718,8 +728,6 @@ int
 setfillcol(f, n)
 int f, n;
 {
-    extern int getcolpos _PRO((void));
-    
     fillcol = ((f & FFARG) ? n : (getcolpos() - 1));
     ewprintf("Fill column set to %d", fillcol);
     return TRUE;

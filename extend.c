@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.1 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -12,7 +12,7 @@
 #include "i_buffer.h"
 #include "cinfo.h"
 #include "echo.h"
-#include "buffer.h"
+//#include "buffer.h"
 #include "line.h"
 #include "fileio.h"
 #include "kbd.h"
@@ -341,8 +341,6 @@ int unbind;
     int c;
     int s;
     KEYMAP *pref_map = NULL;
-    extern PF name_function _PRO((char *));
-    extern LINE *lalloc _PRO((int));
 
 #ifndef NO_MACRO
     if (macrodef) {

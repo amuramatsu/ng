@@ -1,4 +1,4 @@
-/* $Id: file.h,v 1.1.2.2 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: file.h,v 1.1.2.3 2005/04/07 17:15:19 amura Exp $ */
 /*
  * This file is the header file for file parts
  * of the NG display editor.
@@ -11,6 +11,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+int filevisit _PRO((int, int));
+int poptofile _PRO((int, int));
 
 int buffsave _PRO((BUFFER *));
 VOID ksetbufcode _PRO((BUFFER *));

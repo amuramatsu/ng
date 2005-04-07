@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.13.2.1 2003/03/08 01:34:06 amura Exp $ */
+/* $Id: random.c,v 1.13.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -11,9 +11,15 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#ifdef UNDO
+#include "random.h"
+
+#include "i_buffer.h"
+#include "i_window.h"
+#include "basic.h"
+#include "display.h"
+#include "line.h"
+#include "echo.h"
 #include "undo.h"
-#endif
 
 /*
  * Display a bunch of useful information about
@@ -169,9 +175,8 @@ int f, n;
     register int cr3;
     register int cr4;
 #endif /* KANJI */
-    VOID lchange _PRO((int));
 #ifdef UNDO
-    UNDO_DATA *undo;
+    UNDO_DATA *undo = NULL;
 #endif
 
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
@@ -545,7 +550,6 @@ int f, n;
     register RSIZE chunk;
     register LINE *nextp;
     register int i, c;
-    VOID kdelete _PRO((void));
     
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
@@ -609,7 +613,6 @@ int f, n;
     register RSIZE chunk;
     register LINE *nextp;
     register int i;
-    VOID  kdelete _PRO((void));
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
 	warnreadonly();			/* do only displaying warning.	*/
@@ -679,7 +682,6 @@ int f, n;
     register int i;
     register LINE *lp;
     register int nline;
-    VOID isetmark _PRO((void));
     int mark_adjust = FALSE;
 #ifdef UNDO
     int run_insert = FALSE;
@@ -704,8 +706,6 @@ int f, n;
 	i = 0;
 #ifdef UNDO
 	if (isundo()) {
-	    extern int get_lineno _PRO((BUFFER*,LINE*));
-	    extern int set_lineno;
 	    set_lineno = get_lineno(curbp, curwp->w_dotp);
 	    while ((c=kremove(i)) >= 0) {
 		if (c == '\n') {
@@ -1013,76 +1013,3 @@ int f, n;
     ewprintf("Region has %d lines", totallines);
     return TRUE;
 }
-
-/*
-   Investigate the dot position to return a ratio value.  The ratio
-   value will be between 0 and 100.  The following values are special
-   case and all of them are negative value.
-
-   MG_RATIO_ALL   All portion of the buffer is shown in the window.
-   MG_RATIO_TOP   Top portion of the buffer is shown in the window.
-   MG_RATIO_BOT   Bottom portion of the buffer is shown in the window.
-
-   By Tillanosoft, Mar 21, 1999.
-      patched by amura, 2 Apl 2000
- */
-
-int
-windowpos(wp)
-register WINDOW *wp;
-{
-    int rowcol2offset _PRO((LINE *, int, int));
-    LINE *lp, *targetlp;
-    register BUFFER *bp = wp->w_bufp;
-    int top = FALSE, bot = FALSE, off;
-    int res = MG_RATIO_ALL;
-    
-    /* check if the beginning of top line is shown */
-    if (wp->w_linep == lforw(bp->b_linep)) {
-	if (wp->w_lines == 0)
-	    top = TRUE;
-    }
-    /* check if the end of the bottom line is shown */
-    lp = wp->w_linep;
-    off = rowcol2offset(lp, wp->w_lines + wp->w_ntrows, ncol);
-    while (off < 0) {
-	if (lforw(lp) != bp->b_linep) {
-	    lp = lforw(lp);
-	    off = rowcol2offset(lp, -off - 1, ncol);
-	}
-	else {
-	    bot = TRUE;
-	    break;
-	}
-    }
-    if (top && bot)
-	res = MG_RATIO_ALL;
-    else if (top)
-	res = MG_RATIO_TOP;
-    else if (bot)
-	res = MG_RATIO_BOT;
-    else {
-	/* count the bytes of the dot and the end */
-	long nchar = 0, cchar = 0;
-	
-	targetlp = wp->w_linep;
-	lp = lforw(bp->b_linep);
-	for (;;) {
-	    if (lp == targetlp) {
-		cchar = nchar + skipline(lp, wp->w_lines);
-	    }
-	    nchar += llength(lp); /* Now count the chars */
-	    lp = lforw(lp);
-	    if (lp == bp->b_linep) {
-		break;
-	    }
-	    nchar++; /* count the newline */
-	}
-	res = (cchar * 100) / nchar;
-	if (res >= 100) {
-	    res = 99;
-	}
-    }
-    return res;
-}
-#endif /* ADDFUNC */

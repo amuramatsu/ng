@@ -1,4 +1,4 @@
-/* $Id: display.h,v 1.1.2.2 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: display.h,v 1.1.2.3 2005/04/07 17:15:19 amura Exp $ */
 /*
  * This file is the header file for display parts
  * of the NG display editor.
@@ -15,7 +15,6 @@ extern "C" {
 VOID putline _PRO((int, int, const NG_WCHAR_t *, short));
 VOID PutLine _PRO((int, const NG_WCHAR_t *, short));
 VOID vtputc _PRO((NG_WCHAR_t));
-int ttwait _PRO((void));
 VOID vtsetsize _PRO((int, int));
 int countlines _PRO((const LINE *));
 int colrow _PRO((const LINE *, LINE_OFF_t, int *, int *));

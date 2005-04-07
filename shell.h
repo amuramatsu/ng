@@ -1,4 +1,4 @@
-/* $Id: shell.h,v 1.1.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: shell.h,v 1.1.2.2 2005/04/07 17:15:20 amura Exp $ */
 /*
  * This file is the header file for shell parts
  * of the NG display editor.
@@ -9,6 +9,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+char *call_process _PRO((char *, char *)); /* spawn.c */
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.5.2.2 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: shell.c,v 1.5.2.3 2005/04/07 17:15:20 amura Exp $ */
 /*
  *		Shell commands.
  * The file contains the command
@@ -10,9 +10,12 @@
 
 #ifndef NO_SHELL
 #include "def.h"
-
 #include "shell.h"
+
+#include "i_buffer.h"
+#include "i_window.h"
 #include "buffer.h"
+#include "basic.h"
 #include "file.h"
 #include "echo.h"
 
@@ -23,12 +26,9 @@ int f, n;
 {
     char buf[CMDLINELENGTH];
     char *result;
-    extern char *call_process _PRO((char *, char *));
-    extern int isetmark _PRO((void)), gotobob _PRO((int, int));
     int s;
     BUFFER *bp = NULL, *obp = NULL;
     WINDOW *wp = NULL, *owp = NULL;
-    WINDOW *popbuf _PRO((BUFFER *));
     
     s = ereply("Shell command: ", buf, sizeof buf);
     if (s != TRUE)

@@ -1,4 +1,4 @@
-/* $Id: match.c,v 1.5.2.1 2003/03/08 01:34:06 amura Exp $ */
+/* $Id: match.c,v 1.5.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Limited parenthesis matching routines
@@ -18,7 +18,12 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "match.h"
+
+#include "i_buffer.h"
+#include "i_window.h"
 #include "key.h"
+#include "echo.h"
 
 static VOID displaymatch _PRO((LINE *, int));
 static int getmatch _PRO((LINE *, int, LINE **, int *, int));

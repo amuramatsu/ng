@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.1 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: file.c,v 1.15.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		File commands.
  */
@@ -6,10 +6,10 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "file.h"
 
 #include "i_buffer.h"
 #include "i_window.h"
-#include "file.h"
 #include "fileio.h"
 #include "undo.h"
 #include "dir.h"
@@ -18,6 +18,7 @@
 #include "line.h"
 #include "buffer.h"
 #include "modes.h"
+#include "autosave.h"
 
 static char *itos _PRO((char *, unsigned int));
 
@@ -798,7 +799,6 @@ BUFFER *bp;
     register int s;
 #ifndef NO_BACKUP	/* 90.02.14  by S.Yoshida */
     register int m = -1;
-    VOID fsetfilemode _PRO(());
 #endif /* NO_BACKUP */
     
     if ((bp->b_flag&BFCHG) == 0) {	/* Return, no changes.	*/

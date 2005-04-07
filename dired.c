@@ -1,13 +1,13 @@
-/* $Id: dired.c,v 1.10.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: dired.c,v 1.10.2.2 2005/04/07 17:15:19 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
-#include "def.h"
 
 #ifndef NO_DIRED
-
+#include "def.h"
 #include "dired.h"
+
 #include <string.h>
 #include "i_buffer.h"
 #include "dir.h"
@@ -477,7 +477,6 @@ int f, n;
 #ifdef WIN32
     char fname[NFILEN];
     register int s;
-    extern VOID WinExecute _PRO((char *));
 
     s = d_makename(curwp->w_dotp, fname, sizeof(fname));
     if (s == ABORT)

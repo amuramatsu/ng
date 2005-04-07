@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.1 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -17,6 +17,7 @@
 #include "echo.h"
 #include "tty.h"
 #include "ttyio.h"
+#include "fileio.h"
 #include "window.h"
 #include "keymap.h"
 
@@ -210,7 +211,6 @@ char *name;
     int fnnum;
     char *cand;
     char *filenames;
-    int fffiles _PRO((char*,char**));
 
     fnlen = strlen(name);
 
@@ -449,8 +449,6 @@ BUFFER *bp;
     char *cand;
     char line[NFILEN];
     char *filenames;
-    int fffiles _PRO((char *,char **));
-    char *file_name_part _PRO((char *));
 
     dnlen = file_name_part (name) - name;
 

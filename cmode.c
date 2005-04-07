@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.7.2.2 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: cmode.c,v 1.7.2.3 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -14,14 +14,15 @@
 #include "def.h"
 #include "cmode.h"
 
+#include "i_window.h"
 #include "undo.h"
 #include "echo.h"
 #include "buffer.h"
-#include "kbd.h"
 #include "line.h"
 #include "basic.h"
 #include "random.h"
 #include "region.h"
+#include "match.h"
 
 static int indent_level			=  2;
 			/* Indentation of C statements with respect to	*
@@ -65,8 +66,6 @@ static int calc_indent _PRO((void));
 static int adjust_spc _PRO((int));
 static int check_bal _PRO((unsigned char *));
 static int count_column _PRO((LINE *, int));
-extern int getnum _PRO((char *, int *));
-extern int blinkmatch _PRO((LINE *, int));
 static int do_cm_brace _PRO((int, int, int));
 
 /*

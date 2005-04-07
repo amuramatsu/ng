@@ -1,4 +1,4 @@
-/* $Id: undo.h,v 1.9.2.2 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: undo.h,v 1.9.2.3 2005/04/07 17:15:20 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -61,9 +61,6 @@ int  undo_bgrow   _PRO((register UNDO_DATA*, register RSIZE));
 	(_u)->u_size = 0;				\
     }							\
 } while (/*CONSTCOND*/0)
-
-/* in line.c */
-int get_lineno   _PRO((BUFFER*, LINE*));
 
 #else /* not UNDO */
 

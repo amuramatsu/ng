@@ -1,4 +1,4 @@
-/* $Id: word.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: word.c,v 1.5.2.1 2005/04/07 17:15:20 amura Exp $ */
 /*
  *		Word mode commands.
  * The routines in this file
@@ -192,7 +192,6 @@ capword(f, n)
 int f, n;
 {
     register int c;
-    VOID lchange _PRO((int));
 
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
@@ -327,7 +326,6 @@ delbword(f, n)
 int f, n;
 {
     register RSIZE size;
-    VOID kdelete _PRO((void));
 
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */

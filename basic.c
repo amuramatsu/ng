@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11.2.2 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: basic.c,v 1.11.2.3 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -18,7 +18,6 @@
 #include "i_lang.h"
 #include "i_buffer.h"
 #include "i_line.h"
-#include "buffer.h"
 #include "display.h"
 #include "echo.h"
 #include "line.h"

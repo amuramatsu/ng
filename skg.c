@@ -1,4 +1,4 @@
-/* $Id: skg.c,v 1.13 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: skg.c,v 1.13.2.1 2005/04/07 17:15:20 amura Exp $ */
 /* - For Kg Ver.4.1.0 -                                     */
 /* Simple Kanji Generator functions for MicroGnuEmacs(Kg)   */
 /* for AMIGA series with ANS,DaiGokai(above ver.0.40).      */
@@ -87,7 +87,6 @@ static int in_skg = FALSE;
 char *romanname = NULL;
 char *dicname   = NULL;
 
-extern int isetmark _PRO((void));
 static int skg_init _PRO((void));
 static VOID skg_finish _PRO((void));
 static int skg_input_string _PRO((int *, char *));

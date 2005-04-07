@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.3 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.4 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -23,7 +23,9 @@
 #include "kbd.h"
 #include "main.h"
 #include "line.h"
-#include "display.h"
+#include "macro.h"
+#include "window.h"
+
 #ifdef SUPPORT_ANSI
 #  include <stdarg.h>
 #else /* !SUPPPORT_ANSI */
@@ -33,9 +35,6 @@
 # include <varargs.h>
 # endif
 #endif /* SUPPORT_ANSI */
-#ifndef NO_MACRO
-# include "macro.h"
-#endif
 
 static int veread _PRO((char *, char *, int, int, va_list *));
 
@@ -307,8 +306,6 @@ static char *mb_hist_buf[MB_HIST_NTYPES][MB_NHISTS+1];
 	(((flag)&EFFILE) ? mb_hist_buf[MB_HIST_FILE] :		\
 			mb_hist_buf[MB_HIST_MISC])))		\
 
-extern int refresh _PRO((int, int));
-
 static int mb_init _PRO((int, char *, va_list *));
 static int mb_get_buffer _PRO((char *, int));
 static int mb_bufsize _PRO((void));
@@ -375,11 +372,6 @@ extern jrKanjiStatus ks;
 static int mb_henkan _PRO((int));
 char mbMode[CANBUF];
 int mb_cannamode;
-#endif
-
-#ifdef CLIPBOARD
-extern int	send_clipboard _PRO((void));
-extern int	receive_clipboard _PRO((void));
 #endif
 
 static int veread_complete _PRO((char *, int, int, int));

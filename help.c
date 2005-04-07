@@ -1,4 +1,4 @@
-/* $Id: help.c,v 1.6.2.1 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: help.c,v 1.6.2.2 2005/04/07 17:15:19 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -209,8 +209,6 @@ KEYMAP *map;
     }
     return TRUE;
 }
-
-int help_help _PRO((int, int));
 
 int
 help_help(f, n)

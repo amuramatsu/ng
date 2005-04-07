@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.9.2.2 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: jump.c,v 1.9.2.3 2005/04/07 17:15:19 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -8,23 +8,18 @@
 #include "config.h"
 
 #ifdef JUMPERR
-
 #include "def.h"
 #include "jump.h"
+
 #include "i_line.h"
 #include "i_buffer.h"
 #include "i_window.h"
 #include "buffer.h"
 #include "window.h"
 #include "echo.h"
-#include "display.h"
 #include "file.h"
-
-#ifndef BSD
-# ifndef index
-#  define index(s,c)	strchr(s,c)
-# endif
-#endif	/* BSD */
+#include "basic.h"
+#include "shell.h"
 
 #ifdef REGEX_JAPANESE
 #include "regex_j.h"
@@ -33,7 +28,6 @@
 #endif
 #define BYTEWIDTH 8
 
-/* extern int access _PRO((char *, int)); */
 #ifndef	R_OK              /* for access() */
 # define R_OK 4
 #endif
@@ -157,8 +151,6 @@ int f, n;
     char buf[BUFLEN+1];
     int col;
     LINE *dlp;
-    extern int gotoline _PRO((int, int));
-    extern int filevisit _PRO((int, int)), poptofile _PRO((int, int));
 	
     dlp = curwp->w_dotp;
     while (dlp != curbp->b_linep) {
@@ -259,9 +251,6 @@ int f, n;
     register WINDOW *wp, *owp;
     register int s;
     char  buf[NLINE],*result;
-    char *call_process _PRO((char *, char *));
-    int gotobob _PRO((int, int));
-    VOID isetmark _PRO((void));
 
     if (compile_command[0] == '\0')
 	s = eread("compile: ", buf, NLINE, EFNEW);

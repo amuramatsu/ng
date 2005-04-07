@@ -1,4 +1,4 @@
-/* $Id: kbd.h,v 1.4.2.2 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: kbd.h,v 1.4.2.3 2005/04/07 17:15:19 amura Exp $ */
 /*
  * kbd.h: type definitions for symbol.c and kbd.c for mg experimental
  */
@@ -59,7 +59,6 @@ extern MAP_ELEMENT *ele;
 #ifdef __cplusplus
 extern "C" {
 #endif
-int selfinsert _PRO((int, int));
 PF doscan _PRO((KEYMAP *, int));
 PF name_function _PRO((char *));
 char *function_name _PRO((PF));
@@ -69,6 +68,7 @@ char *map_name _PRO((KEYMAP *));
 MAPS *name_mode _PRO((char *));
 int getkey _PRO((int));
 int rescan _PRO((int, int));
+int doin _PRO((void));
 
 int negative_argument _PRO((int, int));
 int digit_argument _PRO((int, int));

@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.1 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -17,8 +17,7 @@
 #include "key.h"
 #include "line.h"
 #include "macro.h"
-#include "buffer.h"
-#include "display.h"
+//#include "buffer.h"
 
 #ifdef CANNA
 #include <canna/jrkanji.h>
@@ -40,11 +39,6 @@ int
 do_meta(f, n)
 int f, n;
 {
-#if defined(MSDOS)&&defined(PC9801)
-    extern VOID setezkey _PRO((void));
-    extern VOID resetezkey _PRO((void));
-#endif
-
     if (f & FFARG)
 	use_metakey = n > 0;
     else
@@ -112,7 +106,6 @@ getkey(flag)
 int flag;
 {
     int c;
-    char *keyname _PRO((char*, int));
 
 #ifndef NO_DPROMPT
     if (flag && !pushed) {
@@ -316,8 +309,6 @@ int f, n;
     }
 }
 
-int universal_argument _PRO((int, int));
-
 int
 universal_argument(f, n)
 int f, n;
@@ -455,10 +446,8 @@ int f, n;
 {
     register int c;
     int count;
-    VOID lchange _PRO((int));
 #ifndef NO_MACRO
     LINE *lp;
-    int insert _PRO((int, int));
 #endif
 #ifdef KANJI	/* 90.01.29  by S.Yoshida */
     int	lkanji2nd;			/* For over write mode.	*/

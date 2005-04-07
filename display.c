@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.2 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: display.c,v 1.20.2.3 2005/04/07 17:15:19 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -22,6 +22,7 @@
 #include "i_window.h"
 #include "in_code.h"
 #include "echo.h"
+#include "line.h"
 #include "kbd.h"
 #include "tty.h"
 #include "ttyio.h"
@@ -121,6 +122,7 @@ static VOID modeline _PRO((WINDOW *));
 static int vtputs _PRO((const NG_WCHAR_t *));
 static int vtputsA _PRO((const char *));
 #ifdef ADDFUNC
+static int windowpos _PRO((WINDOW *));
 static VOID moderatio _PRO((WINDOW *));
 #endif
 
@@ -588,7 +590,6 @@ update()
 #endif
     int	x,y;
     int	lines;
-    VOID traceback _PRO((void));
     /* 90.01.29  by S.Yoshida */
     extern int input_continued;		/* Defined at kbd.c */
     
@@ -1129,13 +1130,11 @@ register WINDOW *wp;
     }
     vtmove(l, n);				/* Seek to right line.	*/
     if (line_number_mode) {
-	extern int get_lineno _PRO((BUFFER*, LINE*));
 	char linestr[NINPUT];	/* XXX now, support only 32bit int */
 	sprintf(linestr, "L%d", get_lineno(bp, wp->w_dotp)+1);
 	vtputsA(linestr);
     }
     {
-	extern int windowpos _PRO((WINDOW *));
 	int ratio = windowpos(wp);
 	
 	vtputc('-'); vtputc('-');
@@ -1348,7 +1347,7 @@ int offs, size;
  * intensive then the code that builds the score matrix!
  */
 static VOID
-raceback(offs, size, i, j)
+traceback(offs, size, i, j)
 int offs, size, i, j;
 {
     register int itrace;
@@ -1409,3 +1408,75 @@ int offs, size, i, j;
     uline(k, vscreen[k], pscreen[offs+i-1]);
 }
 #endif
+
+#ifdef ADDFUNC
+/*
+   Investigate the dot position to return a ratio value.  The ratio
+   value will be between 0 and 100.  The following values are special
+   case and all of them are negative value.
+
+   MG_RATIO_ALL   All portion of the buffer is shown in the window.
+   MG_RATIO_TOP   Top portion of the buffer is shown in the window.
+   MG_RATIO_BOT   Bottom portion of the buffer is shown in the window.
+
+   By Tillanosoft, Mar 21, 1999.
+      patched by amura, 2 Apl 2000
+ */
+static int
+windowpos(wp)
+register WINDOW *wp;
+{
+    LINE *lp, *targetlp;
+    register BUFFER *bp = wp->w_bufp;
+    int top = FALSE, bot = FALSE, off = 0;
+    int res = MG_RATIO_ALL;
+    
+    /* check if the beginning of top line is shown */
+    if (wp->w_linep == lforw(bp->b_linep)) {
+	if (wp->w_lines == 0)
+	    top = TRUE;
+    }
+    /* check if the end of the bottom line is shown */
+    lp = wp->w_linep;
+    /* XXX off = rowcol2offset(lp, wp->w_lines + wp->w_ntrows, ncol); */
+    while (off < 0) {
+	if (lforw(lp) != bp->b_linep) {
+	    lp = lforw(lp);
+	    /* XXX off = rowcol2offset(lp, -off - 1, ncol); */
+	}
+	else {
+	    bot = TRUE;
+	    break;
+	}
+    }
+    if (top && bot)
+	res = MG_RATIO_ALL;
+    else if (top)
+	res = MG_RATIO_TOP;
+    else if (bot)
+	res = MG_RATIO_BOT;
+    else {
+	/* count the bytes of the dot and the end */
+	long nchar = 0, cchar = 0;
+	
+	targetlp = wp->w_linep;
+	lp = lforw(bp->b_linep);
+	for (;;) {
+	    if (lp == targetlp) {
+		cchar = nchar + skipline(lp, wp->w_lines);
+	    }
+	    nchar += llength(lp); /* Now count the chars */
+	    lp = lforw(lp);
+	    if (lp == bp->b_linep) {
+		break;
+	    }
+	    nchar++; /* count the newline */
+	}
+	res = (cchar * 100) / nchar;
+	if (res >= 100) {
+	    res = 99;
+	}
+    }
+    return res;
+}
+#endif /* ADDFUNC */

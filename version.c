@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.15.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: version.c,v 1.15.2.2 2005/04/07 17:15:20 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -7,8 +7,8 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-
 #include "version.h"
+
 #include "i_buffer.h"
 #include "i_window.h"
 #include "echo.h"
@@ -264,7 +264,6 @@ printversion()
 {
 #ifdef WIN32
     char buf[128], *ptr = buf ;
-    VOID MessageOut _PRO((const char *));
     
     sprintf(ptr, PROGNAME " version:\n");
     ptr += strlen(ptr) ;

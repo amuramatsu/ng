@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.21.2.1 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: line.c,v 1.21.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -22,14 +22,13 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#ifdef UNDO
-#include "undo.h"
-#endif
+#include "line.h"
 
-#ifdef CLIPBOARD
-extern int send_clipboard _PRO((void));
-extern int receive_clipboard _PRO((void));
-#endif
+#include "i_buffer.h"
+#include "i_window.h"
+#include "basic.h"
+#include "echo.h"
+#include "undo.h"
 
 /* number of bytes member is from start of structure type	*/
 /* should be computed at compile time				*/
@@ -194,8 +193,8 @@ int
 linsert(n, c)
 int n, c;
 {
-    register char *cp1;
-    register char *cp2;
+    register NG_WCHAR_t *cp1;
+    register NG_WCHAR_t *cp2;
     register LINE *lp1;
     LINE *lp2;
     LINE *lp3;
@@ -203,7 +202,7 @@ int n, c;
     register RSIZE i;
     WINDOW *wp;
 #ifdef	UNDO
-    UNDO_DATA *undo;
+    UNDO_DATA *undo = NULL;
 #endif
 
     lchange(WFEDIT);
@@ -330,7 +329,7 @@ lnewline()
     register int nlen;
     WINDOW *wp;
 #ifdef UNDO
-    UNDO_DATA *undo;
+    UNDO_DATA *undo = NULL;
     lineno_cache = FALSE;
 #endif
     lchange(WFHARD);
@@ -429,8 +428,8 @@ ldelete(n, kflag)
 RSIZE n;
 int kflag;
 {
-    register char *cp1;
-    register char *cp2;
+    register NG_WCHAR_t *cp1;
+    register NG_WCHAR_t *cp2;
     register LINE *dotp;
     register int doto;
     register RSIZE chunk;
@@ -697,7 +696,7 @@ int f;					/* case hack disable		*/
     register int c;			/* used for random characters	*/
     register int doto;			/* offset into line		*/
 #ifdef	UNDO
-    UNDO_DATA *undo;
+    UNDO_DATA *undo = NULL;
     UNDO_DATA **undoptr_save = NULL;
 #endif
     
@@ -886,6 +885,7 @@ int n;
 
 
 #ifdef	CLIPBOARD
+/* XXX */
 int send_clipboard_ _PRO((char *, int));
 int size_clipboard_ _PRO((void));
 int recieve_clipboard_ _PRO((char *, int *));

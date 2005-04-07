@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.8 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: search.c,v 1.8.2.1 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -196,7 +196,6 @@ int dir;
     register int success;
     int pptr;
     char opat[NPAT];
-    VOID ungetkey _PRO((int));
 #ifdef KANJI	/* 90.01.29  by S.Yoshida */
     register int kanji1st = 0;	/* It is only KANJI 1st byte. */
 #endif	/* KANJI */

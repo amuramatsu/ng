@@ -1,4 +1,4 @@
-/* $Id: region.c,v 1.5 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: region.c,v 1.5.2.1 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		Region based commands.
  * The routines in this file
@@ -10,12 +10,10 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#ifdef UNDO
-#include "undo.h"
-#endif
 
-VOID kdelete _PRO((void));
-int getregion _PRO((REGION*));
+#include "clipboard.h"
+#include "undo.h"
+
 static int setsize _PRO((REGION*,RSIZE));
 
 #ifdef CHGMISC		/* 97.11.10 by M.Suzuki	*/
@@ -58,11 +56,6 @@ int f, n;
     curwp->w_doto = region.r_offset;
     return (ldelete(region.r_size, KFORW));
 }
-
-#ifdef CLIPBOARD
-extern int send_clipboard _PRO((void));
-extern int receive_clipboard _PRO((void));
-#endif /* CLIPBOARD */
 
 /*
  * Copy all of the characters in the
@@ -219,7 +212,6 @@ int f, n;
     register int c;
     register int s;
     REGION region;
-    VOID lchange _PRO((int));
 
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */

@@ -1,13 +1,26 @@
-/* $Id: main.c,v 1.11 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: main.c,v 1.11.2.1 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		Mainline
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#ifndef NO_MACRO
+#include "main.h"
+
+#include "i_buffer.h"
+#include "i_window.h"
+#include "version.h"
 #include "macro.h"
-#endif
+#include "echo.h"
+#include "dir.h"
+#include "dired.h"
+#include "file.h"
+#include "fileio.h"
+#include "extend.h"
+#include "buffer.h"
+#include "kbd.h"
+#include "tty.h"
+#include "ttyio.h"
 
 int thisflag;				/* Flags, this command		*/
 int lastflag;				/* Flags, last command		*/
@@ -33,15 +46,7 @@ int argc;
 char **argv;
 #endif	/* WIN32 */
 {
-#ifndef NO_STARTUP
 #ifdef ADDOPT
-    char *startupfile _PRO((char *, char *));
-#else
-    char *startupfile _PRO((char *));
-#endif
-#endif /* NO_STARTUP */
-#ifdef ADDOPT
-    int gotoline _PRO((int,int));
     char *startupfunc = (char *)NULL;
     int line = 0;
     int fgoto = FALSE;
@@ -50,9 +55,7 @@ char **argv;
 #endif
 #endif
     char *cp;
-    VOID vtinit _PRO((void)), makename _PRO((void)), eerase _PRO((void));
     BUFFER *tmpbp;	/* 91.02.17 by N.Yuasa */
-    BUFFER *findbuffer _PRO((char *));
 	
 #ifdef	ADDFUNC	/* 90.12.28  by S.Yoshida */
     if (argc > 1 && argv[1][0] == '-') {
@@ -188,7 +191,6 @@ char **argv;
 
 #ifdef ADDOPT
     if (startupfunc) {
-	extern PF name_function _PRO((char *));
 	PF fn;
 	fn = name_function(startupfunc);
 	if (fn) {
@@ -273,7 +275,6 @@ quit(f, n)
 int f, n;
 {
     register int s;
-    VOID vttidy _PRO((void));
 
     if ((s = anycb(FALSE)) == ABORT)
 	return ABORT;

@@ -1,4 +1,4 @@
-/* $Id: autosave.c,v 1.5.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: autosave.c,v 1.5.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  Auto save support code programed by M.Suzuki
  Ver	1.0.0	1997/01/07	Create
@@ -14,7 +14,6 @@
 #include "i_buffer.h"
 #include "echo.h"
 #include "file.h"
-#include "fileio.h"
 #include "tty.h"
 #include "ttyio.h"
 

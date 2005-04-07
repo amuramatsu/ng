@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.20.2.3 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: buffer.c,v 1.20.2.4 2005/04/07 17:15:19 amura Exp $ */
 /*
  *		Buffer handling.
  */
@@ -6,9 +6,10 @@
 
 #include "config.h"		/* 90.12.20  by S.Yoshida */
 #include "def.h"
-
 #include "buffer.h"
-#include "kbd.h"		/* needed for modes */
+
+#include "i_buffer.h"
+#include "i_window.h"
 #include "undo.h"
 #include "line.h"
 #include "echo.h"
@@ -18,7 +19,6 @@
 #include "random.h"
 #include "dir.h"
 #include "modes.h"
-#include "tty.h"
 
 #ifdef VARIABLE_TAB
 static LINE_OFF_t defb_tab = 8;
@@ -428,7 +428,6 @@ int f;
     register BUFFER *bp;
     register int s = FALSE, save = FALSE;
     char *prompt;
-    VOID upmodes _PRO((BUFFER*));
 
     for (bp = bheadp; bp != NULL; bp = bp->b_bufp) {
 	if (bp->b_fname != NULL
@@ -557,7 +556,6 @@ register BUFFER *bp;
 {
     register LINE *lp;
     register int s;
-    VOID lfree _PRO((LINE*));
 
     if ((bp->b_flag&BFCHG) != 0		/* Changed.		*/
 	&& (s=eyesno("Buffer modified; kill anyway")) != TRUE)
@@ -948,7 +946,6 @@ int f, n;
 {
     char bufname[NBUFN];
     register LINE *lp, *nlp;
-    VOID lfree _PRO((LINE*));
 
     for (lp = lforw(curbp->b_linep) ; lp != curbp->b_linep ; lp = nlp) {
 	nlp = lforw(lp);

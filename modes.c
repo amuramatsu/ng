@@ -1,4 +1,4 @@
-/* $Id: modes.c,v 1.5.2.1 2003/03/08 01:34:06 amura Exp $ */
+/* $Id: modes.c,v 1.5.2.2 2005/04/07 17:15:19 amura Exp $ */
 /*
  * Commands to toggle modes. Without an argument, toggle mode.
  * Negitive or zero argument, mode off.	 Positive argument, mode on.
@@ -7,7 +7,11 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#include "kbd.h"
+#include "modes.h"
+
+#include "i_buffer.h"
+#include "echo.h"
+#include "file.h"
 
 int defb_nmodes = 0;
 MAPS *defb_modes[PBMODES] = {&map_table[0]};
@@ -20,7 +24,6 @@ char *mode;
 {
     register int i;
     MAPS *m;
-    VOID upmodes();
 
     if ((m = name_mode(mode)) == NULL) {
 	ewprintf("Can't find mode %s", mode);
@@ -119,7 +122,6 @@ int f, n;
 {
 #ifdef VARIABLE_TAB
     extern int cmode_tab;
-    int set_tabwidth _PRO((int,int));
 
     if (cmode_tab != 0)
 	set_tabwidth(-1, cmode_tab);

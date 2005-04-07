@@ -1,4 +1,4 @@
-/* $Id: extern.h,v 1.4.2.2 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: extern.h,v 1.4.2.3 2005/04/07 17:15:19 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -30,8 +30,12 @@ extern char *keystrings[];
 extern "C" {
 #endif
 
-VOID panic _PRO((const char *));	/* tty.h */
-VOID update _PRO((void));		/* display.h */
+VOID panic _PRO((const char *));	/* tty.c */
+VOID ttbeep _PRO((void));		/* tty.c */
+VOID update _PRO((void));		/* display.c */
+int ttwait _PRO((void));		/* display.c */
+int selfinsert _PRO((int, int));	/* kbd.c */
+VOID warnreadonly _PRO((void));		/* buffer.c */
 
 #ifdef __cplusplus
 }
