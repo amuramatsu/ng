@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.8.2.1 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: search.c,v 1.8.2.2 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -15,9 +15,16 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#ifndef NO_MACRO
+#include "search.h"
+
+#include "i_buffer.h"
+#include "i_window.h"
+#include "echo.h"
+#include "kbd.h"
+#include "basic.h"
 #include "macro.h"
-#endif
+#include "line.h"	/* for lreplace() */
+#include "word.h"	/* for forwword() */
 
 #define SRCH_BEGIN	(0)			/* Search sub-codes.	*/
 #define SRCH_FORW	(-1)
@@ -45,6 +52,9 @@ static SRCHCOM cmds[NSRCH];
 static int cip;
 
 static int srch_lastdir = SRCH_NOPR;		/* Last search flags.	*/
+
+static int isearch _PRO((int));
+static int readpattern _PRO((char *));
 
 static VOID is_cpush _PRO((int));
 static VOID is_lpush _PRO((void));
@@ -186,7 +196,7 @@ int f, n;
  *	Metakeys  set mark, exit search
  *	else	accumulate into search string
  */
-int
+static int
 isearch(dir)
 int dir;
 {
@@ -195,10 +205,7 @@ int dir;
     register int cbo;
     register int success;
     int pptr;
-    char opat[NPAT];
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    register int kanji1st = 0;	/* It is only KANJI 1st byte. */
-#endif	/* KANJI */
+    NG_WCHAR_t opat[NPAT];
 
 #ifndef NO_MACRO
     if (macrodef) {
@@ -208,7 +215,7 @@ int dir;
 #endif
     for (cip=0; cip<NSRCH; cip++)
 	cmds[cip].s_code = SRCH_NOPR;
-    (VOID) strcpy(opat, pat);
+    (VOID) wstrlcpy(opat, pat, sizeof(opat));
     cip = 0;
     pptr = -1;
     clp = curwp->w_dotp;
@@ -245,7 +252,7 @@ int dir;
 	    curwp->w_flag |= WFMOVE;
 	    srch_lastdir = dir;
 	    (VOID) ctrlg(FFRAND, 0);
-	    (VOID) strcpy(pat, opat);
+	    (VOID) wstrcpy(pat, opat);
 	    return ABORT;
 	    
 	case CCHR(']'):
@@ -259,7 +266,7 @@ int dir;
 	    if (success==FALSE && dir==SRCH_FORW)
 		break;
 	    is_lpush();
-	    pptr = strlen(pat);
+	    pptr = wstrlen(pat);
 	    (VOID) forwchar(FFRAND, 1);
 	    if (is_find(SRCH_FORW) != FALSE)
 		is_cpush(SRCH_MARK);
@@ -281,7 +288,7 @@ int dir;
 	    if (success==FALSE && dir==SRCH_BACK)
 		break;
 	    is_lpush();
-	    pptr = strlen(pat);
+	    pptr = wstrlen(pat);
 	    (VOID) backchar(FFRAND, 1);
 	    if (is_find(SRCH_BACK) != FALSE)
 		is_cpush(SRCH_MARK);
@@ -364,24 +371,6 @@ int dir;
 		return FALSE;
 	    }
 	    pat[pptr] = '\0';
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    if (kanji1st != 0) {
-		/* If the KANJI 1st byte exists,	*/
-		/* we believe 'c' is KANJI 2nd byte.	*/
-		kanji1st--;
-	    }
-	    else if (ISKANJI(c)) {
-		/* When there is only KANJI 1st		*/
-		/* byte, we don't search a patern.	*/
-#ifdef HOJO_KANJI
-		if (ISHOJO(c))
-		    kanji1st = 2;
-		else
-#endif				
-		    kanji1st = 1;	
-		break;
-	    }
-#endif /* KANJI */
 	    is_lpush();
 	    if (success != FALSE) {
 		if (is_find(dir) != FALSE)
@@ -476,10 +465,6 @@ register int *dir;
 #endif		
     case SRCH_ACCM:
 	*pptr -= 1;
-#if defined(HUMAN68K) && defined(KANJI)	/* 90.11.16    Sawayanagi Yosirou */
-	if (ISKANJI(pat[*pptr]))
-	    *pptr -= 1;
-#endif /* HUMAN68K && KANJI */
 	if (*pptr < 0)
 	    *pptr = 0;
 	pat[*pptr] = '\0';
@@ -496,35 +481,13 @@ register int dir;
 {
     register int plen, odoto;
     register LINE *odotp;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    register int clen;		/* Character length (not byte len). */
-    register int i;
-#endif /* KANJI */
     
     odoto = curwp->w_doto;
     odotp = curwp->w_dotp;
-    plen = strlen(pat);
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    for (i = 0, clen = 0; i < plen; i++, clen++) {
-	if (ISKANJI(pat[i])) {
-#ifdef HOJO_KANJI
-	    if (ISHOJO(pat[i]))
-		i++;
-#endif
-	    i++;
-	}
-    }
-#endif /* KANJI */
+    plen = wstrlen(pat);
     if (plen != 0) {
 	if (dir==SRCH_FORW) {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    /* Backward char with "character"	*/
-	    /* length, not "byte" length.	*/
-	    for (i = 0; i < clen; i++)
-		(VOID) backchar(FFARG | FFRAND, 1);
-#else /* NOT KANJI */
 	    (VOID) backchar(FFARG | FFRAND, plen);
-#endif /* KANJI */
 	    if (forwsrch() == FALSE) {
 		curwp->w_doto = odoto;
 		curwp->w_dotp = odotp;
@@ -533,14 +496,7 @@ register int dir;
 	    return TRUE;
 	}
 	if (dir==SRCH_BACK) {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    /* forward char with "character"	*/
-	    /* length, not "byte" length.	*/
-	    for (i = 0; i < clen; i++)
-		(VOID) forwchar(FFARG | FFRAND, 1);
-#else /* NOT KANJI */
 	    (VOID) forwchar(FFARG | FFRAND, plen);
-#endif /* KANJI */
 	    if (backsrch() == FALSE) {
 		curwp->w_doto = odoto;
 		curwp->w_dotp = odotp;
@@ -627,33 +583,6 @@ int pptr, dir;
 		if (pat[i] != CCHR('J'))
 		    break;
 	    }
-	    else {
-		int c;
-		c = lgetc(curwp->w_dotp,curwp->w_doto);
-#ifdef KANJI
-#ifdef HOJO_KANJI
-		if (ISHOJO(c)) {
-		    if ( c != CHARMASK(pat[i]) ||
-			 lgetc(curwp->w_dotp, curwp->w_doto+1)
-			 != CHARMASK(pat[i+1]) ||
-			 lgetc(curwp->w_dotp, curwp->w_doto+2)
-			 != CHARMASK(pat[i+2]) )
-			break;
-		    i += 2;
-		}
-		else
-#endif
-		if (ISKANJI(c)){
-		    if (c != CHARMASK(pat[i]) ||
-			lgetc(curwp->w_dotp, curwp->w_doto+1)
-			!= CHARMASK(pat[i+1]) )
-			break;
-		    ++i;
-		}
-		else if (!eq(c,CHARMASK(pat[i])))
-		    break;
-#endif				
-	    }
 	    if (!forwchar(FFRAND,1))
 		break;
 	}
@@ -673,7 +602,7 @@ int pptr, dir;
 	len = llength(cp) - co;
 	if (len > NPAT-pptr-2)		/* room for '\n' and '\0' */
 	    goto patfull;
-	strncpy(&pat[pptr], ltext(cp)+co, len);
+	wstrlcpy(&pat[pptr], ltext(cp)+co, len);
 	pptr += len;
 	pat[pptr++] = '\n';
 	chunklen += len+1;
@@ -684,7 +613,7 @@ int pptr, dir;
     len = curwp->w_doto - co;
     if (len > NPAT-pptr-2)
 	goto patfull;
-    strncpy(&pat[pptr], ltext(cp)+co, len);
+    wstrlcpy(&pat[pptr], ltext(cp)+co, len);
     pptr += len;
     pat[pptr] = '\0';
     chunklen += len;
@@ -712,7 +641,7 @@ int f, n;
     register int s;
     register int rcnt = 0;	/* Replacements made so far	*/
     register int plen;		/* length of found string	*/
-    char news[NPAT];		/* replacement string		*/
+    NG_WCHAR_t news[NPAT];	/* replacement string		*/
     
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
@@ -729,12 +658,12 @@ int f, n;
 #endif
     if ((s=readpattern("Query replace")) != TRUE)
 	return (s);
-    if ((s=ereply("Query replace %s with: ",news, NPAT, pat)) == ABORT)
+    if ((s=ereply("Query replace %s with: ", news, NPAT, pat)) == ABORT)
 	return (s);
     if (s == FALSE)
 	news[0] = '\0';
     ewprintf("Query replacing %s with %s:", pat, news);
-    plen = strlen(pat);
+    plen = wstrlen(pat);
     
     /*
      * Search forward repeatedly, checking each time whether to insert
@@ -813,11 +742,8 @@ forwsrch()
     register int cbo;
     register LINE *tlp;
     register int tbo;
-    char *pp;
+    NG_WCHAR_t *pp;
     register int c;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    register int kanji2nd = 0; /* Now on a KANJI 2nd byte. */
-#endif /* KANJI */
     
     clp = curwp->w_dotp;
     cbo = curwp->w_doto;
@@ -830,20 +756,6 @@ forwsrch()
 	}
 	else
 	    c = lgetc(clp, cbo++);
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	if (kanji2nd != 0) {	/* We believe 'c' is KANJI 2nd byte. */
-	    kanji2nd--;
-	    continue;	/* Don't check with KANJI 2nd byte. */
-	}
-	else if (ISKANJI(c)) { /* 'c' is KANJI 1st byte.	*/
-#ifdef HOJO_KANJI
-	    if (ISHOJO(c))
-		kanji2nd = 2;
-	    else
-#endif
-		kanji2nd = 1; /* Next byte is KANJI 2nd.	*/
-	}
-#endif /* KANJI */
 	if (eq(c, pat[0]) != FALSE) {
 	    tlp = clp;
 	    tbo = cbo;
@@ -886,11 +798,8 @@ backsrch()
     register LINE *tlp;
     register int tbo;
     register int c;
-    register char *epp;
-    register char *pp;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    register int kanji1st = 0; /* Now on a KANJI 1st byte. */
-#endif /* KANJI */
+    register NG_WCHAR_t *epp;
+    register NG_WCHAR_t *pp;
     
     for (epp = &pat[0]; epp[1] != 0; ++epp)
 	;
@@ -907,20 +816,6 @@ backsrch()
 	    c = CCHR('J');
 	else
 	    c = lgetc(clp,cbo);
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	if (kanji1st != 0) {	/* We believe 'c' is KANJI 1st byte. */
-	    kanji1st--;
-	    continue;	/* Don't check with KANJI 1st byte. */
-	}
-	else if (ISKANJI(c)) { /* 'c' is KANJI 2nd byte.	*/
-#ifdef HOJO_KANJI
-	    if (ISHOJO(c))
-		kanji1st = 2;
-	    else
-#endif
-		kanji1st = 1; /* Next byte is KANJI 1st.	*/
-	}
-#endif	/* KANJI */
 	if (eq(c, *epp) != FALSE) {
 	    tlp = clp;
 	    tbo = cbo;
@@ -982,20 +877,20 @@ register int bc, pc;
  * Display the old pattern, in the style of Jeff Lomicka. There is
  * some do-it-yourself control expansion.
  */
-int
+static int
 readpattern(prompt)
 char *prompt;
 {
     register int s;
-    char tpat[NPAT];
+    NG_WCHAR_t tpat[NPAT];
     
     if (pat[0] == '\0')
-	s = ereply("%s: ", tpat, NPAT, prompt);
+	s = ereply("%s: ", (char *)tpat, sizeof(tpat), prompt);
     else
-	s = ereply("%s: (default %s) ", tpat, NPAT, prompt, pat);
+	s = ereply("%s: (default %s) ", (char *)tpat, sizeof(tpat), prompt, pat);
     
     if (s == TRUE)				/* Specified		*/
-	(VOID) strcpy(pat, tpat);
+	(VOID) wstrcpy(pat, tpat);
     else if (s==FALSE && pat[0]!=0)		/* CR, but old one	*/
 	s = TRUE;
     return s;

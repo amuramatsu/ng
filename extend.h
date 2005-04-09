@@ -1,4 +1,4 @@
-/* $Id: extend.h,v 1.1.2.1 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: extend.h,v 1.1.2.2 2005/04/09 06:26:14 amura Exp $ */
 
 #ifndef __EXTEND_H__
 #define __EXTEND_H__
@@ -7,8 +7,9 @@
 extern "C" {
 #endif
 
-int excline(char *line);
-int load(const char *fname);
+int insert _PRO((int, int));
+int excline _PRO((char *));
+int load _PRO((const char *));
 
 #ifdef __cplusplus
 }

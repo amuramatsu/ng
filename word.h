@@ -1,4 +1,4 @@
-/* $Id: word.h,v 1.1.2.1 2005/04/07 17:15:20 amura Exp $ */
+/* $Id: word.h,v 1.1.2.2 2005/04/09 06:26:14 amura Exp $ */
 
 #ifndef __WORD_H__
 #define __WORD_H__
@@ -8,6 +8,9 @@ extern "C" {
 #endif
 
 int inword _PRO((void));
+
+int forwword _PRO((int, int));
+int backword _PRO((int, int));
 
 #ifdef __cplusplus
 }

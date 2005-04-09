@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.6 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: tty.c,v 1.6.2.1 2005/04/09 06:26:14 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -28,6 +28,10 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "tty.h"
+
+#include "ttyio.h"
+#include "display.h"
 
 #define BEL	0x07			/* BEL character.		*/
 

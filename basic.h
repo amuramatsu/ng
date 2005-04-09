@@ -1,4 +1,4 @@
-/* $Id: basic.h,v 1.1.2.3 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: basic.h,v 1.1.2.4 2005/04/09 06:26:14 amura Exp $ */
 /*
  * This file is the header file for basic parts
  * of the NG display editor.
@@ -24,6 +24,8 @@ int forwpage _PRO((int, int));
 int backpage _PRO((int, int));
 int forwline _PRO((int, int));
 int backline _PRO((int, int));
+int gotobol _PRO((int, int));
+int gotoeol _PRO((int, int));
 int gotobob _PRO((int, int));
 int gotoeob _PRO((int, int));
 int gotoline _PRO((int, int));

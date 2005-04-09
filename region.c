@@ -1,4 +1,4 @@
-/* $Id: region.c,v 1.5.2.1 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: region.c,v 1.5.2.2 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		Region based commands.
  * The routines in this file
@@ -10,8 +10,12 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "region.h"
 
-#include "clipboard.h"
+#include "i_window.h"
+#include "basic.h"
+#include "echo.h"
+#include "line.h"
 #include "undo.h"
 
 static int setsize _PRO((REGION*,RSIZE));

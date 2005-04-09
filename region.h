@@ -1,4 +1,4 @@
-/* $Id: region.h,v 1.1.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: region.h,v 1.1.2.3 2005/04/09 06:26:14 amura Exp $ */
 /*
  * This file is the header file for region parts
  * of the NG display editor.
@@ -14,6 +14,7 @@ extern "C" {
 
 int getregion _PRO((REGION *));
 int killregion _PRO((int, int));
+int setprefix _PRO((int, int));
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.11.2.1 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: main.c,v 1.11.2.2 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		Mainline
  */
@@ -19,8 +19,11 @@
 #include "extend.h"
 #include "buffer.h"
 #include "kbd.h"
+#include "display.h"
 #include "tty.h"
 #include "ttyio.h"
+
+#include "basic.h" /* for gotoline() */
 
 int thisflag;				/* Flags, this command		*/
 int lastflag;				/* Flags, last command		*/
@@ -126,11 +129,7 @@ char **argv;
      */
     update();
 #ifndef NO_STARTUP				/* User startup file.	*/
-#ifdef	ADDOPT
     if ((cp = startupfile(ngrcfile, (char *)NULL)) != NULL)
-#else
-    if ((cp = startupfile((char *)NULL)) != NULL)
-#endif
 	(VOID) load(cp);
 #endif	/* NO_STARTUP */
     while (--argc > 0) {

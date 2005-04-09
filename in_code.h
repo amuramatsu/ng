@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.3 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.4 2005/04/09 06:26:14 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -8,6 +8,26 @@
 
 typedef unsigned short NG_WCHAR_t;
 #define NG_WCODE(n)	((NG_WCHAR_t)(n))
+#define NG_WCHAR_STRLEN	(sizeof(NG_WCHAR_t) + 1)
+#define NG_WCHAR_TO_STR(str, n)	\
+    { (str)[0] = (n)>>8; (str)[1] = (n)&0xff; (str)[2] = '\0'; }
+
+#if 0 /* if sizeof(NG_WCHAR) == 1 */
+#include <string.h>
+#define	wstrlen(s)	strlen((const char *)(s));
+#define wstrcpy(d,s)	((NG_WCHAR_t *)strcpy((char *)(d), (const char *)(s)))
+#define wstrcat(d,s)	((NG_WCHAR_t *)strcat((char *)(d), (const char *)(s)))
+#define wstrlcpy(d,s,n)	\
+    ((NG_WCHAR_t *)strlcpy((char *)(d), (const char *)(s), (n)))
+#define wstrlcat(d,s,n)	\
+    ((NG_WCHAR_t *)strlcat((char *)(d), (const char *)(s), (n)))
+#else
+int wstrlen _PRO((const NG_WCHAR_t *));
+NG_WCHAR_t *wstrcpy _PRO((NG_WCHAR_t *, const NG_WCHAR_t *));
+NG_WCHAR_t *wstrcat _PRO((NG_WCHAR_t *, const NG_WCHAR_t *));
+int wstrlcpy _PRO((NG_WCHAR_t *, const NG_WCHAR_t *, int));
+int wstrlcat _PRO((NG_WCHAR_t *, const NG_WCHAR_t *, int));
+#endif
 
 /*
  * 0x00--0x127 of Buffer internal code MUST map to ASCII

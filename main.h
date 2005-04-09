@@ -1,4 +1,4 @@
-/* $Id: main.h,v 1.1.2.1 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: main.h,v 1.1.2.2 2005/04/09 06:26:14 amura Exp $ */
 
 #ifndef __MAIN_H__
 #define __MAIN_H__
@@ -6,8 +6,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-int ctrlg _PRO((int, int));
 
 #ifdef __cplusplus
 }

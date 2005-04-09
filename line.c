@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.21.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: line.c,v 1.21.2.3 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -688,7 +688,7 @@ ldelnewline()
 int
 lreplace(plen, st, f)
 register RSIZE plen;			/* length to remove		*/
-char *st;				/* replacement string		*/
+const NG_WCHAR_t *st;			/* replacement string		*/
 int f;					/* case hack disable		*/
 {
     register RSIZE rlen;		/* replacement length		*/
@@ -723,7 +723,7 @@ int f;					/* case hack disable		*/
      * so that it will fit, or scrunch out the excess).
      * be careful with dot's offset.
      */
-    rlen = strlen(st);
+    rlen = wstrlen(st);
     doto = curwp->w_doto;
 #ifdef	UNDO
     undo_setup(undo);

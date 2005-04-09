@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.1 2005/04/09 06:26:14 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,21 +7,22 @@
 
 #include "config.h"
 #include "def.h"
+#include "fileio.h"
+
+#include "file.h"
+#include "echo.h"
 
 static FILE *ffp;
 #ifdef STDC_HEADERS
 #include <string.h>
-#else
-extern char *strncpy _PRO((char *, char *, int));
 #endif
-char *adjustname _PRO((char *));
 
 /*
  * Open a file for reading.
  */
 int
 ffropen(fn)
-char *fn;
+const char *fn;
 {
     if ((ffp=fopen(fn, "r")) == NULL)
 	return (FIOFNF);
@@ -35,7 +36,7 @@ char *fn;
  */
 int
 ffwopen(fn)
-char *fn;
+const char *fn;
 {
     if ((ffp=fopen(fn, "w")) == NULL) {
 	ewprintf("Cannot open file for writing");
@@ -66,8 +67,8 @@ int
 ffputbuf(bp)
 BUFFER *bp;
 {
-    register char *cp;
-    register char *cpend;
+    register NG_WCHAR_t *cp;
+    register NG_WCHAR_t *cpend;
     register LINE *lp;
     register LINE *lpend;
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
@@ -145,8 +146,8 @@ register int *nbytes;
 }
 
 #ifndef NO_BACKUP
-static int filecopy_all _PRO((char *, char *));
-static int islink _PRO((char *));
+static int filecopy_all _PRO((const char *, const char *));
+static int islink _PRO((const char *));
 
 /*
  * Rename the file "fname" into a backup
@@ -159,7 +160,7 @@ static int islink _PRO((char *));
  */
 int
 fbackupfile(fn)
-char *fn;
+const char *fn;
 {
     register char *nname;
     if ((nname=alloca((unsigned)(strlen(fn)+1+1))) == NULL) {
@@ -187,7 +188,7 @@ char *fn;
  */
 static int
 filecopy_all(src, dst)
-char *src, *dst;
+const char *src, *dst;
 {
     FILE *from, *to;
     struct stat filestat;
@@ -230,7 +231,7 @@ char *src, *dst;
  */
 static int
 islink(fn)
-char *fn;
+const char *fn;
 {
     struct stat filestat;
     
@@ -250,7 +251,7 @@ char *fn;
  */
 int
 fgetfilemode(fn)
-char *fn;
+const char *fn;
 {
     struct stat filestat;
     
@@ -263,7 +264,7 @@ char *fn;
  */
 VOID
 fsetfilemode(fn, mode)
-char *fn;
+const char *fn;
 int mode;
 {
     chmod(fn, mode);
@@ -283,7 +284,7 @@ int mode;
  */
 int
 fchkreadonly(fn)
-char *fn;
+const char *fn;
 {
     struct stat filestat;
     
@@ -315,11 +316,7 @@ char *fn;
 #endif	/* READONLY */
 
 #ifndef NO_DIR
-#ifdef	HAVE_GETCWD
-char *getcwd();
-#else
-char *getwd();
-#endif
+#include "dir.h"
 
 extern char *wdir;
 extern char *startdir;
@@ -350,7 +347,7 @@ dirinit()
 
 int
 rchdir(dir)
-char *dir;
+const char *dir;
 {
     int error = chdir(dir);
     if (error == -1)
@@ -385,7 +382,7 @@ char *dir;
 
 char *
 adjustname(fn)
-register char *fn;
+const register char *fn;
 {
     register char *cp;
     static char fnb[NFILEN];
@@ -520,24 +517,18 @@ register char *fn;
  * to the startup file name.
  */
 char *
-#ifdef	ADDOPT
 startupfile(ngrcfile, suffix)
-char* ngrcfile;
-#else
-startupfile(suffix)
-#endif
+char *ngrcfile;
 char *suffix;
 {
     register char *file;
     static char home[NFILEN];
-#ifdef	ADDOPT
     if (ngrcfile == NULL)
 	ngrcfile = getenv("NGRC");
     if (ngrcfile != NULL) {
 	if (access(ngrcfile, F_OK) == 0)
 	    return ngrcfile;
     }
-#endif
     if ((file = getenv("HOME")) == NULL)
 	goto notfound;
     if (strlen(file)+7 >= NFILEN - 1)
@@ -573,13 +564,14 @@ notfound:
 #endif
 
 #ifndef NO_DIRED
-
 #ifdef	HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
 #ifdef	HAVE_VFORK_H
 #include <vfork.h>
 #endif
+#include "buffer.h"
+#include "dir.h"
 #include "kbd.h"
 
 #ifndef CP_CMD
@@ -591,7 +583,7 @@ notfound:
 
 int
 copy(frname, toname)
-char *frname, *toname;
+const char *frname, *toname;
 {
     int pid;
     int status; 	/* change for Digital UNIX */
@@ -677,7 +669,7 @@ register LINE *lp;
 register char *fn;
 int buflen;
 {
-    char* cp;
+    char *cp;
     int l, l1, len;
     char c;
 
@@ -798,7 +790,7 @@ char *f1, *f2;
  */
 int
 ffisdir(dn)
-char *dn;
+const char *dn;
 {
     struct stat filestat;
     

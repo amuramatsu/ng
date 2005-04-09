@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.3 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -17,7 +17,8 @@
 #include "key.h"
 #include "line.h"
 #include "macro.h"
-//#include "buffer.h"
+#include "extend.h"
+#include "cinfo.h"
 
 #ifdef CANNA
 #include <canna/jrkanji.h>

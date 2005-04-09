@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.11 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: undo.c,v 1.11.2.1 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -9,6 +9,10 @@
 #include "def.h"
 #ifdef UNDO
 #include "undo.h"
+
+#include "i_window.h"
+#include "echo.h"
+#include "line.h"
 
 #ifndef UBLOCK
 #define UBLOCK		32
@@ -91,7 +95,7 @@ undo_balloc(undo, size)
 register UNDO_DATA *undo;
 register RSIZE size;
 {
-    char *newbuffer;
+    NG_WCHAR_t *newbuffer;
 
     /* For memory save, too big undo buffer is turncate */
     if (undo->u_size<size && (size*4)<undo->u_size)
@@ -114,7 +118,7 @@ register RSIZE size;
 	    free(undo->u_buffer);
 	    undo->u_size = 0;
 	}
-	newbuffer = malloc(size);
+	newbuffer = (NG_WCHAR_t *)malloc(sizeof(NG_WCHAR_t) * size);
 	if (newbuffer == NULL) {
 	    ewprintf("Can't get %ld Bytes / Undo buffer clear", size);
 	    ttwait();
@@ -133,7 +137,7 @@ undo_bgrow(undo, size)
 register UNDO_DATA *undo;
 RSIZE size;
 {
-    char *newbuffer;
+    NG_WCHAR_t *newbuffer;
     RSIZE newsize = (undo->u_used + size);
 
     if (newsize < size) {
@@ -150,7 +154,7 @@ RSIZE size;
 #endif
 	if (size < newsize)
 	    size = newsize;
-	newbuffer = malloc(size);
+	newbuffer = (NG_WCHAR_t *)malloc(sizeof(NG_WCHAR_t)*size);
 	if (newbuffer == NULL) {
 	    ewprintf("Can't get %ld Bytes / Undo buffer clear", size);
 	    ttwait();
@@ -171,7 +175,7 @@ RSIZE size;
 int
 do_undo(f, n)
 {
-    register char *p;
+    register NG_WCHAR_t *p;
     register int  i;
     register LINE* lp;
     UNDO_DATA *undo,*undoend;
@@ -190,8 +194,9 @@ do_undo(f, n)
 	    ttbeep();
 	    return TRUE;
 	}
-	curbp->b_utop--;
-	if (curbp->b_utop < 0)
+	if (curbp->b_utop > 0)
+	    curbp->b_utop--;
+	else
 	    curbp->b_utop = UNDOSIZE;
 	undoend = NULL;
 	while (1)

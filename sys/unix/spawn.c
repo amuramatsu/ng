@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.8 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: spawn.c,v 1.8.2.1 2005/04/09 06:26:14 amura Exp $ */
 /*
  *	Spawn. (for configure)
  * This interracts with the job control stuff
@@ -10,7 +10,12 @@
 
 #include "config.h"
 #include "def.h"
+#include "shell.h"
 
+#include "dir.h"
+#include "tty.h"
+#include "ttyio.h"
+#include "echo.h"
 #include <signal.h>
 #include <string.h>
 #ifdef	HAVE_VFORK_H

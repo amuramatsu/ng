@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.22 2002/04/18 13:49:21 amura Exp $ */
+/* $Id: config.h,v 1.22.2.1 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -32,7 +32,7 @@
 
 #define	DO_METAKEY	/* Enable META key input.		*/
 
-#define	REGEX		/* Enable regular expression functions.	*/
+#undef	REGEX		/* Enable regular expression functions.	*/
 
 #define	PREFIXREGION	/* Enable function "prefix-region".	*/
 
@@ -63,8 +63,8 @@
 #define ZAPTOCHAR	/* zap to char (by bsh) */
 #undef	ZAPTOC_A	/* zap to char (GNU Emacs compatible) (by bsh) */
 
-#define JUMPERR		/* jump to error function (by bsh)	*/
-			/* If defined, ADDFUNC must be also. */
+#undef JUMPERR		/* jump to error function (by bsh)	*/
+			/* If defined, ADDFUNC and REGEX must be also. */
 
 #define	MINIBUF_EDIT	/* minibuffer edit like GNU emacs (by Kakugawa)	*/
 
@@ -89,7 +89,7 @@
 
 #define	ADDFUNC		/* Create additional misc functions.	*/
 
-#define	REGEX_JAPANESE	/* Enable Japanese regular expression.	*/
+#undef	REGEX_JAPANESE	/* Enable Japanese regular expression.	*/
 			/* (by amura, Selow) */
 
 #define	INCLUDE_SKG	/* Enable SKG(Simple Kanji Generator System)	*/
@@ -366,6 +366,9 @@
 #ifdef JUMPERR
 #  ifndef ADDFUNC
 #    define ADDFUNC
+#  endif
+#  ifndef REGEX
+#    define REGEX
 #  endif
 #endif
 

@@ -1,4 +1,4 @@
-/* $Id: buffer.h,v 1.1.2.3 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: buffer.h,v 1.1.2.4 2005/04/09 06:26:14 amura Exp $ */
 /*
  * This file is the header file for buffer parts
  * of the NG display editor.
@@ -21,6 +21,7 @@ BUFFER *bfind _PRO((char *, int));
 WINDOW *popbuf _PRO((BUFFER *));
 int popbuftop _PRO((BUFFER *));
 int killbuffer _PRO((int, int));
+int set_tabwidth _PRO((int, int));
 
 #ifdef __cplusplus
 }

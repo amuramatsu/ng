@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.13.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: random.c,v 1.13.2.3 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -14,12 +14,15 @@
 #include "random.h"
 
 #include "i_buffer.h"
+#include "i_lang.h"
 #include "i_window.h"
 #include "basic.h"
 #include "display.h"
 #include "line.h"
 #include "echo.h"
 #include "undo.h"
+#include "kbd.h"
+#include "search.h"
 
 /*
  * Display a bunch of useful information about
@@ -39,10 +42,8 @@ int f, n;
     register long nchar;
     long cchar=0;
     register int nline, row;
-    int cline=0, cbyte=0;	/* Current line/char/byte */
-#ifdef CHGMISC	/* 99.3.26 by M.Suzuki	*/
-    int cbyte2;
-#endif
+    int cline=0;	/* Current line */
+    NG_WCHAR_t cbyte=0;	/* Current char */
     int ratio;
     int x, y;
 
@@ -54,26 +55,15 @@ int f, n;
 	if (clp == curwp->w_dotp) {
 	    cline = nline;		/* Mark line		*/
 	    cchar = nchar + curwp->w_doto;
-#ifdef CHGMISC	/* 99.3.26 by M.Suzuki	*/
-	    if (curwp->w_doto == llength(clp)) {
-		cbyte = '\n';
-		cbyte2 = 0;
-	    }
-	    else {
-		cbyte = lgetc(clp, curwp->w_doto);
-		cbyte2 = lgetc(clp, curwp->w_doto+1);
-	    }
-#else
 	    if (curwp->w_doto == llength(clp))
 		cbyte = '\n';
 	    else
 		cbyte = lgetc(clp, curwp->w_doto);
-#endif
 	}
 	nchar += llength(clp);		/* Now count the chars	*/
 	clp = lforw(clp);
-	if (clp == curbp->b_linep
-	    ) break;
+	if (clp == curbp->b_linep)
+	    break;
 	nchar++;			/* count the newline	*/
     }
     row = curwp->w_toprow + 1;		/* Determine row.	*/
@@ -85,22 +75,14 @@ int f, n;
     row += colrow(clp, curwp->w_doto, &x, &y);
     /*NOSTRICT*/
     ratio = nchar ? (100L*cchar) / nchar : 100;
-#ifdef CHGMISC		/* 99.3.26 by M.Suzuki	*/
-    if (ISKANJI(cbyte)){
-	char w[3];
-	w[0] = cbyte;
-	w[1] = cbyte2;
-	w[2] = '\0';
-	ewprintf("Char: %s (0%o,0%o)(0x%x,0x%x)  point=%ld(%d%%)  "
+    {
+	char w[NG_WCHAR_STRLEN];
+	NG_WCHAR_TO_STR(w, cbyte);
+	ewprintf("Char: %s (0%o)(0x%x)  point=%ld(%d%%)  "
 		 "line=%d  offset=%d  row=%d  col=%d",
-		 w, cbyte, cbyte2, cbyte, cbyte2, cchar, ratio,
+		 w, cbyte, cbyte, cchar, ratio,
 		 cline, getcolpos(), row, x+1);
     }
-    else
-#endif /* CHGMISC */
-	ewprintf("Char: %c (0%o)  point=%ld(%d%%)  "
-		 "line=%d  offset=%d  row=%d  col=%d",
-		 cbyte, cbyte, cchar, ratio, cline, getcolpos(), row, x+1);
     return TRUE;
 }
 
@@ -108,12 +90,10 @@ int
 getcolpos()
 {
     register int col, i, c;
-#ifdef SS_SUPPORT /* 92.11.21  by S.Sasaki */
-    int kan2nd = 0;
-#endif /* SS_SUPPORT */
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
+    int (*lm_width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
     col = 0;				/* Determine column.	*/
     
     for (i=0; i<curwp->w_doto; ++i) {
@@ -126,29 +106,9 @@ getcolpos()
 #endif
 	    ++col;
 	}
-	else if (ISCTRL(c) != FALSE)
-	    ++col;
-	++col;
-#ifdef SS_SUPPORT /* 92.11.21  by S.Sasaki */
-	if (ISKANJI(c)) {
-#ifdef HOJO_KANJI
-	    if (ISHOJO(c) && kan2nd==0) {
-		kan2nd = 3;
-		col--;
-	    }
-#endif
-#ifdef HANKANA
-	    if (ISHANKANA(c) && kan2nd==0)
-		col--;
-#endif
-	    if (kan2nd == 0)
-		kan2nd = 1;
-	    else
-		kan2nd--;
-	}
-#endif /* SS_SUPPORT */
+	else
+	    col += lm_width(c);
     }
-    col++;
     return col;
 }
 
@@ -169,12 +129,7 @@ int f, n;
 {
     register LINE *dotp;
     register int doto;
-    register int cr;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    register int cr2;
-    register int cr3;
-    register int cr4;
-#endif /* KANJI */
+    register NG_WCHAR_t cr;
 #ifdef UNDO
     UNDO_DATA *undo = NULL;
 #endif
@@ -191,21 +146,11 @@ int f, n;
     if (doto==llength(dotp)) {
 	if (--doto<=0)
 	    return FALSE;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	if (ISKANJI(lgetc(dotp, doto))) {
-	    if (--doto <= 0)
-		return FALSE;
-	}
-#endif /* KANJI */
     }
     else {
 	if (doto == 0)
 	    return FALSE;
 	++curwp->w_doto;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	if (ISKANJI(lgetc(dotp, doto)))
-	    ++curwp->w_doto;
-#endif /* KANJI */
     }
 #ifdef UNDO
     undo_setup(undo);
@@ -218,30 +163,9 @@ int f, n;
 	undo_finish(&(undo->u_next));
     }
 #endif /* UNDO */
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    cr = lgetc(dotp, doto);
-    if (ISKANJI(cr))			/* It's KANJI 1st byte.	*/
-	cr2 = lgetc(dotp, doto + 1);	/* Get KANJI 2nd byte.	*/
-    else
-	cr2 = '\0';			/* cr is ASCII.		*/
-    cr3 = lgetc(dotp, --doto);
-    if (ISKANJI(cr3)) {			/* It's KANJI 2nd byte.	*/
-	cr4 = cr3;
-	cr3 = lgetc(dotp, --doto);	/* Get KANJI 1st byte.	*/
-    }
-    else
-	cr4 = '\0';			/* cr3 is ASCII.	*/
-    lputc(dotp, doto++, cr);		/* ASCII or KANJI 1st.	*/
-    if (cr2 != '\0')			/* This char is KANJI.	*/
-	lputc(dotp, doto++, cr2);	/* Put KANJI 2nd byte.	*/
-    lputc(dotp, doto++, cr3);		/* ASCII or KANJI 1st.	*/
-    if (cr4 != '\0')			/* This char is KANJI.	*/
-	lputc(dotp, doto++, cr4);
-#else /* NOT KANJI */
     cr = lgetc(dotp, doto--);
     lputc(dotp, doto+1, lgetc(dotp, doto));
     lputc(dotp, doto, cr);
-#endif /* KANJI */
     lchange(WFEDIT);
     return TRUE;
 }
@@ -835,19 +759,6 @@ int f, n;
 #else
     if (!ISKANJI(c))
 	pat[1] = '\0';
-#ifdef	HOJO_KANJI
-    else if (ISHOJO(c)) {
-	c = getkey(FALSE);
-	if (!ISKANJI(c))
-	    return FALSE;
-	pat[1] = c;
-	c = getkey(FALSE);
-	if (!ISKANJI(c))
-	    return FALSE;
-	pat[2] = c;
-	pat[3] = '\0';
-    }
-#endif
     else {
 	c = getkey(FALSE);
 	if (!ISKANJI(c))
@@ -1013,3 +924,5 @@ int f, n;
     ewprintf("Region has %d lines", totallines);
     return TRUE;
 }
+
+#endif /* ADDFUNC */

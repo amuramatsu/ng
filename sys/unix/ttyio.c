@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.16 2003/02/23 13:37:43 amura Exp $ */
+/* $Id: ttyio.c,v 1.16.2.1 2005/04/09 06:26:14 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -11,7 +11,10 @@
 
 #include "config.h"
 #include "def.h"
+#include "ttyio.h"
 
+#include "tty.h"
+#include "echo.h"
 #include <sys/types.h>
 #if defined(HAVE_TERMIOS_H)
 #include <termios.h>
@@ -461,7 +464,7 @@ typeahead()
  */
 VOID
 panic(s)
-char *s;
+const char *s;
 {
     fputs("panic: ", stderr);
     fputs(s, stderr);

@@ -1,4 +1,4 @@
-/* $Id: modes.c,v 1.5.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: modes.c,v 1.5.2.3 2005/04/09 06:26:14 amura Exp $ */
 /*
  * Commands to toggle modes. Without an argument, toggle mode.
  * Negitive or zero argument, mode off.	 Positive argument, mode on.
@@ -12,6 +12,7 @@
 #include "i_buffer.h"
 #include "echo.h"
 #include "file.h"
+#include "buffer.h"
 
 int defb_nmodes = 0;
 MAPS *defb_modes[PBMODES] = {&map_table[0]};

@@ -1,4 +1,4 @@
-/* $Id: regex.c,v 1.2 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: regex.c,v 1.2.2.1 2005/04/09 06:26:14 amura Exp $ */
 /* This source is select Regular Expression routine */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
@@ -12,4 +12,4 @@
 # else
 #  include	"regex_e.c"
 # endif
-#endif
+#endif /* REGEX */

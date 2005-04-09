@@ -1,4 +1,4 @@
-/* $Id: word.c,v 1.5.2.1 2005/04/07 17:15:20 amura Exp $ */
+/* $Id: word.c,v 1.5.2.2 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		Word mode commands.
  * The routines in this file
@@ -10,15 +10,12 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
-#ifdef UNDO
-#include "undo.h"
-#endif
+#include "word.h"
 
-#ifdef HOJO_KANJI
-#define	CHAR_LENGTH()	(ishojo() ? 3 : (iskanji() ? 2 : 1))
-#else
-#define	CHAR_LENGTH()	(iskanji() ? 2 : 1)
-#endif
+#include "i_window.h"
+#include "basic.h"
+#include "line.h"
+#include "undo.h"
 
 /*
  * Move the cursor backward by

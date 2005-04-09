@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.4 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.5 2005/04/09 06:26:14 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -21,10 +21,10 @@
 #include "ttyio.h"
 #include "key.h"
 #include "kbd.h"
-#include "main.h"
 #include "line.h"
 #include "macro.h"
 #include "window.h"
+#include "cinfo.h"
 
 #ifdef SUPPORT_ANSI
 #  include <stdarg.h>
@@ -192,7 +192,7 @@ char *sp;
 /*VARARGS 0*/
 #ifdef SUPPORT_ANSI
 int
-ereply(char *fp, char *buf, int nbuf, ... )
+ereply(char *fp, NG_WCHAR_t *buf, int nbuf, ... )
 {
     int i;
     va_list pvar;
@@ -214,7 +214,7 @@ va_dcl
 
     va_start(pvar);
     fp = va_arg(pvar, char *);
-    buf = va_arg(pvar, char *);
+    buf = va_arg(pvar, NG_WCHAR_t *);
     nbuf = va_arg(pvar, int);
     i = veread(fp, buf, nbuf, EFNEW|EFCR, &pvar);
     va_end(pvar);
@@ -2107,7 +2107,6 @@ register va_list *ap;
     register int n;
     int c, idx;
     char kname[NKNAME];
-    char *keyname();
     char *cp;
 
     n = ncol + 1;
@@ -3071,7 +3070,6 @@ register va_list *ap;
 {
     register int c;
     char kname[NKNAME];
-    char *keyname();
     char *cp;
     
     while ((c = *fp++) != '\0') {

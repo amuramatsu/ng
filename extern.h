@@ -1,4 +1,4 @@
-/* $Id: extern.h,v 1.4.2.3 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: extern.h,v 1.4.2.4 2005/04/09 06:26:14 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -21,7 +21,6 @@ extern int curgoal;
 extern int epresf;
 extern int sgarbf;
 extern int mode;
-extern char pat[];
 
 extern char cinfo[];
 extern char *keystrings[];
@@ -30,12 +29,14 @@ extern char *keystrings[];
 extern "C" {
 #endif
 
-VOID panic _PRO((const char *));	/* tty.c */
-VOID ttbeep _PRO((void));		/* tty.c */
-VOID update _PRO((void));		/* display.c */
-int ttwait _PRO((void));		/* display.c */
-int selfinsert _PRO((int, int));	/* kbd.c */
-VOID warnreadonly _PRO((void));		/* buffer.c */
+int ctrlg _PRO((int, int));			/* main.c */
+VOID panic _PRO((const char *));		/* tty.c */
+VOID ttbeep _PRO((void));			/* tty.c */
+VOID update _PRO((void));			/* display.c */
+int ttwait _PRO((void));			/* display.c */
+int selfinsert _PRO((int, int));		/* kbd.c */
+int universal_argument _PRO((int, int));	/* kbd.c */
+VOID warnreadonly _PRO((void));			/* buffer.c */
 
 #ifdef __cplusplus
 }

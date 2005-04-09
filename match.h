@@ -1,7 +1,9 @@
-/* $Id: match.h,v 1.1.2.1 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: match.h,v 1.1.2.2 2005/04/09 06:26:14 amura Exp $ */
 
 #ifndef __MATCH_H__
 #define __MATCH_H__
+
+#include "i_line.h"
 
 #ifdef __cplusplus
 extern "C" {
