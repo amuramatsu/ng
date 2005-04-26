@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.3 2005/04/26 15:48:44 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -11,6 +11,7 @@
 
 #include "i_buffer.h"
 #include "i_window.h"
+#include "i_lang.h"
 #include "kbd.h"
 #include "buffer.h"
 #include "basic.h"
@@ -28,22 +29,19 @@ static BUFFER *prev_bp = NULL;
 static WINDOW *prev_wp = NULL;
 static WINDOW prev_window;
 
-static int complete_funcname _PRO((char *));
-static int complete_buffername _PRO((char *));
-static int complete_filename _PRO((char *));
-static int complete_list_funcnames _PRO((char *, BUFFER *));
-static int complete_list_buffernames _PRO((char *, BUFFER *));
-static int complete_list_filenames _PRO((char *, BUFFER *));
-#ifdef	SS_SUPPORT
-static int estrlen _PRO((char *));
-#endif
+static int complete_funcname _PRO((NG_WCHAR_t *));
+static int complete_buffername _PRO((NG_WCHAR_t *));
+static int complete_filename _PRO((NG_WCHAR_t *));
+static int complete_list_funcnames _PRO((NG_WCHAR_t *, BUFFER *));
+static int complete_list_buffernames _PRO((NG_WCHAR_t *, BUFFER *));
+static int complete_list_filenames _PRO((NG_WCHAR_t *, BUFFER *));
 
 /*
  * do some completion.
  */
 int
 complete(buf, flags)
-char *buf;
+NG_WCHAR_t *buf;
 int flags;
 {
     int res;
@@ -95,20 +93,25 @@ int matchnum;
 
 /* complete function name */
 static int
-complete_funcname(name)
-char *name;
+complete_funcname(wname)
+NG_WCHAR_t *wname;
 {
     int fnlen;
+    char *name;
     int minlen = 0;
     int matchnum;
     int res;
     int i, j;
     char *cand;
 
-    fnlen = strlen (name);
+    fnlen = curbp->b_lang->lm_out_convert_len(NG_CODE_PASCII, wname);
+    if ((name = alloca(fnlen+1)) == NULL)
+	return -1;
+    curbp->b_lang->lm_out_convert(NG_CODE_PASCII, wname, name);
 
     /* compare names and make the common string of them */
     matchnum = 0;
+    
     for (i = name_fent(name, TRUE); i < nfunct; i++) {
         cand = functnames[i].n_name;
 	j = strncmp (cand, name, fnlen);
@@ -149,17 +152,22 @@ char *name;
 }
 
 static int
-complete_buffername(name)
-char *name;
+complete_buffername(wname)
+NG_WCHAR_t *wname;
 {
     int fnlen;
+    char *name;
     int minlen = 0;
     int matchnum;
     int res;
     int j;
     char *cand;
     LIST *lh;
-    fnlen = strlen (name);
+    
+    fnlen = curbp->b_lang->lm_out_convert_len(NG_CODE_PASCII, wname);
+    if ((name = alloca(fnlen+1)) == NULL)
+	return -1;
+    curbp->b_lang->lm_out_convert(NG_CODE_PASCII, wname, name);
 
     /* compare names and make the common string of them */
     matchnum = 0;
@@ -200,9 +208,10 @@ char *name;
 
 #ifndef NO_FILECOMP
 static int
-complete_filename(name)
-char *name;
+complete_filename(wname)
+NG_WCHAR_t *wname;
 {
+    char *name;
     int fnlen;
     int minlen = 0;
     int matchnum;
@@ -211,8 +220,13 @@ char *name;
     int fnnum;
     char *cand;
     char *filenames;
+    int namecode;
 
-    fnlen = strlen(name);
+    namecode = curbp->b_lang->lm_buffer_name_code();
+    fnlen = curbp->b_lang->lm_out_convert_len(namecode, wname);
+    if ((name = alloca(fnlen+1)) == NULL)
+	return -1;
+    curbp->b_lang->lm_out_convert(namecode, wname, name);
 
     if ((fnnum = fffiles (name, &filenames)) == -1)
 	return (-1);    /* error */
@@ -256,7 +270,7 @@ char *name;
 
 int
 complete_list_names(buf, flags)
-char *buf;
+NG_WCHAR_t *buf;
 int flags;
 {
     int res;
@@ -337,16 +351,20 @@ int flags;
 }
 
 static int
-complete_list_funcnames(name, bp)
-char *name;
+complete_list_funcnames(wname, bp)
+NG_WCHAR_t *wname;
 BUFFER *bp;
 {
+    char *name;
     int fnlen;
     int i, j;
     char *cand;
     char line[NFILEN];
 
-    fnlen = strlen (name);
+    fnlen = curbp->b_lang->lm_out_convert_len(NG_CODE_PASCII, wname);
+    if ((name = alloca(fnlen+1)) == NULL)
+	return -1;
+    curbp->b_lang->lm_out_convert(NG_CODE_PASCII, wname, name);
     
     line[0] = '\0';
     for (i = name_fent(name, TRUE); i < nfunct; i++) {
@@ -385,7 +403,7 @@ BUFFER *bp;
 
 static int
 complete_list_buffernames(name, bp)
-char *name;
+NG_WCHAR_t *wname;
 BUFFER *bp;
 {
     int fnlen;
@@ -403,24 +421,14 @@ BUFFER *bp;
 	    continue;
 
 	if (line[0] == '\0') {
-#ifdef	SS_SUPPORT
-	    if (estrlen (cand) < LIST_COL)
-#else
 	    if (strlen (cand) < LIST_COL)
-#endif
 		strcpy (line, cand);
 	    else
 		addline (bp, cand);
 	}
 	else {
-#ifdef	SS_SUPPORT
-	    if (estrlen (cand) < LIST_COL) {
-		int k = estrlen(line);
-		for (j = strlen (line); k < LIST_COL; j++, k++)
-#else
 	    if (strlen (cand) < LIST_COL) {
 		for (j = strlen (line); j < LIST_COL; j++)
-#endif
 		    line[j] = ' ';
 		line[j] = '\0';
 		strcat (line, cand);
@@ -440,7 +448,7 @@ BUFFER *bp;
 
 static int
 complete_list_filenames(name, bp)
-char *name;
+NG_WCHAR_t *name;
 BUFFER *bp;
 {
     int dnlen;

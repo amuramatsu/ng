@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.5 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.6 2005/04/26 15:48:44 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -36,7 +36,7 @@
 # endif
 #endif /* SUPPORT_ANSI */
 
-static int veread _PRO((char *, char *, int, int, va_list *));
+static int veread _PRO((const char *, NG_WCHAR_t *, int, int, va_list *));
 
 static VOID eformat _PRO((register char *fp, register va_list *ap));
 static VOID eputi _PRO((int, int));
@@ -51,14 +51,14 @@ static int complt _PRO((int, int, char *, int));
 
 #ifdef ADDFUNC	/* 91.01.16  by S.Yoshida */
 static int earg_exist = FALSE;		/* Extra argument existing flag. */
-static char *earg_text;			/* Extra argument text body.	*/
+static NG_WCHAR_t *earg_text;		/* Extra argument text body.	*/
 
 /*
  * Set extra argument using in veread().
  */
 VOID
 eargset(earg)
-char *earg;
+NG_WCHAR_t *earg;
 {
     if (earg) {
 	earg_exist = TRUE;
@@ -70,14 +70,14 @@ char *earg;
 #endif /* ADDFUNC */
 
 #ifdef EXTD_DIR
-static char *edef_text;			/* Default argument text body */
+static NG_WCHAR_t *edef_text;		/* Default argument text body */
 
 /*
  * Set extra argument using in veread().
  */
 VOID
 edefset(earg)
-char *earg;
+NG_WCHAR_t *earg;
 {
     edef_text = earg;
 }
@@ -106,7 +106,7 @@ eerase()
  */
 int
 eyorn(sp)
-char *sp;
+const char *sp;
 {
     register int s;
 
@@ -137,16 +137,16 @@ char *sp;
  */
 int
 eyesno(sp)
-char *sp;
+const char *sp;
 {
     register int s;
-    char buf[64];
+    NG_WCHAR_t buf[64];
 
 #ifndef NO_MACRO
     if (inmacro)
 	return TRUE;
 #endif
-    s = ereply("%s? (yes or no) ", buf, sizeof(buf), sp);
+    s = ereply("%s? (yes or no) ", buf, NG_WCHARLEN(buf), sp);
     for (;;) {
 	if (s == ABORT)
 	    return ABORT;
@@ -160,23 +160,23 @@ char *sp;
 		free((char *)lp);
 	    }
 #endif
-	    if ((buf[0] == 'y' || buf[0] == 'Y')
-		&& (buf[1] == 'e' || buf[1] == 'E')
-		&& (buf[2] == 's' || buf[2] == 'S')
-		&& (buf[3] == '\0'))
+	    if ((buf[0] == NG_WCODE('y') || buf[0] == NG_WCODE('Y'))
+		&& (buf[1] == NG_WCODE('e') || buf[1] == NG_WCODE('E'))
+		&& (buf[2] == NG_WCODE('s') || buf[2] == NG_WCODE('S'))
+		&& (buf[3] == NG_EOS))
 		return TRUE;
-	    if ((buf[0] == 'n' || buf[0] == 'N')
-		&& (buf[1] == 'o' || buf[0] == 'O')
-		&& (buf[2] == '\0'))
+	    if ((buf[0] == NG_WCODE('n') || buf[0] == NG_WCODE('N'))
+		&& (buf[1] == NG_WCODE('o') || buf[0] == NG_WCODE('O'))
+		&& (buf[2] == NG_EOS))
 		return FALSE;
 	}
 #ifdef notyet
 	message("Please answer yes or no.");
 	ttwait();
-	s = ereply("%s? (yes or no) ", buf, sizeof(buf), sp);
+	s = ereply("%s? (yes or no) ", buf, NG_WCHARLEN(buf), sp);
 #else
 	s = ereply("Please answer yes or no.  %s? (yes or no) ",
-		   buf, sizeof(buf), sp);
+		   buf, NG_WCHARLEN(buf), sp);
 #endif
     }
     /*NOTREACHED*/
@@ -192,7 +192,7 @@ char *sp;
 /*VARARGS 0*/
 #ifdef SUPPORT_ANSI
 int
-ereply(char *fp, NG_WCHAR_t *buf, int nbuf, ... )
+ereply(const char *fp, NG_WCHAR_t *buf, int nbuf, ... )
 {
     int i;
     va_list pvar;
@@ -208,12 +208,13 @@ ereply(va_alist)
 va_dcl
 {
     va_list pvar;
-    register char *fp, *buf;
+    register const char *fp;
+    register NG_WCHAR_t *buf;
     register int nbuf;
     register int i;
 
     va_start(pvar);
-    fp = va_arg(pvar, char *);
+    fp = va_arg(pvar, const char *);
     buf = va_arg(pvar, NG_WCHAR_t *);
     nbuf = va_arg(pvar, int);
     i = veread(fp, buf, nbuf, EFNEW|EFCR, &pvar);
@@ -234,7 +235,7 @@ va_dcl
 /* VARARGS 0 */
 #ifdef SUPPORT_ANSI
 int
-eread(char *fp, char *buf, int nbuf, int flag, ...)
+eread(const char *fp, NG_WCHAR_t *buf, int nbuf, int flag, ...)
 {
     int	    i;
     va_list pvar;
@@ -250,12 +251,13 @@ eread(va_alist)
 va_dcl
 {
     va_list pvar;
-    char *fp, *buf;
+    char *fp;
+    NG_WCHAR_t *buf;
     int nbuf, flag, i;
     
     va_start(pvar);
-    fp   = va_arg(pvar, char *);
-    buf  = va_arg(pvar, char *);
+    fp   = va_arg(pvar, const char *);
+    buf  = va_arg(pvar, NG_WCHAR_t *);
     nbuf = va_arg(pvar, int);
     flag = va_arg(pvar, int);
     i = veread(fp, buf, nbuf, flag, &pvar);
@@ -270,11 +272,11 @@ getnum (prompt, num)
 char *prompt;
 int *num;
 {
-    char numstr[GETNUMLEN];
+    NG_WCHAR_t numstr[GETNUMLEN];
 
-    if (ereply("%s : ", numstr, GETNUMLEN, prompt) == FALSE)
+    if (ereply("%s : ", numstr, NG_WCHARLEN(numstr), prompt) == FALSE)
 	return (FALSE);
-    *num = atoi(numstr);
+    *num = watoi(numstr);
     return (TRUE);
 }
 #undef USING_GETNUM
@@ -299,15 +301,15 @@ struct _Line {
 #define MB_HIST_MISC		3
 #define MB_HIST_NTYPES		4
 /* Note: mb_hist_buf[*][0] plays a special role. */
-static char *mb_hist_buf[MB_HIST_NTYPES][MB_NHISTS+1];
+static NG_WCHAR_t *mb_hist_buf[MB_HIST_NTYPES][MB_NHISTS+1];
 #define mb_get_hist_buf(flag)					\
 	(((flag)&EFFUNC) ? mb_hist_buf[MB_HIST_FUNC] :		\
 	(((flag)&EFBUF)  ? mb_hist_buf[MB_HIST_BUF] :		\
 	(((flag)&EFFILE) ? mb_hist_buf[MB_HIST_FILE] :		\
 			mb_hist_buf[MB_HIST_MISC])))		\
 
-static int mb_init _PRO((int, char *, va_list *));
-static int mb_get_buffer _PRO((char *, int));
+static int mb_init _PRO((int, const char *, va_list *));
+static int mb_get_buffer _PRO((NG_WCHAR_t *, int));
 static int mb_bufsize _PRO((void));
 static int mb_pointchar _PRO((void));
 static int mb_pointoverwrite _PRO((unsigned int));
@@ -319,7 +321,7 @@ static int mb_gotochar _PRO((int));
 static int mb2_gotochar _PRO((int));
 static int mb_insert _PRO((int, int));
 static int mb2_insert _PRO((int, int));
-static int mb_insertstr _PRO((char *));
+static int mb_insertstr _PRO((const NG_WCHAR_t *));
 static VOID mb_insertcmplmsg _PRO((char *));
 static int mb2_insertcmplmsg _PRO((char *));
 static int mb_delcmplmsg _PRO((void));
@@ -374,17 +376,18 @@ char mbMode[CANBUF];
 int mb_cannamode;
 #endif
 
-static int veread_complete _PRO((char *, int, int, int));
+static int veread_complete _PRO((NG_WCHAR_t *, int, int, int));
 
 static int
 veread(fp, buf, nbuf, flag, ap)
-char *fp, *buf;
+const char *fp;
+NG_WCHAR_t *buf;
 int nbuf, flag;
 va_list *ap;
 {
     int MetaPrefix, CtluPrefix, nargs, cmp_msg_len, sign, ctluf;
     int c;
-    char **hist_buf;
+    NG_WCHAR_t **hist_buf;
     int hist_idx;
   
 #ifdef ADDFUNC
@@ -392,7 +395,7 @@ va_list *ap;
     /* This is a very easy way of not getting an argument from	*/
     /* the keyboard.	*/
     if (earg_exist) {
-	strcpy(buf, earg_text);
+	wstrcpy(buf, earg_text);
 	earg_exist = FALSE;
 #ifdef EXTD_DIR
         edef_text = NULL;
@@ -770,7 +773,7 @@ int nbuf, c, flag;
 /*VARARGS 0*/
 #ifdef SUPPORT_ANSI
 int
-message(char *fp,...)
+message(const char *fp, ...)
 {
     va_list pvar;
     va_start(pvar, fp);
@@ -784,10 +787,10 @@ message(va_alist)
 va_dcl
 {
     va_list pvar;
-    register char *fp;
+    register const char *fp;
     
     va_start(pvar);
-    fp = va_arg(pvar, char *);
+    fp = va_arg(pvar, const char *);
     ewprintf(fp);
     va_end(pvar);
     return 0;

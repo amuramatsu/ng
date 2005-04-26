@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11.2.3 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: basic.c,v 1.11.2.4 2005/04/26 15:48:44 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -154,14 +154,14 @@ nextline(f, n)
 int f, n;
 {
     register int s;
-    char buf[NINPUT];
+    NG_WCHAR_t buf[NINPUT];
 
     if ((f & FFARG) == 0) {
 	if ((s = ereply("next-line-add-newlines : ", buf, sizeof(buf)))
 	    != TRUE)
 	    return (s);
 	if (ISDIGIT(buf[0]) || buf[0] == '-')
-	    n = atoi(buf) > 0;
+	    n = watoi(buf) > 0;
 	else if (buf[0] == 't' || buf[0] == 'T')
 	    n = TRUE;
 	else
@@ -181,13 +181,13 @@ int f, n;
 {
     register int s;
     register WINDOW *wp;
-    char buf[NINPUT];
+    NG_WCHAR_t buf[NINPUT];
 
     if ((f & FFARG) == 0) {
 	if ((s = ereply("line-number-mode : ", buf, sizeof(buf))) != TRUE)
 	    return (s);
 	if (ISDIGIT(buf[0]) || buf[0] == '-')
-	    n = (atoi(buf) > 0);
+	    n = (watoi(buf) > 0);
 	else if (buf[0] == 't' || buf[0] == 'T')
 	    n = TRUE;
 	else
@@ -575,12 +575,12 @@ register int n;
 {
     register LINE *clp;
     register int s;
-    char buf[NINPUT];
+    NG_WCHAR_t buf[NINPUT];
 
     if (!(f & FFARG)) {
 	if ((s=ereply("Goto line: ", buf, sizeof(buf))) != TRUE)
 	    return s;
-	n = atoi(buf);
+	n = watoi(buf);
     }
     
     if (n > 0) {

@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.5.2.3 2005/04/07 17:15:20 amura Exp $ */
+/* $Id: shell.c,v 1.5.2.4 2005/04/26 15:48:44 amura Exp $ */
 /*
  *		Shell commands.
  * The file contains the command
@@ -14,6 +14,7 @@
 
 #include "i_buffer.h"
 #include "i_window.h"
+#include "i_lang.h"
 #include "buffer.h"
 #include "basic.h"
 #include "file.h"
@@ -24,7 +25,7 @@ int
 shellcmnd(f, n)
 int f, n;
 {
-    char buf[CMDLINELENGTH];
+    NG_WCHAR_t buf[CMDLINELENGTH];
     char *result;
     int s;
     BUFFER *bp = NULL, *obp = NULL;
@@ -44,8 +45,18 @@ int f, n;
 	obp = curbp; owp = curwp;
 	curbp = bp; curwp = wp;
     }
-    if ((result = call_process(buf, NULL)) == NULL)
-	return FALSE;
+    {
+	/* code conversion */
+	int code, len;
+	char *tmp;
+	code = curbp->b_lang->lm_io_code();
+	len = curbp->b_lang->lm_out_convert_len(code, buf);
+	if ((tmp = alloca(len)) == NULL)
+	    return FALSE;
+	curbp->b_lang->lm_out_convert(code, buf, tmp);
+	if ((result = call_process(tmp, NULL)) == NULL)
+	    return FALSE;
+    }
     isetmark();
     ewprintf(result);
     s = insertfile(result, (char *)NULL);

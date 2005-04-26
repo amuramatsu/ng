@@ -1,4 +1,4 @@
-/* $Id: i_lang.h,v 1.1.2.4 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: i_lang.h,v 1.1.2.5 2005/04/26 15:48:44 amura Exp $ */
 /*
  * This file is the language module definition of the NG
  * display editor.
@@ -27,12 +27,13 @@ typedef struct LANG_MODULE {
     char *lm_name;
     int (*lm_width)_PRO((NG_WCHAR_t));
     CODEMAP *(*lm_get_codemap)_PRO((void));
-    int (*lm_out_convert_len)_PRO((int, NG_WCHAR_t *));
-    int (*lm_out_convert)_PRO((int, NG_WCHAR_t *, char *));
-    int (*lm_in_convert_len)_PRO((int, NG_WCHAR_t *));
-    int (*lm_in_convert)_PRO((int, char *, NG_WCHAR_t *));
+    int (*lm_out_convert_len)_PRO((int, const NG_WCHAR_t *));
+    int (*lm_out_convert)_PRO((int, const NG_WCHAR_t *, char *));
+    int (*lm_in_convert_len)_PRO((int, const char *));
+    int (*lm_in_convert)_PRO((int, const char *, NG_WCHAR_t *));
     int (*lm_in_set_code_subtype)_PRO((int, int, int));
     int (*lm_buffer_name_code)_PRO((void));
+    int (*lm_io_code)_PRO((void));
     int (*lm_set_code)_PRO((int, int));
     int (*lm_display_start_code)_PRO((void));
     int (*lm_get_display_code)_PRO((int, NG_WCHAR_t, char**, int *));

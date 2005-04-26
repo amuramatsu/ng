@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.20.2.4 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: buffer.c,v 1.20.2.5 2005/04/26 15:48:44 amura Exp $ */
 /*
  *		Buffer handling.
  */
@@ -103,21 +103,21 @@ int f, n;
 {
     register BUFFER *bp;
     register int s;
-    char bufn[NBUFN];
+    NG_WCHAR_t bufn[NBUFN];
 
     /* Get buffer to use from user */
     if ((curbp->b_altb == NULL)
 	&& ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
-	s = eread("Switch to buffer: ", bufn, sizeof(bufn), EFNEW|EFBUF);
+	s = eread("Switch to buffer: ", bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF);
     else
-	s = eread("Switch to buffer: (default %s) ", bufn, sizeof(bufn),
+	s = eread("Switch to buffer: (default %s) ", bufn, NG_WCHARLEN(bufn),
 		  EFNEW|EFBUF, curbp->b_altb->b_bname);
 
     if (s == ABORT)
 	return s;
     if (s == FALSE && curbp->b_altb != NULL)
 	bp = curbp->b_altb;
-    else if ((bp=bfind(bufn, TRUE)) == NULL)
+    else if ((bp=bfindw(bufn, TRUE, curbp->b_lang)) == NULL)
 	return FALSE;
 
     /* and put it in current window */
@@ -136,21 +136,21 @@ int f, n;
     register BUFFER *bp;
     register WINDOW *wp;
     register int s;
-    char bufn[NBUFN];
+    NG_WCHAR_t bufn[NBUFN];
     
     /* Get buffer to use from user */
     if ((curbp->b_altb == NULL)
 	&& ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
 	s = eread("Switch to buffer in other window: ",
-		  bufn, sizeof(bufn), EFNEW|EFBUF);
+		  bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF);
     else
 	s = eread("Switch to buffer in other window: (default %s) ",
-		  bufn, sizeof(bufn), EFNEW|EFBUF, curbp->b_altb->b_bname);
+		  bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF, curbp->b_altb->b_bname);
     if (s == ABORT)
 	return s;
     if (s == FALSE && curbp->b_altb != NULL)
 	bp = curbp->b_altb;
-    else if ((bp=bfind(bufn, TRUE)) == NULL)
+    else if ((bp=bfindw(bufn, TRUE, curbp->b_lang)) == NULL)
 	return FALSE;
 
     /* and put it in a new window */
@@ -178,14 +178,14 @@ int f, n;
     register BUFFER *bp2;
     WINDOW *wp;
     register int s;
-    char bufn[NBUFN];
+    NG_WCHAR_t bufn[NBUFN];
     
-    if ((s=eread("Kill buffer: (default %s) ", bufn, sizeof(bufn),
+    if ((s=eread("Kill buffer: (default %s) ", bufn, NG_WCHARLEN(bufn),
 		 EFNEW|EFBUF, curbp->b_bname)) == ABORT)
 	return (s);
     else if (s == FALSE)
 	bp = curbp;
-    else if ((bp=bfind(bufn, FALSE)) == NULL)
+    else if ((bp=bfindw(bufn, FALSE, curbp->b_lang)) == NULL)
 	return FALSE;
     
     /* find some other buffer to display. try the alternate buffer,
@@ -308,10 +308,10 @@ int f, n;
  */
 static BUFFER *
 makelist() {
-    register char *cp1;
+    register NG_WCHAR_t *cp1;
     register BUFFER *bp;
     BUFFER *blp;
-    char line[4+NBUFN+7+NFILEN+4];
+    NG_WCHAR_t line[4+NBUFN+7+NFILEN+4];
     
     if ((blp = bfind("*Buffer List*", TRUE)) == NULL)
 	return NULL;
@@ -323,32 +323,32 @@ makelist() {
     blp->b_flag &= ~BFCHG;			/* Blow away old.	*/
 #endif /* AUTOSAVE	*/
     
-    (VOID) strcpy(line, " MR Buffer");
+    wstrlcpya(line, " MR Buffer", NG_WCHARLEN(line));
     cp1 = line + 10;
     while (cp1 < line + 4 + NBUFN + 1)
-	*cp1++ = ' ';
-    (VOID) strcpy(cp1, "Size   File");
+	*cp1++ = NG_WSPACE;
+    wstrlcpya(cp1, "Size   File", NG_WCHARLEN(line)-(cp1-line));
     if (addline(blp, line) == FALSE)
 	return NULL;
-    (VOID) strcpy(line, " -- ------");
+    wstrlcpya(line, " -- ------", NG_WCHARLEN(line));
     cp1 = line + 10;
     while (cp1 < line + 4 + NBUFN + 1)
-	*cp1++ = ' ';
-    (VOID) strcpy(cp1, "----   ----");
+	*cp1++ = NG_WSPACE;
+    wstrlcpya(cp1, "----   ----", NG_WCHARLEN(line)-(cp1-line));
     if (addline(blp, line) == FALSE)
 	return NULL;
     bp = bheadp;				/* For all buffers	*/
     while (bp != NULL) {
-	sprintf(line,"%c%c%c %-30.30s %7ld %s",
-		(bp == curbp) ? '.' : ' ',
-		(bp->b_flag & BFCHG) ? '*' : ' ',
+	wsnprintf(line, NG_WCHARLEN(line), "%c%c%c %-30.30s %7ld %s",
+		  (bp == curbp) ? '.' : ' ',
+		  (bp->b_flag & BFCHG) ? '*' : ' ',
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
-		(bp->b_flag & BFRONLY) ? '%' : ' ',
+		  (bp->b_flag & BFRONLY) ? '%' : ' ',
 #else
-		' ',
+		  ' ',
 #endif
-		bp->b_bname, buffersize(bp),
-		(bp->b_fname != NULL) ? bp->b_fname : "" );
+		  bp->b_bname, buffersize(bp),
+		  (bp->b_fname != NULL) ? bp->b_fname : "" );
 	if (addline(blp, line) == FALSE)
 	    return NULL;
 	bp = bp->b_bufp;
@@ -390,13 +390,13 @@ BUFFER *bp;
 int
 addline(bp, text)
 register BUFFER *bp;
-char *text;
+const NG_WCHAR_t *text;
 {
     register LINE *lp;
     register int i;
     register int ntext;
 
-    ntext = strlen(text);
+    ntext = wstrlen(text);
     if ((lp=lalloc(ntext)) == NULL)
 	return FALSE;
     for (i=0; i<ntext; ++i)
@@ -470,7 +470,7 @@ int f;
  */
 BUFFER	*
 bfind(bname, cflag)
-register char *bname;
+register const char *bname;
 int cflag;
 {
     register BUFFER *bp;
@@ -664,7 +664,7 @@ int f, n;
     register int clo;
     register int nline;
     int s;
-    char bufn[NBUFN];
+    NG_WCHAR_t bufn[NBUFN];
 
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
@@ -675,7 +675,7 @@ int f, n;
 
     /* Get buffer to use from user */
     if (curbp->b_altb != NULL)
-	s = eread("Insert buffer: (default %s) ", bufn, sizeof(bufn),
+	s = eread("Insert buffer: (default %s) ", bufn, NG_WCHARLEN(bufn),
 		  EFNEW|EFBUF, curbp->b_altb->b_bname);
     else
 	s = eread("Insert buffer: ", bufn, sizeof(bufn), EFNEW|EFBUF);
@@ -683,7 +683,7 @@ int f, n;
 	return (s);
     if (s == FALSE && curbp->b_altb != NULL)
 	bp = curbp->b_altb;
-    else if ((bp=bfind(bufn, FALSE)) == NULL)
+    else if ((bp=bfindw(bufn, FALSE, curbp->b_lang)) == NULL)
 	return FALSE;
 
     if (bp == curbp) {
@@ -944,7 +944,7 @@ int
 b_expunge(f, n)
 int f, n;
 {
-    char bufname[NBUFN];
+    NG_WCHAR_t bufname[NBUFN];
     register LINE *lp, *nlp;
 
     for (lp = lforw(curbp->b_linep) ; lp != curbp->b_linep ; lp = nlp) {

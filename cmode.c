@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.7.2.3 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: cmode.c,v 1.7.2.4 2005/04/26 15:48:44 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -79,14 +79,14 @@ cm_use_c_mode(f, n)
 int f, n;
 {
     register int s;
-    char buf[NINPUT];
+    NG_WCHAR_t buf[NINPUT];
 
     if ((f & FFARG) == 0) {
-	if ((s = ereply("use-c-mode : ", buf, sizeof(buf))) != TRUE)
+	if ((s = ereply("use-c-mode : ", buf, NINPUT)) != TRUE)
 	    return (s);
-	if (ISDIGIT(buf[0]) || buf[0] == '-')
-	    n = (atoi(buf) > 0);
-	else if (buf[0] == 't' || buf[0] == 'T')
+	if (ISDIGIT(buf[0]) || buf[0] == NG_WCODE('-'))
+	    n = (watoi(buf) > 0);
+	else if (buf[0] == NG_WCODE('t') || buf[0] == NG_WCODE('T'))
 	    n = TRUE;
 	else
 	    n = FALSE;
@@ -804,13 +804,13 @@ cm_set_newl(f, n)
 int f, n;
 {
     register int s;
-    char buf[NINPUT];
+    NG_WCHAR_t buf[NINPUT];
 
     if ((f & FFARG) == 0) {
-	if ((s = ereply("c-auto-newline : ", buf, sizeof(buf))) != TRUE)
+	if ((s = ereply("c-auto-newline : ", buf, NINPUT)) != TRUE)
 	    return (s);
 	if (ISDIGIT(buf[0]) || buf[0] == '-')
-	    n = (atoi(buf) > 0);
+	    n = (watoi(buf) > 0);
 	else if (buf[0] == 't' || buf[0] == 'T')
 	    n = TRUE;
 	else /* if (buf[0] == 'n' || buf[0] == 'N') */
@@ -832,16 +832,16 @@ cm_set_tab(f, n)
 int f, n;
 {
     register int s;
-    char buf[NINPUT];
+    NG_WCHAR_t buf[NINPUT];
 
     if ((f & FFARG) == 0) {
-	if ((s = ereply("c-tab-always-indent : ", buf, sizeof(buf))) != TRUE)
+	if ((s = ereply("c-tab-always-indent : ", buf, NINPUT)) != TRUE)
 	    return (s);
 	if (ISDIGIT(buf[0]) || buf[0] == '-')
-	    n = (atoi(buf) > 0);
-	else if (buf[0] == 't' || buf[0] == 'T')
+	    n = (watoi(buf) > 0);
+	else if (buf[0] == NG_WCODE('t') || buf[0] == NG_WCODE('T'))
 	    n = TRUE;
-	else /* if (buf[0] == 'n' || buf[0] == 'N') */
+	else /* if (buf[0] == NG_WCODE('n') || buf[0] == NG_WCODE('N')) */
 	    n = FALSE;
     }
     tab_always_indent = n;
