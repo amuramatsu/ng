@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.16.2.3 2005/04/27 18:19:29 amura Exp $ */
+/* $Id: dir.c,v 1.16.2.4 2005/04/27 19:09:06 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -103,14 +103,12 @@ int f, n;
     NG_WCHAR_t bufc[NPAT];
     NG_WCHAR_t *tmp;
     char *bufca;
-    int fnamecode;
 
     ensurecwd();
-    fnamecode = curbp->b_lang->lm_buffer_name_code();
-    len = curbp->b_lang->lm_in_convert_len(fnamecode, curbp->b_cwd);
-    if ((tmp = alloca((len + 1)*sizeof(NG_WCHAR_t))) == NULL)
+    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+		       curbp->b_cwd, tmp);
+    if (tmp == NULL)
 	return FALSE;
-    curbp->b_lang->lm_in_convert(fnamecode, curbp->b_cwd, tmp);
     edefset(tmp);
 
 #ifndef	NO_FILECOMP	/* 90.04.04  by K.Maeda */
@@ -121,10 +119,10 @@ int f, n;
         != TRUE)
 #endif	/* NO_FILECOMP */
 	return(s);
-    len = curbp->b_lang->lm_out_convert_len(fnamecode, bufc);
-    if ((bufca = alloca(len + 1)) == NULL)
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+			bufc, bufca);
+    if (bufca == NULL)
 	return FALSE;
-    curbp->b_lang->lm_out_convert(fnamecode, bufc, bufca);
     strlcpy(bufca, adjustname(bufca), NG_WCHARLEN(len+1));
     if (rchdir(bufca) < 0) {
 	ewprintf("Can't change dir to %s", bufca);

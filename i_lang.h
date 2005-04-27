@@ -1,4 +1,4 @@
-/* $Id: i_lang.h,v 1.1.2.5 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: i_lang.h,v 1.1.2.6 2005/04/27 19:09:06 amura Exp $ */
 /*
  * This file is the language module definition of the NG
  * display editor.
@@ -40,6 +40,24 @@ typedef struct LANG_MODULE {
     int (*lm_displaychar)_PRO((NG_WCHAR_t*, int*, int*, int, int, NG_WCHAR_t));
 } LANG_MODULE;
 
+#define LM_OUT_CONVERT_TMP(lm, code, src, dst)	do {	\
+    int _len = (lm)->lm_out_convert_len((code), (src));	\
+    if (((dst)=(char *)alloca(_len+1)) != NULL)		\
+        (lm)->lm_out_convert((code), (src), (dst));	\
+} while (0/*CONSTCOND*/)
+#define LM_OUT_CONVERT_TMP2(lm, cn, src, dst) do {	\
+    int _code = (lm)->cn();				\
+    LM_OUT_CONVERT_TMP(lm, _code, src, dst);		\
+} while (0/*CONSTCOND*/)
+
+#define LM_IN_CONVERT_TMP(lm, code, src, dst)	do {    \
+    int _len = lm->lm_in_convert_len((code), (src));	\
+    if (((dst)=(NG_WCHAR_t *)alloca((_len+1) * sizeof(NG_WCHAR_t))) != NULL) \
+        lm->lm_in_convert((code), (src), (dst));	\
+} while (0/*CONSTCOND*/)
+#define LM_IN_CONVERT_TMP2(lm, cn, src, dst) do {	\
+    int _code = (lm)->cn();				\
+    LM_IN_CONVERT_TMP(lm, _code, src, dst);		\
+} while (0/*CONSTCOND*/)
+
 #endif /* __I_LANG_H__ */
-
-

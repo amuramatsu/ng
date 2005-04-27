@@ -1,4 +1,4 @@
-/* $Id: dired.c,v 1.10.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: dired.c,v 1.10.2.3 2005/04/27 19:09:06 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
@@ -46,19 +46,22 @@ int
 dired(f, n)
 int f,n;
 {
-    char dirname[NFILEN];
+    NG_WCHAR_t dirname[NFILEN];
     BUFFER *bp;
 #ifdef	CHGMISC		/* 1999.8.17 by M.Suzuki	*/
     char *fname;
 #endif	/* CHGMISC	*/
 #ifdef	EXTD_DIR
     int i;
+    NG_WCHAR_t *tmp;
 
     ensurecwd();
-    edefset(curbp->b_cwd);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+		       curbp->b_cwd, tmp);
+    edefset(tmp);
 #endif
 
-    dirname[0] = '\0';
+    dirname[0] = NG_EOS;
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
     if (eread("Dired: ", dirname, NFILEN, EFNEW | EFCR | EFFILE) == ABORT)
 #else	/* NO_FILECOMP */
@@ -80,7 +83,7 @@ int f,n;
 #endif	/* CHGMISC	*/
     curbp = bp;
 #ifdef	EXTD_DIR
-    i = strlen(dirname);
+    i = wstrlen(dirname);
     if (curbp->b_cwd != NULL)
 	free(curbp->b_cwd);
     if ((curbp->b_cwd=malloc(i+2)) == NULL)
