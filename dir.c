@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.16.2.2 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: dir.c,v 1.16.2.3 2005/04/27 18:19:29 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -102,14 +102,15 @@ int f, n;
     int len;
     NG_WCHAR_t bufc[NPAT];
     NG_WCHAR_t *tmp;
-    int namecode;
+    char *bufca;
+    int fnamecode;
 
     ensurecwd();
-    namecode = curbp->b_lang->lm_buffer_name_code();
-    len = curbp->b_lang->lm_in_convert_len(namecode, curbp->b_cwd);
+    fnamecode = curbp->b_lang->lm_buffer_name_code();
+    len = curbp->b_lang->lm_in_convert_len(fnamecode, curbp->b_cwd);
     if ((tmp = alloca((len + 1)*sizeof(NG_WCHAR_t))) == NULL)
 	return FALSE;
-    curbp->b_lang->lm_in_convert(namecode, curbp->b_cwd, tmp);
+    curbp->b_lang->lm_in_convert(fnamecode, curbp->b_cwd, tmp);
     edefset(tmp);
 
 #ifndef	NO_FILECOMP	/* 90.04.04  by K.Maeda */
@@ -120,29 +121,33 @@ int f, n;
         != TRUE)
 #endif	/* NO_FILECOMP */
 	return(s);
-    wstrlcpy(bufc, adjustname(bufc), NG_WCHARLEN(bufc));
-    if (rchdir(bufc) < 0) {
-	ewprintf("Can't change dir to %s", bufc);
+    len = curbp->b_lang->lm_out_convert_len(fnamecode, bufc);
+    if ((bufca = alloca(len + 1)) == NULL)
+	return FALSE;
+    curbp->b_lang->lm_out_convert(fnamecode, bufc, bufca);
+    strlcpy(bufca, adjustname(bufca), NG_WCHARLEN(len+1));
+    if (rchdir(bufca) < 0) {
+	ewprintf("Can't change dir to %s", bufca);
     }
     else {
-	ewprintf("Current directory is now %s", bufc);
-	len = wstrlen(bufc);
-	if (len<NFILEN-1 && bufc[len-1]!=NG_WCODE(BDC1)
+	ewprintf("Current directory is now %s", bufca);
+	len = strlen(bufca);
+	if (len<NFILEN-1 && bufca[len-1]!=BDC1
 #ifdef	BDC2
-	    && bufc[len-1]!=NG_WCODE(BDC2)
+	    && bufca[len-1]!=BDC2
 #endif
 	    ) {
-	    bufc[len] = NG_WCODE(BDC1);
-	    bufc[len+1] = NG_EOS;
+	    bufca[len] = BDC1;
+	    bufca[len+1] = '\0';
 #ifdef	AMIGA
 	    for (s=len; s>=0; s--)
-		if (bufc[s] == NG_WCODE(':'))
+		if (bufca[s] == NG_WCODE(':'))
 		    break;
-	    if (bufc[s] != NG_WCODE(':'))
-		bufc[len] = NG_WCODE(':');
+	    if (bufca[s] != ':')
+		bufca[len] = ':';
 #endif
 	}
-	vchdir(bufc);
+	vchdir(bufca);
     }
     return TRUE;
 }
