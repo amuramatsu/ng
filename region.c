@@ -1,4 +1,4 @@
-/* $Id: region.c,v 1.5.2.2 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: region.c,v 1.5.2.3 2005/04/28 16:53:36 amura Exp $ */
 /*
  *		Region based commands.
  * The routines in this file
@@ -20,7 +20,6 @@
 
 static int setsize _PRO((REGION*,RSIZE));
 
-#ifdef CHGMISC		/* 97.11.10 by M.Suzuki	*/
 int
 copywordregion(f, n)
 int f, n;
@@ -29,7 +28,6 @@ int f, n;
     forwword(f,n);
     return copyregion(f, n);
 }
-#endif /* CHGMISC	*/
 
 /*
  * Kill the region. Ask "getregion"

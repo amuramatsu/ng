@@ -1,4 +1,4 @@
-/* $Id: fileio.h,v 1.1.2.4 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: fileio.h,v 1.1.2.5 2005/04/28 16:53:36 amura Exp $ */
 /*
  * This file is the header file for fileio parts
  * of the NG display editor.
@@ -26,7 +26,7 @@ int ffgetline _PRO((char *, int, int *));
 
 int rchdir _PRO((const char *));
 int d_undelbak _PRO((int, int));
-int d_makename _PRO((LINE *, char *, int));
+int d_makename _PRO((LINE *, NG_WCHAR_t *, int));
 #ifdef WIN32
 int unlink _PRO((const char *));
 int rmdir _PRO((const char *));

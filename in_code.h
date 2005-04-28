@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.5 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.6 2005/04/28 16:53:36 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -17,6 +17,7 @@ typedef unsigned short NG_WCHAR_t;
 #include <string.h>
 #define	wstrcmp(a,b)	strcmp((const char *)(a), (const char *)(b))
 #define	wstrncmp(a,b,n)	strcmp((const char *)(a), (const char *)(b), (n))
+#define	wstrncmpa(a,b,n) strcmp((const char *)(a), (const char *)(b), (n))
 #define	wstrlen(s)	strlen((const char *)(s));
 #define wstrcpy(d,s)	((NG_WCHAR_t *)strcpy((char *)(d), (const char *)(s)))
 #define wstrcat(d,s)	((NG_WCHAR_t *)strcat((char *)(d), (const char *)(s)))
@@ -29,6 +30,7 @@ typedef unsigned short NG_WCHAR_t;
 #else
 int wstrcmp _PRO((const NG_WCHAR_t *, const NG_WCHAR_t *));
 int wstrncmp _PRO((const NG_WCHAR_t *, const NG_WCHAR_t *, int));
+int wstrncmpa _PRO((const NG_WCHAR_t *, const char *, int));
 int wstrlen _PRO((const NG_WCHAR_t *));
 NG_WCHAR_t *wstrcpy _PRO((NG_WCHAR_t *, const NG_WCHAR_t *));
 NG_WCHAR_t *wstrcat _PRO((NG_WCHAR_t *, const NG_WCHAR_t *));

@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.3 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.4 2005/04/28 16:53:36 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -104,11 +104,11 @@ NG_WCHAR_t *wname;
     int i, j;
     char *cand;
 
-    fnlen = curbp->b_lang->lm_out_convert_len(NG_CODE_PASCII, wname);
-    if ((name = alloca(fnlen+1)) == NULL)
+    LM_OUT_CONVERT_TMP(curbp->b_lang, NG_CODE_PASCII, wname, name);
+    if (name == NULL)
 	return -1;
-    curbp->b_lang->lm_out_convert(NG_CODE_PASCII, wname, name);
-
+    fnlen = strlen(name);
+    
     /* compare names and make the common string of them */
     matchnum = 0;
     
@@ -164,11 +164,11 @@ NG_WCHAR_t *wname;
     char *cand;
     LIST *lh;
     
-    fnlen = curbp->b_lang->lm_out_convert_len(NG_CODE_PASCII, wname);
-    if ((name = alloca(fnlen+1)) == NULL)
+    LM_OUT_CONVERT_TMP(curbp->b_lang, NG_CODE_PASCII, wname, name);
+    if (name == NULL)
 	return -1;
-    curbp->b_lang->lm_out_convert(NG_CODE_PASCII, wname, name);
-
+    fnlen = strlen(fnlen);
+    
     /* compare names and make the common string of them */
     matchnum = 0;
     for (lh = &(bheadp->b_list); lh != NULL; lh = lh->l_next) {
@@ -220,14 +220,11 @@ NG_WCHAR_t *wname;
     int fnnum;
     char *cand;
     char *filenames;
-    int namecode;
 
-    namecode = curbp->b_lang->lm_buffer_name_code();
-    fnlen = curbp->b_lang->lm_out_convert_len(namecode, wname);
-    if ((name = alloca(fnlen+1)) == NULL)
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, wname, name);
+    if (name == NULL)
 	return -1;
-    curbp->b_lang->lm_out_convert(namecode, wname, name);
-
+    
     if ((fnnum = fffiles (name, &filenames)) == -1)
 	return (-1);    /* error */
 
@@ -361,10 +358,10 @@ BUFFER *bp;
     char *cand;
     char line[NFILEN];
 
-    fnlen = curbp->b_lang->lm_out_convert_len(NG_CODE_PASCII, wname);
-    if ((name = alloca(fnlen+1)) == NULL)
+    LM_OUT_CONVERT_TMP(curbp->b_lang, NG_CODE_PASCII, wname, name);
+    if (name == NULL)
 	return -1;
-    curbp->b_lang->lm_out_convert(NG_CODE_PASCII, wname, name);
+    fnlen = strlen(name);
     
     line[0] = '\0';
     for (i = name_fent(name, TRUE); i < nfunct; i++) {

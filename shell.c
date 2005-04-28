@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.5.2.4 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: shell.c,v 1.5.2.5 2005/04/28 16:53:36 amura Exp $ */
 /*
  *		Shell commands.
  * The file contains the command
@@ -47,13 +47,10 @@ int f, n;
     }
     {
 	/* code conversion */
-	int code, len;
 	char *tmp;
-	code = curbp->b_lang->lm_io_code();
-	len = curbp->b_lang->lm_out_convert_len(code, buf);
-	if ((tmp = alloca(len)) == NULL)
+	LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_io_code, buf, tmp);
+	if (tmp == NULL)
 	    return FALSE;
-	curbp->b_lang->lm_out_convert(code, buf, tmp);
 	if ((result = call_process(tmp, NULL)) == NULL)
 	    return FALSE;
     }
