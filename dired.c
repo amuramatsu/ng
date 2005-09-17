@@ -1,4 +1,4 @@
-/* $Id: dired.c,v 1.10.2.4 2005/04/28 16:53:36 amura Exp $ */
+/* $Id: dired.c,v 1.10.2.5 2005/09/17 05:17:18 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
@@ -21,6 +21,8 @@
 #ifndef	max
 #define	max(a,b)	(((a)<(b))?(b):(a))
 #endif
+
+static int d_copy_and_rename _PRO((int));
 
 #if 0
 static int
@@ -123,7 +125,8 @@ int
 d_otherwindow(f, n)
 int f,n;
 {
-    NG_WCHAR_t dirname[NFILEN];
+    NG_WCHAR_t tmp2[NFILEN];
+    char *dirname;
     BUFFER *bp;
     WINDOW *wp;
 #ifdef	EXTD_DIR
@@ -137,10 +140,13 @@ int f,n;
     edefset(tmp);
 #endif
 
-    dirname[0] = '\0';
-    if (eread("Dired other window: ", dirname,
+    tmp2[0] = '\0';
+    if (eread("Dired other window: ", tmp2,
 	      NFILEN, EFNEW | EFCR | EFFILE) == ABORT)
 	return ABORT;
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, tmp2, dirname);
+    if (dirname == NULL)
+	return FALSE;
     if ((bp = dired_(dirname)) == NULL)
 	return FALSE;
 #ifdef	READONLY	/* 91.01.15  by K.Maeda */
@@ -245,12 +251,16 @@ static int
 d_fileopen(f, n, popup)
 int f,n,popup;
 {
-    NG_WCHAR_t fname[NFILEN];
+    NG_WCHAR_t tmp[NFILEN];
+    char *fname;
     register BUFFER *bp;
     register int s;
     register WINDOW *wp;
 
-    if ((s = d_makename(curwp->w_dotp, fname, NG_WCHARLEN(fname))) == ABORT)
+    if ((s = d_makename(curwp->w_dotp, tmp, NG_WCHARLEN(tmp))) == ABORT)
+	return FALSE;
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, tmp, fname);
+    if (tmp == NULL)
 	return FALSE;
     if ((bp = (s ? dired_(fname) : findbuffer(fname))) == NULL)
 	return FALSE;
@@ -383,19 +393,19 @@ char *path;
     return cp1;
 }
 
-/*ARGSUSED*/
-int
-d_copy(f, n)
-int f, n;
+static int
+d_copy_and_rename(copymode)
+int copymode;
 {
-    NG_WCHAR_t frname[NFILEN], toname[NFILEN], *fr;
+    NG_WCHAR_t frname_tmp[NFILEN], toname_tmp[NFILEN];
+    char *frname, *toname, *fr;
     int stat;
 
 #ifdef	EXTD_DIR
     ensurecwd();
 #endif
 
-    switch (d_makename(curwp->w_dotp, frname, sizeof(frname))) {
+    switch (d_makename(curwp->w_dotp, frname_tmp, NG_WCHARLEN(frname_tmp))) {
     case TRUE:
 	ewprintf("Not a file");
 	return FALSE;
@@ -408,10 +418,13 @@ int f, n;
 	break;
     }
   
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, frname_tmp, frname);
+    if (frname == NULL)
+	return FALSE;
     fr = filename(frname);
 #ifdef	EXTD_DIR
     {
-	char *tmp;
+	NG_WCHAR_t *tmp;
 	LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
 			   curbp->b_cwd, tmp);
 	if (tmp == NULL)
@@ -420,11 +433,26 @@ int f, n;
     }
 #endif
 
-    if ((stat = eread("Copy %s to: ", toname, NFILEN,
-		      EFNEW | EFCR | EFFILE, fr)) != TRUE)
+    if ((stat = eread("%s %s to: ", toname_tmp, NG_WCHARLEN(toname_tmp),
+		      EFNEW | EFCR | EFFILE,
+		      copymode ? "Copy" : "Rename", fr)) != TRUE)
 	return stat;
-    stat = (copy(frname, toname) >= 0);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, toname_tmp, toname);
+    if (toname == NULL)
+	return FALSE;
+    if (copymode)
+	stat = (copy(frname, toname) >= 0);
+    else
+	stat = (rename(frname, toname) >= 0);
     return stat;
+}
+
+/*ARGSUSED*/
+int
+d_copy(f, n)
+int f, n;
+{
+    return d_copy_and_rename(TRUE);
 }
 
 /*ARGSUSED*/
@@ -432,36 +460,7 @@ int
 d_rename(f, n)
 int f, n;
 {
-    NG_WCHAR_t frname[NFILEN], toname[NFILEN], *fr;
-    int stat;
-
-#ifdef	EXTD_DIR
-    ensurecwd();
-#endif
-
-    switch (d_makename(curwp->w_dotp, frname, NG_WCHARLEN(frname))) {
-    case TRUE:
-	ewprintf("Not a file");
-	return FALSE;
-	
-    case ABORT:
-	return FALSE;
-	
-    case FALSE:
-	/* nothing to do */
-	break;
-    }
-
-    fr = filename(frname);
-#ifdef	EXTD_DIR
-    edefset(curbp->b_cwd);
-#endif
-
-    if ((stat = eread("Rename %s to: ", toname, NFILEN,
-		      EFNEW | EFCR | EFFILE, fr)) != TRUE)
-	return stat;
-    stat = (rename(frname, toname) >= 0);
-    return stat;
+    return d_copy_and_rename(FALSE);
 }
 
 /*ARGSUSED*/

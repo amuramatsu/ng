@@ -1,4 +1,4 @@
-/* $Id: help.c,v 1.6.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: help.c,v 1.6.2.3 2005/09/17 05:17:18 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -16,7 +16,7 @@
 #include "cinfo.h"
 
 /* 91.02.06  Move static declaration to here for some compiler. by S.Yoshida */
-static int showall _PRO((char *, KEYMAP *));
+static int showall _PRO((NG_WCHAR_t *, KEYMAP *));
 static VOID findbind _PRO((PF, char *, KEYMAP *));
 static VOID bindfound _PRO((VOID));
 
@@ -110,7 +110,7 @@ found:
  * lets MicroGnuEMACS produce it's own wall chart.
  */
 static BUFFER	*bp;
-static char buf[80];	/* used by showall and findbind */
+static NG_WCHAR_t buf[80];	/* used by showall and findbind */
 
 /*ARGSUSED*/
 int
@@ -118,8 +118,8 @@ wallchart(f, n)
 int f, n;
 {
     int m;
-    static char locbind[80] = "Local keybindings for mode ";
-
+    NG_WCHAR_t locbind[80];
+    
     if ((bp = bfind("*help*", TRUE)) == NULL)
 	return FALSE;
 #ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
@@ -130,22 +130,24 @@ int f, n;
     if (bclear(bp) != TRUE)
 	return FALSE;	/* Clear it out.	*/
     for (m=curbp->b_nmodes; m > 0; m--) {
-	(VOID) strcpy(&locbind[27], curbp->b_modes[m]->p_name);
-	(VOID) strcat(&locbind[27], ":");
+	wsnprintf(locbind, NG_WCHARLEN(locbind),
+		  "Local keybindings for mode %s:",
+		  curbp->b_modes[m]->p_name);
 	if ((addline(bp, locbind) == FALSE) ||
 	    (showall(buf, curbp->b_modes[m]->p_map) == FALSE) ||
-	    (addline(bp, "") == FALSE))
+	    (addline(bp, NG_WSTR_NULL) == FALSE))
 	    return FALSE;
     }
-    if ((addline(bp, "Global bindings:") == FALSE) ||
+    wsnprintf(locbind, NG_WCHARLEN(locbind), "Global bindings:");
+    if ((addline(bp, locbind) == FALSE) ||
 	(showall(buf, map_table[0].p_map) == FALSE))
 	return FALSE;
     return popbuftop(bp);
 }
 
 static int
-showall(ind, map)
-char *ind;
+showall(wind, map)
+NG_WCHAR_t *wind;
 KEYMAP *map;
 {
     register MAP_ELEMENT *ele;
@@ -154,8 +156,13 @@ KEYMAP *map;
     char *cp;
     char *cp2;
     int last;
+    char *ind;
 
-    if (addline(bp, "") == FALSE)
+    i = wstrlen(wind) + 1;
+    ind = (char *)alloca(i);
+    strlcpyw(ind, wind, i);
+    
+    if (addline(bp, NG_WSTR_NULL) == FALSE)
 	return FALSE;
     last = -1;
     for (ele = &map->map_element[0];
@@ -242,8 +249,8 @@ int f, n;
     return (*funct)(f, n);
 }
 
-static char buf2[128];
-static char *buf2p;
+static NG_WCHAR_t buf2[128];
+static NG_WCHAR_t *buf2p;
 
 /*ARGSUSED*/
 int
@@ -251,7 +258,7 @@ apropos_command(f, n)
 int f, n;
 {
     register char *cp1, *cp2;
-    char string[NINPUT];
+    NG_WCHAR_t string[NINPUT];
     FUNCTNAMES *fnp;
     BUFFER *bp;
 
@@ -269,8 +276,8 @@ int f, n;
 	    while (*cp2 && *cp1 == *cp2)
 		cp1++, cp2++;
 	    if (!*cp2) {
-		(VOID) strcpy(buf2, fnp->n_name);
-		buf2p = &buf2[strlen(buf2)];
+		wstrlcpya(buf2, fnp->n_name, NG_WCHARLEN(buf2));
+		buf2p = &buf2[wstrlen(buf2)];
 		findbind(fnp->n_funct, buf, map_table[0].p_map);
 		if (addline(bp, buf2) == FALSE)
 		    return FALSE;
@@ -300,7 +307,7 @@ KEYMAP *map;
 	if (map->map_default == funct && ++last < ele->k_base) {
 	    cp = keyname(ind, last);
 	    if (last < ele->k_base - 1) {
-		(VOID) strcpy(cp, " .. ");
+		strcpy(cp, " .. ");
 		(VOID) keyname(cp + 4, ele->k_base - 1);
 	    }
 	    bindfound();
@@ -311,7 +318,7 @@ KEYMAP *map;
 		if (funct == prefix) {
 		    cp = map_name(ele->k_prefmap);
 		    if (cp == NULL ||
-			strncmp(cp, buf2, strlen(cp)) != 0)
+			wstrncmpa(buf2, cp, strlen(cp)) != 0)
 			continue;
 		}
 		(VOID) keyname(ind, i);
@@ -338,14 +345,14 @@ static VOID
 bindfound() {
     if (buf2p < &buf2[32]) {
 	do {
-	    *buf2p++ = ' ';
+	    *buf2p++ = NG_WSPACE;
 	} while(buf2p < &buf2[32]);
     }
     else {
 	*buf2p++ = ',';
-	*buf2p++ = ' ';
+	*buf2p++ = NG_WSPACE;
     }
-    (VOID) strcpy(buf2p, buf);
-    buf2p += strlen(buf);
+    wstrcpy(buf2p, buf);
+    buf2p += wstrlen(buf);
 }
 #endif

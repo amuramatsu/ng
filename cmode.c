@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.7.2.4 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: cmode.c,v 1.7.2.5 2005/09/17 05:17:18 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -859,44 +859,49 @@ int f, n;
 {
     register BUFFER *bp;
     register WINDOW *wp;
-    char line[80];
-
+    NG_WCHAR_t line[80];
+    
     if ((bp = bfind("*C Mode Variables*", TRUE)) == NULL)
 	return FALSE;
     bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
     if (bclear(bp) != TRUE)
 	return FALSE;
 
-    strcpy(line, "* List of variables controlling indentation style *");
+    wsnprintf(line, NG_WCHARLEN(line),
+	      "* List of variables controlling indentation style *");
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tc-indent-level : %d", indent_level);
+    wsnprintf(line, NG_WCHARLEN(line), "\tc-indent-level : %d", indent_level);
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tc-brace-imaginary-offset : %d", brace_imaginary_offset);
+    wsnprintf(line, NG_WCHARLEN(line),
+	      "\tc-brace-imaginary-offset : %d", brace_imaginary_offset);
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tc-brace-offset : %d", brace_offset);
+    wsnprintf(line, NG_WCHARLEN(line), "\tc-brace-offset : %d", brace_offset);
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tc-argdecl-indent : %d", argdecl_indent);
+    wsnprintf(line, NG_WCHARLEN(line),
+	      "\tc-argdecl-indent : %d", argdecl_indent);
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tc-label-offset : %d", label_offset);
+    wsnprintf(line, NG_WCHARLEN(line), "\tc-label-offset : %d", label_offset);
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tc-continued-statement-offset : %d",
-	    continued_statement_offset);
+    wsnprintf(line, NG_WCHARLEN(line), "\tc-continued-statement-offset : %d",
+	      continued_statement_offset);
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tc-continued-brace-offset : %d", continued_brace_offset);
+    wsnprintf(line, NG_WCHARLEN(line),
+	      "\tc-continued-brace-offset : %d", continued_brace_offset);
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tc-auto-newline : %s", auto_newline ? "T" : "NIL");
+    wsnprintf(line, NG_WCHARLEN(line),
+	      "\tc-auto-newline : %s", auto_newline ? "T" : "NIL");
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\tc-tab-always-indent : %s",
-	    tab_always_indent ? "T" : "NIL");
+    wsnprintf(line, NG_WCHARLEN(line), "\tc-tab-always-indent : %s",
+	      tab_always_indent ? "T" : "NIL");
     if (addline(bp, line) == FALSE)
 	return FALSE;
 

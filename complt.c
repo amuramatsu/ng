@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.4 2005/04/28 16:53:36 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.5 2005/09/17 05:17:18 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -167,7 +167,7 @@ NG_WCHAR_t *wname;
     LM_OUT_CONVERT_TMP(curbp->b_lang, NG_CODE_PASCII, wname, name);
     if (name == NULL)
 	return -1;
-    fnlen = strlen(fnlen);
+    fnlen = strlen(name);
     
     /* compare names and make the common string of them */
     matchnum = 0;
@@ -224,6 +224,7 @@ NG_WCHAR_t *wname;
     LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, wname, name);
     if (name == NULL)
 	return -1;
+    fnlen = strlen(name);
     
     if ((fnnum = fffiles (name, &filenames)) == -1)
 	return (-1);    /* error */
@@ -274,6 +275,7 @@ int flags;
     int cur_row;
     int cur_col;
     WINDOW *wp;
+    NG_WCHAR_t *tmp;
 
     if ((bp = bfind ("*Completions*", TRUE)) == NULL)
 	return (FALSE);
@@ -284,8 +286,10 @@ int flags;
 #endif	/* AUTOSAVE	*/
     if (bclear (bp) != TRUE)
 	return (FALSE);
-
-    if (addline(bp, "Possible completions are:") == FALSE)
+    
+    LM_IN_CONVERT_TMP(bp->b_lang, NG_CODE_PASCII, 
+		      "Possible completions are:", tmp);
+    if (addline(bp, tmp) == FALSE)
 	return (FALSE);
 
     switch (flags & EFAUTO) {
@@ -357,6 +361,7 @@ BUFFER *bp;
     int i, j;
     char *cand;
     char line[NFILEN];
+    NG_WCHAR_t wline[NFILEN];
 
     LM_OUT_CONVERT_TMP(curbp->b_lang, NG_CODE_PASCII, wname, name);
     if (name == NULL)
@@ -375,8 +380,10 @@ BUFFER *bp;
 	if (line[0] == '\0') {
 	    if (strlen (cand) < LIST_COL)
 		strcpy (line, cand);
-	    else
-		addline (bp, cand);
+	    else {
+		bp->b_lang->lm_in_convert(NG_CODE_PASCII, cand, wline);
+		addline (bp, wline);
+	    }
 	}
 	else {
 	    if (strlen (cand) < LIST_COL) {
@@ -384,51 +391,56 @@ BUFFER *bp;
 		    line[j] = ' ';
 		line[j] = '\0';
 		strcat (line, cand);
-		addline (bp, line);
+		bp->b_lang->lm_in_convert(NG_CODE_PASCII, line, wline);
+		addline (bp, wline);
 	    }
 	    else {
-		addline (bp, line);
-		addline (bp, cand);
+		bp->b_lang->lm_in_convert(NG_CODE_PASCII, line, wline);
+		addline (bp, wline);
+		bp->b_lang->lm_in_convert(NG_CODE_PASCII, cand, wline);
+		addline (bp, wline);
 	    }
 	    line[0] = '\0';
 	}
     }
-    if (line[0] != '\0')
-	addline (bp, line);
+    if (line[0] != '\0') {
+	bp->b_lang->lm_in_convert(NG_CODE_PASCII, line, wline);
+	addline (bp, wline);
+    }
     return (TRUE);
 }
 
 static int
 complete_list_buffernames(name, bp)
-NG_WCHAR_t *wname;
+NG_WCHAR_t *name;
 BUFFER *bp;
 {
     int fnlen;
     int j;
-    char *cand;
-    char line[NFILEN];
+    NG_WCHAR_t cand[NFILEN], line[NFILEN];
     LIST *lh;
 
-    fnlen = strlen (name);
+    fnlen = wstrlen (name);
 
     line[0] = '\0';
     for (lh = &(bheadp->b_list); lh != NULL; lh = lh->l_next) {
-        cand = lh->l_name;
-        if (strncmp (cand, name, fnlen) != 0)
+	LM_IN_CONVERT2(bp->b_lang, lm_buffer_name_code, lh->l_name, cand);
+	
+        if (wstrncmp (cand, name, fnlen) != 0)
 	    continue;
 
 	if (line[0] == '\0') {
-	    if (strlen (cand) < LIST_COL)
-		strcpy (line, cand);
+	    if (wstrlen (cand) < LIST_COL)
+		wstrcpy (line, cand);
 	    else
 		addline (bp, cand);
 	}
 	else {
-	    if (strlen (cand) < LIST_COL) {
-		for (j = strlen (line); j < LIST_COL; j++)
-		    line[j] = ' ';
+	    if (wstrlen (cand) < LIST_COL) {
+		for (j = wstrlen (line); j < LIST_COL; j++)
+		    line[j] = NG_WSPACE;
 		line[j] = '\0';
-		strcat (line, cand);
+		wstrcat (line, cand);
 		addline (bp, line);
 	    }
 	    else {
@@ -444,17 +456,18 @@ BUFFER *bp;
 }
 
 static int
-complete_list_filenames(name, bp)
-NG_WCHAR_t *name;
+complete_list_filenames(wname, bp)
+NG_WCHAR_t *wname;
 BUFFER *bp;
 {
     int dnlen;
     int i, j;
     int fnnum;
-    char *cand;
-    char line[NFILEN];
+    char *cand, *name;
+    NG_WCHAR_t line[NFILEN], cand2[NFILEN];
     char *filenames;
 
+    LM_OUT_CONVERT_TMP(bp->b_lang, NG_CODE_PASCII, wname, name);
     dnlen = file_name_part (name) - name;
 
     if ((fnnum = fffiles (name, &filenames)) == -1)
@@ -464,33 +477,24 @@ BUFFER *bp;
     cand = filenames;
     for (i = 0; i < fnnum; i++) {
 	cand += dnlen;
+	LM_IN_CONVERT2(bp->b_lang, lm_buffer_name_code, cand, cand2);
 	if (line[0] == '\0') {
-#ifdef	SS_SUPPORT
-	    if (estrlen (cand) < LIST_COL)
-#else
-	    if (strlen (cand) < LIST_COL)
-#endif
-		strcpy (line, cand);
+	    if (wstrlen (cand2) < LIST_COL)
+		wstrcpy (line, cand2);
 	    else
-		addline (bp, cand);
+		addline (bp, cand2);
 	}
 	else {
-#ifdef	SS_SUPPORT
-	    if (estrlen (cand) < LIST_COL) {
-		int k = estrlen(line);
-		for (j = strlen (line); k < LIST_COL; j++, k++)
-#else
-	    if (strlen (cand) < LIST_COL) {
-		for (j = strlen (line); j < LIST_COL; j++)
-#endif
-		    line[j] = ' ';
+	    if (wstrlen (cand2) < LIST_COL) {
+		for (j = wstrlen (line); j < LIST_COL; j++)
+		    line[j] = NG_WSPACE;
 		line[j] = '\0';
-		strcat (line, cand);
+		wstrcat (line, cand2);
 		addline (bp, line);
 	    }
 	    else {
 		addline (bp, line);
-		addline (bp, cand);
+		addline (bp, cand2);
 	    }
 	    line[0] = '\0';
 	}
@@ -534,8 +538,12 @@ complete_del_list ()
     prev_bp = NULL;
     update ();
     ttmove (cur_row, cur_col);
-    /* 91.01.17  Add to delete *Completions* buffer. by S.Yoshida */
-    eargset("*Completions*");
+    {
+	NG_WCHAR_t *tmp;
+	/* 91.01.17  Add to delete *Completions* buffer. by S.Yoshida */
+	LM_IN_CONVERT_TMP(bp->b_lang, NG_CODE_PASCII, "*Completions*", tmp);
+	eargset(tmp);
+    }
     killbuffer(0, 1);
 
     return (TRUE);

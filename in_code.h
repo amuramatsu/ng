@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.6 2005/04/28 16:53:36 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.7 2005/09/17 05:17:18 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -8,11 +8,15 @@
 
 typedef unsigned short NG_WCHAR_t;
 #define NG_WCODE(n)	((NG_WCHAR_t)(n))
-#define NG_WCHAR_TO_STR(str, n)	\
-    { (str)[0] = (n)>>8; (str)[1] = (n)&0xff; (str)[2] = '\0'; }
 #define NG_WCHARLEN(s)	(sizeof(s)/sizeof(NG_WCHAR_t))
+#define NG_WSTR_NULL	((NG_WCHAR_t *)"")
 
 #if 0 /* if sizeof(NG_WCHAR) == 1 */
+
+#define NG_WCHAR_STRLEN 2
+#define NG_WCHAR_TO_STR(str, n)	\
+    { (str)[0] = (n); (str)[1] = '\0'; }
+
 #include <stdlib.h>
 #include <string.h>
 #define	wstrcmp(a,b)	strcmp((const char *)(a), (const char *)(b))
@@ -21,25 +25,33 @@ typedef unsigned short NG_WCHAR_t;
 #define	wstrlen(s)	strlen((const char *)(s));
 #define wstrcpy(d,s)	((NG_WCHAR_t *)strcpy((char *)(d), (const char *)(s)))
 #define wstrcat(d,s)	((NG_WCHAR_t *)strcat((char *)(d), (const char *)(s)))
-#define wstrlcpy(d,s,n)	\
-    ((NG_WCHAR_t *)strlcpy((char *)(d), (const char *)(s), (n)))
-#define wstrlcat(d,s,n)	\
-    ((NG_WCHAR_t *)strlcat((char *)(d), (const char *)(s), (n)))
+#define wstrlcpy(d,s,n)	strlcpy((char *)(d), (const char *)(s), (n))
+#define wstrlcat(d,s,n)	strlcat((char *)(d), (const char *)(s), (n))
+#define strlcpyw(d, s, n) strlcpy((char *)(d), (const char *)(s), (n))
+#define strlcatw(d, s, n) strlcat((char *)(d), (const char *)(s), (n))
 #define watoi(s)	atoi(s)
 #define wsnprintf	snprintf
+
 #else
+
+#define NG_WCHAR_STRLEN 3
+#define NG_WCHAR_TO_STR(str, n)	\
+    { (str)[0] = (n)>>8; (str)[1] = (n)&0xff; (str)[2] = '\0'; }
+
 int wstrcmp _PRO((const NG_WCHAR_t *, const NG_WCHAR_t *));
-int wstrncmp _PRO((const NG_WCHAR_t *, const NG_WCHAR_t *, int));
-int wstrncmpa _PRO((const NG_WCHAR_t *, const char *, int));
-int wstrlen _PRO((const NG_WCHAR_t *));
+int wstrncmp _PRO((const NG_WCHAR_t *, const NG_WCHAR_t *, size_t));
+int wstrncmpa _PRO((const NG_WCHAR_t *, const char *, size_t));
+size_t wstrlen _PRO((const NG_WCHAR_t *));
 NG_WCHAR_t *wstrcpy _PRO((NG_WCHAR_t *, const NG_WCHAR_t *));
 NG_WCHAR_t *wstrcat _PRO((NG_WCHAR_t *, const NG_WCHAR_t *));
-int wstrlcpy _PRO((NG_WCHAR_t *, const NG_WCHAR_t *, int));
-int wstrlcat _PRO((NG_WCHAR_t *, const NG_WCHAR_t *, int));
-int wstrlcpya _PRO((NG_WCHAR_t *, const char *, int));
-int wstrlcata _PRO((NG_WCHAR_t *, const char *, int));
+size_t wstrlcpy _PRO((NG_WCHAR_t *, const NG_WCHAR_t *, size_t));
+size_t wstrlcat _PRO((NG_WCHAR_t *, const NG_WCHAR_t *, size_t));
+size_t wstrlcpya _PRO((NG_WCHAR_t *, const char *, size_t));
+size_t wstrlcata _PRO((NG_WCHAR_t *, const char *, size_t));
+size_t strlcpyw _PRO((char *, const NG_WCHAR_t *, size_t));
+size_t strlcatw _PRO((char *, const NG_WCHAR_t *, size_t));
 int watoi _PRO((const NG_WCHAR_t *));
-int wsnprintf _PRO((NG_WCHAR_t *, int, const char *, ...));
+size_t wsnprintf _PRO((NG_WCHAR_t *, size_t, const char *, ...));
 #endif
 
 /*

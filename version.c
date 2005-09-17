@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.15.2.2 2005/04/07 17:15:20 amura Exp $ */
+/* $Id: version.c,v 1.15.2.3 2005/09/17 05:17:18 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -216,7 +216,7 @@ int f, n;
 {
     register BUFFER *bp;
     register WINDOW *wp;
-    char line[80];
+    NG_WCHAR_t line[80];
     int i;
 
     if ((bp = bfind("*" PROGNAME " Version*", TRUE)) == NULL)
@@ -230,19 +230,18 @@ int f, n;
     if (bclear(bp) != TRUE)
 	return FALSE;
     
-    strcpy(line, PROGNAME " version:");
+    wsnprintf(line, NG_WCHARLEN(line), PROGNAME " version:");
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    sprintf(line, "\t%s", version);
+    wsnprintf(line, NG_WCHARLEN(line), "\t%s", version);
     if (addline(bp, line) == FALSE)
 	return FALSE;
-    strcpy(line, "Compile time options:");
+    wsnprintf(line, NG_WCHARLEN(line), "Compile time options:");
     if (addline(bp, line) == FALSE)
 	return FALSE;
     
     for (i=0; i<COMPILE_OPTS_NUM; i++) {
-	line[0] = '\t';
-	strcpy(&line[1], compile_opts[i]);
+	wsnprintf(line, NG_WCHARLEN(line), "\t%s", compile_opts[i]);
 	if (addline(bp, line) == FALSE)
 	    return FALSE;
     }

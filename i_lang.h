@@ -1,4 +1,4 @@
-/* $Id: i_lang.h,v 1.1.2.6 2005/04/27 19:09:06 amura Exp $ */
+/* $Id: i_lang.h,v 1.1.2.7 2005/09/17 05:17:18 amura Exp $ */
 /*
  * This file is the language module definition of the NG
  * display editor.
@@ -49,6 +49,8 @@ typedef struct LANG_MODULE {
     int _code = (lm)->cn();				\
     LM_OUT_CONVERT_TMP(lm, _code, src, dst);		\
 } while (0/*CONSTCOND*/)
+#define LM_OUT_CONVERT2(lm, cn, src, dst) \
+    (lm)->lm_out_convert((lm)->cn(), (src), (dst))
 
 #define LM_IN_CONVERT_TMP(lm, code, src, dst)	do {    \
     int _len = lm->lm_in_convert_len((code), (src));	\
@@ -59,5 +61,7 @@ typedef struct LANG_MODULE {
     int _code = (lm)->cn();				\
     LM_IN_CONVERT_TMP(lm, _code, src, dst);		\
 } while (0/*CONSTCOND*/)
+#define LM_IN_CONVERT2(lm, cn, src, dst) \
+    (lm)->lm_in_convert((lm)->cn(), (src), (dst))
 
 #endif /* __I_LANG_H__ */
