@@ -1,4 +1,4 @@
-/* $Id: modes.c,v 1.5.2.3 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: modes.c,v 1.5.2.4 2005/12/30 17:37:29 amura Exp $ */
 /*
  * Commands to toggle modes. Without an argument, toggle mode.
  * Negitive or zero argument, mode off.	 Positive argument, mode on.
@@ -154,10 +154,14 @@ int f, n;
 {
     register int i;
     register MAPS *m;
-    char mode[NINPUT];
+    NG_WCHAR_t wmode[NINPUT];
+    char *mode;
 
-    if (eread("Set Default Mode: ", mode, sizeof(mode), EFNEW) != TRUE)
+    if (eread("Set Default Mode: ", wmode, NG_WCHARLEN(wmode), EFNEW) != TRUE)
     	return ABORT;
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, wmode, mode);
+    if (mode == NULL)
+	return FALSE;
     if ((m = name_mode(mode)) == NULL) {
     	ewprintf("can't find mode %s", mode);
 	return FALSE;

@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20.2.1 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.2 2005/12/30 17:37:29 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -642,8 +642,11 @@ char *dirname;
     }
     line[0] = line[1] = ' ';
     while (fgets(&line[2], 254, dirpipe) != NULL) {
+	NG_WCHAR_t *tmp;
 	line[strlen(line) - 1] = '\0';		/* remove ^J	*/
-	addline(bp, line);
+	tmp = (NG_WCHAR_t *)alloca(strlen(line) + 1);
+	LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, line, tmp);
+	addline(bp, tmp);
     }
     if (pclose(dirpipe) == -1) {
 	ewprintf("Problem closing pipe to ls");
@@ -666,10 +669,10 @@ char *dirname;
 int
 d_makename(lp, fn, buflen)
 register LINE *lp;
-register char *fn;
+register NG_WCHAR_t *fn;
 int buflen;
 {
-    char *cp;
+    NG_WCHAR_t *cp;
     int l, l1, len;
     char c;
 
@@ -712,8 +715,9 @@ int buflen;
     if (buflen <= len+strlen(curbp->b_fname))
 	return ABORT;
     cp = fn;
-    strcpy(cp, curbp->b_fname);
-    cp += strlen(cp);
+    curbp->b_lang->lm_out_convert(curbp->b_lang->lm_buffer_name_code(),
+				  cp, curbp->b_fname);
+    cp += wstrlen(cp);
     bcopy(lp->l_text + l, cp, len);
     cp[len-1] = '\0';
 #ifdef	HAVE_SYMLINK

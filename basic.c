@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11.2.4 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: basic.c,v 1.11.2.5 2005/12/30 17:37:28 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -173,7 +173,7 @@ int f, n;
 
 
 #ifdef	ADDFUNC
-static int line_number_mode = FALSE;
+int line_number_mode = FALSE;
 
 int
 linenumbermode(f, n)

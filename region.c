@@ -1,4 +1,4 @@
-/* $Id: region.c,v 1.5.2.3 2005/04/28 16:53:36 amura Exp $ */
+/* $Id: region.c,v 1.5.2.4 2005/12/30 17:37:29 amura Exp $ */
 /*
  *		Region based commands.
  * The routines in this file
@@ -17,6 +17,8 @@
 #include "echo.h"
 #include "line.h"
 #include "undo.h"
+#include "word.h"
+#include "region.h"
 
 static int setsize _PRO((REGION*,RSIZE));
 
@@ -413,16 +415,16 @@ int
 setprefix(f, n)
 int f, n;
 {
-    char buf[PREFIXLENGTH];
+    NG_WCHAR_t buf[PREFIXLENGTH];
     register int s;
     
     if (prefix_string[0] == '\0')
-	s = ereply("Prefix string: ",buf,sizeof buf);
+	s = ereply("Prefix string: ", buf, NG_WCHARLEN(buf));
     else
 	s = ereply("Prefix string (default %s): ",
-		   buf,sizeof buf,prefix_string);
+		   buf, NG_WCHARLEN(buf), prefix_string);
     if (s == TRUE)
-	(VOID) strcpy(prefix_string, buf);
+	strlcpyw(prefix_string, buf, sizeof(prefix_string));
     if ((s == FALSE) && (prefix_string[0] != '\0')) /* CR -- use old one */
 	s = TRUE;
     return s;

@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.3 2005/12/30 17:37:28 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -10,6 +10,7 @@
 #include "extend.h"
 
 #include "i_buffer.h"
+#include "i_lang.h"
 #include "cinfo.h"
 #include "echo.h"
 //#include "buffer.h"
@@ -41,8 +42,8 @@ int
 insert(f, n)
 int f, n;
 {
-    register char *cp;
-    char buf[128];
+    register NG_WCHAR_t *cp;
+    NG_WCHAR_t buf[128];
 #ifndef NO_MACRO
     register int count;
     int c;
@@ -74,7 +75,7 @@ int f, n;
 	return TRUE;
     }
 #endif /* READONLY */
-    if (eread("Insert: ", buf, sizeof(buf), EFNEW) == FALSE)
+    if (eread("Insert: ", buf, NG_WCHARLEN(buf), EFNEW) == FALSE)
 	return FALSE;
     while (--n >= 0) {
 	cp = buf;
@@ -365,13 +366,13 @@ int unbind;
     else {
 #endif
 #endif
-	(VOID) strcpy(prompt, p);
+	(VOID) strlcpy(prompt, p, sizeof(prompt));
 	pep = prompt + strlen(prompt);
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
 	fepmode_off();
 #endif
 	for (;;) {
-	    ewprintf("%s", prompt);
+	    ewprintf("%S", prompt);
 	    pep[-1] = ' ';
 	    pep = keyname(pep, c = getkey(FALSE));
 	    if (doscan(curmap,c) != prefix)
@@ -386,8 +387,12 @@ int unbind;
     if (unbind)
 	funct = rescan;
     else {
-	if ((s=eread("%s to command: ", prompt, 80, EFFUNC|EFNEW, prompt))
+	NG_WCHAR_t tmp[sizeof(prompt)];
+	wstrlcpya(tmp, prompt, NG_WCHARLEN(tmp));
+	if ((s=eread("%s to command: ", tmp, NG_WCHARLEN(tmp),
+		     EFFUNC|EFNEW, prompt))
 	    != TRUE) return s;
+	strlcpyw(prompt, tmp, sizeof(prompt));
 	if (((funct = name_function(prompt)) == prefix) ?
 	    (pref_map = name_map(prompt)) == NULL : funct==NULL) {
 	    ewprintf("[No match]");
@@ -467,16 +472,18 @@ define_key(f, n)
 int f, n;
 {
     static char buf[48] = "Define key map: ";
+    NG_WCHAR_t buf2[32];
     MAPS *mp;
 
     buf[16] = '\0';
-    if (eread(buf, &buf[16], 48 - 16, EFNEW) != TRUE)
+    if (eread(buf, buf2, NG_WCHARLEN(buf2), EFNEW) != TRUE)
 	return FALSE;
+    strlcpyw(&buf[16], buf2, sizeof(buf)-16);
     if ((mp = name_mode(&buf[16])) == NULL) {
 	ewprintf("Unknown map %s", &buf[16]);
 	return FALSE;
     }
-    (VOID) strncat(&buf[16], " key: ", 48-16-1);
+    strlcat(buf, " key: ", sizeof(buf));
     return dobind(mp->p_map, buf, FALSE);
 }
 
@@ -508,15 +515,17 @@ int f, n;
 {
     PF funct;
     int s;
-    char xname[NXNAME];
+    NG_WCHAR_t xname[NXNAME];
+    char xname2[NG_WCHARLEN(xname)];
     
     if (!(f & FFARG))
-	s = eread("M-x ", xname, NXNAME, EFNEW|EFFUNC);
+	s = eread("M-x ", xname, NG_WCHARLEN(xname), EFNEW|EFFUNC);
     else
-	s = eread("%d M-x ", xname, NXNAME, EFNEW|EFFUNC, n);
+	s = eread("%d M-x ", xname, NG_WCHARLEN(xname), EFNEW|EFFUNC, n);
     if (s != TRUE)
 	return s;
-    if ((funct = name_function(xname)) != NULL) {
+    strlcpyw(xname2, xname, sizeof(xname));
+    if ((funct = name_function(xname2)) != NULL) {
 #ifndef NO_MACRO
 	if (macrodef) {
 	    LINE *lp = maclcur;
@@ -557,11 +566,13 @@ evalexpr(f, n)
 int f, n;
 {
     int s;
-    char exbuf[128];
+    NG_WCHAR_t exbuf[128];
+    char exbuf2[NG_WCHARLEN(exbuf)];
     
-    if ((s = ereply("Eval: ", exbuf, 128)) != TRUE)
+    if ((s = ereply("Eval: ", exbuf, NG_WCHARLEN(exbuf))) != TRUE)
 	return s;
-    return excline(exbuf);
+    strlcpyw(exbuf2, exbuf, sizeof(exbuf2));
+    return excline(exbuf2);
 }
 /*
  * evalbuffer - evaluate the current buffer as line commands. Useful
@@ -599,11 +610,14 @@ evalfile(f, n)
 int f, n;
 {
     register int s;
-    char fname[NFILEN];
-
+    NG_WCHAR_t fname[NFILEN];
+    NG_WCHAR_t *wtmp;
+    char *tmp;
 #ifdef EXTD_DIR
     ensurecwd();
-    edefset(curbp->b_cwd);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+		       curbp->b_cwd, wtmp);
+    edefset(wtmp);
 #endif
 #ifndef	NO_FILECOMP
     if ((s = eread("Load file: ", fname, NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
@@ -611,7 +625,8 @@ int f, n;
     if ((s = ereply("Load file: ", fname, NFILEN)) != TRUE)
 #endif
 	return s;
-    return load(fname);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, fname, tmp);
+    return load(tmp);
 }
 
 /*

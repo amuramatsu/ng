@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.8 2003/02/23 14:17:04 amura Exp $
+# $Id: Makefile.in,v 1.8.2.1 2005/12/30 17:37:29 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # Create from BSD Makefile by MURAMATSU Atsushi
@@ -40,7 +40,7 @@ IND	= buffer.o complt.o display.o cmode.o echo.o extend.o file.o \
 	  skg.o kanji.o undo.o word.o unicode.o
 
 # System dependent objects
-OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o
+OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o in_code.o
 
 OBJ = $(OBJS) $(IND) $(OOBJS) fileio.o canna.o $(ALLOCA)
 
@@ -164,6 +164,10 @@ alloca.c:	sys/default/alloca.c
 unicode.c:	sys/unix/unicode.c
 	rm -f unicode.c
 	$(LN_S) sys/$(SYS)/unicode.c .
+
+in_code.c:	sys/default/in_code.c
+	rm -f in_code.c
+	$(LN_S) sys/default/in_code.c .
 
 clean:;	rm -f $(OBJ) $(OSRCS) $(OINCS) $(PROG)
 

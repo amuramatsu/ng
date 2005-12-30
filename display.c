@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.3 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: display.c,v 1.20.2.4 2005/12/30 17:37:28 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -591,7 +591,7 @@ update()
     int	x,y;
     int	lines;
     /* 90.01.29  by S.Yoshida */
-    extern int input_continued;		/* Defined at kbd.c */
+    /* XXX extern int input_continued; */		/* Defined at kbd.c */
     
     if (typeahead())
 	return;
@@ -602,11 +602,13 @@ update()
 	    wp = wp->w_wndp;
 	}
 	/* 90.01.29  by S.Yoshida */
-	input_continued = FALSE;	/* Reset KANJI input condition. */
+	/* input_continued = FALSE; */	/* Reset KANJI input condition. */
     } 
+#if 0    
     else if (input_continued) {		/* We don't have KANJI 2nd byte. */
 	return;
     }
+#endif
 
     old_curwp = curwp;
     hflag = FALSE;			/* Not hard.		*/

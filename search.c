@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.8.2.2 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: search.c,v 1.8.2.3 2005/12/30 17:37:29 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -54,7 +54,7 @@ static int cip;
 static int srch_lastdir = SRCH_NOPR;		/* Last search flags.	*/
 
 static int isearch _PRO((int));
-static int readpattern _PRO((char *));
+static int readpattern _PRO((const char *));
 
 static VOID is_cpush _PRO((int));
 static VOID is_lpush _PRO((void));
@@ -879,15 +879,15 @@ register int bc, pc;
  */
 static int
 readpattern(prompt)
-char *prompt;
+const char *prompt;
 {
     register int s;
     NG_WCHAR_t tpat[NPAT];
     
     if (pat[0] == '\0')
-	s = ereply("%s: ", (char *)tpat, sizeof(tpat), prompt);
+	s = ereply("%s: ", tpat, NG_WCHARLEN(tpat), prompt);
     else
-	s = ereply("%s: (default %s) ", (char *)tpat, sizeof(tpat), prompt, pat);
+	s = ereply("%s: (default %s) ", tpat, NG_WCHARLEN(tpat), prompt, pat);
     
     if (s == TRUE)				/* Specified		*/
 	(VOID) wstrcpy(pat, tpat);

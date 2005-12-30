@@ -1,4 +1,4 @@
-/* $Id: echo.h,v 1.1.2.3 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: echo.h,v 1.1.2.4 2005/12/30 17:37:28 amura Exp $ */
 /*
  * This file is the header file for echo parts
  * of the NG display editor.
@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 #ifdef SUPPORT_ANSI
-int message(char *fp ,...);
+int message(const char *fp ,...);
 int ereply(const char *, NG_WCHAR_t *, int , ... );
 int eread(const char *, NG_WCHAR_t *, int, int, ...);
 VOID ewprintf(const char *, ... );

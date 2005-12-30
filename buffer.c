@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.20.2.5 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: buffer.c,v 1.20.2.6 2005/12/30 17:37:28 amura Exp $ */
 /*
  *		Buffer handling.
  */
@@ -22,11 +22,12 @@
 
 #ifdef VARIABLE_TAB
 static LINE_OFF_t defb_tab = 8;
-static LINE_OFF_t cmode_tab = 0;
+LINE_OFF_t cmode_tab = 0;
 #endif /* VARIABLE_TAB */
 
 static BUFFER *makelist _PRO((void));
 static long buffersize _PRO((BUFFER*));
+static BUFFER *bfindw _PRO((const NG_WCHAR_t *, int, const LANG_MODULE *));
 
 #ifdef MOVE_BUFFER		/* 95.08.29 by M.Suzuki	*/
 /* Move to the next buffer	*/
@@ -459,6 +460,18 @@ int f;
     if (save == FALSE /* && kbdmop == NULL */ )	/* experimental */
 	ewprintf("(No files need saving)");
     return s;
+}
+
+/* Search for a buffer, by name. with wide char */
+static BUFFER *
+bfindw(bwname, cflag, lm)
+register const NG_WCHAR_t *bwname;
+int cflag;
+const LANG_MODULE *lm;
+{
+    char *bname;
+    LM_OUT_CONVERT_TMP2(lm, lm_buffer_name_code, bwname, bname);
+    return bfind(bname, cflag);
 }
 
 /*

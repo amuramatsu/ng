@@ -1,4 +1,4 @@
-/* $Id: help.c,v 1.6.2.3 2005/09/17 05:17:18 amura Exp $ */
+/* $Id: help.c,v 1.6.2.4 2005/12/30 17:37:28 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -16,7 +16,7 @@
 #include "cinfo.h"
 
 /* 91.02.06  Move static declaration to here for some compiler. by S.Yoshida */
-static int showall _PRO((NG_WCHAR_t *, KEYMAP *));
+static int showall _PRO((char *, KEYMAP *));
 static VOID findbind _PRO((PF, char *, KEYMAP *));
 static VOID bindfound _PRO((VOID));
 
@@ -110,7 +110,7 @@ found:
  * lets MicroGnuEMACS produce it's own wall chart.
  */
 static BUFFER	*bp;
-static NG_WCHAR_t buf[80];	/* used by showall and findbind */
+static char buf[80];	/* used by showall and findbind */
 
 /*ARGSUSED*/
 int
@@ -146,8 +146,8 @@ int f, n;
 }
 
 static int
-showall(wind, map)
-NG_WCHAR_t *wind;
+showall(ind, map)
+char *ind;
 KEYMAP *map;
 {
     register MAP_ELEMENT *ele;
@@ -156,11 +156,9 @@ KEYMAP *map;
     char *cp;
     char *cp2;
     int last;
-    char *ind;
+    NG_WCHAR_t *wbuf;
 
-    i = wstrlen(wind) + 1;
-    ind = (char *)alloca(i);
-    strlcpyw(ind, wind, i);
+    i = strlen(ind) + 1;
     
     if (addline(bp, NG_WSTR_NULL) == FALSE)
 	return FALSE;
@@ -170,14 +168,16 @@ KEYMAP *map;
 	if (map->map_default != rescan && ++last < ele->k_base) {
 	    cp = keyname(ind, last);
 	    if (last < ele->k_base - 1) {
-		(VOID) strcpy(cp, " .. ");
+		strlcpy(cp, " .. ", sizeof(buf));
 		cp = keyname(cp + 4, ele->k_base - 1);
 	    }
 	    do {
 		*cp++ = ' ';
 	    } while(cp < &buf[16]);
 	    (VOID) strcpy(cp, function_name(map->map_default));
-	    if (addline(bp, buf) == FALSE)
+	    wbuf = (NG_WCHAR_t *)alloca(sizeof(buf));
+	    wstrlcpya(wbuf, buf, NG_WCHARLEN(wbuf));
+	    if (addline(bp, wbuf) == FALSE)
 		return FALSE;
 	}
 	last = ele->k_num;
@@ -194,7 +194,9 @@ KEYMAP *map;
 			*cp++ = ' ';
 		    } while(cp < &buf[16]);
 		    (VOID) strcpy(cp, cp2);
-		    if (addline(bp, buf) == FALSE)
+		    wbuf = (NG_WCHAR_t *)alloca(sizeof(buf));
+		    wstrlcpya(wbuf, buf, NG_WCHARLEN(wbuf));
+		    if (addline(bp, wbuf) == FALSE)
 			return FALSE;
 		}
 	    }
@@ -257,13 +259,14 @@ int
 apropos_command(f, n)
 int f, n;
 {
-    register char *cp1, *cp2;
+    register char *cp1;
+    register NG_WCHAR_t *cp2;
     NG_WCHAR_t string[NINPUT];
     FUNCTNAMES *fnp;
     BUFFER *bp;
 
     /* FALSE means we got a 0 character string, which is fine */
-    if (eread("apropos: ", string, sizeof(string), EFNEW) == ABORT)
+    if (eread("apropos: ", string, NG_WCHARLEN(string), EFNEW) == ABORT)
 	return ABORT;
     if ((bp = bfind("*help*", TRUE)) == NULL)
 	return FALSE;
@@ -349,10 +352,10 @@ bindfound() {
 	} while(buf2p < &buf2[32]);
     }
     else {
-	*buf2p++ = ',';
+	*buf2p++ = NG_WCODE(',');
 	*buf2p++ = NG_WSPACE;
     }
-    wstrcpy(buf2p, buf);
-    buf2p += wstrlen(buf);
+    wstrlcpya(buf2p, buf, NG_WCHARLEN(buf2));
+    buf2p += strlen(buf);
 }
 #endif

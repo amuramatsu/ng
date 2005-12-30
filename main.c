@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.11.2.2 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: main.c,v 1.11.2.3 2005/12/30 17:37:28 amura Exp $ */
 /*
  *		Mainline
  */
@@ -155,7 +155,12 @@ char **argv;
 
 #ifndef NO_DIRED	/* 91.01.16  by S.Yoshida */
 	if (ffisdir(cp)) {
-	    eargset(cp);
+	    NG_WCHAR_t *tmp;
+	    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+			       cp, tmp);
+	    if (tmp == NULL)
+		return FALSE;
+	    eargset(tmp);
 	    (VOID) dired(0, 1);
 #ifdef ADDOPT  /* 92.03.16  by Gen KUROKI */
 	    if (fgoto) {

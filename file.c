@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: file.c,v 1.15.2.3 2005/12/30 17:37:28 amura Exp $ */
 /*
  *		File commands.
  */
@@ -21,6 +21,7 @@
 #include "autosave.h"
 
 static char *itos _PRO((char *, unsigned int));
+static int fileopen_backend _PRO((int, int, int, int, char *));
 
 /*
  * insert a file into the current buffer. Real easy - just call the
@@ -32,17 +33,22 @@ fileinsert(f, n)
 int f, n;
 {
     register int s;
-    char fname[NFILEN];
+    NG_WCHAR_t fname[NFILEN];
+    char *tmp;
     
 #ifdef EXTD_DIR
+    NG_WCHAR_t *wtmp;
     ensurecwd();
-    edefset(curbp->b_cwd);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+		       curbp->b_cwd, wtmp);
+    edefset(wtmp);
 #endif
 
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if ((s=eread("Insert file: ", fname, NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
+    if ((s=eread("Insert file: ", fname, NG_WCHARLEN(fname),
+		 EFNEW|EFFILE|EFCR)) != TRUE)
 #else /* NO_FILECOMP */
-    if ((s=ereply("Insert file: ", fname, NFILEN)) != TRUE)
+    if ((s=ereply("Insert file: ", fname, NG_WCHARLEN(fname))) != TRUE)
 #endif /* NO_FILECOMP */
 	return (s);
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
@@ -51,7 +57,9 @@ int f, n;
 	return TRUE;
     }
 #endif /* READONLY */
-    return insertfile(adjustname(fname), (char *) NULL);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+			fname, tmp);
+    return insertfile(adjustname(tmp), (char *) NULL);
 					/* don't set buffer name */
 }
 
@@ -62,27 +70,29 @@ int f, n;
 static int
 fileopen(f, n, readonly, popup, prompt)
 int f, n, readonly, popup;
-char *prompt;
+const char *prompt;
 {
-    register BUFFER *bp;
-    register WINDOW *wp;
     int s;
-    char fname[NFILEN];
-    char *adjf;
+    NG_WCHAR_t wfname[NFILEN];
+    char *fname;
 #ifdef KANJI	/* 90.01.29  by S.Yoshida */
     int saved_kexpect;
     extern int global_kexpect;	/* Defined at kanjic.	*/
 #endif /* KANJI */
     
 #ifdef EXTD_DIR
+    NG_WCHAR_t *wtmp;
     ensurecwd();
-    edefset(curbp->b_cwd);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+		       curbp->b_cwd, wtmp);
+    edefset(wtmp);
 #endif
 
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if ((s=eread(prompt, fname, NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
+    if ((s=eread(prompt, wfname, NG_WCHARLEN(wfname), EFNEW|EFFILE|EFCR))
+	!= TRUE)
 #else /* NO_FILECOMP */
-    if ((s=ereply(prompt, fname, NFILEN)) != TRUE)
+    if ((s=ereply(prompt, wfname, NG_WCHARLEN(wfname))) != TRUE)
 #endif /* NO_FILECOMP */
 	return s;
 #ifdef KANJI	/* 90.01.29  by S.Yoshida */
@@ -103,10 +113,26 @@ char *prompt;
 	}
     }
 #endif /* KANJI */
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, wfname, fname);
+    return fileopen_backend(f, n, readonly, popup, fname);
+}
+
+static int
+fileopen_backend(f, n, readonly, popup, fname)
+int f, n, readonly, popup;
+char *fname;
+{
+    int s;
+    const char *adjf;
+    register BUFFER *bp;
+    register WINDOW *wp;
+
     adjf = adjustname(fname);
 #ifndef NO_DIRED	/* 91.01.15  by K.Maeda *//* 91.01.16  by S.Yoshida */
     if (ffisdir(adjf)) {
-	eargset(adjf);
+	NG_WCHAR_t *wtmp;
+	LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, adjf, wtmp);
+	eargset(wtmp);
 	return dired(f, n);
     }
 #endif /* NO_DIRED */
@@ -188,6 +214,25 @@ int f, n;
     return fileopen(f, n, FALSE, FALSE, "Find file: ");
 }
 
+/*
+ * Select a file for editing.
+ * Look around to see if you can find the
+ * file in another buffer; if you can find it
+ * just switch to the buffer. If you cannot find
+ * the file, create a new buffer, read in the
+ * text, and switch to the new buffer.
+ */
+/*ARGSUSED*/
+int
+filevisit_(fname, f, n)
+const char *fname;
+int f, n;
+{
+    char *tmp;
+    tmp = (char *)alloca(strlen(fname) + 1);
+    strcpy(tmp, fname);
+    return fileopen_backend(f, n, FALSE, FALSE, tmp);
+}
 
 /*
  * Pop to a file in the other window. Same as last function, just
@@ -225,11 +270,15 @@ filealternate(f, n)
 int f, n;
 {
     int	s;
-    char fname[NFILEN], *prompt = "Find alternate file: ";
+    NG_WCHAR_t fname[NFILEN];
+    NG_WCHAR_t *wtmp;
+    const char *prompt = "Find alternate file: ";
     
 #ifdef EXTD_DIR
     ensurecwd();
-    edefset(curbp->b_cwd);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+		       curbp->b_cwd, wtmp);
+    edefset(wtmp);
 #endif
 
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
@@ -241,7 +290,9 @@ int f, n;
 	return FALSE;
     }
     if (curbp) {
-	eargset(curbp->b_bname);
+	LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+			   curbp->b_bname, wtmp);
+	eargset(wtmp);
 	if (killbuffer(0, 1)) {
 	    eargset(fname);
 	    return filevisit(f, n);
@@ -300,7 +351,7 @@ unsigned int num;
  */
 int
 readin(fname)
-char *fname;
+const char *fname;
 {
     register int status;
     register WINDOW *wp;
@@ -325,7 +376,7 @@ char *fname;
     }
 #ifdef C_MODE	/* 91.01.13  by S.Yoshida */
     if (flag_use_c_mode) {
-	char *ptr;
+	const char *ptr;
 	ptr = fname + strlen(fname);
 	while (ptr > fname) {
 	    if (*(--ptr) == '.')
@@ -360,7 +411,7 @@ char *fname;
  */
 int
 insertfile(fname, newname)
-char *fname, *newname;
+const char *fname, *newname;
 {
     register LINE *lp1 = (LINE *)NULL;
     register LINE *lp2;
@@ -687,29 +738,37 @@ filewrite(f, n)
 int f, n;
 {
     register int s;
-    char fname[NFILEN];
+    NG_WCHAR_t fname[NFILEN];
     char *adjfname;
     char *newname;
 
 #ifdef EXTD_DIR
+    NG_WCHAR_t *wtmp;
     ensurecwd();
-    edefset(curbp->b_cwd);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+		       curbp->b_cwd, wtmp);
+    edefset(wtmp);
 #endif
 
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
-    if ((s=eread("Write file: ", fname, NFILEN, EFNEW|EFFILE|EFCR)) != TRUE)
+    if ((s=eread("Write file: ", fname, NG_WCHARLEN(fname),
+		 EFNEW|EFFILE|EFCR)) != TRUE)
 #else /* NO_FILECOMP */
-    if ((s=ereply("Write file: ", fname, NFILEN)) != TRUE)
+    if ((s=ereply("Write file: ", fname, NG_WCHARLEN(fname))) != TRUE)
 #endif /* NO_FILECOMP */
 	return (s);
 #ifdef AUTOSAVE	/* 01.01.06 by M.Suzuki	*/
     {
 	char aname[NFILEN];
-	autosave_name(aname, fname, NFILEN);
+	char *tmp;
+	LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+			    fname, tmp);
+	autosave_name(aname, tmp, sizeof(aname));
 	unlink(aname);
     }
 #endif /* AUTOSAVE	*/
-    adjfname = adjustname(fname);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, fname, adjfname);
+    adjfname = adjustname(adjfname);
     if ((s=writeout(curbp, adjfname)) == TRUE) {
 	if ((newname=malloc(strlen(adjfname)+1)) == NULL) {
 	    ewprintf("Could not allocate %d bytes",

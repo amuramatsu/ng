@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.6 2005/04/26 15:48:44 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.7 2005/12/30 17:37:28 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -38,10 +38,11 @@
 
 static int veread _PRO((const char *, NG_WCHAR_t *, int, int, va_list *));
 
-static VOID eformat _PRO((register char *fp, register va_list *ap));
+static VOID eformat _PRO((register const char *fp, register va_list *ap));
 static VOID eputi _PRO((int, int));
 static VOID eputl _PRO((long, int));
-static VOID eputs _PRO((char *));
+static VOID eputs _PRO((const char *));
+static VOID eputws _PRO((const NG_WCHAR_t *));
 static VOID eputc _PRO((int));
 #ifndef NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
 static int complt _PRO((int, int, char *, int));
@@ -325,8 +326,8 @@ static int mb_insertstr _PRO((const NG_WCHAR_t *));
 static VOID mb_insertcmplmsg _PRO((char *));
 static int mb2_insertcmplmsg _PRO((char *));
 static int mb_delcmplmsg _PRO((void));
-static int mb_appenddiff _PRO((char *));
-static int mb2_appenddiff _PRO((char *));
+static int mb_appenddiff _PRO((const NG_WCHAR_t *));
+static int mb2_appenddiff _PRO((const NG_WCHAR_t *));
 static int mb_delc _PRO((int));
 static int mb2_delc _PRO((int));
 static int mb_erasec _PRO((int));
@@ -357,12 +358,12 @@ static int mb_fixlines _PRO((int, struct _Line *, int, int *, int *));
 static VOID mb_redisplay _PRO((void));
 static VOID mb_refresh _PRO((int, int));
 static VOID mb_flush _PRO((void));
-static VOID mb_hist_save _PRO((char **, char *));
-static char* sformat _PRO((char *, va_list *));
-static int s_put_i _PRO((char *, int, int, int, int));
-static int s_put_l _PRO((char *, int, int, long, int));
-static int s_put_s _PRO((char *, int, int, char *));
-static int s_put_c _PRO((char *, int, int, int));
+static VOID mb_hist_save _PRO((NG_WCHAR_t **, const NG_WCHAR_t *));
+static NG_WCHAR_t* sformat _PRO((const char *, va_list *));
+static int s_put_i _PRO((NG_WCHAR_t *, int, int, int, int));
+static int s_put_l _PRO((NG_WCHAR_t *, int, int, long, int));
+static int s_put_s _PRO((NG_WCHAR_t *, int, int, char *));
+static int s_put_c _PRO((NG_WCHAR_t *, int, int, int));
 static VOID chsize _PRO((char *, int *, int *));
 static VOID chsize2 _PRO((char *, int *, int *));
 
@@ -727,7 +728,7 @@ Cmd:
 
 static int
 veread_complete(buf, nbuf, c, flag)
-char *buf;
+NG_WCHAR_t *buf;
 int nbuf, c, flag;
 {
     int matchnum, wflag;
@@ -811,16 +812,15 @@ static struct _Line  *CLine;
 static int
 mb_init(nbuf, fp, ap)
 int  nbuf;
-register char *fp;
+register const char *fp;
 register va_list *ap;
 {
-    char  *prompt;
+    NG_WCHAR_t *prompt;
     struct _Line   *lp, *lp2;
-    char  *sformat();
     
     prompt = sformat(fp, ap);
     if (_mb_buf == NULL) {
-	_mb_size = nbuf + strlen(prompt) + 10;
+	_mb_size = nbuf + wstrlen(prompt)*sizeof(NG_WCHAR_t) + 10;
 	if ((_mb_buf = malloc(_mb_size)) == NULL)
 	    return -1;
     }
@@ -857,7 +857,7 @@ register va_list *ap;
     CLine      = lp;
     
     mb_insertstr(prompt);
-    _mb_prompt = strlen(prompt);
+    _mb_prompt = wstrlen(prompt);
     free(prompt);
 #ifdef EXTD_DIR
     if (edef_text) {
@@ -870,7 +870,7 @@ register va_list *ap;
 
 static int
 mb_get_buffer(buf, nbuf)
-char *buf;
+NG_WCHAR_t *buf;
 int nbuf;
 {
     register int  i, j;
@@ -1085,7 +1085,7 @@ int n, c;
 
 static int
 mb_insertstr(s)
-char *s;
+const NG_WCHAR_t *s;
 {
     int  col, pt, ocol, opt;
     struct _Line *lp;
@@ -1154,7 +1154,7 @@ mb_delcmplmsg()
 
 static int
 mb_appenddiff(buf)
-char *buf;
+const NG_WCHAR_t *buf;
 {
     int  ocol, opt, col, pt;
     struct _Line *lp;
@@ -1172,10 +1172,10 @@ char *buf;
 
 static int
 mb2_appenddiff(buf)
-char *buf;
+const NG_WCHAR_t *buf;
 {
     int p2;
-    char *p1;
+    const NG_WCHAR_t *p1;
     
     for (p1 = buf, p2 = _mb_prompt; p2 < _mb_point; p1++, p2++)
 	;
@@ -2101,19 +2101,19 @@ int c;
 }
 #endif /* CANNA */
 
-static char*
+static NG_WCHAR_t*
 sformat(fp, ap)
-register char *fp;
+register const char *fp;
 register va_list *ap;
 {
-    register char *s;
+    register NG_WCHAR_t *s;
     register int n;
     int c, idx;
     char kname[NKNAME];
     char *cp;
 
     n = ncol + 1;
-    if ((s = malloc(n)) == NULL)
+    if ((s = malloc(n*sizeof(NG_WCHAR_t))) == NULL)
 	return NULL;
     idx = 0;
     while ((c = *fp++) != '\0') {
@@ -2166,7 +2166,7 @@ register va_list *ap;
 
 static int
 s_put_i(p, idx, n, i, r)
-register char *p;
+register NG_WCHAR_t *p;
 register int idx, n;
 register int i;
 register int r;
@@ -2184,7 +2184,7 @@ register int r;
 
 static int
 s_put_l(p, idx, n, l, r)
-register char *p;
+register NG_WCHAR_t *p;
 register int idx, n;
 register long l;
 register int r;
@@ -2202,8 +2202,9 @@ register int r;
 
 static int
 s_put_s(p, idx, n,  s)
-register char *p, *s;
+register NG_WCHAR_t *p;
 register int idx, n;
+register char *s;
 {
     register int c;
 
@@ -2214,7 +2215,7 @@ register int idx, n;
 
 static int
 s_put_c(p, idx, n, c)
-register char *p;
+register NG_WCHAR_t *p;
 register int idx, n;
 register int c;
 {
@@ -2318,8 +2319,8 @@ register int *visu, *mem;
 
 static VOID
 mb_hist_save(hist_buf, buf)
-char *hist_buf[];
-char *buf;
+NG_WCHAR_t *hist_buf[];
+const NG_WCHAR_t *buf;
 {
     int i;
     if (hist_buf[MB_NHISTS] != NULL)
@@ -2328,8 +2329,8 @@ char *buf;
     for (i = MB_NHISTS; i > 1; i--)
 	hist_buf[i] = hist_buf[i-1];
     /* and insert new history to head */
-    hist_buf[1] = malloc(strlen(buf)+1);
-    strcpy(hist_buf[1], buf);
+    hist_buf[1] = malloc((wstrlen(buf)+1) * sizeof(NG_WCHAR_t));
+    wstrcpy(hist_buf[1], buf);
 }
 #else   /* NOT MINIBUF_EDIT */
 static int veread_del_char ();
@@ -3016,7 +3017,7 @@ register int wflag;
 /*VARARGS 0 */
 #ifdef SUPPORT_ANSI
 VOID
-ewprintf(char *fp, ...)
+ewprintf(const char *fp, ...)
 {
     va_list pvar;
 
@@ -3068,7 +3069,7 @@ va_dcl
  */
 static VOID
 eformat(fp, ap)
-register char *fp;
+register const char *fp;
 register va_list *ap;
 {
     register int c;
@@ -3114,6 +3115,15 @@ register va_list *ap;
 		case 'd':
 		    eputl((long)va_arg(*ap, long), 10);
 		    break;
+		    
+		case 'c':/* wide char */
+		    eputc(va_arg(*ap, int));
+		    break;
+		    
+		case 's':/* wide string */
+		    eputws(va_arg(*ap, NG_WCHAR_t *));
+		    break;
+		    
 		default:
 		    eputc(c);
 		    break;
@@ -3170,9 +3180,22 @@ register int  r;
  */
 static VOID
 eputs(s)
-register char *s;
+register const char *s;
 {
     register int c;
+    
+    while ((c = *s++) != '\0')
+	eputc(c);
+}
+
+/*
+ * Put wide string.
+ */
+static VOID
+eputws(s)
+register const NG_WCHAR_t *s;
+{
+    register NG_WCHAR_t c;
     
     while ((c = *s++) != '\0')
 	eputc(c);
@@ -3198,35 +3221,7 @@ register int c;
 	    eputc('^');
 	    c = CCHR(c);
 	}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-#ifdef SS_SUPPORT /* 92.11.21  by S.Sasaki */
-	{
-	    static int c1 = 0;
-	    
-	    if (ISKANJI(c)) {
-#ifdef HOJO_KANJI
-		if (ISHOJO(c)) {
-		    c1 = 2;
-		    ttcol--;
-		} else
-#endif
-		if (c1 == 0)
-		    c1 = 1;
-		else
-		    c1--;
-	    }
-	    else
-		c1 = 0;
-#ifdef HANKANA
-	    if (ISHANKANA(c) && c1 == 1)
-		ttcol--;
-#endif
-	}
-#endif  /* SS_SUPPORT */
-	kttputc(c);
-#else /* NOT KANJI */
 	ttputc(c);
-#endif /* KANJI */
 	++ttcol;
     }
 }
