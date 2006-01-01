@@ -1,12 +1,22 @@
-/* $Id: in_code.c,v 1.1.2.1 2005/12/30 17:37:29 amura Exp $ */
+/* $Id: in_code.c,v 1.1.2.2 2006/01/01 18:34:13 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
 
 #include "config.h"
 #include "def.h"
+
 #include "in_code.h"
-#include <stdarg.h>
+
+#ifdef SUPPORT_ANSI
+# include <stdarg.h>
+#else /* !SUPPPORT_ANSI */
+# ifdef	LOCAL_VARARGS
+#  include "varargs.h"
+# else
+# include <varargs.h>
+# endif
+#endif /* SUPPORT_ANSI */
 
 int
 wstrcmp(a, b)
@@ -185,13 +195,6 @@ const NG_WCHAR_t *str;
 #ifdef SUPPORT_ANSI
 size_t
 wsnprintf(NG_WCHAR_t *buf, size_t size, const char *format, ...)
-#else
-size_t
-wsnprintf(buf, size, format, ...)
-NG_WCHAR_t *buf;
-size_t size;
-const char *format;
-#endif
 {
     va_list va;
     char *tmp = (char *)alloca(size);
@@ -200,4 +203,39 @@ const char *format;
     va_end(va);
     return wstrlcpya(buf, tmp, size);
 }
+#else /* not SUPPORT_ANSI */
+size_t
+wsnprintf(va_alist)
+va_dcl
+{
+    va_list pvar;
+    NG_WCHAR_t *buf;
+    size_t size;
+    const char *format;
+    char *tmp;
 
+    va_start(pvar);
+    buf = va_arg(pvar, NG_WCHAR_t *);
+    size = va_arg(pvar, size_t);
+    format = va_arg(pvar, cont char *);
+    tmp = (char *)alloca(size);
+    vsnprintf(tmp, size, format, va);
+    va_end(va);
+    return wstrlcpya(buf, tmp, size);
+}
+#endif /* SUPPORT_ANSI */
+
+NG_WCHAR_t *
+_ng_wstr(s)
+const char *s;
+{
+    static NG_WCHAR_t buf[256];
+    int i;
+    NG_WCHAR_t *p;
+    
+    for (i=0, p=buf; *s && i<NG_WCHARLEN(buf)-1; i++) {
+	*p++ =  *s++;
+    }
+    *p = NG_EOS;
+    return buf;
+}

@@ -1,4 +1,4 @@
-/* $Id: chrdef.h,v 1.4.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: chrdef.h,v 1.4.2.2 2006/01/01 18:34:13 amura Exp $ */
 /*
  * sys/default/chardef.h: character set specific #defines for mg 2a
  * Warning: System specific ones exist
@@ -39,15 +39,6 @@
 #define	ISMULTIBYTE(c)	((c) > 255)
 #define TOUPPER(c)	((c)-0x20)
 #define TOLOWER(c)	((c)+0x20)
-
-#define SS2 0x8e
-#define SS3 0x8f
-#ifdef	HANKANA
-#define	ISHANKANA(c)	(CHARMASK(c) == SS2)
-#endif
-#ifdef	HOJO_KANJI
-#define	ISHOJO(c)	(CHARMASK(c) == SS3)
-#endif
 
 /*
  * generally useful thing for chars

@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.12 2003/02/22 07:20:59 amura Exp $
-AC_REVISION($Revision: 1.12 $)
+dnl $Id: configure.in,v 1.12.2.1 2006/01/01 18:34:13 amura Exp $
+AC_REVISION($Revision: 1.12.2.1 $)
 AC_INIT(basic.c)
 AC_CONFIG_HEADER(sysconfig.h:sys/unix/sysconfig.h.in)
 AC_CONFIG_AUX_DIR(sys/unix)
@@ -14,6 +14,7 @@ AC_PROG_LN_S
 
 dnl Don't strip if we don't have it
 AC_CHECK_PROG(STRIP, strip, strip, :)
+AC_CHECK_PROG(PERL, perl, perl, :)
 
 dnl Set default value for CFLAGS if none is defined or it's empty
 if test -z "$USER_CFLAGS"; then

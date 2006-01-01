@@ -1,4 +1,4 @@
-/* $Id: keymap.c,v 1.11.2.1 2003/03/08 01:34:06 amura Exp $ */
+/* $Id: keymap.c,v 1.11.2.2 2006/01/01 18:34:13 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
@@ -10,6 +10,7 @@
 #include "def.h"
 #include "kbd.h"
 
+#include "lang.h"
 #define _PF()	_PRO((int, int))
 
 /*
@@ -1594,6 +1595,7 @@ FUNCTNAMES functnames[] = {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
     {k_set_fio,		"set-default-fileio-code"},
 #endif	/* KANJI */
+    {set_default_lang,	"set-default-language"},
     {set_default_mode,	"set-default-mode"},
 #ifdef	VARIABLE_TAB
     {set_default_tabwidth, "set-default-tab-width"},
@@ -1611,6 +1613,7 @@ FUNCTNAMES functnames[] = {
     {k_set_buffio,	"set-kanji-fileio-code"},
     {k_set_input,	"set-kanji-input-code"},
 #endif	/* KANJI */
+    {set_buffer_lang,	"set-language"},
     {setmark,		"set-mark-command"},
 #ifdef	PREFIXREGION
     {setprefix,		"set-prefix-string"},

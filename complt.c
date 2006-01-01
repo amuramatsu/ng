@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.5 2005/09/17 05:17:18 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.6 2006/01/01 18:34:13 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -103,11 +103,11 @@ NG_WCHAR_t *wname;
     int res;
     int i, j;
     char *cand;
-
-    LM_OUT_CONVERT_TMP(curbp->b_lang, NG_CODE_PASCII, wname, name);
-    if (name == NULL)
+    
+    fnlen = wstrlen(wname);
+    if ((name = (char *)alloca(fnlen+1)) == NULL)
 	return -1;
-    fnlen = strlen(name);
+    strlcpyw(name, wname, fnlen+1);
     
     /* compare names and make the common string of them */
     matchnum = 0;
@@ -164,10 +164,10 @@ NG_WCHAR_t *wname;
     char *cand;
     LIST *lh;
     
-    LM_OUT_CONVERT_TMP(curbp->b_lang, NG_CODE_PASCII, wname, name);
-    if (name == NULL)
+    fnlen = wstrlen(wname);
+    if ((name = (char *)alloca(fnlen+1)) == NULL)
 	return -1;
-    fnlen = strlen(name);
+    strlcpyw(name, wname, fnlen+1);
     
     /* compare names and make the common string of them */
     matchnum = 0;
@@ -275,8 +275,7 @@ int flags;
     int cur_row;
     int cur_col;
     WINDOW *wp;
-    NG_WCHAR_t *tmp;
-
+    
     if ((bp = bfind ("*Completions*", TRUE)) == NULL)
 	return (FALSE);
 #ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
@@ -287,9 +286,7 @@ int flags;
     if (bclear (bp) != TRUE)
 	return (FALSE);
     
-    LM_IN_CONVERT_TMP(bp->b_lang, NG_CODE_PASCII, 
-		      "Possible completions are:", tmp);
-    if (addline(bp, tmp) == FALSE)
+    if (addline(bp, _NG_WSTR("Possible completions are:")) == FALSE)
 	return (FALSE);
 
     switch (flags & EFAUTO) {
@@ -363,10 +360,10 @@ BUFFER *bp;
     char line[NFILEN];
     NG_WCHAR_t wline[NFILEN];
 
-    LM_OUT_CONVERT_TMP(curbp->b_lang, NG_CODE_PASCII, wname, name);
-    if (name == NULL)
+    fnlen = wstrlen(wname);
+    if ((name = (char *)alloca(fnlen+1)) == NULL)
 	return -1;
-    fnlen = strlen(name);
+    strlcpyw(name, wname, fnlen+1);
     
     line[0] = '\0';
     for (i = name_fent(name, TRUE); i < nfunct; i++) {
@@ -381,7 +378,7 @@ BUFFER *bp;
 	    if (strlen (cand) < LIST_COL)
 		strcpy (line, cand);
 	    else {
-		bp->b_lang->lm_in_convert(NG_CODE_PASCII, cand, wline);
+		wstrlcpya(wline, cand, NG_WCHARLEN(wline));
 		addline (bp, wline);
 	    }
 	}
@@ -391,20 +388,20 @@ BUFFER *bp;
 		    line[j] = ' ';
 		line[j] = '\0';
 		strcat (line, cand);
-		bp->b_lang->lm_in_convert(NG_CODE_PASCII, line, wline);
+		wstrlcpya(wline, line, NG_WCHARLEN(wline));
 		addline (bp, wline);
 	    }
 	    else {
-		bp->b_lang->lm_in_convert(NG_CODE_PASCII, line, wline);
+		wstrlcpya(wline, line, NG_WCHARLEN(wline));
 		addline (bp, wline);
-		bp->b_lang->lm_in_convert(NG_CODE_PASCII, cand, wline);
+		wstrlcpya(wline, cand, NG_WCHARLEN(wline));
 		addline (bp, wline);
 	    }
 	    line[0] = '\0';
 	}
     }
     if (line[0] != '\0') {
-	bp->b_lang->lm_in_convert(NG_CODE_PASCII, line, wline);
+	wstrlcpya(wline, line, NG_WCHARLEN(wline));
 	addline (bp, wline);
     }
     return (TRUE);
@@ -467,7 +464,10 @@ BUFFER *bp;
     NG_WCHAR_t line[NFILEN], cand2[NFILEN];
     char *filenames;
 
-    LM_OUT_CONVERT_TMP(bp->b_lang, NG_CODE_PASCII, wname, name);
+    fnnum = wstrlen(wname);
+    if ((name = (char *)alloca(fnnum)) == NULL)
+	return FALSE;
+    strlcpyw(name, wname, fnnum+1);
     dnlen = file_name_part (name) - name;
 
     if ((fnnum = fffiles (name, &filenames)) == -1)
@@ -538,12 +538,8 @@ complete_del_list ()
     prev_bp = NULL;
     update ();
     ttmove (cur_row, cur_col);
-    {
-	NG_WCHAR_t *tmp;
-	/* 91.01.17  Add to delete *Completions* buffer. by S.Yoshida */
-	LM_IN_CONVERT_TMP(bp->b_lang, NG_CODE_PASCII, "*Completions*", tmp);
-	eargset(tmp);
-    }
+    /* 91.01.17  Add to delete *Completions* buffer. by S.Yoshida */
+    eargset(_NG_WSTR("*Completions*"));
     killbuffer(0, 1);
 
     return (TRUE);
@@ -580,28 +576,4 @@ complete_scroll_down ()
     ttmove (cur_row, cur_col);
     return (TRUE);
 }
-
-#ifdef	SS_SUPPORT
-static int
-estrlen(str)
-char *str;
-{
-    int i = 0;
-    while (*str) {
-#ifdef	HANKANA
-	if (ISHANKANA(*str))
-	    ;
-	else
-#endif
-#ifdef	HOJO_KANJI
-	if (ISHOJO(*str))
-	    ;
-	else
-#endif
-	    i++;
-	str++;
-    }
-    return i;
-}
-#endif	/* SS_SUPPORT */
 #endif	/* NEW_COMPLETE */

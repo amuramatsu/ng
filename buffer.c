@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.20.2.6 2005/12/30 17:37:28 amura Exp $ */
+/* $Id: buffer.c,v 1.20.2.7 2006/01/01 18:34:13 amura Exp $ */
 /*
  *		Buffer handling.
  */
@@ -19,6 +19,7 @@
 #include "random.h"
 #include "dir.h"
 #include "modes.h"
+#include "lang.h"
 
 #ifdef VARIABLE_TAB
 static LINE_OFF_t defb_tab = 8;
@@ -546,6 +547,7 @@ int cflag;
     }
 #endif
     (VOID) strcpy(bp->b_bname, bname);
+    bp->b_lang = default_lang;
     lp->l_fp = lp;
     lp->l_bp = lp;
     bp->b_bufp = bheadp;

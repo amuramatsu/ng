@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.3 2005/12/30 17:37:28 amura Exp $ */
+/* $Id: file.c,v 1.15.2.4 2006/01/01 18:34:13 amura Exp $ */
 /*
  *		File commands.
  */
@@ -83,8 +83,9 @@ const char *prompt;
 #ifdef EXTD_DIR
     NG_WCHAR_t *wtmp;
     ensurecwd();
-    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-		       curbp->b_cwd, wtmp);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, curbp->b_cwd, wtmp);
+    if (wtmp == NULL)
+	return FALSE;
     edefset(wtmp);
 #endif
 

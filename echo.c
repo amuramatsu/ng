@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.7 2005/12/30 17:37:28 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.8 2006/01/01 18:34:13 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -25,6 +25,7 @@
 #include "macro.h"
 #include "window.h"
 #include "cinfo.h"
+#include "lang.h"
 
 #ifdef SUPPORT_ANSI
 #  include <stdarg.h>
@@ -364,8 +365,7 @@ static int s_put_i _PRO((NG_WCHAR_t *, int, int, int, int));
 static int s_put_l _PRO((NG_WCHAR_t *, int, int, long, int));
 static int s_put_s _PRO((NG_WCHAR_t *, int, int, char *));
 static int s_put_c _PRO((NG_WCHAR_t *, int, int, int));
-static VOID chsize _PRO((char *, int *, int *));
-static VOID chsize2 _PRO((char *, int *, int *));
+static VOID chsize _PRO((char *, int *));
 
 #ifdef CANNA
 #include <canna/jrkanji.h>
@@ -878,34 +878,14 @@ int nbuf;
     j = 0;
     for (i = _mb_prompt; i < _mb_point;) {
 	if (j >= nbuf-1) {
-#ifdef KANJI
-	    if (ISKANJI(_mb_buf[i])) {
-#ifdef HOJO_KANJI
-		if (i>=1 && ISHOJO(_mb_buf[i-1]))
-		    buf[j-2] = '\0';
-		else
-#endif
-		    buf[j-1] = '\0';
-	    } else
-#endif /* KANJI */
-		buf[j] = '\0';
+	    buf[j] = '\0';
 	    return 0;
 	}
 	buf[j++] = _mb_buf[i++];
     }
     for (i = _mb_gapend; i < _mb_size;) {
 	if (j >= nbuf-1) {
-#ifdef KANJI
-	    if (ISKANJI(_mb_buf[i])) {
-#ifdef HOJO_KANJI
-		if (i>=1 && ISHOJO(_mb_buf[i-1]))
-		    buf[j-2] = '\0';
-		else
-#endif
-		    buf[j-1] = '\0';
-	    } else
-#endif
-		buf[j] = '\0';
+	    buf[j] = '\0';
 	    return 0;
 	}
 	buf[j++] = _mb_buf[i++];
@@ -999,15 +979,8 @@ mb_insert(n, c)
 int n, c;
 {
     int col, pt, ocol, opt;
-#ifdef KANJI
-    static int k1 = 0, nnn;
-#ifdef HOJO_KANJI
-    static int k2 = 0;
-#endif
-#endif
     struct _Line *lp;
 
-#ifndef KANJI
     if (n < 0)
 	return -1;
     ocol = _mb_ccol;
@@ -1016,59 +989,6 @@ int n, c;
     mb2_insert(n, c);
     mb_fixlines(ocol, lp, opt, &col, &pt);
     mb_refresh(col, pt);
-#else /* KANJI is TRUE */
-    if (k1 == 0) {
-	if (n < 0)
-	    return -1;
-	if (ISKANJI(c)) {
-	    k1  = c;
-	    nnn = n;
-	}
-	else {
-	    ocol = _mb_ccol;
-	    opt  = _mb_point;
-	    lp   = CLine;
-	    mb2_insert(n, c);
-	    mb_fixlines(ocol, lp, opt, &col, &pt);
-	    mb_refresh(col, pt);
-	}
-#ifdef HOJO_KANJI
-    }
-    else if (ISHOJO(k1) && k2 == 0) {
-	if (ISKANJI(c)) {
-	    k2 = c;
-	    nnn = n;
-	}
-	else {
-	    ocol = _mb_ccol;
-	    opt  = _mb_point;
-	    lp   = CLine;
-	    mb2_insert(n, c);
-	    mb_fixlines(ocol, lp, opt, &col, &pt);
-	    mb_refresh(col, pt);
-	}
-#endif /* HOJO_KANJI */
-    }
-    else {
-	ocol = _mb_ccol;
-	opt  = _mb_point;
-	lp   = CLine;
-	while (nnn-- > 0) {
-	    mb2_insert(1, k1);
-#ifdef HOJO_KANJI
-	    if (k2 != 0)
-		mb2_insert(1, k2);
-#endif
-	    mb2_insert(1, c);
-	}
-	mb_fixlines(ocol, lp, opt, &col, &pt);
-	mb_refresh(col, pt);
-	k1 = 0;
-#ifdef HOJO_KANJI
-	k2 = 0;
-#endif
-    }
-#endif /* NOT KANJI */
     return 0;
 }
 
@@ -1203,14 +1123,11 @@ static int
 mb2_delc(n)
 int n;
 {
-    int v, m;
-    
     while (n-- > 0) {
 	if (_mb_gapend == _mb_size)
 	    break;
-	chsize(&_mb_buf[_mb_gapend], &v, &m);
-	_mb_gapend  += m;
-	_mb_bufsize -= m;
+	_mb_gapend++;
+	_mb_bufsize--;
     }
     return mb_point();
 }
@@ -1289,7 +1206,7 @@ static int
 mb_delw(n)
 int n;
 {
-    int v, m, ocol, opt, col, pt, i;
+    int ocol, opt, col, pt, i;
     struct _Line *lp;
     
     if (n <= 0)
@@ -1303,23 +1220,17 @@ int n;
 	    goto End;
 	if (!mb_isword()) {
 	    while (!mb_iseol() && !mb_isword()) {
-		chsize(&_mb_buf[_mb_gapend], &v, &m);
-		for (i = 0; i < m; i++)
-		    if (kinsert(_mb_buf[_mb_gapend+i], KFORW) < 0)
-			break;
-		_mb_gapend  += m;
-		_mb_bufsize -= m;
+		kinsert(_mb_buf[_mb_gapend+i], KFORW);
+		_mb_gapend++;
+		_mb_bufsize--;
 		if (_mb_gapend == _mb_size)
 		    goto End;
 	    }
 	}
 	while (!mb_iseol() && mb_isword()) {
-	    chsize(&_mb_buf[_mb_gapend], &v, &m);
-	    for (i = 0; i < m; i++)
-		if (kinsert(_mb_buf[_mb_gapend+i], KFORW) < 0)
-		    break;
-	    _mb_gapend  += m;
-	    _mb_bufsize -= m;
+	    kinsert(_mb_buf[_mb_gapend+i], KFORW);
+	    _mb_gapend++;
+	    _mb_bufsize--;
 	    if (_mb_gapend == _mb_size)
 		goto End;
 	}
@@ -1376,13 +1287,10 @@ static int
 mb2_forwc(n)
 int n;
 {
-    int v, m;
-    
     if (_mb_gapend == _mb_size)
 	return mb_point();
     while ((n-- > 0) && (_mb_gapend < _mb_size)) {
-	chsize(&_mb_buf[_mb_gapend], &v, &m);
-	mb_move(m);
+	mb_move(1);
     }
     return mb_point();
 }
@@ -1391,13 +1299,10 @@ static int
 mb2_backwc(n)
 int n;
 {
-    int m, v;
-
     if (_mb_point == _mb_prompt)
 	return mb_point();
     while ((n-- > 0) && (_mb_point > _mb_prompt)) {
-	chsize2(&_mb_buf[_mb_point-1], &v, &m);
-	mb_move(-m);
+	mb_move(1);
     }
     return mb_point();
 }
@@ -1621,7 +1526,7 @@ static int
 mb_trans(n)
 int n;
 {
-    int ocol, opt, col, pt, v1, m1, v2, m2, i;
+    int ocol, opt, col, pt, i;
     struct _Line *lp;
     char s[2];
     
@@ -1646,14 +1551,9 @@ int n;
 		    break;
 		}
 	    }
-	    chsize2(&_mb_buf[_mb_point-1], &v1, &m1);
-	    for (i = m1-1; i >= 0; i--)
-		s[i] = _mb_buf[--_mb_point];
-	    chsize(&_mb_buf[_mb_gapend], &v2, &m2);
-	    for (i = 0; i < m2; i++)
-		_mb_buf[_mb_point++] = _mb_buf[_mb_gapend++];
-	    for (i = 0; i < m1; i++)
-		_mb_buf[--_mb_gapend] = s[m1-i-1];
+	    s[i] = _mb_buf[--_mb_point];
+	    _mb_buf[_mb_point++] = _mb_buf[_mb_gapend++];
+	    _mb_buf[--_mb_gapend] = s[-i];
 	    
 	    if (mb_iseol())
 		break;
@@ -1674,14 +1574,9 @@ int n;
 		    break;
 		}
 	    }
-	    chsize2(&_mb_buf[_mb_point-1], &v1, &m1);
-	    for (i = m1-1; i >= 0; i--)
-		s[i] = _mb_buf[--_mb_point];
-	    chsize(&_mb_buf[_mb_gapend], &v2, &m2);
-	    for (i = 0; i < m2; i++)
-		_mb_buf[_mb_point++] = _mb_buf[_mb_gapend++];
-	    for (i = 0; i < m1; i++)
-		_mb_buf[--_mb_gapend] = s[m1-i-1];
+	    s[i] = _mb_buf[--_mb_point];
+	    _mb_buf[_mb_point++] = _mb_buf[_mb_gapend++];
+	    _mb_buf[--_mb_gapend] = s[1-i-1];
 	    
 	    if (mb_isbol())
 		break;
@@ -1700,7 +1595,7 @@ mb_matchparen(n, opar, cpar)
 int n;
 int opar, cpar;
 {
-    int i, dep, dep2, instr, oinstr, point, v, m;
+    int i, dep, dep2, instr, oinstr, point;
     int col, ocol, pt, opt, red, match, on;
     struct _Line  *clp, *dlp, *lp;
     
@@ -1794,10 +1689,9 @@ int opar, cpar;
 		    }
 		}
 	    }
-	    chsize2(&_mb_buf[point], &v, &m);
 	    if (point == clp->idx)
 		clp = clp->prev; 
-	    point -= m;
+	    point--;
 	}
     }
     if (red == 1) {
@@ -1816,13 +1710,13 @@ mb_col(lp, pt)
 struct _Line *lp;
 int pt;
 {
-    int col, point, v, m;
+    int col, point, v;
     
     col = 0;
     for (point = lp->idx; point < pt; ) {
-	chsize(&_mb_buf[point], &v, &m);
+	chsize(&_mb_buf[point], &v);
 	col   += v;
-	point += m;
+	point++;
     }
     return col;
 }
@@ -1883,17 +1777,13 @@ int n;
 
     if (n > 0) {
 	while (n > 0) {
-	    chsize(&_mb_buf[_mb_point-1], &v, &m);
-	    while ((m--) > 0) 
-		_mb_buf[_mb_point++] = _mb_buf[_mb_gapend++];
+	    _mb_buf[_mb_point++] = _mb_buf[_mb_gapend++];
 	    --n;
 	}
     }
     else {
 	while (n < 0) {
-	    chsize2(&_mb_buf[_mb_point-1], &v, &m);
-	    while ((m--) > 0) 
-		_mb_buf[--_mb_gapend] = _mb_buf[--_mb_point];
+	    _mb_buf[--_mb_gapend] = _mb_buf[--_mb_point];
 	    ++n;
 	}
     }
@@ -1905,7 +1795,7 @@ mb_fixlines(col, line, point, colp, ptp)
 int col, point, *colp, *ptp;
 struct _Line *line;
 {
-    int v, m, bp, ccol, opt, redraw, lno;
+    int v, bp, ccol, opt, redraw, lno;
     struct _Line *lp0, *lp1;
 
     if (colp != NULL)
@@ -1929,10 +1819,10 @@ struct _Line *line;
 	}
 	
 	opt   = point;
-	chsize(&_mb_buf[point], &v, &m);
+	chsize(&_mb_buf[point], &v);
 	col   += v;
 	ccol  += v;
-	point += m;
+	point++;
     
 	if (col >= (ncol-1)-1) {
 	    if (line->next == &Line) {
@@ -1996,24 +1886,22 @@ static VOID
 mb_refresh(col, idx)
 int col, idx;
 {
-    int v, m, limit;
+    int v, limit;
 
     limit = (ncol-1)-2;
     ttmove(_mb_crow, col);
     for ( ; idx < _mb_point; ) {
 	if (col >= limit)
 	    break;
-	chsize(&_mb_buf[idx], &v, &m);
-	while (m-- > 0)
-	    eputc(_mb_buf[idx++]);
+	chsize(&_mb_buf[idx], &v);
+	eputc(_mb_buf[idx++]);
 	col += v;
     }
     for (idx = _mb_gapend; idx < _mb_size; ) {
 	if (col >= limit)
 	    break;
-	chsize(&_mb_buf[idx], &v, &m);
-	while (m-- > 0)
-	    eputc(_mb_buf[idx++]);
+	chsize(&_mb_buf[idx], &v);
+	eputc(_mb_buf[idx++]);
 	col += v;
     }
     if (CLine->next != &Line) {
@@ -2222,99 +2110,23 @@ register int c;
     epresf = TRUE;
 
     if (idx < n) {
+#if 0
 	if (ISCTRL(c)) {
 	    idx = s_put_c(p, idx, n, '^');
 	    c = CCHR(c);
 	}
-#ifdef KANJI
-#ifdef HANKANA
-	{
-	    static int c1 = 0;
-	    
-	    if (ISKANJI(c)) {
-		if (c1 == 0)
-		    c1 = 1;
-		else
-		    c1 = 0;
-	    }
-	    else
-		c1 = 0;
-	    if (ISHANKANA(c) && (c1 == 1))
-		idx--;
-	}
-#endif  /* HANKANA */
+#endif
 	p[idx++] = c;
-#else /* NOT KANJI */
-	p[idx++] = c;
-#endif /* KANJI */
     }
     return idx;
 }
 
 static VOID
-chsize(s, visu, mem)
+chsize(s, visu)
 register char *s;
-register int *visu, *mem;
+register int *visu;
 {
-    if (ISCTRL(*s)) {
-	*visu = 2;
-	*mem  = 1;
-#ifdef KANJI
-    }
-    else if (ISKANJI(*s)) {
-	*mem  = 2;
-#ifdef HOJO_KANJI
-	if (ISHOJO(*s)) {
-	    *mem = 3;
-	    *visu = 2;
-	}
-	else
-#endif /* HOJO_KANJI */
-#ifdef HANKANA
-	if (ISHANKANA(*s))
-	    *visu = 1;
-	else 
-#endif /* HANKANA */
-	    *visu = 2;
-#endif /* KANJI */
-    }
-    else {
-	*visu = 1;
-	*mem  = 1;
-    }
-}
-
-static VOID
-chsize2(s, visu, mem)
-register char *s;
-register int *visu, *mem;
-{
-    if (ISCTRL(*s)) {
-	*visu = 2;
-	*mem  = 1;
-#ifdef KANJI
-    }
-    else if (ISKANJI(*s)) {
-	*mem  = 2;
-#ifdef HOJO_KANJI
-	if (ISHOJO(*(s-2)) && ISKANJI(*(s-1))) {
-	    *mem = 3;
-	    *visu = 2;
-	} 
-	else
-#endif /* HOJO_KANJI */
-#ifdef HANKANA
-	if (ISHANKANA(*(s-1)))
-	    *visu = 1;
-	else 
-#endif  /* HANKANA */
-	    *visu = 2;
-#endif /* KANJI */
-    }
-    else {
-	*visu = 1;
-	*mem  = 1;
-    }
+    *visu = display_lang->lm_width(*s);
 }
 
 static VOID

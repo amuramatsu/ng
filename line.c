@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.21.2.3 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: line.c,v 1.21.2.4 2006/01/01 18:34:13 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -417,11 +417,6 @@ lnewline()
  * they were not (because dot ran into the end of
  * the buffer. The "kflag" indicates either no insertion,
  * or direction of insertion into the kill buffer.
-#ifdef	KANJI
- * (91.01.01  Add comment by S.Yoshida)
- * When after deleting "n" bytes, here is KANJI 2nd byte,
- * the KANJI 2nd byte is also deleted.
-#endif
  */
 int
 ldelete(n, kflag)
@@ -434,10 +429,6 @@ int kflag;
     register int doto;
     register RSIZE chunk;
     WINDOW *wp;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-    register int i;
-    register int kanji2nd;
-#endif	/* KANJI */
 #ifdef	UNDO
     UNDO_DATA* undo = NULL;
     int char_num = 0;
@@ -510,30 +501,7 @@ int kflag;
 	}
 	lchange(WFEDIT);
 	cp1 = &dotp->l_text[doto];	/* Scrunch text.	*/
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	cp2 = cp1;
-	kanji2nd = 0;
-	for (i = 0; i < chunk; i++, cp2++) {
-	    if (kanji2nd) {
-		kanji2nd--;
-#ifdef	HOJO_KANJI
-	    }
-	    else if (ISHOJO(*cp2)) {
-		kanji2nd = 2;
-#endif
-	    }
-	    else if (ISKANJI(*cp2)) {
-		kanji2nd = 1;
-	    }
-	}
-	if (kanji2nd) {
-	    cp2	+= kanji2nd;
-	    chunk	+= kanji2nd;
-	    n	+= kanji2nd;
-	}
-#else	/* NOT KANJI */
 	cp2 = cp1 + chunk;
-#endif	/* KANJI */
 #ifdef	UNDO
 	if (isundo()) {
 	    if (char_num == 1) {

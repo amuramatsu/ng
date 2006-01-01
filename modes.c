@@ -1,4 +1,4 @@
-/* $Id: modes.c,v 1.5.2.4 2005/12/30 17:37:29 amura Exp $ */
+/* $Id: modes.c,v 1.5.2.5 2006/01/01 18:34:13 amura Exp $ */
 /*
  * Commands to toggle modes. Without an argument, toggle mode.
  * Negitive or zero argument, mode off.	 Positive argument, mode on.
@@ -72,7 +72,7 @@ int
 fillmode(f, n)
 int f, n;
 {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
+    /* 90.01.29  by S.Yoshida */
     if (changemode(f, n, "fill") == FALSE)
 	return FALSE;
     if (f & FFARG) {
@@ -84,9 +84,6 @@ int f, n;
     else
 	curbp->b_flag ^= BFAUTOFILL;
     return TRUE;
-#else	/* NOT KANJI */
-    return changemode(f, n, "fill");
-#endif	/* KANJI */
 }
 
 /*
@@ -195,14 +192,13 @@ int f, n;
 	    defb_modes[i] = defb_modes[i+1];
 	defb_nmodes--;
     }
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
+    /* 90.01.29  by S.Yoshida */
     if (strcmp(mode, "fill")==0) {
     	if (n<=0)
 	    defb_flag &= ~BFAUTOFILL;
 	else
 	    defb_flag |= BFAUTOFILL;
     }
-#endif	/* KANJI */
     if (strcmp(mode, "overwrite") == 0) {
     	if (n<=0)
 	    defb_flag &= ~BFOVERWRITE;

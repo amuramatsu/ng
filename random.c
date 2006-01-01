@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.13.2.3 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: random.c,v 1.13.2.4 2006/01/01 18:34:13 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -754,19 +754,7 @@ int f, n;
     if (c == CCHR('G'))				/* you can't zap to ^G */
 	return FALSE;
     pat[0] = c;
-#ifndef	KANJI
     pat[1] = '\0';
-#else
-    if (!ISKANJI(c))
-	pat[1] = '\0';
-    else {
-	c = getkey(FALSE);
-	if (!ISKANJI(c))
-	    return FALSE;
-	pat[1] = c;
-	pat[2] = '\0';
-    }
-#endif	/* KANJI */
     
     if (n == 0)
 	n = 1;

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.4 2005/12/30 17:37:28 amura Exp $ */
+/* $Id: display.c,v 1.20.2.5 2006/01/01 18:34:13 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -26,6 +26,7 @@
 #include "kbd.h"
 #include "tty.h"
 #include "ttyio.h"
+#include "lang.h"
 
 /*
  * You can change these back to the types
@@ -107,8 +108,6 @@ static VIDEO **vscreen = NULL;		/* Edge vector, virtual.	*/
 static VIDEO **pscreen = NULL;		/* Edge vector, physical.	*/
 static VIDEO *video    = NULL;		/* Actual screen data.		*/
 static VIDEO *blanks   = NULL;		/* Blank line image.		*/
-
-static LANG_MODULE *display_lang;
 
 /*
  * Some predeclerations to make ANSI compilers happy

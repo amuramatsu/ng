@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.11.2.3 2005/12/30 17:37:28 amura Exp $ */
+/* $Id: main.c,v 1.11.2.4 2006/01/01 18:34:13 amura Exp $ */
 /*
  *		Mainline
  */
@@ -22,6 +22,7 @@
 #include "display.h"
 #include "tty.h"
 #include "ttyio.h"
+#include "lang.h"
 
 #include "basic.h" /* for gotoline() */
 
@@ -32,7 +33,7 @@ BUFFER *curbp;				/* Current buffer		*/
 WINDOW *curwp;				/* Current window		*/
 BUFFER *bheadp;				/* BUFFER listhead		*/
 WINDOW *wheadp = (WINDOW *)NULL;	/* WINDOW listhead		*/
-char pat[NPAT];				/* Pattern			*/
+NG_WCHAR_t pat[NPAT];			/* Pattern			*/
 #ifndef NO_DPROMPT
 extern char prompt[], *promptp;		/* delayed prompting		*/
 #endif
@@ -109,6 +110,7 @@ char **argv;
 #ifdef SYSINIT
     SYSINIT;				/* system dependent.	*/
 #endif
+    langinit();				/* Language modules.	*/
     vtinit();				/* Virtual terminal.	*/
 #ifndef NO_DIR
     dirinit();				/* Get current directory */

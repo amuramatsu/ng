@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.8.2.3 2005/12/30 17:37:29 amura Exp $ */
+/* $Id: search.c,v 1.8.2.4 2006/01/01 18:34:13 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -99,7 +99,7 @@ int f, n;
     if ((s=readpattern("Search")) != TRUE)
 	return s;
     if (forwsrch() == FALSE) {
-	ewprintf("Search failed: \"%s\"", pat);
+	ewprintf("Search failed: \"%ls\"", pat);
 	return FALSE;
     }
     srch_lastdir = SRCH_FORW;
@@ -123,7 +123,7 @@ int f, n;
     if ((s=readpattern("Search backward")) != TRUE)
 	return (s);
     if (backsrch() == FALSE) {
-	ewprintf("Search failed: \"%s\"", pat);
+	ewprintf("Search failed: \"%ls\"", pat);
 	return FALSE;
     }
     srch_lastdir = SRCH_BACK;
@@ -143,14 +143,14 @@ int f, n;
 {
     if (srch_lastdir == SRCH_FORW) {
 	if (forwsrch() == FALSE) {
-	    ewprintf("Search failed: \"%s\"", pat);
+	    ewprintf("Search failed: \"%ls\"", pat);
 	    return FALSE;
 	}
 	return TRUE;
     }
     if (srch_lastdir == SRCH_BACK) {
 	if (backsrch() == FALSE) {
-	    ewprintf("Search failed: \"%s\"", pat);
+	    ewprintf("Search failed: \"%ls\"", pat);
 	    return FALSE;
 	}
 	return TRUE;
@@ -551,7 +551,7 @@ int flag;
     if (flag != FALSE)
 	ewprintf("%s: ", prompt);
     else
-	ewprintf("%s: %s", prompt, pat);
+	ewprintf("%s: %ls", prompt, pat);
 }
 
 #ifdef IS_ENHANCE
@@ -658,11 +658,11 @@ int f, n;
 #endif
     if ((s=readpattern("Query replace")) != TRUE)
 	return (s);
-    if ((s=ereply("Query replace %s with: ", news, NPAT, pat)) == ABORT)
+    if ((s=ereply("Query replace %ls with: ", news, NPAT, pat)) == ABORT)
 	return (s);
     if (s == FALSE)
 	news[0] = '\0';
-    ewprintf("Query replacing %s with %s:", pat, news);
+    ewprintf("Query replacing %ls with %ls:", pat, news);
     plen = wstrlen(pat);
     
     /*
@@ -885,9 +885,9 @@ const char *prompt;
     NG_WCHAR_t tpat[NPAT];
     
     if (pat[0] == '\0')
-	s = ereply("%s: ", tpat, NG_WCHARLEN(tpat), prompt);
+	s = ereply("%ls: ", tpat, NG_WCHARLEN(tpat), prompt);
     else
-	s = ereply("%s: (default %s) ", tpat, NG_WCHARLEN(tpat), prompt, pat);
+	s = ereply("%ls: (default %ls) ", tpat, NG_WCHARLEN(tpat), prompt, pat);
     
     if (s == TRUE)				/* Specified		*/
 	(VOID) wstrcpy(pat, tpat);

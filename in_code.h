@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.7 2005/09/17 05:17:18 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.8 2006/01/01 18:34:13 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -27,10 +27,14 @@ typedef unsigned short NG_WCHAR_t;
 #define wstrcat(d,s)	((NG_WCHAR_t *)strcat((char *)(d), (const char *)(s)))
 #define wstrlcpy(d,s,n)	strlcpy((char *)(d), (const char *)(s), (n))
 #define wstrlcat(d,s,n)	strlcat((char *)(d), (const char *)(s), (n))
+#define wstrlcpya(d,s,n) strlcpy((char *)(d), (const char *)(s), (n))
+#define wstrlcata(d,s,n) strlcat((char *)(d), (const char *)(s), (n))
 #define strlcpyw(d, s, n) strlcpy((char *)(d), (const char *)(s), (n))
 #define strlcatw(d, s, n) strlcat((char *)(d), (const char *)(s), (n))
 #define watoi(s)	atoi(s)
 #define wsnprintf	snprintf
+
+#define _NG_WSTR(s)	(s)
 
 #else
 
@@ -52,6 +56,10 @@ size_t strlcpyw _PRO((char *, const NG_WCHAR_t *, size_t));
 size_t strlcatw _PRO((char *, const NG_WCHAR_t *, size_t));
 int watoi _PRO((const NG_WCHAR_t *));
 size_t wsnprintf _PRO((NG_WCHAR_t *, size_t, const char *, ...));
+
+NG_WCHAR_t *_ng_wstr _PRO((const char *));
+#define _NG_WSTR(s)	_ng_wstr(s)
+
 #endif
 
 /*
@@ -102,6 +110,8 @@ size_t wsnprintf _PRO((NG_WCHAR_t *, size_t, const char *, ...));
 /*
  * SPECIAL CHARACTORS TRAILING next code
  */
+#define NG_HAS_NEXTCODE(c)	(((c)&0xFF80) == 0xFF80)
+
 #define NG_WW_MOUSE_L		NG_WCODE(0xFF80)
 #define NG_WW_MOUSE_M		NG_WCODE(0xFF81)
 #define NG_WW_MOUSE_R		NG_WCODE(0xFF82)
