@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.3 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.4 2006/01/04 17:00:39 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -9,6 +9,9 @@
 #include "kbd.h"
 
 #include "i_window.h"
+#include "i_lang.h"
+#include "i_buffer.h"
+
 #include "autosave.h"
 #include "echo.h"
 #include "undo.h"
@@ -436,10 +439,8 @@ int f, n;
  * Insert a character.	While defining a macro, create a "LINE" containing
  * all inserted characters.
  */
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-int no_k2nd = 0;			/* We have no KANJI 2nd byte	*/
+/* 90.01.29  by S.Yoshida */
 int inkfill = FALSE;			/* Now we are in a fillword().	*/
-#endif /* KANJI */
 
 int
 selfinsert(f, n)
@@ -450,10 +451,7 @@ int f, n;
 #ifndef NO_MACRO
     LINE *lp;
 #endif
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    int	lkanji2nd;			/* For over write mode.	*/
-#endif
-
+    
     if (n < 0)
 	return FALSE;
     if (n == 0)
@@ -465,21 +463,21 @@ int f, n;
 	return TRUE;
     }
 #endif /* READONLY */
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+
+    /* 90.01.29  by S.Yoshida */
     /* In a autofill mode, normally fill trigger is only ' ' char. But	*/
     /* KANJI version require any KANJI char is also fill trigger.	*/
     /* This must be done at keymap.c to add KANJI fill trigger list in	*/
     /* a fillmap. But there are too many KANJI chars, so we use this	*/
     /* easy way.							*/
-    if (curbp->b_flag & BFAUTOFILL && 		/* Autofill mode and	*/
-	!inkfill && no_k2nd!=0) {		/* KANJI 2nd byte.	*/
+    if (curbp->b_flag & BFAUTOFILL && !inkfill) { /* Autofill mode and	*/
 	int s;
 #ifdef UNDO
 	if (isundo()) {
 	    if (lastflag & CFINS2) {
 		if (undostart == undoptr) {
 		    curbp->b_utop--;
-		    if (curbp->b_utop < 0)
+		    if (curbp->b_utop > UNDOSIZE)
 			curbp->b_utop = UNDOSIZE;
 		    undostart = &curbp->b_ustack[curbp->b_utop];
 		}
@@ -489,27 +487,13 @@ int f, n;
 	    }
 	}
 #endif
+#if 0 /*XXX*/
 	inkfill = TRUE;
 	s = fillword(f, n);		/* fill word with KANJI char.	*/
 	inkfill = FALSE;
+#endif
 	return (s);
     }					/* End of autofill mode add routine. */
-    if (no_k2nd != 0) {			/* If there is only KANJI 1st byte, */
-	no_k2nd--;			/* we believe 'c' is KANJI 2nd byte.*/
-    }
-    else if (ISKANJI(c)) {
-	if ((n % 2) == 0) {		/* This is easy bug fix. */
-	    n |= 0x01;
-	}
-#ifdef	HOJO_KANJI
-	if (ISHOJO(c))
-	    no_k2nd = 2;
-	else
-#endif	    
-	no_k2nd = 1;			/* When there is no KANJI 2nd	*/
-					/* byte, we don't do update().	*/
-    }
-#endif	/* KANJI */
 #ifndef NO_MACRO
     if (macrodef && macrocount < MAXMACRO) {
 	if (f & FFARG)
@@ -561,11 +545,7 @@ int f, n;
 	if (curbp->b_flag & BFOVERWRITE) {	/* Overwrite mode	*/
 	    UNDO_DATA *undo;
 	    if (lastflag & CFINS2) {
-#ifdef	KANJI
 		if (!inkfill && undostart==undoptr) {
-#else
-		if (undostart==undoptr) {
-#endif
 		    if (curbp->b_utop > 0)
 			curbp->b_utop--;
 		    else
@@ -585,48 +565,23 @@ int f, n;
 		undo->u_doto = curwp->w_doto;
 		undo->u_type = UDOVER;
 		undo->u_used = 0;
-		undo->u_code[0] = '\0';
+		undo->u_code = NG_EOS;
 	    }
 	    if (!undo_bgrow(undo, n))
 		goto noundo;
 
 	    lchange(WFEDIT);
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    if (undo->u_code[0]) {
-		lputc(curwp->w_dotp, curwp->w_doto, undo->u_code[0]);
-		lkanji2nd = 1;
+	    if (undo->u_code != NG_EOS) {
+		lputc(curwp->w_dotp, curwp->w_doto, undo->u_code);
 	    }
-	    else
-		lkanji2nd = 0;
-#endif /* KANJI */
 	    count = undo->u_used;
 	    while (curwp->w_doto < llength(curwp->w_dotp) && n--) {
 		undo->u_buffer[count] =
 		    lgetc(curwp->w_dotp, curwp->w_doto);
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-		if (lkanji2nd != 0) {
-		    lkanji2nd--;
-		}
-		else if (ISKANJI(undo->u_buffer[count])){
-#ifdef HOJO_KANJI
-		    if (ISHOJO(undo->u_buffer[count]))
-			lkanji2nd = 2;
-		    else
-#endif
-		    lkanji2nd = 1;
-		}
-#endif /* KANJI */
 		lputc(curwp->w_dotp, curwp->w_doto++, c);
 		count++;
 	    }
 	    undo->u_used = count;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    if (lkanji2nd!=0 && curwp->w_doto < llength(curwp->w_dotp)) {
-		undo->u_code[0] = lgetc(curwp->w_dotp, curwp->w_doto);
-		lputc(curwp->w_dotp, curwp->w_doto, ' ');
-	    } else
-		undo->u_code[0] = '\0';
-#endif /* KANJI */
 	    undo_finish(&(undo->u_next));
 
 	    if (!(lastflag & CFINS2)) {
@@ -636,11 +591,7 @@ int f, n;
 	    if (n<=0) return TRUE;
 	}
 	else if (lastflag & CFINS2) {	/* not Overwrite mode */
-#ifdef KANJI
 	    if (!inkfill && undostart==undoptr) {
-#else
-	    if (undostart==undoptr) {
-#endif
 		if (curbp->b_utop > 0)
 		    curbp->b_utop--;
 		else
@@ -659,30 +610,13 @@ int f, n;
 #endif	/* UNDO */
     if (curbp->b_flag & BFOVERWRITE) {		/* Overwrite mode	*/
 	lchange(WFEDIT);
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	lkanji2nd = 0;
-#endif	/* KANJI */
 	while (curwp->w_doto < llength(curwp->w_dotp) && n--) {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	    if (lkanji2nd != 0) {
-		lkanji2nd--;
-	    }
-	    else if (ISKANJI(lgetc(curwp->w_dotp, curwp->w_doto))) {
-#ifdef	HOJO_KANJI
-		if (ISHOJO(lgetc(curwp->w_dotp, curwp->w_doto)))
-		    lkanji2nd = 2;
-		else
-#endif
-		lkanji2nd = 1;
-	    }
-#endif	/* KANJI */
 	    lputc(curwp->w_dotp, curwp->w_doto++, c);
 	}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	if (lkanji2nd!=0 && curwp->w_doto < llength(curwp->w_dotp)) {
+	if (curwp->w_doto + curbp->b_lang->lm_width(c)
+	      < llength(curwp->w_dotp)) {
 	    lputc(curwp->w_dotp, curwp->w_doto, ' ');
 	}
-#endif	/* KANJI */
 	if (n <= 0)
 	    return TRUE;
     }

@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.20.2.7 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: buffer.c,v 1.20.2.8 2006/01/04 17:00:39 amura Exp $ */
 /*
  *		Buffer handling.
  */
@@ -28,7 +28,6 @@ LINE_OFF_t cmode_tab = 0;
 
 static BUFFER *makelist _PRO((void));
 static long buffersize _PRO((BUFFER*));
-static BUFFER *bfindw _PRO((const NG_WCHAR_t *, int, const LANG_MODULE *));
 
 #ifdef MOVE_BUFFER		/* 95.08.29 by M.Suzuki	*/
 /* Move to the next buffer	*/
@@ -105,21 +104,30 @@ int f, n;
 {
     register BUFFER *bp;
     register int s;
-    NG_WCHAR_t bufn[NBUFN];
+    NG_WCHAR_t wbufn[NBUFN];
+    char *bufn;
 
     /* Get buffer to use from user */
     if ((curbp->b_altb == NULL)
 	&& ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
-	s = eread("Switch to buffer: ", bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF);
-    else
-	s = eread("Switch to buffer: (default %s) ", bufn, NG_WCHARLEN(bufn),
-		  EFNEW|EFBUF, curbp->b_altb->b_bname);
-
+	s = eread("Switch to buffer: ", wbufn, NG_WCHARLEN(wbufn), EFNEW|EFBUF);
+    else {
+	NG_WCHAR_t *tmp;
+	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
+			   curbp->b_altb->b_bname, tmp);
+	if (tmp == NULL) return FALSE;
+	s = eread("Switch to buffer: (default %ls) ", wbufn, NG_WCHARLEN(wbufn),
+		  EFNEW|EFBUF, tmp);
+    }
+    
     if (s == ABORT)
 	return s;
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wbufn, bufn);
+    if (bufn == NULL)
+	return FALSE;
     if (s == FALSE && curbp->b_altb != NULL)
 	bp = curbp->b_altb;
-    else if ((bp=bfindw(bufn, TRUE, curbp->b_lang)) == NULL)
+    else if ((bp=bfind(bufn, TRUE)) == NULL)
 	return FALSE;
 
     /* and put it in current window */
@@ -138,21 +146,30 @@ int f, n;
     register BUFFER *bp;
     register WINDOW *wp;
     register int s;
-    NG_WCHAR_t bufn[NBUFN];
+    NG_WCHAR_t wbufn[NBUFN];
+    char *bufn;
     
     /* Get buffer to use from user */
     if ((curbp->b_altb == NULL)
 	&& ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
 	s = eread("Switch to buffer in other window: ",
-		  bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF);
-    else
-	s = eread("Switch to buffer in other window: (default %s) ",
-		  bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF, curbp->b_altb->b_bname);
+		  wbufn, NG_WCHARLEN(wbufn), EFNEW|EFBUF);
+    else {
+	NG_WCHAR_t *tmp;
+	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
+			   curbp->b_altb->b_bname, tmp);
+	if (tmp == NULL) return FALSE;
+	s = eread("Switch to buffer in other window: (default %ls) ",
+		  wbufn, NG_WCHARLEN(wbufn), EFNEW|EFBUF, tmp);
+    }
     if (s == ABORT)
 	return s;
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wbufn, bufn);
+    if (bufn == NULL)
+	return FALSE;
     if (s == FALSE && curbp->b_altb != NULL)
 	bp = curbp->b_altb;
-    else if ((bp=bfindw(bufn, TRUE, curbp->b_lang)) == NULL)
+    else if ((bp=bfind(bufn, TRUE)) == NULL)
 	return FALSE;
 
     /* and put it in a new window */
@@ -180,15 +197,25 @@ int f, n;
     register BUFFER *bp2;
     WINDOW *wp;
     register int s;
-    NG_WCHAR_t bufn[NBUFN];
+    NG_WCHAR_t wbufn[NBUFN];
+    NG_WCHAR_t *tmp;
+    char *bufn;
     
-    if ((s=eread("Kill buffer: (default %s) ", bufn, NG_WCHARLEN(bufn),
-		 EFNEW|EFBUF, curbp->b_bname)) == ABORT)
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
+		       curbp->b_bname, tmp);
+    if (tmp == NULL) return FALSE;
+    if ((s=eread("Kill buffer: (default %s) ", wbufn, NG_WCHARLEN(wbufn),
+		 EFNEW|EFBUF, tmp)) == ABORT)
 	return (s);
     else if (s == FALSE)
 	bp = curbp;
-    else if ((bp=bfindw(bufn, FALSE, curbp->b_lang)) == NULL)
-	return FALSE;
+    else {
+	LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wbufn, bufn);
+	if (bufn == NULL)
+	    return FALSE;
+	if ((bp=bfind(bufn, FALSE)) == NULL)
+	    return FALSE;
+    }
     
     /* find some other buffer to display. try the alternate buffer,
      * then the first different buffer in the buffer list.	if
@@ -463,18 +490,6 @@ int f;
     return s;
 }
 
-/* Search for a buffer, by name. with wide char */
-static BUFFER *
-bfindw(bwname, cflag, lm)
-register const NG_WCHAR_t *bwname;
-int cflag;
-const LANG_MODULE *lm;
-{
-    char *bname;
-    LM_OUT_CONVERT_TMP2(lm, lm_buffer_name_code, bwname, bname);
-    return bfind(bname, cflag);
-}
-
 /*
  * Search for a buffer, by name.
  * If not found, and the "cflag" is TRUE,
@@ -491,6 +506,7 @@ int cflag;
     register LINE *lp;
     int i;
     
+    assert(bname != NULL);
     bp = bheadp;
     while (bp != NULL) {
 	if (fncmp(bname, bp->b_bname) == 0)
@@ -524,9 +540,7 @@ int cflag;
     bp->b_nwnd  = 0;
     bp->b_linep = lp;
     bp->b_nmodes = defb_nmodes;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    bp->b_kfio = NIL;	/* changed by amura (set in fileio.c) */
-#endif /* KANJI */
+    bp->b_fio	= NG_CODE_NONE;
 #ifdef VARIABLE_TAB
     bp->b_tabwidth = defb_tab;
 #endif /* VARIABLE_TAB */
@@ -679,7 +693,8 @@ int f, n;
     register int clo;
     register int nline;
     int s;
-    NG_WCHAR_t bufn[NBUFN];
+    NG_WCHAR_t wbufn[NBUFN];
+    char *bufn;
 
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
@@ -689,17 +704,27 @@ int f, n;
 #endif /* READONLY */
 
     /* Get buffer to use from user */
-    if (curbp->b_altb != NULL)
-	s = eread("Insert buffer: (default %s) ", bufn, NG_WCHARLEN(bufn),
-		  EFNEW|EFBUF, curbp->b_altb->b_bname);
+    if (curbp->b_altb != NULL) {
+	NG_WCHAR_t *tmp;
+	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
+			   curbp->b_altb->b_bname, tmp);
+	if (tmp == NULL) return FALSE;
+	s = eread("Insert buffer: (default %s) ", wbufn, NG_WCHARLEN(wbufn),
+		  EFNEW|EFBUF, tmp);
+    }
     else
-	s = eread("Insert buffer: ", bufn, sizeof(bufn), EFNEW|EFBUF);
+	s = eread("Insert buffer: ", wbufn, sizeof(wbufn), EFNEW|EFBUF);
     if (s == ABORT)
 	return (s);
     if (s == FALSE && curbp->b_altb != NULL)
 	bp = curbp->b_altb;
-    else if ((bp=bfindw(bufn, FALSE, curbp->b_lang)) == NULL)
-	return FALSE;
+    else {
+	LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wbufn, bufn);
+	if (bufn == NULL)
+	    return FALSE;
+	if ((bp=bfind(bufn, FALSE)) == NULL)
+	    return FALSE;
+    }
 
     if (bp == curbp) {
 	ewprintf("Cannot insert buffer into self");

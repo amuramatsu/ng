@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.15.2.3 2005/09/17 05:17:18 amura Exp $ */
+/* $Id: version.c,v 1.15.2.4 2006/01/04 17:00:40 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -15,15 +15,10 @@
 #include "buffer.h"
 #include "window.h"
 
-#define	VERSION		"1.9"
+#define	VERSION		"1.99.-1"
 
-#ifdef KANJI
 # define PROGNAME	"Ng"
-# define FORMERLY	"[Nihongo Mg]"
-#else
-# define PROGNAME	"Mg++"
-# define FORMERLY	"(formerly MicroGnuEmacs Adv.)"
-#endif
+# define FORMERLY	"[Mg++ Next Generation]"
 
 #if defined(MSDOS)
 # if defined(IBMPC)
@@ -118,9 +113,6 @@ static char *compile_opts[] = {
 #ifndef	NO_HELP
     "HELP\t\t(Enable help)",
 #endif
-#ifdef KANJI
-    "KANJI\t\t(Enable KANJI handling)",
-#endif
 #ifdef KINSOKU
     "KINSOKU\t\t(Enable KINSOKU handling)",
 #endif
@@ -172,9 +164,6 @@ static char *compile_opts[] = {
 #endif
 #ifdef DROPFILES
     "DROPFILES\t(Enable Drag&Drop)",
-#endif
-#ifdef HOJO_KANJI
-    "HOJO_KANJI\t(Enable Hojo KANJI handling)",
 #endif
 #ifdef DO_MENU
     "DO_MENU\t\t(Enable menu selection)",

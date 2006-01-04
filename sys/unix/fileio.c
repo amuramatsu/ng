@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20.2.2 2005/12/30 17:37:29 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.3 2006/01/04 17:00:40 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -7,8 +7,9 @@
 
 #include "config.h"
 #include "def.h"
-#include "fileio.h"
 
+#include "i_lang.h"
+#include "fileio.h"
 #include "file.h"
 #include "echo.h"
 
@@ -56,6 +57,7 @@ ffclose()
     return (FIOSUC);
 }
 
+#define putlf(ffp, fio)		putc('\n', ffp)
 /*
  * Write a buffer to the already
  * opened file. bp points to the
@@ -71,48 +73,50 @@ BUFFER *bp;
     register NG_WCHAR_t *cpend;
     register LINE *lp;
     register LINE *lpend;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-    register int  kfio;
-#endif	/* KANJI */
-
+    register int  fio;
+    char *buffer = NULL;
+    int buflen = -1;
+    
     lpend = bp->b_linep;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-    if (bp->b_kfio == NIL)
-	ksetbufcode(bp);		/* Set buffer local KANJI code.	*/
-    kfio  = bp->b_kfio;
-#endif	/* KANJI */
+    if (bp->b_fio == NG_CODE_NONE)
+	bp->b_fio = bp->b_lang->lm_get_code(NG_CODE_FOR_FILE);
+    fio  = bp->b_fio;
     lp = lforw(lpend);
     do {
+	char *p;
+	int i;
 	cp = &ltext(lp)[0];		/* begining of line	*/
 	cpend = &cp[llength(lp)];	/* end of line		*/
-	while (cp != cpend) {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	    kputc(*cp, ffp, kfio);
-#else	/* NOT KANJI */
-	    putc(*cp, ffp);
-#endif	/* KANJI */
-	    cp++;	/* putc may evalualte arguments more than once */
+	i = bp->b_lang->lm_out_convert_len(fio, cp, cpend-cp);
+	if (i > buflen) {
+	    i = buflen;
+	    MALLOCROUND(buflen);
+	    buffer = realloc(NULL, buflen);
+	    if (buffer == NULL) {
+		ewprintf("Memory allocate error");
+		return FIOERR;
+	    }
 	}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	if (kfio == JIS) {
-		kfselectcode(ffp, FALSE);
+	i = bp->b_lang->lm_out_convert(fio, cp, cpend-cp, buffer);
+	p = buffer;
+	while (i--) {
+	    putc(*p, ffp);
+	    p++;	/* putc may evalualte arguments more than once */
 	}
-#endif	/* KANJI */
 	lp = lforw(lp);
 	if (lp == lpend)	/* no implied newline on last line */
 	    break;
-#ifdef	USE_UNICODE
-	if (kfio == UCS2) {
-	    putc(0, ffp);
-	}
-#endif	/* USE_UNICODE */
-	putc('\n', ffp);
+	putlf(ffp, fio);
     } while (!ferror(ffp));
     
     if (ferror(ffp)) {
 	ewprintf("Write I/O error");
+	if (buffer)
+	    free(buffer);
 	return FIOERR;
     }
+    if (buffer)
+	free(buffer);
     return FIOSUC;
 }
 
@@ -533,15 +537,12 @@ char *suffix;
 	goto notfound;
     if (strlen(file)+7 >= NFILEN - 1)
 	goto notfound;
-    strcpy(home, file);
-#ifdef	KANJI	/* 90.02.10  by S.Yoshida */
-    strcat(home, "/.ng");
-#else	/* NOT KANJI */
-    strcat(home, "/.mg");
-#endif	/* KANJI */
+    strlcpy(home, file, sizeof(home));
+    /* 90.02.10  by S.Yoshida */
+    strlcat(home, "/.ng", sizeof(home));
     if (suffix != NULL) {
-	(VOID) strcat(home, "-");
-	(VOID) strcat(home, suffix);
+	(VOID) strlcat(home, "-", sizeof(home));
+	(VOID) strlcat(home, suffix, sizeof(home));
     }
     if (access(home, F_OK ) == 0)
 	return home;
@@ -550,9 +551,9 @@ notfound:
 #ifdef	STARTUPFILE
     file = STARTUPFILE;
     if (suffix != NULL) {
-	(VOID) strcpy(home, file);
-	(VOID) strcat(home, "-");
-	(VOID) strcat(home, suffix);
+	(VOID) strlcpy(home, file, sizeof(home));
+	(VOID) strlcat(home, "-", sizeof(home));
+	(VOID) strlcat(home, suffix, sizeof(home));
 	file = home;
     }
     if (access(file, F_OK ) == 0)
@@ -645,7 +646,7 @@ char *dirname;
 	NG_WCHAR_t *tmp;
 	line[strlen(line) - 1] = '\0';		/* remove ^J	*/
 	tmp = (NG_WCHAR_t *)alloca(strlen(line) + 1);
-	LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, line, tmp);
+	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, line, tmp);
 	addline(bp, tmp);
     }
     if (pclose(dirpipe) == -1) {
@@ -715,8 +716,9 @@ int buflen;
     if (buflen <= len+strlen(curbp->b_fname))
 	return ABORT;
     cp = fn;
-    curbp->b_lang->lm_out_convert(curbp->b_lang->lm_buffer_name_code(),
-				  cp, curbp->b_fname);
+    curbp->b_lang->lm_out_convert(
+	curbp->b_lang->lm_get_code(NG_CODE_FOR_FILENAME),
+	cp, NG_CODE_CHKLEN, curbp->b_fname);
     cp += wstrlen(cp);
     bcopy(lp->l_text + l, cp, len);
     cp[len-1] = '\0';

@@ -1,4 +1,4 @@
-/* $Id: dired.c,v 1.10.2.5 2005/09/17 05:17:18 amura Exp $ */
+/* $Id: dired.c,v 1.10.2.6 2006/01/04 17:00:39 amura Exp $ */
 /* dired module for mg 2a	*/
 /* by Robert A. Larson		*/
 
@@ -57,8 +57,7 @@ int f,n;
     NG_WCHAR_t *tmp;
 
     ensurecwd();
-    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-		       curbp->b_cwd, tmp);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, tmp);
     if (tmp == NULL)
 	return FALSE;
     edefset(tmp);
@@ -67,8 +66,7 @@ int f,n;
     dirname[0] = NG_EOS;
     if (eread("Dired: ", dirname, NFILEN, EFNEW | EFCR | EFFILE) == ABORT)
 	return ABORT;
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-			dirname, fname);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, dirname, fname);
     if (fname == NULL)
 	return FALSE;
     if ((fname = adjustname(fname)) == NULL) {
@@ -133,8 +131,7 @@ int f,n;
     NG_WCHAR_t *tmp;
 
     ensurecwd();
-    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-		       curbp->b_cwd, tmp);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, tmp);
     if (tmp == NULL)
 	return FALSE;
     edefset(tmp);
@@ -144,7 +141,7 @@ int f,n;
     if (eread("Dired other window: ", tmp2,
 	      NFILEN, EFNEW | EFCR | EFFILE) == ABORT)
 	return ABORT;
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, tmp2, dirname);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, tmp2, dirname);
     if (dirname == NULL)
 	return FALSE;
     if ((bp = dired_(dirname)) == NULL)
@@ -259,7 +256,7 @@ int f,n,popup;
 
     if ((s = d_makename(curwp->w_dotp, tmp, NG_WCHARLEN(tmp))) == ABORT)
 	return FALSE;
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, tmp, fname);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, tmp, fname);
     if (tmp == NULL)
 	return FALSE;
     if ((bp = (s ? dired_(fname) : findbuffer(fname))) == NULL)
@@ -347,7 +344,7 @@ int f, n;
 		return FALSE;
 	    case TRUE:
 	    case FALSE:
-		LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+		LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
 				    wfname, fname);
 		if (fname == NULL)
 		    return FALSE;
@@ -418,14 +415,15 @@ int copymode;
 	break;
     }
   
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, frname_tmp, frname);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
+			frname_tmp, frname);
     if (frname == NULL)
 	return FALSE;
     fr = filename(frname);
 #ifdef	EXTD_DIR
     {
 	NG_WCHAR_t *tmp;
-	LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
 			   curbp->b_cwd, tmp);
 	if (tmp == NULL)
 	    return FALSE;
@@ -437,7 +435,8 @@ int copymode;
 		      EFNEW | EFCR | EFFILE,
 		      copymode ? "Copy" : "Rename", fr)) != TRUE)
 	return stat;
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, toname_tmp, toname);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
+			toname_tmp, toname);
     if (toname == NULL)
 	return FALSE;
     if (copymode)

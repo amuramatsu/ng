@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.8 2003/02/23 13:37:43 amura Exp $ */
+/* $Id: sysdef.h,v 1.8.2.1 2006/01/04 17:00:40 amura Exp $ */
 /*
  *	unix based systems (for configure)
  */
@@ -10,6 +10,9 @@
 #endif
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
+#endif
+#ifdef HAVE_ASSERT_H
+#include <assert.h>
 #endif
 
 /* for use alloca() */

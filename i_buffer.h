@@ -1,4 +1,4 @@
-/* $Id: i_buffer.h,v 1.1.2.3 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: i_buffer.h,v 1.1.2.4 2006/01/04 17:00:39 amura Exp $ */
 /*
  * This file is the internal buffer definition of the NG
  * display editor.
@@ -38,8 +38,9 @@ typedef struct BUFFER {
     char *b_cwd;			/* Current working directory for
 					   this buffer.  By Tillanosoft */
 #endif
-    struct LANG_MODULE *b_lang;
-    char b_fio;
+    struct LANG_MODULE *b_lang;		/* Language of buffer		*/
+    short b_fio;			/* buffer file coding		*/
+    char b_lfio;			/* Line delimiter		*/
 #ifdef  VARIABLE_TAB
     char b_tabwidth;			/* Local TAB width		*/
 #endif  /* VARIABLE_TAB */

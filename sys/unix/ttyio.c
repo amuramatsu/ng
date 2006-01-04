@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.16.2.1 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: ttyio.c,v 1.16.2.2 2006/01/04 17:00:40 amura Exp $ */
 /*
  *	Unix terminal I/O. (for configure)
  * The functions in this file
@@ -328,10 +328,9 @@ ttflush()
     }
 }
 
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
+/* 90.02.05  by S.Yoshida */
 static int nkey = 0;		/* The number of ungetc charactor. */
 static int keybuf[4];		/* Ungetc charactors.		*/
-#endif	/* KANJI */
 
 /*
  * Read character from terminal.
@@ -345,11 +344,9 @@ ttgetc()
     char buf[1];
 #endif
 
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
 	return (keybuf[--nkey]);
     }
-#endif	/* KANJI */
 
 #ifdef	HAVE_SELECT
     while (read(0, &buf[0], 1) != 1)
@@ -369,7 +366,7 @@ ttgetc()
 #endif	/* HAVE_SELECT */
 }
 
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
+/* 90.02.05  by S.Yoshida */
 /*
  * Save pre-readed char to read again.
  */
@@ -379,7 +376,6 @@ int c;
 {
     keybuf[nkey++] = c;
 }
-#endif	/* KANJI */
 
 /*
  * set the tty size. Functionized for 43BSD.
@@ -425,11 +421,10 @@ ttwinch()
 int
 typeahead()
 {
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
+    /* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
 	return (TRUE);
     }
-#endif	/* KANJI */
 #ifdef	HAVE_SELECT
 #ifdef	FIONREAD
     {
@@ -485,11 +480,10 @@ ttwait()
     fd_set readfd;
     struct timeval tmout;
 
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
+    /* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
 	return (FALSE);
     }
-#endif	/* KANJI */
     tmout.tv_sec = 1;
     tmout.tv_usec = 0;
 
@@ -521,11 +515,10 @@ ttwait()
     VOID (*old_alrm)();
     unsigned int old_time;
 
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
+    /* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
 	return (FALSE);
     }
-#endif	/* KANJI */
     if (kbdqp)
 	return FALSE;		/* already pending input	*/
     if (setjmp(tohere))

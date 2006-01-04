@@ -1,4 +1,4 @@
-/* $Id: i_line.h,v 1.1.2.3 2005/04/07 14:27:28 amura Exp $ */
+/* $Id: i_line.h,v 1.1.2.4 2006/01/04 17:00:39 amura Exp $ */
 /*
  * This file is the internal buffer definition of the NG
  * display editor.
@@ -31,7 +31,7 @@ typedef struct LINE {
 #ifndef ZEROARRAY
     NG_WCHAR_t l_text[1];		/* A bunch of characters.	*/
 #else
-    NG_WCHAR_t l_text[];		/* A bunch of characters.	*/
+    NG_WCHAR_t l_text[ZEROARRAY];	/* A bunch of characters.	*/
 #endif
 } LINE;
 

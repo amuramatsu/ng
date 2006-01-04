@@ -1,4 +1,4 @@
-/* $Id: chrdef.h,v 1.4.2.2 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: chrdef.h,v 1.4.2.3 2006/01/04 17:00:40 amura Exp $ */
 /*
  * sys/default/chardef.h: character set specific #defines for mg 2a
  * Warning: System specific ones exist
@@ -23,12 +23,14 @@
  * understand the DEC multinational set, and let me ask
  * a slightly different set of questions.
  */
-#define _NGC_W	0x01			/* Word.			*/
+#define	_NGC_WM	0x01			/* Word	 			*/
 #define _NGC_U	0x02			/* Upper case letter.		*/
 #define _NGC_L	0x04			/* Lower case letter.		*/
 #define _NGC_C	0x08			/* Control.			*/
 #define _NGC_P	0x10			/* end of sentence punctuation	*/
 #define	_NGC_D	0x20			/* is decimal digit		*/
+#define	_NGC_WS	0x40			/* Word secondary		*/
+#define _NGC_W	(_NGC_WM|_NGC_WS)	/* Word.			*/
 
 #define ISWORD(c)	((cinfo[CHARMASK(c)]&_NGC_W)!=0)
 #define ISCTRL(c)	((cinfo[CHARMASK(c)]&_NGC_C)!=0)

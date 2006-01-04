@@ -1,4 +1,4 @@
-# $Id: Ng.FAQ,v 1.4 2001/05/28 19:02:02 amura Exp $
+# $Id: Ng.FAQ,v 1.4.4.1 2006/01/04 17:00:40 amura Exp $
 
 Ng Frequently Asking Questions and answers
 
@@ -14,7 +14,7 @@ A : Ngの開発には、非常に多くの人が関わっています。
 
     * Dave ConroyがmicroEmacs v30を作りました。
 
-       Mg (formally MicroGnuEmacs)
+       Mg (formerly MicroGnuEmacs)
 
     * Dave BrowerがmicroEmacs v30を元にmg 1a/bを作りました。
     * Bob Larson、Mic Kaczmarczik、Mike Meyer、Sandra Loosemore、

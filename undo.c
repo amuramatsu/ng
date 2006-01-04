@@ -1,4 +1,4 @@
-/* $Id: undo.c,v 1.11.2.1 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: undo.c,v 1.11.2.2 2006/01/04 17:00:40 amura Exp $ */
 /*
  *		Undo support routine.
  * The functions in this file
@@ -175,7 +175,6 @@ RSIZE size;
 int
 do_undo(f, n)
 {
-    register NG_WCHAR_t *p;
     register int  i;
     register LINE* lp;
     UNDO_DATA *undo,*undoend;
@@ -235,23 +234,19 @@ do_undo(f, n)
 	    case UDDEL:
 	    case UDBS:
 		if (undo->u_size) {
-		    p = undo->u_buffer;
+		    register NG_WCHAR_t *p = undo->u_buffer;
 		    for (i=0; i<undo->u_used; i++,p++) {
 			if (*p == '\n')
 			    lnewline();
 			else
-			    linsert(1, *p);
+			    linsert(1, (int)*p);
 		    }
 		}
 		else {
-		    p = undo->u_code;
-		    if (*p == '\n')
+		    if (undo->u_code == NG_WCODE('\n'))
 			lnewline();
-		    else {
-			linsert(1, *p++);
-			if (*p)
-			    linsert(1, *p);
-		    }
+		    else
+			linsert(1, (int)undo->u_code);
 		}
 		if ((undo->u_type&UDMASK) == UDDEL) {
 		    lp = lforw(curbp->b_linep);
@@ -285,13 +280,13 @@ do_undo(f, n)
 		    ewprintf("do_undo: overwrite data error");
 		    return FALSE;
 		}
-		if (undo->u_code[0]) {
+		if (undo->u_code != NG_EOS) {
 		    if (curwp->w_doto >= llength(lp)) {
 			ewprintf("do_undo: overwrite data error");
 			undo_reset(curbp);
 			return FALSE;
 		    }
-		    lputc(lp, curwp->w_doto, undo->u_code[0]);
+		    lputc(lp, curwp->w_doto, undo->u_code);
 		}
 		curwp->w_doto = undo->u_doto;
 		lchange(WFEDIT);

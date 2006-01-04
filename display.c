@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.5 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: display.c,v 1.20.2.6 2006/01/04 17:00:39 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -72,7 +72,7 @@ typedef struct {
 } VIDEO;
 
 #define	MEM_ROUND(n)	(((n)+7)&~7)	/* Memory round bound for 8 bytes*/
-#define SIZEOF_VIDEO	MEM_ROUND(sizeof(VIDEO) + vncol)
+#define SIZEOF_VIDEO	MEM_ROUND(sizeof(VIDEO) + vncol*sizeof(NG_WCHAR_t))
 
 #define VFCHG	0x0001			/* Changed.			*/
 #define VFHBAD	0x0002			/* Hash and cost are bad.	*/
@@ -119,7 +119,6 @@ static VOID ucopy _PRO((VIDEO *, VIDEO *));
 static VOID uline _PRO((int, VIDEO *, VIDEO *));
 static VOID modeline _PRO((WINDOW *));
 static int vtputs _PRO((const NG_WCHAR_t *));
-static int vtputsA _PRO((const char *));
 #ifdef ADDFUNC
 static int windowpos _PRO((WINDOW *));
 static VOID moderatio _PRO((WINDOW *));
@@ -139,6 +138,23 @@ static VOID traceback _PRO((void));
 
 static SCORE *score = NULL;
 #endif
+
+#define TTPUTC(code, c) do {					\
+    char buf[8];						\
+    int len, s, i;						\
+    s = display_lang->lm_get_display_code((code), (c),		\
+					  buf, sizeof(buf));	\
+    len = s < 0 ? sizeof buf : s;				\
+    for (i = 0; i < len; i++)					\
+	ttputc(buf[i]);						\
+    while (s <  0) {						\
+	s = display_lang->lm_get_display_code((code), NG_EOS,	\
+					      buf, sizeof(buf));\
+	len = s < 0 ? sizeof buf : s;				\
+	for (i = 0; i < len; i++)				\
+	    ttputc(buf[i]);					\
+    }								\
+} while (/*CONSTCOND*/0)
 
 VOID
 vtsetsize(col, row)
@@ -187,6 +203,7 @@ int col, row;
     blanks->v_color = CTEXT;
     for (i=0; i<vncol; ++i)
 	blanks->v_text[i] = NG_WSPACE;
+    sgarbf = TRUE;
 }
 
 /*
@@ -240,7 +257,6 @@ vttidy()
  * store the column as a character pointer to the spot
  * on the line, which would make "vtputc" a little bit
  * more efficient. No checking for errors.
-
  */
 static VOID
 vtmove(row, col)
@@ -248,7 +264,6 @@ int row, col;
 {
     vtrow = row;
     vtcol = col;
-    //vtkmode = display_lang.lm_display_start_code();
 }
 
 /*
@@ -302,6 +317,7 @@ register NG_WCHAR_t c;
 	    vtcol = 0;
 	    vtrow++;
 	}
+	return;
     }
     display_lang->lm_displaychar(vp->v_text, &vtcol, &vtrow, ncol, nrow, c);
 }
@@ -317,12 +333,13 @@ short color;	/* this is dummy */
     unsigned char c;
     int oldrow = vtrow;
     int oldcol = vtcol;
+    int dcode = display_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
 
     vtrow = row;
     vtcol = col;
 
-    for (i=row; i<=MAXROW; i++)
-	vtputc(*s++);
+    for (i=row; i<=MAXROW; i++, s++)
+	TTPUTC(dcode, *s);
 
     vtrow = oldrow;
     vtcol = oldcol;
@@ -402,9 +419,8 @@ int *lines;
 	    *curcol = -1;
 	    (*lines)++;
 	}
-	++(*lines);
     }
-    return (short)*lines;
+    return *lines;
 }
 
 /*
@@ -517,6 +533,7 @@ int lines;
     ewprintf("Bug: skipline %d lines left",lines);
     return FALSE;
 }
+
 /* Count number of displayed lines on tty.
  * the line which is longer than ncol
  * returns value more than 2 lines
@@ -540,7 +557,7 @@ const LINE *lp;
     lines = 0;
     for (i=0; i<llength(lp); ++i) {
 	c = lgetc(lp, i);
-	if (c == '\t' && !(curbp->b_flag & BFNOTAB)) { 
+	if (c == NG_WTAB && !(curbp->b_flag & BFNOTAB)) { 
 #ifdef VARIABLE_TAB
 	    curcol = (curcol/tab + 1)*tab - 1;
 #else
@@ -601,10 +618,12 @@ update()
 	    wp = wp->w_wndp;
 	}
 	/* 90.01.29  by S.Yoshida */
-	/* input_continued = FALSE; */	/* Reset KANJI input condition. */
+#if 0
+	input_continued = FALSE;	/* Reset multibyte input condition. */
+#endif
     } 
 #if 0    
-    else if (input_continued) {		/* We don't have KANJI 2nd byte. */
+    else if (input_continued) {		/* We don't have trailing byte. */
 	return;
     }
 #endif
@@ -872,7 +891,7 @@ register VIDEO *pvp;
     pvp->v_hash  = vvp->v_hash;
     pvp->v_cost  = vvp->v_cost;
     pvp->v_color = vvp->v_color;
-    bcopy(vvp->v_text, pvp->v_text, ncol);
+    bcopy(vvp->v_text, pvp->v_text, vncol*sizeof(NG_WCHAR_t));
 }
 
 #if 0
@@ -898,7 +917,7 @@ int currow, curcol;
     for (j=0; j<llength(lp); ++j)		/* until the end-of-line */
 	vtpute(lgetc(lp, j));
     vteeol();					/* truncate the virtual line */
-    vscreen[currow]->v_text[0] = '$';		/* and put a '$' in column 1 */
+    vscreen[currow]->v_text[0] = NG_WCODE('$');	/* and put a '$' in column 1 */
 }
 #endif
 
@@ -926,6 +945,7 @@ VIDEO *vvp, *pvp;
     NG_WCHAR_t *cp4;
     NG_WCHAR_t *cp5;
     register int nbflag;
+    int dcode = display_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
     
     if (vvp->v_color != pvp->v_color) {	/* Wrong color, do a	*/
 	ttmove(row, 0);			/* full redraw.		*/
@@ -934,6 +954,8 @@ VIDEO *vvp, *pvp;
 	    tteeol();
 #endif
 	ttcolor(vvp->v_color);
+	if (display_lang->lm_display_start_code != NULL)
+	    display_lang->lm_display_start_code();
 #ifdef	STANDOUT_GLITCH
 	cp1 = &vvp->v_text[SG > 0 ? SG : 0];
 	/* the odd code for SG==0 is to avoid putting the invisable
@@ -946,10 +968,11 @@ VIDEO *vvp, *pvp;
 	cp2 = &vvp->v_text[ncol];
 #endif	/* STANDOUT_GLITCH */
 	while (cp1 != cp2) {
-	    ttputc(*cp1);
+	    TTPUTC(dcode, *cp1);
 	    ttcol += display_lang->lm_width(*cp1++);
 	}
-	display_lang->lm_display_start_code();
+	if (display_lang->lm_display_end_code != NULL)
+	    display_lang->lm_display_start_code();
 #ifndef MOVE_STANDOUT
 	ttcolor(CTEXT);
 #endif
@@ -958,7 +981,7 @@ VIDEO *vvp, *pvp;
     }
     cp1 = &vvp->v_text[0];			/* Compute left match.	*/
     cp2 = &pvp->v_text[0];
-    while (cp1!=&vvp->v_text[ncol] && cp1[0]==cp2[0]) {
+    while (cp1 != &vvp->v_text[ncol] && *cp1 == *cp2) {
 	++cp1;
 	++cp2;
     }
@@ -977,7 +1000,7 @@ VIDEO *vvp, *pvp;
 	    nbflag = TRUE;		/* the right match.	*/
     }
     cp5 = cp3;				/* Is erase good?	*/
-    if (nbflag==FALSE && vvp->v_color==CTEXT) {
+    if (nbflag == FALSE && vvp->v_color == CTEXT) {
 	while (cp5!=cp1 && cp5[-1]==NG_WSPACE)
 	    --cp5;
 	/* Alcyon hack */
@@ -985,7 +1008,7 @@ VIDEO *vvp, *pvp;
 	    cp5 = cp3;
     }
     /* Alcyon hack */
-    ttmove(row, (int)(cp1-&vvp->v_text[0]));
+    ttmove(row, (int)(cp1 - &vvp->v_text[0]));
 #ifdef STANDOUT_GLITCH
     if (vvp->v_color != CTEXT && SG > 0) {
 	if (cp1 < &vvp->v_text[SG])
@@ -996,11 +1019,14 @@ VIDEO *vvp, *pvp;
     else if (SG < 0)
 #endif /* STANDOUT_GLITCH */
 	ttcolor(vvp->v_color);
+    if (display_lang->lm_display_start_code != NULL)
+	display_lang->lm_display_start_code();
     while (cp1 != cp5) {
-	ttputc(*cp1);
-	ttcol += display_lang->lm_width(*cp1++) + 1;
+	TTPUTC(dcode, *cp1);
+	ttcol += display_lang->lm_width(*cp1++);
     }
-    /*kdselectcode(kselect); XXX*/
+    if (display_lang->lm_display_end_code != NULL)
+	display_lang->lm_display_end_code();
     if (cp5 != cp3)				/* Do erase.		*/
 	tteeol();
 #ifndef MOVE_STANDOUT	/* 90.03.21  by S.Yoshida */
@@ -1038,15 +1064,16 @@ register WINDOW *wp;
     vscreen[n]->v_flag |= (VFCHG|VFHBAD);	/* Recompute, display.	*/
     vtmove(n, 0);				/* Seek to right line.	*/
     bp = wp->w_bufp;
+    n = 0;
 #ifdef CANNA
     if (bp->b_flag & BFCANNA) {
 	if (bp == curbp)
-	    n += vtputs(currentMode);
+	    n = vtputs(currentMode);
 	else
-	    n += vtputs(origMode);
+	    n = vtputs(origMode);
     }
     else
-	n += vtputsA("[ -- ]");
+	n = vtputs(_NG_WSTR("[ -- ]"));
 #endif
     vtputc('-'); vtputc('-');
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
@@ -1062,22 +1089,27 @@ register WINDOW *wp;
 	vtputc('-'); vtputc('-');
     }
     vtputc('-');
-    n  = 5;
-    n += vtputsA("Ng: ");
-    if (bp->b_bname[0] != '\0')
-	n += vtputs((NG_WCHAR_t *)bp->b_bname);
-    while (n < 42) {			/* Pad out with blanks	*/
+    n += 5;
+    n += vtputs(_NG_WSTR("Ng: "));
+    if (bp->b_bname[0] != '\0') {
+	NG_WCHAR_t *wtmp;
+	LM_IN_CONVERT_TMP2(bp->b_lang, NG_CODE_FOR_FILENAME, bp->b_bname, wtmp);
+	if (wtmp != NULL)
+	    n += vtputs(wtmp);
+    }
+    while (n < 30/*42*/) {			/* Pad out with blanks	*/
 	vtputc(' ');
 	++n;
     }
     vtputc('(');
     ++n;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-		/* 90.12.28  Move to here like as Nemacs 3.3. by S.Yoshida */
-    n += kdispbufcode(bp);			/* Show KANJI code.	*/
-#endif /* KANJI */	
+    /* 90.01.29  by S.Yoshida */
+    /* 90.12.28  Move to here like as Nemacs 3.3. by S.Yoshida */
+    /* n += kdispbufcode(bp); XXX */
     for (mode=0;;) {
-	n += vtputsA(bp->b_modes[mode]->p_name);
+	NG_WCHAR_t wbuf[NLINE];
+	wstrlcpya(wbuf, bp->b_modes[mode]->p_name, NG_WCHARLEN(wbuf));
+	n += vtputs(wbuf);
 	if (++mode > bp->b_nmodes)
 	    break;
 	vtputc('-');
@@ -1122,7 +1154,9 @@ register WINDOW *wp;
     n  = 46;
 #endif
     /* 90.12.28  Move to here like as Nemacs 3.3. by S.Yoshida */
-    n += 4;					/* Show KANJI code.	*/
+#if 0 /* XXX */
+    n += 4;					/* Show code.	*/
+#endif
     for (mode=0;;) {	/* skip mode names */
 	n += strlen(bp->b_modes[mode]->p_name);
 	if (++mode > bp->b_nmodes)
@@ -1131,9 +1165,10 @@ register WINDOW *wp;
     }
     vtmove(l, n);				/* Seek to right line.	*/
     if (line_number_mode) {
-	char linestr[NINPUT];	/* XXX now, support only 32bit int */
-	sprintf(linestr, "L%d", get_lineno(bp, wp->w_dotp)+1);
-	vtputsA(linestr);
+	NG_WCHAR_t linestr[NINPUT];	/* XXX now, support only 32bit int */
+	wsnprintf(linestr, NG_WCHARLEN(linestr),
+		  "L%d", get_lineno(bp, wp->w_dotp)+1);
+	vtputs(linestr);
     }
     {
 	int ratio = windowpos(wp);
@@ -1141,15 +1176,15 @@ register WINDOW *wp;
 	vtputc('-'); vtputc('-');
 	switch (ratio) {
 	case MG_RATIO_ALL:
-	    vtputsA("All");
+	    vtputs(_NG_WSTR("All"));
 	    break;
 	    
 	case MG_RATIO_TOP:
-	    vtputsA("Top");
+	    vtputs(_NG_WSTR("Top"));
 	    break;
 	  
 	case MG_RATIO_BOT:
-	    vtputsA("Bot");
+	    vtputs(_NG_WSTR("Bot"));
 	    break;
 	
 	default:
@@ -1170,32 +1205,13 @@ register WINDOW *wp;
  * output a string to the mode line, report how long it was.
  */
 static int
-vtputsA(s)
-register const char *s;
-{
-    register int n = 0;
-
-    while (*s != '\0') {
-	vtputc(*s & 0x7f);
-	n += display_lang->lm_width(*s++);
-    }
-    return n;
-}
-
-/*
- * output a string to the mode line, report how long it was.
- */
-static int
 vtputs(s)
 register const NG_WCHAR_t *s;
 {
-    register int n = 0;
-
-    while (*s != '\0') {
-	vtputc(*s);
-	n += display_lang->lm_width(*s++);
-    }
-    return n;
+    int bvtrow = vtrow;
+    while (*s != '\0')
+	vtputc(*s++);
+    return vtrow - bvtrow;
 }
 
 #ifdef GOSLING

@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.21.2.4 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: line.c,v 1.21.2.5 2006/01/04 17:00:39 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -69,7 +69,8 @@ register int used;
     register int size;
 
     /* any padding at the end of the structure is used */
-    if ((size = used + OFFSET(LINE, l_text[0])) < sizeof(LINE))
+    if ((size = (used + OFFSET(LINE, l_text[0])*sizeof(NG_WCHAR_t)))
+	< sizeof(LINE))
 	size = sizeof(LINE);
 #ifdef MALLOCROUND
     MALLOCROUND(size);    /* round up to a size optimal to malloc */
@@ -78,7 +79,7 @@ register int used;
 	ewprintf("Can't get %d bytes", size);
 	return (LINE *)NULL;
     }
-    lp->l_size = size - OFFSET(LINE, l_text[0]);
+    lp->l_size = (size - OFFSET(LINE, l_text[0])) / sizeof(NG_WCHAR_t);
     lp->l_used = used;
     return lp;
 }
@@ -486,12 +487,10 @@ int kflag;
 #ifdef	UNDO
 	    if (isundo())
 	    {
-		if (char_num == 1) {
-		    undo->u_code[0] = '\n';
-		    undo->u_code[1] = 0;
-		}
+		if (char_num == 1)
+		    undo->u_code = NG_WCODE('\n');
 		else if (undo_bgrow(undo, 1)) {
-		    undo->u_buffer[undo->u_used] = '\n';
+		    undo->u_buffer[undo->u_used] = NG_WCODE('\n');
 		    undo->u_used++;
 		}
 	    }
@@ -505,14 +504,7 @@ int kflag;
 #ifdef	UNDO
 	if (isundo()) {
 	    if (char_num == 1) {
-		if (chunk == 1) {
-		    undo->u_code[0] = *cp1;
-		    undo->u_code[1] = 0;
-		}
-		else {
-		    undo->u_code[0] = *cp1;
-		    undo->u_code[1] = *(cp1+1);
-		}			    
+		undo->u_code = NG_WCODE(*cp1);
 	    }
 	    else if (undo_bgrow(undo, chunk)) {
 		bcopy(cp1, &(undo->u_buffer[undo->u_used]),

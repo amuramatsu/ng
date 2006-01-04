@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.4 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: file.c,v 1.15.2.5 2006/01/04 17:00:39 amura Exp $ */
 /*
  *		File commands.
  */
@@ -21,7 +21,7 @@
 #include "autosave.h"
 
 static char *itos _PRO((char *, unsigned int));
-static int fileopen_backend _PRO((int, int, int, int, char *));
+static int fileopen_backend _PRO((int, int, int, int, int, char *));
 
 /*
  * insert a file into the current buffer. Real easy - just call the
@@ -39,8 +39,7 @@ int f, n;
 #ifdef EXTD_DIR
     NG_WCHAR_t *wtmp;
     ensurecwd();
-    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-		       curbp->b_cwd, wtmp);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, wtmp);
     edefset(wtmp);
 #endif
 
@@ -57,8 +56,7 @@ int f, n;
 	return TRUE;
     }
 #endif /* READONLY */
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-			fname, tmp);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, fname, tmp);
     return insertfile(adjustname(tmp), (char *) NULL);
 					/* don't set buffer name */
 }
@@ -67,6 +65,7 @@ int f, n;
  * fileopen is a combined routine of filevisit, filereadonly and
  * poptofile.
  */
+static int code_expected = NG_CODE_NONE;
 static int
 fileopen(f, n, readonly, popup, prompt)
 int f, n, readonly, popup;
@@ -75,15 +74,12 @@ const char *prompt;
     int s;
     NG_WCHAR_t wfname[NFILEN];
     char *fname;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    int saved_kexpect;
-    extern int global_kexpect;	/* Defined at kanjic.	*/
-#endif /* KANJI */
+    int code;
     
 #ifdef EXTD_DIR
     NG_WCHAR_t *wtmp;
     ensurecwd();
-    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, curbp->b_cwd, wtmp);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, wtmp);
     if (wtmp == NULL)
 	return FALSE;
     edefset(wtmp);
@@ -96,31 +92,31 @@ const char *prompt;
     if ((s=ereply(prompt, wfname, NG_WCHARLEN(wfname))) != TRUE)
 #endif /* NO_FILECOMP */
 	return s;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    saved_kexpect = global_kexpect;
+    
+    code = curbp->b_lang->lm_get_code(NG_CODE_FOR_FILE);
     if (f & FFARG) {
 	if (n < 0) {
-	    global_kexpect = NIL;
+	    code = NG_CODE_ASCII;
 	}
-	else if (n == NIL) {
-	    global_kexpect = _T_;
+	else if (n == NG_CODE_NONE) {
+	    code = NG_CODE_NONE;
 	}
-	else if (n >= 0 && n < NIL) {
-	    global_kexpect = n;
+	else if (n >= 0) {
+	    /* XXX NEED check for n */
+	    code = n;
 	}
 	else {
 	    ewprintf("Invalid argument %d", n);
 	    return FALSE;
 	}
     }
-#endif /* KANJI */
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, wfname, fname);
-    return fileopen_backend(f, n, readonly, popup, fname);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wfname, fname);
+    return fileopen_backend(f, n, readonly, popup, code, fname);
 }
 
 static int
-fileopen_backend(f, n, readonly, popup, fname)
-int f, n, readonly, popup;
+fileopen_backend(f, n, readonly, popup, code, fname)
+int f, n, readonly, popup, code;
 char *fname;
 {
     int s;
@@ -132,41 +128,28 @@ char *fname;
 #ifndef NO_DIRED	/* 91.01.15  by K.Maeda *//* 91.01.16  by S.Yoshida */
     if (ffisdir(adjf)) {
 	NG_WCHAR_t *wtmp;
-	LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, adjf, wtmp);
+	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, adjf, wtmp);
 	eargset(wtmp);
 	return dired(f, n);
     }
 #endif /* NO_DIRED */
-    if ((bp = findbuffer(adjf)) == NULL) {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	global_kexpect = saved_kexpect;
-#endif /* KANJI */
+    if ((bp = findbuffer(adjf)) == NULL)
 	return FALSE;
-    }
+    bp->b_fio = code;
     if (popup) {
-	if ((wp = popbuf(bp)) == NULL) {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    global_kexpect = saved_kexpect;
-#endif /* KANJI */
+	if ((wp = popbuf(bp)) == NULL)
 	    return FALSE;
-	}
 	curbp = bp;
 	curwp = wp;
     }
     else {
 	curbp = bp;
-	if (showbuffer(bp, curwp, WFHARD) != TRUE) {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    global_kexpect = saved_kexpect;
-#endif /* KANJI */
+	if (showbuffer(bp, curwp, WFHARD) != TRUE)
 	    return FALSE;
-	}
     }
     if (bp->b_fname == NULL) {
 	s = readin(adjf);		/* Read it in.		*/
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	global_kexpect = saved_kexpect;
-#endif
+	code_expected = NG_CODE_NONE;
 #ifdef READONLY
 	if (readonly) {
 	    bp->b_flag |= BFRONLY;	/* Mark as read-only	*/
@@ -180,9 +163,6 @@ char *fname;
 #endif /* READONLY */
 	return (s);
     }
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    global_kexpect = saved_kexpect;
-#endif /* KANJI */
     
 #ifdef READONLY
     if (readonly) {
@@ -232,7 +212,7 @@ int f, n;
     char *tmp;
     tmp = (char *)alloca(strlen(fname) + 1);
     strcpy(tmp, fname);
-    return fileopen_backend(f, n, FALSE, FALSE, tmp);
+    return fileopen_backend(f, n, FALSE, FALSE, NG_CODE_NONE, tmp);
 }
 
 /*
@@ -277,8 +257,7 @@ int f, n;
     
 #ifdef EXTD_DIR
     ensurecwd();
-    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-		       curbp->b_cwd, wtmp);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, wtmp);
     edefset(wtmp);
 #endif
 
@@ -291,7 +270,7 @@ int f, n;
 	return FALSE;
     }
     if (curbp) {
-	LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
 			   curbp->b_bname, wtmp);
 	eargset(wtmp);
 	if (killbuffer(0, 1)) {
@@ -423,11 +402,11 @@ const char *fname, *newname;
     int s, nline;
     BUFFER *bp;
     char line[NLINE];
-#if defined(SS_SUPPORT)||defined(USE_UNICODE)
-    int leng;
-#endif  /* SS_SUPPORT || USE_UNICODE */
+    int leng, fio;
+    LANG_MODULE *lang;
     
     bp = curbp;				/* Cheap.		*/
+    lang = bp->b_lang;
     if (newname != (char *) NULL) {
 	if (bp->b_fname != NULL)
 	    free(bp->b_fname);
@@ -462,34 +441,22 @@ const char *fname, *newname;
 	curwp->w_dotp = lback(curwp->w_dotp);
     }
     nline = 0;			/* Don't count fake line at end */
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    ksetfincode(bp);
-#endif /* KANJI */
+    fio = bp->b_fio;
     while ((s=ffgetline(line, NLINE, &nbytes)) != FIOERR) {
 	switch(s) {
 	case FIOSUC:
 	    ++nline;
 	    /*FALLTHRU*/
 	case FIOEOF:	/* the last line of the file		*/
-#if defined(SS_SUPPORT)||defined(USE_UNICODE)
-	    leng = kcodecount(line, nbytes);
+	    if (fio == NG_CODE_NONE)
+		bp->b_fio = fio = lang->lm_code_expect(line, nbytes);
+	    leng = lang->lm_in_convert_len(bp->b_fio, line, nbytes);
 	    if ((lp1=lalloc(leng > nbytes ? leng : nbytes)) == NULL) {
 		s = FIOERR;		/* Keep message on the	*/
 		goto endoffile;		/* display.		*/
 	    }
-#else  /* Not SS_SUPPORT ||USE_UNICODE */
-	    if ((lp1=lalloc(nbytes)) == NULL) {
-		s = FIOERR;		/* Keep message on the	*/
-		goto endoffile;		/* display.		*/
-	    }
-#endif  /* SS_SUPPORT || USE_UNICODE */
-	    bcopy(line, &ltext(lp1)[0], nbytes);
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    if ((lp1->l_used = kcodeconv(ltext(lp1), nbytes, bp, leng)) < 0) {
-		s = FIOERR;
-		goto endoffile;
-	    }
-#endif /* KANJI */
+	    lp1->l_used =
+		lang->lm_in_convert(bp->b_fio, line, nbytes, &ltext(lp1)[0]);
     lineread:
 	    lp2 = lback(curwp->w_dotp);
 	    lp2->l_fp = lp1;
@@ -507,8 +474,7 @@ const char *fname, *newname;
 	    nbytes = 0;
 	    for (;;) {
 		if ((cp = malloc((unsigned)(nbytes + NLINE))) == NULL) {
-		    ewprintf("Could not allocate %d bytes",
-			     nbytes + NLINE);
+		    ewprintf("Could not allocate %d bytes", nbytes + NLINE);
 		    s = FIOERR;
 		    if (nbytes) {
 			free(cp2);
@@ -533,10 +499,8 @@ const char *fname, *newname;
 		case FIOEOF:
 		case FIOSUC:
 		    cp2 = cp;
-		    if ((cp = malloc((unsigned)( nbytes + i ))) 
-			== NULL) {
-			ewprintf("Could not allocate %d bytes",
-				 nbytes + i);
+		    if ((cp = malloc((unsigned)( nbytes + i )))	== NULL) {
+			ewprintf("Could not allocate %d bytes", nbytes + i);
 			s = FIOERR;
 			free(cp2);
 			cp2 = (char *)NULL;
@@ -546,32 +510,19 @@ const char *fname, *newname;
 		    bcopy(line, cp+nbytes, i);
 		    free(cp2);
 		    cp2 = (char *)NULL;
-#if defined(SS_SUPPORT)||defined(USE_UNICODE)
-		    leng = kcodecount(cp, nbytes+i);
+		    if (fio == NG_CODE_NONE)
+			bp->b_fio = fio = lang->lm_code_expect(cp, nbytes+1);
+		    leng = lang->lm_in_convert_len(bp->b_fio, cp, nbytes+i);
 		    if ((lp1=lalloc(leng > nbytes+i ? leng : nbytes+i))
 			== NULL) {
 			s = FIOERR;
 			free(cp);
 			goto endoffile;
 		    }
-		    bcopy(cp, &ltext(lp1)[0], nbytes + i);
-		    
-#else  /* not SS_SUPPORT || USE_UNICODE */
-		    if ((lp1=lalloc(nbytes+i)) == NULL) {
-			s = FIOERR;
-			free(cp);
-			goto endoffile;
-		    }
-		    bcopy(cp, &ltext(lp1)[0], llength(lp1));
-#endif  /* SS_SUPPORT || USE_UNICODE */
+		    lp1->l_used =
+			lang->lm_in_convert(bp->b_fio, cp,
+					    nbytes+i, &ltext(lp1)[0]);
 		    free(cp);
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-		    if ((lp1->l_used = kcodeconv(ltext(lp1),
-						 nbytes + i, bp, leng)) <0 ) {
-			s = FIOERR;
-			goto endoffile;
-		    }
-#endif /* KANJI */
 		    goto lineread;
 		}
 	    }
@@ -744,11 +695,13 @@ int f, n;
     char *newname;
 
 #ifdef EXTD_DIR
-    NG_WCHAR_t *wtmp;
-    ensurecwd();
-    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-		       curbp->b_cwd, wtmp);
-    edefset(wtmp);
+    {
+	NG_WCHAR_t *wtmp;
+	ensurecwd();
+	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
+			   curbp->b_cwd, wtmp);
+	edefset(wtmp);
+    }
 #endif
 
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
@@ -762,13 +715,13 @@ int f, n;
     {
 	char aname[NFILEN];
 	char *tmp;
-	LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
+	LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
 			    fname, tmp);
 	autosave_name(aname, tmp, sizeof(aname));
 	unlink(aname);
     }
 #endif /* AUTOSAVE	*/
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, fname, adjfname);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, fname, adjfname);
     adjfname = adjustname(adjfname);
     if ((s=writeout(curbp, adjfname)) == TRUE) {
 	if ((newname=malloc(strlen(adjfname)+1)) == NULL) {

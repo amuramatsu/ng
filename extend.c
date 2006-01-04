@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.3 2005/12/30 17:37:28 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.4 2006/01/04 17:00:39 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -11,6 +11,7 @@
 
 #include "i_buffer.h"
 #include "i_lang.h"
+
 #include "cinfo.h"
 #include "echo.h"
 //#include "buffer.h"
@@ -19,6 +20,7 @@
 #include "kbd.h"
 #include "dir.h"
 #include "macro.h"
+#include "lang.h"
 
 #ifdef FKEYS
 #include "key.h"
@@ -33,8 +35,8 @@
 /* 91.02.06  Move static declaration to here for some compiler. by S.Yoshida */
 static KEYMAP *realocmap _PRO((KEYMAP *));
 static VOID fixmap _PRO((KEYMAP *, KEYMAP *, KEYMAP *));
-static char *skipwhite _PRO((char *));
-static char *parsetoken _PRO((char *));
+static NG_WCHAR_t *skipwhite _PRO((NG_WCHAR_t *));
+static NG_WCHAR_t *parsetoken _PRO((NG_WCHAR_t *));
 
 /* insert a string, mainly for use from macros (created by selfinsert) */
 /*ARGSUSED*/
@@ -566,13 +568,11 @@ evalexpr(f, n)
 int f, n;
 {
     int s;
-    NG_WCHAR_t exbuf[128];
-    char exbuf2[NG_WCHARLEN(exbuf)];
+    NG_WCHAR_t exbuf[NLINE];
     
     if ((s = ereply("Eval: ", exbuf, NG_WCHARLEN(exbuf))) != TRUE)
 	return s;
-    strlcpyw(exbuf2, exbuf, sizeof(exbuf2));
-    return excline(exbuf2);
+    return excline(exbuf);
 }
 /*
  * evalbuffer - evaluate the current buffer as line commands. Useful
@@ -586,14 +586,14 @@ int f, n;
     register LINE *lp;
     register BUFFER *bp = curbp;
     register int s, i;
-    static char excbuf[128];
+    static NG_WCHAR_t excbuf[NLINE];
     
     for (lp = lforw(bp->b_linep); lp != bp->b_linep; lp = lforw(lp)) {
-	if (llength(lp) >= 128)
+	if (llength(lp) >= NG_WCHARLEN(excbuf))
 	    return FALSE;
 	for (i = 0; i < llength(lp); i++)
 	    excbuf[i] = ltext(lp)[i];
-	excbuf[llength(lp)] = '\0';	/* make sure it's terminated */
+	excbuf[llength(lp)] = NG_EOS;	/* make sure it's terminated */
 	if ((s = excline(excbuf)) != TRUE)
 	    return s;
     }
@@ -615,8 +615,7 @@ int f, n;
     char *tmp;
 #ifdef EXTD_DIR
     ensurecwd();
-    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-		       curbp->b_cwd, wtmp);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, wtmp);
     edefset(wtmp);
 #endif
 #ifndef	NO_FILECOMP
@@ -625,7 +624,7 @@ int f, n;
     if ((s = ereply("Load file: ", fname, NFILEN)) != TRUE)
 #endif
 	return s;
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, fname, tmp);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, fname, tmp);
     return load(tmp);
 }
 
@@ -638,28 +637,41 @@ const char *fname;
 {
     int s = TRUE;
     int nbytes;
-    char excbuf[256];
+    char buf[NLINE];
+    NG_WCHAR_t *excbuf = NULL;
+    int excbuf_len = 0;
     int lineno = 0;
-    
+    int fio;
+    LANG_MODULE *lang;
+
     if ((fname = adjustname(fname)) == NULL)
 	return FALSE;	/* just to be careful */
 
     if (ffropen(fname) != FIOSUC)
 	return FALSE;
+    lang = get_default_lang();
+    fio = lang->lm_get_code(NG_CODE_FOR_FILE);
     ewprintf("Loading %s ...", fname);
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    ksetfincode(NULL);
-#endif /* KANJI */
-#ifdef HANKANA /* 92.11.21  by S.Sasaki */
-    while ((s = ffgetline(excbuf, sizeof(excbuf)/2-1, &nbytes)) == FIOSUC) {
-#else /* HANKANA */
-    while ((s = ffgetline(excbuf, sizeof(excbuf)-1, &nbytes)) == FIOSUC) {
-#endif /* HANKANA */
+    while ((s = ffgetline(buf, sizeof(buf)-1, &nbytes)) == FIOSUC) {
 	lineno++;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	nbytes = kcodeconv(excbuf, nbytes, NULL, nbytes);
-#endif /* KANJI */
-	excbuf[nbytes] = '\0';
+	if (lang != get_default_lang()) {
+	    lang = get_default_lang();
+	    fio = lang->lm_get_code(NG_CODE_FOR_FILE);
+	}
+	if (fio == NG_CODE_NONE)
+	    fio = lang->lm_code_expect(buf, nbytes);
+	s = lang->lm_in_convert_len(fio, buf, nbytes);
+	if (s >= excbuf_len) {
+	    excbuf_len = s+1;
+	    MALLOCROUND(excbuf_len);
+	    if ((excbuf = realloc(excbuf, excbuf_len)) == NULL) {
+		s = FIOERR;
+		ewprintf("Memory exhost at file %s in %d line", fname, lineno);
+		return FALSE;
+	    }
+	}
+	nbytes = display_lang->lm_in_convert(fio, buf, nbytes, excbuf);
+	excbuf[nbytes] = NG_EOS;
 	if (excline(excbuf) != TRUE) {
 	    s = FIOERR;
 	    ewprintf("Error loading file %s in %d line", fname, lineno);
@@ -668,9 +680,12 @@ const char *fname;
     }
     (VOID) ffclose();
     excbuf[nbytes] = '\0';
-    if (s!=FIOEOF || (nbytes && excline(excbuf)!=TRUE))
+    if (s!=FIOEOF || (nbytes && excline(excbuf)!=TRUE)) {
+	free(excbuf);
 	return FALSE;
-    ewprintf("Loading %s ... done",fname);
+    }
+    free(excbuf);
+    ewprintf("Loading %s ... done", fname);
     return TRUE;
 }
 
@@ -681,9 +696,10 @@ const char *fname;
  */
 int
 excline(line)
-register char *line;
+register NG_WCHAR_t *line;
 {
-    register char *funcp, *argp = NULL;
+    register NG_WCHAR_t *funcp, *argp = NULL;
+    char funcname[NLINE];
     register int c;
     int status;
     int f, n;
@@ -724,10 +740,11 @@ register char *line;
     
     if (argp != NULL) {
 	f = FFARG;
-	n = atoi(argp);
+	n = watoi(argp);
     }
-    if ((fp = name_function(funcp)) == NULL) {
-	ewprintf("Unknown function: %s", funcp);
+    strlcpyw(funcname, funcp, sizeof(funcname));
+    if ((fp = name_function(funcname)) == NULL) {
+	ewprintf("Unknown function: %s", funcname);
 	return FALSE;
     }
 #ifdef FKEYS
@@ -910,33 +927,33 @@ cleanup:
 /*
  * a pair of utility functions for the above
  */
-static char *
+static NG_WCHAR_t *
 skipwhite(s)
-register char *s;
+register NG_WCHAR_t *s;
 {
     while (*s == ' ' || *s == '\t' || *s == ')' || *s == '(')
 	s++;
     if (*s == ';')
-	*s = '\0' ;
+	*s = NG_EOS;
     return s;
 }
 
-static char *
+static NG_WCHAR_t *
 parsetoken(s)
-register char *s;
+register NG_WCHAR_t *s;
 {
     if (*s != '"') {
 	while (*s && *s!=' ' && *s!='\t' && *s!=')' && *s!='(')
 	    s++;
 	if (*s == ';')
-	    *s = '\0';
+	    *s = NG_EOS;
 	}
     else
 	do {	/* Strings get special treatment */
 		/* Beware: You can \ out the end of the string! */
 	    if (*s == '\\')
 		++s;
-	} while (*++s != '"' && *s != '\0');
+	} while (*++s != '"' && *s != NG_EOS);
     return s;
 }
 #endif

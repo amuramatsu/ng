@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.11.2.4 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: main.c,v 1.11.2.5 2006/01/04 17:00:40 amura Exp $ */
 /*
  *		Mainline
  */
@@ -143,23 +143,12 @@ char **argv;
 	    continue;
 	}
 #endif	/* ADDOPT */
-#if defined(KANJI)&&(defined(MSDOS)||defined(HUMAN68K)||defined(WIN32))
-	{
-	    char argve[NFILEN];
-	    strncpy(argve, *++argv, NFILEN);
-	    argve[NFILEN-1] = 0;
-	    bufstoe(argve, strlen(argve) + 1);
-	    cp = adjustname(argve);
-	}
-#else
 	cp = adjustname(*++argv);
-#endif	/* KANJI and (MSDOS or HUMAN68K or WIN32) */
-
+	
 #ifndef NO_DIRED	/* 91.01.16  by S.Yoshida */
 	if (ffisdir(cp)) {
 	    NG_WCHAR_t *tmp;
-	    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-			       cp, tmp);
+	    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, cp, tmp);
 	    if (tmp == NULL)
 		return FALSE;
 	    eargset(tmp);

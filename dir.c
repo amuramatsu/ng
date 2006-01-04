@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.16.2.4 2005/04/27 19:09:06 amura Exp $ */
+/* $Id: dir.c,v 1.16.2.5 2006/01/04 17:00:39 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -105,8 +105,7 @@ int f, n;
     char *bufca;
 
     ensurecwd();
-    LM_IN_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-		       curbp->b_cwd, tmp);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, tmp);
     if (tmp == NULL)
 	return FALSE;
     edefset(tmp);
@@ -119,8 +118,7 @@ int f, n;
         != TRUE)
 #endif	/* NO_FILECOMP */
 	return(s);
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code,
-			bufc, bufca);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, bufc, bufca);
     if (bufca == NULL)
 	return FALSE;
     strlcpy(bufca, adjustname(bufca), NG_WCHARLEN(len+1));

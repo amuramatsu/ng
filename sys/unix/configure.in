@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.12.2.1 2006/01/01 18:34:13 amura Exp $
-AC_REVISION($Revision: 1.12.2.1 $)
+dnl $Id: configure.in,v 1.12.2.2 2006/01/04 17:00:40 amura Exp $
+AC_REVISION($Revision: 1.12.2.2 $)
 AC_INIT(basic.c)
 AC_CONFIG_HEADER(sysconfig.h:sys/unix/sysconfig.h.in)
 AC_CONFIG_AUX_DIR(sys/unix)
@@ -44,6 +44,7 @@ dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(assert.h)
 AC_CHECK_HEADERS(unistd.h fcntl.h sys/param.h sys/ioctl.h sys/file.h sys/time.h)
 AC_CHECK_HEADERS(termio.h termios.h sgtty.h)
 

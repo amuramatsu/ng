@@ -1,4 +1,4 @@
-/* $Id: cinfo.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: cinfo.c,v 1.4.2.1 2006/01/04 17:00:40 amura Exp $ */
 /*
  *		Character class tables.
  * Do it yourself character classification
@@ -51,50 +51,6 @@ _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	/* 0x7X */
 _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
 _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	0,
 0,		0,		0,		_NGC_C,
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-0,		0,		0,		0,		/* 0x8X */
-0,		0,		0,		0,
-0,		0,		0,		0,
-0,		0,
-#ifdef  HANKANA  /* 92.11.21  by S.Sasaki */
-				_NGC_K,
-#else
-				0,
-#endif
-#ifdef  HOJO_KANJI
-						_NGC_K,
-#else
-						0,
-#endif
-0,		0,		0,		0,		/* 0x9X */
-0,		0,		0,		0,
-0,		0,		0,		0,
-0,		0,		0,		0,
-0,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xAX */
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xBX */
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xCX */
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xDX */
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xEX */
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,		/* 0xFX */
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		_NGC_K,
-_NGC_K,		_NGC_K,		_NGC_K,		0
-#else	/* NOT KANJI (ORIGINAL) */
 0,		0,		0,		0,		/* 0x8X */
 0,		0,		0,		0,
 0,		0,		0,		0,
@@ -127,7 +83,6 @@ _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
 _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
 _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
 _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	0,		0
-#endif	/* KANJI */
 };
 
 /*

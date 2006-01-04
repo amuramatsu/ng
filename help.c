@@ -1,4 +1,4 @@
-/* $Id: help.c,v 1.6.2.4 2005/12/30 17:37:28 amura Exp $ */
+/* $Id: help.c,v 1.6.2.5 2006/01/04 17:00:39 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -96,10 +96,6 @@ found:
 	ewprintf("%k runs the command %s", pep);
     else
 	ewprintf("%k is bound to an unnamed function");
-#ifdef KANJI		/* code from Ng-1.3.1L+6 */
-    if (ISKANJI(c))
-	getkey(FALSE);	/* eat up kanji 2nd byte */
-#endif
     return TRUE;
 }
 
@@ -233,16 +229,10 @@ int f, n;
     fepmode_off();
 #endif
     do {
-#ifdef KANJI		/* code from Ng-1.3.1L+6 */
 	int c = getkey(FALSE);
-	if (ISKANJI(c)) {
-	    getkey(FALSE);
+	if (ISMULTIBYTE(c))
 	    return ABORT;
-	}
 	funct = doscan(kp, c);
-#else
-	funct = doscan(kp, getkey(FALSE));
-#endif
     } while (funct==NULL || funct==help_help);
 #ifndef NO_MACRO
     if (macrodef && macrocount < MAXMACRO)

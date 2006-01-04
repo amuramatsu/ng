@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.6 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.7 2006/01/04 17:00:39 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -221,7 +221,7 @@ NG_WCHAR_t *wname;
     char *cand;
     char *filenames;
 
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_buffer_name_code, wname, name);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wname, name);
     if (name == NULL)
 	return -1;
     fnlen = strlen(name);
@@ -421,7 +421,7 @@ BUFFER *bp;
 
     line[0] = '\0';
     for (lh = &(bheadp->b_list); lh != NULL; lh = lh->l_next) {
-	LM_IN_CONVERT2(bp->b_lang, lm_buffer_name_code, lh->l_name, cand);
+	LM_IN_CONVERT2(bp->b_lang, NG_CODE_FOR_FILENAME, lh->l_name, cand);
 	
         if (wstrncmp (cand, name, fnlen) != 0)
 	    continue;
@@ -477,7 +477,7 @@ BUFFER *bp;
     cand = filenames;
     for (i = 0; i < fnnum; i++) {
 	cand += dnlen;
-	LM_IN_CONVERT2(bp->b_lang, lm_buffer_name_code, cand, cand2);
+	LM_IN_CONVERT2(bp->b_lang, NG_CODE_FOR_FILENAME, cand, cand2);
 	if (line[0] == '\0') {
 	    if (wstrlen (cand2) < LIST_COL)
 		wstrcpy (line, cand2);

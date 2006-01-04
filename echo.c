@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.8 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.9 2006/01/04 17:00:39 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -365,7 +365,7 @@ static int s_put_i _PRO((NG_WCHAR_t *, int, int, int, int));
 static int s_put_l _PRO((NG_WCHAR_t *, int, int, long, int));
 static int s_put_s _PRO((NG_WCHAR_t *, int, int, char *));
 static int s_put_c _PRO((NG_WCHAR_t *, int, int, int));
-static VOID chsize _PRO((char *, int *));
+static VOID chsize _PRO((const NG_WCHAR_t *, int *));
 
 #ifdef CANNA
 #include <canna/jrkanji.h>
@@ -406,8 +406,8 @@ va_list *ap;
 #endif /* ADDFUNC */
 #ifndef NO_MACRO
     if (inmacro) {
-        bcopy (maclcur->l_text, buf, maclcur->l_used);
-	buf[maclcur->l_used] = '\0';
+        bcopy (maclcur->l_text, buf, maclcur->l_used*sizeof(NG_WCHAR_t));
+	buf[maclcur->l_used] = NG_EOS;
 	maclcur = maclcur->l_fp;
 #ifdef EXTD_DIR
         edef_text = NULL;
@@ -624,7 +624,7 @@ Cmd:
 		    maclcur->l_fp = lp;
 		    lp->l_bp = maclcur;
 		    maclcur = lp;
-		    bcopy(buf, lp->l_text, mb_bufsize());
+		    bcopy(buf, lp->l_text, mb_bufsize()*sizeof(NG_WCHAR_t));
 		}
 #endif
 		if (mb_bufsize() == 0)
@@ -800,9 +800,9 @@ va_dcl
 
 static int  _mb_ccol;
 static int  _mb_crow;
-static char *_mb_buf      = NULL;
+static NG_WCHAR_t *_mb_buf = NULL;
 static int _mb_size      = 0;
-static int  _mb_point     = 0;
+static int _mb_point     = 0;
 static int _mb_gapend    = 0;
 static int _mb_prompt    = 0;
 static int _mb_bufsize   = 0;
@@ -820,8 +820,8 @@ register va_list *ap;
     
     prompt = sformat(fp, ap);
     if (_mb_buf == NULL) {
-	_mb_size = nbuf + wstrlen(prompt)*sizeof(NG_WCHAR_t) + 10;
-	if ((_mb_buf = malloc(_mb_size)) == NULL)
+	_mb_size = nbuf + wstrlen(prompt) + 10;
+	if ((_mb_buf = malloc(_mb_size*sizeof(NG_WCHAR_t))) == NULL)
 	    return -1;
     }
     if (ttrow != nrow - 1) {
@@ -1010,12 +1010,12 @@ const NG_WCHAR_t *s;
     int  col, pt, ocol, opt;
     struct _Line *lp;
     
-    if (*s == '\0')
+    if (*s == NG_EOS)
 	return 0;
     ocol = _mb_ccol;
     opt  = _mb_point;
     lp   = CLine;
-    while (*s != '\0')
+    while (*s != NG_EOS)
 	mb_putchar(*(s++));
     if (mb_fixlines(ocol, lp, opt, &col, &pt) == 0)
 	mb_refresh(ocol, opt);
@@ -1045,7 +1045,7 @@ char *s;
     
     _mb_cmpl_msg_len = strlen(s);
     pt = mb_point();
-    while (*s != '\0')
+    while (*s != NG_EOS)
 	mb_putchar(*(s++));
     mb2_gotochar(pt);
     return pt;
@@ -1099,7 +1099,7 @@ const NG_WCHAR_t *buf;
     
     for (p1 = buf, p2 = _mb_prompt; p2 < _mb_point; p1++, p2++)
 	;
-    while (*p1 != '\0')
+    while (*p1 != NG_EOS)
 	mb_putchar(*(p1++));
     return mb_point();
 }
@@ -1726,12 +1726,13 @@ mb_putchar(c)
 int c;
 {
     int i, more;
-    char *new_mb_buf;
+    NG_WCHAR_t *new_mb_buf;
     struct _Line *lp;
     
     if (_mb_point == (_mb_gapend-1)) {
 	more = _mb_size;
-	if ((new_mb_buf = malloc(_mb_size+more)) == NULL)
+	if ((new_mb_buf =
+	     (NG_WCHAR_t *)malloc((_mb_size+more)*sizeof(NG_WCHAR_t))) == NULL)
 	    return -1;
 	for (i = 0; i < _mb_point; i++)
 	    new_mb_buf[i] = _mb_buf[i];
@@ -1813,10 +1814,8 @@ struct _Line *line;
 	    point    = _mb_gapend;
 	    bp = 0;
 	}
-	if (point == _mb_size) {
-	    /* ASSRT: line != &Line */
-	    goto End;
-	}
+	if (point == _mb_size)
+	    break;
 	
 	opt   = point;
 	chsize(&_mb_buf[point], &v);
@@ -1848,7 +1847,6 @@ struct _Line *line;
 	}
     }
     
-End:
     for (lp0 = line->next; lp0 != &Line; lp0 = lp1) {
 	lp1 = lp0->next;
 	free(lp0);
@@ -1873,7 +1871,7 @@ End:
 	mb_fixlines(0, CLine, CLine->idx, colp, ptp);
 	redraw = 1;
     } 
-  return redraw;
+    return redraw;
 }
 
 static VOID
@@ -2123,7 +2121,7 @@ register int c;
 
 static VOID
 chsize(s, visu)
-register char *s;
+register const NG_WCHAR_t *s;
 register int *visu;
 {
     *visu = display_lang->lm_width(*s);
@@ -2171,7 +2169,7 @@ va_list *ap;
 #endif /* ADDFUNC */
 #ifndef NO_MACRO
     if (inmacro) {
-        bcopy (maclcur->l_text, buf, maclcur->l_used);
+        bcopy (maclcur->l_text, buf, maclcur->l_used*sizeof(NG_WCHAR_t));
 	buf[maclcur->l_used] = '\0';
 	maclcur = maclcur->l_fp;
 #ifdef EXTD_DIR
@@ -2265,7 +2263,7 @@ va_list *ap;
 		maclcur->l_fp = lp;
 		lp->l_bp = maclcur;
 		maclcur = lp;
-		bcopy(buf, lp->l_text, cpos);
+		bcopy(buf, lp->l_text, cpos*sizeof(NG_WCHAR_t));
 	    }
 #endif
 	    return ((buf[0] == '\0') ? FALSE : TRUE);
@@ -2317,38 +2315,17 @@ veread_del_char(buf, cpos)
 char *buf;
 int cpos;
 {
+    int w;
     if (cpos <= 0)
 	return (0);
-    ttputc('\b');
-    ttputc(' ');
-    ttputc('\b');
-    --ttcol;
-    --cpos;
-    if (ISCTRL(buf[cpos]) != FALSE) {
+    w = display_lang->lm_width(buf[cpos]);
+    while (w--) {
 	ttputc('\b');
 	ttputc(' ');
 	ttputc('\b');
 	--ttcol;
     }
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    else if (ISKANJI(buf[cpos])) {
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	if (!ISHANKANA(buf[--cpos])) {
-	    ttputc('\b');
-	    ttputc(' ');
-	    ttputc('\b');
-	    --ttcol;
-	}
-#else  /* not HANKANA */
-	ttputc('\b');
-	ttputc(' ');
-	ttputc('\b');
-	--ttcol;
-	--cpos;
-#endif  /* HANKANA */
-    }
-#endif /* KANJI */
-    buf[cpos] = '\0';
+    buf[--cpos] = '\0';
     return (cpos);
 }
 
@@ -2443,7 +2420,7 @@ va_list *ap;
 #endif /* ADDFUNC */
 #ifndef NO_MACRO
     if (inmacro) {
-	bcopy(maclcur->l_text, buf, maclcur->l_used);
+	bcopy(maclcur->l_text, buf, maclcur->l_used*sizeof(NG_WCHAR_t));
 	buf[maclcur->l_used] = '\0';
 	maclcur = maclcur->l_fp;
 	return TRUE;
@@ -2494,7 +2471,7 @@ va_list *ap;
 		maclcur->l_fp = lp;
 		lp->l_bp = maclcur;
 		maclcur = lp;
-		bcopy(buf, lp->l_text, cpos);
+		bcopy(buf, lp->l_text, cpos*sizeof(NG_WCHAR_t));
 	    }
 #endif
 	    goto done;
@@ -2509,35 +2486,14 @@ va_list *ap;
 	case CCHR('H'):
 	case CCHR('?'):	/* Rubout, erase.	*/
 	    if (cpos != 0) {
-		ttputc('\b');
-		ttputc(' ');
-		ttputc('\b');
-		--ttcol;
-		if (ISCTRL(buf[--cpos]) != FALSE) {
+		int w = display_lang->lm_width(buf[cpos]);
+		while (w--) {
 		    ttputc('\b');
 		    ttputc(' ');
 		    ttputc('\b');
 		    --ttcol;
 		}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-		else if (ISKANJI(buf[cpos])) {
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki  */
-		    if (!ISHANKANA(buf[--cpos])) {
-			ttputc('\b');
-			ttputc(' ');
-			ttputc('\b');
-			--ttcol;
-		    }
-
-#else  /* HANKANA */
-		    ttputc('\b');
-		    ttputc(' ');
-		    ttputc('\b');
-		    --ttcol;
-		    --cpos;
-#endif  /* HANKANA */
-		}
-#endif /* KANJI */
+		--cpos;
 		ttflush();
 	    }
 	    break;
@@ -2545,34 +2501,14 @@ va_list *ap;
 	case CCHR('X'):	/* C-X			*/
 	case CCHR('U'):	/* C-U, kill line.	*/
 	    while (cpos != 0) {
-		ttputc('\b');
-		ttputc(' ');
-		ttputc('\b');
-		--ttcol;
-		if (ISCTRL(buf[--cpos]) != FALSE) {
+		int w = display_lang->lm_width(buf[cpos]);
+		while (w--) {
 		    ttputc('\b');
 		    ttputc(' ');
 		    ttputc('\b');
 		    --ttcol;
 		}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-		else if (ISKANJI(buf[cpos])) {
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki  */
-		    if (!ISHANKANA(buf[--cpos])) {
-			ttputc('\b');
-			ttputc(' ');
-			ttputc('\b');
-			--ttcol;
-		    }
-#else  /* HANKANA */
-		    ttputc('\b');
-		    ttputc(' ');
-		    ttputc('\b');
-		    --ttcol;
-		    --cpos;
-#endif  /* HANKANA */
-		}
-#endif /* KANJI */
+		--cpos;
 	    }
 	    ttflush();
 	    break;
@@ -2581,31 +2517,23 @@ va_list *ap;
 			/* previous word	*/
 			/* back up to first word character or beginning */
 	    while ((cpos > 0) && !ISWORD(buf[cpos - 1])) {
-		ttputc('\b');
-		ttputc(' ');
-		ttputc('\b');
-		--ttcol;
-		if (ISCTRL(buf[--cpos]) != FALSE) {
+		int w = display_lang->lm_width(buf[cpos]);
+		while (w--) {
 		    ttputc('\b');
 		    ttputc(' ');
 		    ttputc('\b');
 		    --ttcol;
 		}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-		else if (ISKANJI(buf[cpos])) {
-		    ttputc('\b');
-		    ttputc(' ');
-		    ttputc('\b');
-		    --ttcol;
-		    --cpos;
-		}
-#endif /* KANJI */
+		--cpos;
 	    }
 	    while ((cpos > 0) && ISWORD(buf[cpos - 1])) {
-		ttputc('\b');
-		ttputc(' ');
-		ttputc('\b');
-		--ttcol;
+		int w = display_lang->lm_width(buf[--cpos]);
+		while (w--) {
+		    ttputc('\b');
+		    ttputc(' ');
+		    ttputc('\b');
+		    --ttcol;
+		}
 		if (ISCTRL(buf[--cpos]) != FALSE) {
 		    ttputc('\b');
 		    ttputc(' ');

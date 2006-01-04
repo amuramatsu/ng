@@ -1,4 +1,4 @@
-/* $Id: word.c,v 1.5.2.2 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: word.c,v 1.5.2.3 2006/01/04 17:00:40 amura Exp $ */
 /*
  *		Word mode commands.
  * The routines in this file
@@ -13,9 +13,15 @@
 #include "word.h"
 
 #include "i_window.h"
+#include "i_lang.h"
 #include "basic.h"
 #include "line.h"
 #include "undo.h"
+
+static VOID initcategory _PRO((int));
+static int incategory _PRO((void));
+#define FORWORD		1
+#define BACKWORD	0
 
 /*
  * Move the cursor backward by
@@ -37,12 +43,9 @@ int f, n;
 	    if (backchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	initcategory(0);	/* Set category of start char. */
+	/* 90.01.29  by S.Yoshida */
+	initcategory(BACKWORD);	/* Set category of start char. */
 	while (inword() != FALSE && incategory()) {
-#else /* NOT KANJI */
-	while (inword() != FALSE) {
-#endif /* KANJI */
 	    if (backchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
@@ -67,12 +70,9 @@ int f, n;
 	    if (forwchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	initcategory(1);	/* Set category of start char. */
+	/* 90.01.29  by S.Yoshida */
+	initcategory(FORWORD);	/* Set category of start char. */
 	while (inword() != FALSE && incategory()) {
-#else /* NOT KANJI */
-	while (inword() != FALSE) {
-#endif /* KANJI */
 	    if (forwchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
@@ -109,12 +109,9 @@ int f, n;
 	    if (forwchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	initcategory(1);	/* Set category of start char. */
+	/* 90.01.29  by S.Yoshida */
+	initcategory(BACKWORD);	/* Set category of start char. */
 	while (inword() != FALSE && incategory()) {
-#else /* NOT KANJI */
-	while (inword() != FALSE) {
-#endif /* KANJI */
 	    c = lgetc(curwp->w_dotp, curwp->w_doto);
 	    if (ISLOWER(c) != FALSE) {
 		c = TOUPPER(c);
@@ -157,12 +154,9 @@ int f, n;
 	    if (forwchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	initcategory(1);	/* Set category of start char. */
+	/* 90.01.29  by S.Yoshida */
+	initcategory(FORWORD);	/* Set category of start char. */
 	while (inword() != FALSE && incategory()) {
-#else /* NOT KANJI */
-	while (inword() != FALSE) {
-#endif /* KANJI */
 	    c = lgetc(curwp->w_dotp, curwp->w_doto);
 	    if (ISUPPER(c) != FALSE) {
 		c = TOLOWER(c);
@@ -207,12 +201,9 @@ int f, n;
 	    if (forwchar(FFRAND, 1) == FALSE)
 		return TRUE;
 	}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	initcategory(1);	/* Set category of start char. */
+	/* 90.01.29  by S.Yoshida */
+	initcategory(FORWORD);	/* Set category of start char. */
 	if (inword() != FALSE && incategory()) {
-#else /* NOT KANJI */
-	if (inword() != FALSE) {
-#endif /* KANJI */
 	    c = lgetc(curwp->w_dotp, curwp->w_doto);
 	    if (ISLOWER(c) != FALSE) {
 		c = TOUPPER(c);
@@ -221,11 +212,8 @@ int f, n;
 	    }
 	    if (forwchar(FFRAND, 1) == FALSE)
 		return TRUE;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+	    /* 90.01.29  by S.Yoshida */
 	    while (inword() != FALSE && incategory()) {
-#else /* NOT KANJI */
-	    while (inword() != FALSE) {
-#endif /* KANJI */
 		c = lgetc(curwp->w_dotp, curwp->w_doto);
 		if (ISUPPER(c) != FALSE) {
 		    c = TOLOWER(c);
@@ -251,9 +239,6 @@ int f, n;
     register RSIZE size;
     register LINE *dotp;
     register int doto;
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    register RSIZE s;			/* Delete char size.	*/
-#endif /* KANJI */
 
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
@@ -272,37 +257,21 @@ int f, n;
     size = 0;
     while (n--) {
 	while (inword() == FALSE) {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    s = CHAR_LENGTH();
-#endif /* KANJI */
 	    if (forwchar(FFRAND, 1) == FALSE)
 		goto out;	/* Hit end of buffer.	*/
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    size += s;
-#else /* NOT KANJI */
 	    ++size;
-#endif /* KANJI */
-		}
-#ifndef	KANJI	/* 90.01.29  by S.Yoshida */
-	while (inword() != FALSE) {
-#else /* KANJI */
-	initcategory(1);	/* Set category of start char. */
+	}
+	initcategory(FORWORD);	/* Set category of start char. */
 	while (inword() != FALSE && incategory()) {
-	    s = CHAR_LENGTH();
-#endif /* KANJI */
 	    if (forwchar(FFRAND, 1) == FALSE)
 		goto out;	/* Hit end of buffer.	*/
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    size += s;
-#else /* NOT KANJI */
 	    ++size;
-#endif /* KANJI */
 	}
     }
 out:
     curwp->w_dotp = dotp;
     curwp->w_doto = doto;
-    return (ldelete(size, KFORW));
+    return (ldelete(size, KBACK));
 }
 
 /*
@@ -338,39 +307,20 @@ int f, n;
     thisflag |= CFKILL;
     if (backchar(FFRAND, 1) == FALSE)
 	return (TRUE);			/* Hit buffer start.	*/
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    size = CHAR_LENGTH();
-#else /* NOT KANJI */	
     size = 1;				/* One deleted.		*/
-#endif /* KANJI */
     while (n--) {
 	while (inword() == FALSE) {
 	    if (backchar(FFRAND, 1) == FALSE)
 		goto out;	/* Hit buffer start.	*/
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    size += CHAR_LENGTH();
-#else /* NOT KANJI */	
 	    ++size;
-#endif /* KANJI */
 	}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	initcategory(0);	/* Set category of start char. */
+	initcategory(BACKWORD);	/* Set category of start char. */
 	while (inword() != FALSE && incategory()) {
-#else /* NOT KANJI */
-	while (inword() != FALSE) {
-#endif	/* KANJI */
 	    if (backchar(FFRAND, 1) == FALSE)
 		goto out;	/* Hit buffer start.	*/
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-	    size += CHAR_LENGTH();
-#else /* NOT KANJI */	
 	    ++size;
-#endif /* KANJI */
 	}
     }
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    size -= CHAR_LENGTH();
-#endif	/* KANJI */
     if (forwchar(FFRAND, 1) == FALSE)
 	return FALSE;
     --size;					/* Undo assumed delete. */
@@ -387,28 +337,57 @@ out:
 int
 inword()
 {
-    /* can't use lgetc in ISWORD due to bug in OSK cpp */
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-    register int	c;
-    
-    if (curwp->w_doto == llength(curwp->w_dotp)) {
+    NG_WCHAR_t c;
+    if (curwp->w_doto == llength(curwp->w_dotp))
 	return FALSE;
-    }
     c = lgetc(curwp->w_dotp, curwp->w_doto);
-    if (ISKANJI(c)) {
-#ifdef HOJO_KANJI
-	if (ISHOJO(c)) {
-	    curwp->w_doto++;
-	    c = lgetc(curwp->w_dotp, curwp->w_doto);
+    if ((curbp->b_lang->lm_get_category(c) & _NGC_W) != 0)
+	return TRUE;
+    return FALSE;
+}
+
+
+static int cur_cat;			/* Current char category.	*/
+static int cur_dir;			/* Current search direction.	*/
+
+/*
+ * Set char category of search start position char,
+ * and set search direction.
+ */
+static VOID
+initcategory(dir)
+int dir;
+{
+    NG_WCHAR_t c =  lgetc(curwp->w_dotp, curwp->w_doto);
+    cur_cat = curbp->b_lang->lm_get_category(c);
+    cur_dir = dir;
+}
+
+/*
+ * Is it in a same category ?
+ * return TRUE if category of current position char is same as
+ * start position char's one (now in a word), or it is HIRAGANA
+ * added to the end of that word.
+ */
+static int
+incategory()
+{
+    register int cat;
+    NG_WCHAR_t c =  lgetc(curwp->w_dotp, curwp->w_doto);
+    
+    if (curwp->w_doto == llength(curwp->w_dotp))
+	return FALSE;
+    cat = curbp->b_lang->lm_get_category(c);
+    if (cur_dir == FORWORD) {	/* Direction is forward. */
+	if (cat & _NGC_WS) { /* Now start added slave chars part. */
+	    cur_cat = cat;
 	}
-#endif
-	return(iskword(c, lgetc(curwp->w_dotp, curwp->w_doto + 1)));
     }
-    else {
-	return (ISWORD(c));
+    else {			/* Direcrion is backward. */
+	if (cur_cat & _NGC_WS && cat != cur_cat) {
+	    /* Now end added slave part and start word part. */
+	    cur_cat = cat;
+	}
     }
-#else /* NOT KANJI */
-    return curwp->w_doto != llength(curwp->w_dotp) && 
-	ISWORD(curwp->w_dotp->l_text[curwp->w_doto]);
-#endif /* KANJI */
+    return(cat == cur_cat);
 }

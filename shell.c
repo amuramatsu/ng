@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.5.2.5 2005/04/28 16:53:36 amura Exp $ */
+/* $Id: shell.c,v 1.5.2.6 2006/01/04 17:00:40 amura Exp $ */
 /*
  *		Shell commands.
  * The file contains the command
@@ -48,7 +48,7 @@ int f, n;
     {
 	/* code conversion */
 	char *tmp;
-	LM_OUT_CONVERT_TMP2(curbp->b_lang, lm_io_code, buf, tmp);
+	LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_IO, buf, tmp);
 	if (tmp == NULL)
 	    return FALSE;
 	if ((result = call_process(tmp, NULL)) == NULL)

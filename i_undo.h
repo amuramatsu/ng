@@ -1,4 +1,4 @@
-/* $Id: i_undo.h,v 1.1.2.1 2003/02/26 00:08:57 amura Exp $ */
+/* $Id: i_undo.h,v 1.1.2.2 2006/01/04 17:00:39 amura Exp $ */
 /*
  * Undo supports: Ng 1.4(upto beta4) support undo like emacs.
  * This undo is not support redo. and not perfect now.
@@ -16,7 +16,7 @@ typedef struct UNDO_DATA {
     LINE_NO_t u_dotlno;
     LINE_OFF_t u_doto;
     RSIZE u_size;
-    NG_WCHAR_t u_code[2];
+    NG_WCHAR_t u_code;
     struct UNDO_DATA* u_next;
     RSIZE u_used;
     NG_WCHAR_t *u_buffer;
