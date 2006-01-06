@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.9 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.10 2006/01/06 12:35:25 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -43,7 +43,7 @@ static VOID eformat _PRO((register const char *fp, register va_list *ap));
 static VOID eputi _PRO((int, int));
 static VOID eputl _PRO((long, int));
 static VOID eputs _PRO((const char *));
-static VOID eputws _PRO((const NG_WCHAR_t *));
+static VOID eputls _PRO((const NG_WCHAR_t *));
 static VOID eputc _PRO((int));
 #ifndef NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
 static int complt _PRO((int, int, char *, int));
@@ -313,12 +313,8 @@ static NG_WCHAR_t *mb_hist_buf[MB_HIST_NTYPES][MB_NHISTS+1];
 static int mb_init _PRO((int, const char *, va_list *));
 static int mb_get_buffer _PRO((NG_WCHAR_t *, int));
 static int mb_bufsize _PRO((void));
-static int mb_pointchar _PRO((void));
-static int mb_pointoverwrite _PRO((unsigned int));
-static int mb_point _PRO((void));
-static int mb_iseol _PRO((void));
-static int mb_isbol _PRO((void));
-static int mb_isword _PRO((void));
+static NG_WCHAR_t mb_pointchar _PRO((void));
+static int mb_pointoverwrite _PRO((NG_WCHAR_t));
 static int mb_gotochar _PRO((int));
 static int mb2_gotochar _PRO((int));
 static int mb_insert _PRO((int, int));
@@ -341,8 +337,6 @@ static int mb2_forwc _PRO((int));
 static int mb2_backwc _PRO((int));
 static int mb_forww _PRO((int));
 static int mb_backww _PRO((int));
-static int mb_begl _PRO((void));
-static int mb_endl _PRO((void));
 static int mb_upw _PRO((int));
 static int mb_downw _PRO((int));
 static int mb_cancel _PRO((void));
@@ -358,14 +352,32 @@ static VOID mb_move _PRO((int));
 static int mb_fixlines _PRO((int, struct _Line *, int, int *, int *));
 static VOID mb_redisplay _PRO((void));
 static VOID mb_refresh _PRO((int, int));
-static VOID mb_flush _PRO((void));
 static VOID mb_hist_save _PRO((NG_WCHAR_t **, const NG_WCHAR_t *));
 static NG_WCHAR_t* sformat _PRO((const char *, va_list *));
 static int s_put_i _PRO((NG_WCHAR_t *, int, int, int, int));
 static int s_put_l _PRO((NG_WCHAR_t *, int, int, long, int));
-static int s_put_s _PRO((NG_WCHAR_t *, int, int, char *));
+static int s_put_s _PRO((NG_WCHAR_t *, int, int, const char *));
+static int s_put_ls _PRO((NG_WCHAR_t *, int, int, const NG_WCHAR_t *));
 static int s_put_c _PRO((NG_WCHAR_t *, int, int, int));
-static VOID chsize _PRO((const NG_WCHAR_t *, int *));
+
+#define mb_iseol() 	(_mb_gapend == _mb_size)
+#define mb_isbol() 	(_mb_point == _mb_prompt)
+#define mb_isword()	(ISWORD(_mb_buf[_mb_gapend]))
+#define mb_begl()	(mb_gotochar(_mb_prompt))
+#define mb_endl()	(mb_gotochar(_mb_bufsize))
+#define mb_flush()	(ttflush())
+#define chsize(s)	(display_lang->lm_width(*(s)))
+
+static int  _mb_ccol;
+static int  _mb_crow;
+static NG_WCHAR_t *_mb_buf = NULL;
+static int _mb_size      = 0;
+static int _mb_point     = 0;
+static int _mb_gapend    = 0;
+static int _mb_prompt    = 0;
+static int _mb_bufsize   = 0;
+static struct _Line  Line = {0, 0, NULL, NULL};
+static struct _Line  *CLine;
 
 #ifdef CANNA
 #include <canna/jrkanji.h>
@@ -798,17 +810,6 @@ va_dcl
 }
 #endif /* SUPPORT_ANSI */
 
-static int  _mb_ccol;
-static int  _mb_crow;
-static NG_WCHAR_t *_mb_buf = NULL;
-static int _mb_size      = 0;
-static int _mb_point     = 0;
-static int _mb_gapend    = 0;
-static int _mb_prompt    = 0;
-static int _mb_bufsize   = 0;
-static struct _Line  Line = {0, 0, NULL, NULL};
-static struct _Line  *CLine;
-
 static int
 mb_init(nbuf, fp, ap)
 int  nbuf;
@@ -878,19 +879,19 @@ int nbuf;
     j = 0;
     for (i = _mb_prompt; i < _mb_point;) {
 	if (j >= nbuf-1) {
-	    buf[j] = '\0';
+	    buf[j] = NG_EOS;
 	    return 0;
 	}
 	buf[j++] = _mb_buf[i++];
     }
     for (i = _mb_gapend; i < _mb_size;) {
 	if (j >= nbuf-1) {
-	    buf[j] = '\0';
+	    buf[j] = NG_EOS;
 	    return 0;
 	}
 	buf[j++] = _mb_buf[i++];
     }
-    buf[j] = '\0';
+    buf[j] = NG_EOS;
     return mb_bufsize();
 }
 
@@ -900,45 +901,22 @@ mb_bufsize()
     return _mb_bufsize-_mb_prompt;
 }
 
-static int
+static NG_WCHAR_t
 mb_pointchar()
 {
-    unsigned int  ch;
-    
-    ch = _mb_buf[_mb_point-1];
-    return ch;
+    if (_mb_point == 0)
+	return NG_EOS;
+    return _mb_buf[_mb_point-1];
 }
 
 static int
 mb_pointoverwrite(ch)
-unsigned int ch;
+NG_WCHAR_t ch;
 {
+    if (_mb_point == 0)
+	return NG_EOS;
     _mb_buf[_mb_point-1] = ch;
     return ch;
-}
-
-static int
-mb_point()
-{
-    return _mb_point;
-}
-
-static int
-mb_iseol()
-{
-    return (_mb_gapend == _mb_size);
-}
-
-static int
-mb_isbol()
-{
-    return (_mb_point == _mb_prompt);
-}
-
-static int
-mb_isword()
-{
-    return ISWORD(_mb_buf[_mb_gapend]);
 }
 
 static int
@@ -949,7 +927,7 @@ int i;
     struct _Line *lp;
 
     if (i == _mb_point)
-	return mb_point();
+	return _mb_point;
     ocol = _mb_ccol;
     opt  = _mb_point;
     lp = CLine;
@@ -962,7 +940,7 @@ int i;
 	ttmove(_mb_crow, _mb_ccol);
     else
 	mb_refresh(col, pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -971,7 +949,7 @@ int i;
 {
     if (i != _mb_point)
 	mb_move(i-_mb_point);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1000,7 +978,7 @@ int n, c;
 	return -1;
     while (n-- > 0)
 	mb_putchar(c);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1021,7 +999,7 @@ const NG_WCHAR_t *s;
 	mb_refresh(ocol, opt);
     else
 	mb_refresh(col, pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int _mb_cmpl_msg_len   = 0;
@@ -1044,7 +1022,7 @@ char *s;
     int  pt;
     
     _mb_cmpl_msg_len = strlen(s);
-    pt = mb_point();
+    pt = _mb_point;
     while (*s != NG_EOS)
 	mb_putchar(*(s++));
     mb2_gotochar(pt);
@@ -1069,7 +1047,7 @@ mb_delcmplmsg()
     else
 	mb_refresh(col, pt);
     _mb_cmpl_msg_len = 0;
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1087,7 +1065,7 @@ const NG_WCHAR_t *buf;
 	mb_refresh(ocol, opt);
     else
 	mb_redisplay();
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1101,7 +1079,7 @@ const NG_WCHAR_t *buf;
 	;
     while (*p1 != NG_EOS)
 	mb_putchar(*(p1++));
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1116,7 +1094,7 @@ int n;
 	return -1;
     mb_fixlines(_mb_ccol, CLine, _mb_point, &col, &pt);
     mb_refresh(col, pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1129,7 +1107,7 @@ int n;
 	_mb_gapend++;
 	_mb_bufsize--;
     }
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1146,7 +1124,7 @@ int  n;
 	mb_refresh(_mb_ccol, _mb_point); 
     else 
 	mb_redisplay();
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1163,7 +1141,7 @@ int n;
 	if (mb2_delc(1) < 0)
 	    return -1;
     }
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1199,7 +1177,7 @@ int n;
 	mb_refresh(_mb_ccol, _mb_point);    
     else
 	mb_refresh(col, pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1210,7 +1188,7 @@ int n;
     struct _Line *lp;
     
     if (n <= 0)
-	return mb_point();
+	return _mb_point;
     
     ocol = _mb_ccol;
     opt  = _mb_point;
@@ -1241,7 +1219,7 @@ End:
 #endif
     mb_fixlines(_mb_ccol, CLine, _mb_point, &col, &pt);
     mb_refresh(col, pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1261,7 +1239,7 @@ int n;
 	ttmove(_mb_crow, _mb_ccol);
     else 
 	mb_refresh(col, pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1280,7 +1258,7 @@ int n;
 	ttmove(_mb_crow, _mb_ccol);
     else 
 	mb_refresh(col, pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1288,11 +1266,11 @@ mb2_forwc(n)
 int n;
 {
     if (_mb_gapend == _mb_size)
-	return mb_point();
+	return _mb_point;
     while ((n-- > 0) && (_mb_gapend < _mb_size)) {
 	mb_move(1);
     }
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1300,11 +1278,12 @@ mb2_backwc(n)
 int n;
 {
     if (_mb_point == _mb_prompt)
-	return mb_point();
+	return _mb_point;
+
     while ((n-- > 0) && (_mb_point > _mb_prompt)) {
-	mb_move(1);
+	mb_move(-1);
     }
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1335,7 +1314,7 @@ int n;
 	ttmove(_mb_crow, _mb_ccol);
     else 
 	mb_refresh(col, pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1367,19 +1346,7 @@ int n;
 	ttmove(_mb_crow, _mb_ccol);
     else 
 	mb_refresh(col, pt);
-    return mb_point();
-}
-
-static int
-mb_begl()
-{
-    return mb_gotochar(_mb_prompt);
-}
-
-static int
-mb_endl()
-{
-    return mb_gotochar(_mb_bufsize);
+    return _mb_point;
 }
 
 static int  
@@ -1390,7 +1357,7 @@ int n;
     struct _Line  *lp;
     
     if (n <= 0)
-	return mb_point();
+	return _mb_point;
     
     ocol = _mb_ccol;
     opt  = _mb_point;
@@ -1410,7 +1377,7 @@ int n;
 	mb_refresh(ocol, opt);
     else
 	mb_redisplay();
-    return mb_point();
+    return _mb_point;
 }
 
 static int  
@@ -1421,7 +1388,7 @@ int n;
     struct _Line  *lp;
     
     if (n <= 0)
-	return mb_point();
+	return _mb_point;
     
     ocol = _mb_ccol;
     opt  = _mb_point;
@@ -1441,7 +1408,7 @@ int n;
 	mb_refresh(ocol, opt);
     else
 	mb_redisplay();
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1454,9 +1421,10 @@ mb_cancel()
     if (lp == CLine) {
 	ttmove(_mb_crow, _mb_ccol);
 	tteeol();
-    } else
+    }
+    else
 	mb_redisplay();
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1468,7 +1436,7 @@ mb2_cancel()
     _mb_gapend  = _mb_size;
     _mb_bufsize = _mb_prompt;
     mb_fixlines(0, Line.next, 0, &col, &pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1480,7 +1448,7 @@ mb_kill()
 	if (kinsert(_mb_buf[_mb_gapend], KFORW) < 0)
 	    break;
 	_mb_gapend++;
-    _mb_bufsize--;
+	_mb_bufsize--;
     }
 #ifdef CLIPBOARD
     send_clipboard();
@@ -1489,7 +1457,7 @@ mb_kill()
 	tteeol();
     else 
 	mb_refresh(col, pt);
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1519,7 +1487,7 @@ int n;
 	mb_refresh(ocol, opt);
     else
 	mb_redisplay();
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1538,7 +1506,8 @@ int n;
 	    if (CLine == Line.next) {
 		lp   = CLine;
 		opt  = 0;
-	    } else {
+	    }
+	    else {
 		lp   = CLine->prev;
 		opt  = lp->idx;
 	    }
@@ -1587,7 +1556,7 @@ int n;
 	else 
 	    mb_redisplay();
     }
-    return mb_point();
+    return _mb_point;
 }
 
 static int
@@ -1600,7 +1569,7 @@ int opar, cpar;
     struct _Line  *clp, *dlp, *lp;
     
     if (n <= 0)
-	return mb_point();
+	return _mb_point;
     
     instr = 0;
     for (i = _mb_prompt; i < _mb_point; i++) {
@@ -1609,7 +1578,8 @@ int opar, cpar;
 		instr = 1;
 	    else 
 		instr = 0;
-	} else if (_mb_buf[i] == '\\')
+	}
+	else if (_mb_buf[i] == '\\')
 	    i++;
     }
     oinstr = instr;
@@ -1702,7 +1672,7 @@ int opar, cpar;
 	ttmove(_mb_crow, _mb_ccol);
     if (match != on)
 	ttbeep();
-    return mb_point();
+    return _mb_point;
 }
 
 static int 
@@ -1710,12 +1680,10 @@ mb_col(lp, pt)
 struct _Line *lp;
 int pt;
 {
-    int col, point, v;
-    
+    int col, point;
     col = 0;
     for (point = lp->idx; point < pt; ) {
-	chsize(&_mb_buf[point], &v);
-	col   += v;
+	col += chsize(&_mb_buf[point]);
 	point++;
     }
     return col;
@@ -1791,6 +1759,9 @@ int n;
 }
 #endif
 
+/*
+ * This function redraw minibuf
+ */
 static int
 mb_fixlines(col, line, point, colp, ptp)
 int col, point, *colp, *ptp;
@@ -1818,15 +1789,14 @@ struct _Line *line;
 	    break;
 	
 	opt   = point;
-	chsize(&_mb_buf[point], &v);
+	v = chsize(&_mb_buf[point]);
 	col   += v;
 	ccol  += v;
 	point++;
     
 	if (col >= (ncol-1)-1) {
 	    if (line->next == &Line) {
-		if ((lp0 = (struct _Line*)malloc(sizeof(struct _Line)))
-		    == NULL)
+		if ((lp0 = (struct _Line*)malloc(sizeof(struct _Line))) == NULL)
 		    return -1;
 		line->next = lp0;
 		lp0->next  = &Line;
@@ -1884,23 +1854,21 @@ static VOID
 mb_refresh(col, idx)
 int col, idx;
 {
-    int v, limit;
+    int limit;
 
     limit = (ncol-1)-2;
     ttmove(_mb_crow, col);
     for ( ; idx < _mb_point; ) {
 	if (col >= limit)
 	    break;
-	chsize(&_mb_buf[idx], &v);
+	col += chsize(&_mb_buf[idx]);
 	eputc(_mb_buf[idx++]);
-	col += v;
     }
     for (idx = _mb_gapend; idx < _mb_size; ) {
 	if (col >= limit)
 	    break;
-	chsize(&_mb_buf[idx], &v);
+	col += chsize(&_mb_buf[idx]);
 	eputc(_mb_buf[idx++]);
-	col += v;
     }
     if (CLine->next != &Line) {
 	for ( ; col <= (ncol-1); col++)
@@ -1910,12 +1878,6 @@ int col, idx;
 	tteeol();
     ttmove(_mb_crow, _mb_ccol);
     mb_flush();
-}
-
-static VOID
-mb_flush()
-{
-    ttflush();
 }
 
 #ifdef CANNA
@@ -1933,9 +1895,9 @@ int c;
     ilen = jrKanjiString(0, c, kakutei, CANBUF, &ks);
 
     if (oldrevPos == 0)
-	oldrevPos = mb_point();
+	oldrevPos = _mb_point;
     if (oldlength == 0)
-	oldlength = mb_point();    
+	oldlength = _mb_point;
 
     if (ilen < 0)
 	return FALSE;
@@ -1945,7 +1907,7 @@ int c;
 	
     if (ilen > 0) {
 	mb2_gotochar(oldlength);
-	while (mb_point() > oldrevPos)
+	while (_mb_point > oldrevPos)
 	    mb2_erasec(1);
 	mb_fixlines(0, Line.next, 0, &col, &pt);
 	if (lp == CLine)
@@ -1957,23 +1919,23 @@ int c;
     }
     if (ks.length > 0) {
 	mb2_gotochar(oldlength);
-	while (mb_point() > oldrevPos)
+	while (_mb_point > oldrevPos)
 	    mb2_erasec(1);
 	mb_fixlines(0, Line.next, 0, &col, &pt);
 	if (lp == CLine)
 	    mb_refresh(_mb_ccol, _mb_point); 
 	else 
 	    mb_redisplay();
-	oldrevPos = mb_point();
+	oldrevPos = _mb_point;
 	mb_insert( 1, '|');
 	mb_insertstr(ks.echoStr);
 	mb_insert( 1, '|');
-	oldlength = mb_point();
+	oldlength = _mb_point;
 	mb_backwc(1);
     }
     else if ( ks.length == 0 && ilen == 0) {
 	mb2_gotochar(oldlength);
-	while (mb_point() > oldrevPos)
+	while (_mb_point > oldrevPos)
 	    mb2_erasec(1);
 	mb_fixlines(0, Line.next, 0, &col, &pt);
 	if (lp == CLine)
@@ -2028,13 +1990,16 @@ register va_list *ap;
 		idx = s_put_i(s, idx, n, va_arg(*ap, int), 8);
 		break;
 	    case 's':
-		idx = s_put_s(s, idx, n, va_arg(*ap, char *));
+		idx = s_put_s(s, idx, n, va_arg(*ap, const char *));
 		break;
 	    case 'l':/* explicit longword */
 		c = *fp++;
 		switch(c) {
 		case 'd':
 		    idx = s_put_l(s, idx, n, (long)va_arg(*ap, long), 10);
+		    break;
+		case 's': /* wide str */
+		    idx = s_put_ls(s, idx, n, va_arg(*ap, const NG_WCHAR_t *));
 		    break;
 		default:
 		    idx = s_put_c(s, idx, n, c);
@@ -2090,12 +2055,21 @@ static int
 s_put_s(p, idx, n,  s)
 register NG_WCHAR_t *p;
 register int idx, n;
-register char *s;
+register const char *s;
 {
-    register int c;
+    while (*s != '\0')
+	idx = s_put_c(p, idx, n, *s++);
+    return idx;
+}
 
-    while ((c = *s++) != '\0')
-	idx = s_put_c(p, idx, n, c);
+static int
+s_put_ls(p, idx, n,  s)
+register NG_WCHAR_t *p;
+register int idx, n;
+register const NG_WCHAR_t *s;
+{
+    while (*s != NG_EOS)
+	idx = s_put_c(p, idx, n, *s++);
     return idx;
 }
 
@@ -2117,14 +2091,6 @@ register int c;
 	p[idx++] = c;
     }
     return idx;
-}
-
-static VOID
-chsize(s, visu)
-register const NG_WCHAR_t *s;
-register int *visu;
-{
-    *visu = display_lang->lm_width(*s);
 }
 
 static VOID
@@ -2861,7 +2827,7 @@ register va_list *ap;
 		    break;
 		    
 		case 's':/* wide string */
-		    eputws(va_arg(*ap, NG_WCHAR_t *));
+		    eputls(va_arg(*ap, NG_WCHAR_t *));
 		    break;
 		    
 		default:
@@ -2932,7 +2898,7 @@ register const char *s;
  * Put wide string.
  */
 static VOID
-eputws(s)
+eputls(s)
 register const NG_WCHAR_t *s;
 {
     register NG_WCHAR_t c;
