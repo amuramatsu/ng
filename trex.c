@@ -97,7 +97,7 @@ static int trex_newnode(TRex *exp, TRexNodeType type)
 	if(type == OP_EXPR)
 		n.right = exp->_nsubexpr++;
 	if(exp->_nallocated < (exp->_nsize + 1)) {
-		int oldsize = exp->_nallocated;
+		/* int oldsize = exp->_nallocated; */
 		exp->_nallocated *= 2;
 		exp->_nodes = (TRexNode *)realloc(exp->_nodes,exp->_nallocated * sizeof(TRexNode));
 	}
@@ -117,6 +117,7 @@ static void trex_expect(TRex *exp, int n){
 	exp->_p++;
 }
 
+#if 0
 static TRexBool trex_ischar(TRexChar c)
 {
 	switch(c) {
@@ -128,6 +129,7 @@ static TRexBool trex_ischar(TRexChar c)
     }
 	return TRex_True;
 }
+#endif
 
 static TRexChar trex_escapechar(TRex *exp)
 {
@@ -448,7 +450,7 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 	case OP_OR: {
 			const TRexChar *asd = str;
 			TRexNode *temp=&exp->_nodes[node->left];
-			while(asd = trex_matchnode(exp,temp,asd,NULL)) {
+			while((asd = trex_matchnode(exp,temp,asd,NULL)) != NULL) {
 				if(temp->next != -1)
 					temp = &exp->_nodes[temp->next];
 				else
@@ -456,7 +458,7 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 			}
 			asd = str;
 			temp = &exp->_nodes[node->right];
-			while(asd = trex_matchnode(exp,temp,asd,NULL)) {
+			while((asd = trex_matchnode(exp,temp,asd,NULL)) != NULL) {
 				if(temp->next != -1)
 					temp = &exp->_nodes[temp->next];
 				else
@@ -497,7 +499,7 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 			return cur;
 	}				 
 	case OP_WB:
-		if(str == exp->_bol && !isspace(*str)
+		if((str == exp->_bol && !isspace(*str))
 		 || (str == exp->_eol && !isspace(*(str-1)))
 		 || (!isspace(*str) && isspace(*(str+1)))
 		 || (isspace(*str) && !isspace(*(str+1))) ) {
