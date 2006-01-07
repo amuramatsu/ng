@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.8.2.4 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: search.c,v 1.8.2.5 2006/01/07 12:19:40 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -73,14 +73,8 @@ static int is_fail _PRO((int));
 static int is_addword _PRO((int, int));
 #endif
 
-#ifdef IS_ENHANCE
 /* casefoldsearch: Does search ignore case ? */
-#ifdef REGEX
-extern int casefoldsearch;	/* Defined in re_search.c */
-#else
 int casefoldsearch = TRUE;
-#endif
-#endif /* IS_ENHANCE */
 
 /*
  * Search forward.
@@ -656,6 +650,8 @@ int f, n;
 	return FALSE;
     }
 #endif
+    if (!casefoldsearch)
+	f = TRUE;
     if ((s=readpattern("Query replace")) != TRUE)
 	return (s);
     if ((s=ereply("Query replace %ls with: ", news, NPAT, pat)) == ABORT)
@@ -858,10 +854,8 @@ register int bc, pc;
     pc = CHARMASK(pc);
     if (bc == pc)
 	return TRUE;
-#ifdef IS_ENHANCE
     if (!casefoldsearch)
 	return FALSE;
-#endif	
     if (ISUPPER(bc))
 	return TOLOWER(bc) == pc;
     if (ISUPPER(pc))
@@ -894,4 +888,20 @@ const char *prompt;
     else if (s==FALSE && pat[0]!=0)		/* CR, but old one	*/
 	s = TRUE;
     return s;
+}
+
+/* Case fold or not.  Default is case fold. */
+int
+setcasefold(f, n)
+int f, n;
+{
+    if (f & FFARG) {
+	casefoldsearch = FALSE;
+	ewprintf("Case-fold-search unset");
+    }
+    else {
+	casefoldsearch = TRUE;
+	ewprintf("Case-fold-search set");
+    }
+    return TRUE;
 }

@@ -1,4 +1,4 @@
-/* $Id: keymap.c,v 1.11.2.2 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: keymap.c,v 1.11.2.3 2006/01/07 12:19:40 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
@@ -309,7 +309,6 @@ extern	int	re_forwsearch _PF();	/* Regex search forward		 */
 extern	int	re_backsearch _PF();	/* Regex search backwards	 */
 extern	int	re_searchagain _PF();	/* Repeat regex search command	 */
 extern	int	re_queryrepl _PF();	/* Regex query replace		 */
-extern	int	setcasefold _PF();	/* Set case fold in searches	 */
 extern	int	delmatchlines _PF();	/* Delete all lines matching	 */
 extern	int	delnonmatchlines _PF();	/* Delete all lines not matching */
 extern	int	cntmatchlines _PF();	/* Count matching lines		 */
@@ -332,6 +331,7 @@ extern	int	setprefix _PF();	/* Set line prefix string	*/
 /*
  * Defined by "search.c".
  */
+extern	int	setcasefold _PF();	/* Set case fold in searches	 */
 extern	int	forwsearch _PF();	/* Search forward		*/
 extern	int	backsearch _PF();	/* Search backwards		*/
 extern	int	searchagain _PF();	/* Repeat last search command	*/
@@ -1589,9 +1589,7 @@ FUNCTNAMES functnames[] = {
     {set_cmode_tabwidth, "set-c-tab-width"},
 #endif	
 #endif	/* C_MODE */
-#ifdef	REGEX
     {setcasefold,	"set-case-fold-search"},
-#endif
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
     {k_set_fio,		"set-default-fileio-code"},
 #endif	/* KANJI */
