@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.6.2.1 2006/01/07 12:44:06 amura Exp $ */
+/* $Id: re_search.c,v 1.6.2.2 2006/01/07 15:32:54 amura Exp $ */
 /*
  *		Search commands with Regular Expression
  * The functions are remade from 'search.c' to help from GPL.
@@ -245,7 +245,60 @@ register RSIZE plen;			/* length to remove		*/
 const NG_WCHAR_t *st;			/* replacement string		*/
 int f;					/* case hack disable		*/
 {
-    return lreplace(plen, st, f);
+    NG_WCHAR_t newstr[NLINE];
+    NG_WCHAR_t *p, *newstr_end;
+    int num;
+    register int state = 0;
+    
+    p = newstr;
+    newstr_end = newstr + NG_WCHARLEN(newstr) - 1;
+    while (*st != NG_EOS) {
+	switch (state) {
+	case 2:
+	    if (ISDIGIT(*st)) {
+		num = num*10 + (*st - NG_WCODE('0'));
+		break;
+	    }
+	    else {
+		TRexMatch match;
+		if (trex_getsubexp(re_exp, num, &match) == TRex_True) {
+		    const NG_WCHAR_t *sub = match.begin;
+		    if (p + match.len >= newstr_end)
+			return FALSE;
+		    for (num=0; num<match.len; num++)
+			*p++ = *sub++;
+		}
+		state = 0;
+	    }
+	    /*FALLTHRU*/
+	    
+	case 0:
+	    if (*st == NG_WCODE('\\'))
+		state = 1;
+	    else if (p >= newstr_end)
+		return FALSE;
+	    else
+		*p++ = *st;
+	    break;
+
+	case 1:
+	    if (ISDIGIT(*st)) {
+		num = *st - NG_WCODE('0');
+		state = 2;
+	    }
+	    else if (p >= newstr_end)
+		return FALSE;
+	    else {
+		*p++ = *st;
+		state = 0;
+	    }
+	    break;
+	}
+	st++;
+    }
+    
+    *p = NG_EOS;
+    return lreplace(plen, newstr, f);
 }
 
 /*
