@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.22.2.1 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: config.h,v 1.22.2.2 2006/01/07 12:44:06 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -32,7 +32,7 @@
 
 #define	DO_METAKEY	/* Enable META key input.		*/
 
-#undef	REGEX		/* Enable regular expression functions.	*/
+#define	REGEX		/* Enable regular expression functions.	*/
 
 #define	PREFIXREGION	/* Enable function "prefix-region".	*/
 

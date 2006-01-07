@@ -1,3 +1,4 @@
+/* Modified for NG Next Generation */
 /* see copyright notice in trex.h */
 #include <string.h>
 #include <stdlib.h>
@@ -5,6 +6,12 @@
 #include <setjmp.h>
 #include "trex.h"
 
+#ifdef ng
+#define scisprint	isprint
+#define scstrlen	wstrlen
+#define scprintf	ewprintf
+#define _SC(x)		_NG_WSTR(x)
+#else /* not ng */
 #ifdef _UINCODE
 #define scisprint iswprint
 #define scstrlen wcslen
@@ -16,6 +23,7 @@
 #define scprintf printf
 #define _SC(x) (x)
 #endif
+#endif /* ng */
 
 #ifdef _DEBUG
 #include <stdio.h>

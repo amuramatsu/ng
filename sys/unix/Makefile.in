@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.8.2.2 2006/01/01 18:34:13 amura Exp $
+# $Id: Makefile.in,v 1.8.2.3 2006/01/07 12:45:56 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # Create from BSD Makefile by MURAMATSU Atsushi
@@ -56,7 +56,7 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 
 OINCS =	ttydef.h sysdef.h chrdef.h
 INCS =	config.h def.h sysconfig.h extern.h
-REINCS = regex_e.h regex_j.h regex_j.c regex_e.h kanji_.h kanji_.c
+REINCS = trex.h trex.c
 
 #PROG = mg
 PROG = ng

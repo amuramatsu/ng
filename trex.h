@@ -1,3 +1,7 @@
+/*
+ * Modified for NG Next Generation
+ * Copyright (C) 2006 MURAMATSU Atsushi
+ */
 #ifndef _TREX_H_
 #define _TREX_H_
 /***************************************************************
@@ -27,6 +31,11 @@
 
 ****************************************************************/
 
+#ifdef ng
+#define TRexChar NG_WCHAR_t
+#define MAX_CHAR 0xFFFF
+#define trex_strlen wstrlen
+#else /* not ng */
 #ifdef _UNICODE
 #define TRexChar unsigned short
 #define MAX_CHAR 0xFFFF
@@ -40,6 +49,7 @@
 #define trex_strlen strlen
 #define trex_printf printf
 #endif
+#endif /* ng */
 
 #ifndef TREX_API
 #define TREX_API extern
