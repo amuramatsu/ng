@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.6.2.2 2006/01/07 15:32:54 amura Exp $ */
+/* $Id: re_search.c,v 1.6.2.3 2006/01/07 16:07:23 amura Exp $ */
 /*
  *		Search commands with Regular Expression
  * The functions are remade from 'search.c' to help from GPL.
@@ -238,7 +238,6 @@ stopsearch:
     return TRUE;
 }
 
-/* not implemented yet */
 static int
 re_doreplace(plen, st, f)
 register RSIZE plen;			/* length to remove		*/
@@ -374,11 +373,11 @@ re_backsrch()
 	while (trex_searchrange(re_exp,
 				ltext(clp) + cbo, ltext(clp) + tbo + 1,
 				&pp, &epp) == TRex_True) {
-	    cbo = pp - clp->l_text + 1; /* search again from next char */
+	    cbo = pp - ltext(clp) + 1; /* search again from next char */
 	}
 	if (pp != NULL) {
 	    curwp->w_dotp = clp;
-	    curwp->w_doto = pp - clp->l_text;
+	    curwp->w_doto = pp - ltext(clp);
 	    curwp->w_flag |= WFMOVE;
 	    re_matchlen = epp - pp;
 	    return TRUE;
