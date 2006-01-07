@@ -2,7 +2,9 @@
 /* see copyright notice in trex.h */
 #include <string.h>
 #include <stdlib.h>
+#ifndef ng
 #include <ctype.h>
+#endif
 #include <setjmp.h>
 #include "trex.h"
 
@@ -352,6 +354,7 @@ static int trex_list(TRex *exp)
 	return ret;
 }
 
+#ifndef ng
 static TRexBool trex_matchcclass(int cclass,TRexChar c)
 {
 	switch(cclass) {
@@ -374,6 +377,7 @@ static TRexBool trex_matchcclass(int cclass,TRexChar c)
 	}
 	return TRex_False; /*cannot happen*/
 }
+#endif
 
 static TRexBool trex_matchclass(TRex* exp,TRexNode *node,TRexChar c)
 {
