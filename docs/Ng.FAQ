@@ -1,4 +1,4 @@
-# $Id: Ng.FAQ,v 1.4.4.1 2006/01/04 17:00:40 amura Exp $
+# $Id: Ng.FAQ,v 1.4.4.2 2006/01/07 12:58:06 amura Exp $
 
 Ng Frequently Asking Questions and answers
 
@@ -63,11 +63,9 @@ Q : Ng を友人にコピーして構いませんか。
 A : はい、どんどんコピーしてください。
     現在 Ng のソースコードの大部分には BSD-style license が適用され
     ています。詳しくは LICENSE をご覧ください。
-    ただし、re_search.c、regex_[ej].[ch]、sys/win32 以下のファイル
-    には GNU GPL が適用されていますので注意してください。何らかの事
-    情で GPL に従えないときは、regex_[ej].[ch] と re_search.c を空
-    のファイルと置き換え、sys/win32 以下を削除して配布、使用してく
-    ださい。
+    ただし、sys/win32 以下のファイルには GNU GPL が適用されています
+    ので注意してください。何らかの事情で GPL に従えないときは、
+    sys/win32 以下を削除して配布、使用してください。
 
 Q : なんでこんなへんてこなキーアサインなの？
 A : コンピュータの世界では標準である GNU Emacs に準拠しています。
