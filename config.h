@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.22.2.2 2006/01/07 12:44:06 amura Exp $ */
+/* $Id: config.h,v 1.22.2.3 2006/01/07 18:17:53 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -63,7 +63,7 @@
 #define ZAPTOCHAR	/* zap to char (by bsh) */
 #undef	ZAPTOC_A	/* zap to char (GNU Emacs compatible) (by bsh) */
 
-#undef JUMPERR		/* jump to error function (by bsh)	*/
+#define JUMPERR		/* jump to error function (by bsh)	*/
 			/* If defined, ADDFUNC and REGEX must be also. */
 
 #define	MINIBUF_EDIT	/* minibuffer edit like GNU emacs (by Kakugawa)	*/

@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.9.2.3 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: jump.c,v 1.9.2.4 2006/01/07 18:17:53 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -11,6 +11,7 @@
 #include "def.h"
 #include "jump.h"
 
+#include "in_code.h"
 #include "i_line.h"
 #include "i_buffer.h"
 #include "i_window.h"
@@ -21,12 +22,8 @@
 #include "basic.h"
 #include "shell.h"
 
-#ifdef REGEX_JAPANESE
-#include "regex_j.h"
-#else
-#include "regex_e.h"
-#endif
-#define BYTEWIDTH 8
+#define ng
+#include "trex.h"
 
 #ifndef	R_OK              /* for access() */
 # define R_OK 4
@@ -34,13 +31,11 @@
 
 #define	BUFLEN	100
 
-static struct re_pattern_buffer re_buff;
-static char fastmap[(1 << BYTEWIDTH)];
-static char compile_command[NLINE]	=  "make";
-			/* "compile" command buffer.			*
-			 * This	variable is *NOT* buffer local, this is *
-			 * global. 	Y.Koyanagi			*/
+#ifndef DEFAULT_COMPILE_CMD
+#define DEFAULT_COMPILE_CMD	"make -k"
+#endif
 
+#ifndef DEFAULT_JMP_REGEXP
 /* Regular expression for filename/linenumber in error in compilation log.
  * It mathes
  *     filename, line 1234     or
@@ -51,89 +46,93 @@ static char compile_command[NLINE]	=  "make";
  *     filename at line 1234
  */
 #if defined(AMIGA)
-#define	DEFAULT_REGEXP   "\\(\\([^ \n]+:\\)?[^ \n]+\\(:? *\\| at line \\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\)"
+#define	DEFAULT_JMP_REGEXP   "\\(\\([^ \n]+:\\)?[^ \n]+\\(:? *\\| at line \\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\)"
 #elif defined(MSDOS)||defined(HUMAN68K)||defined(WIN32)
-#define	DEFAULT_REGEXP   "\\(\\([a-zA-Z]:\\)?[^ :\n]+\\(:? *\\| at line \\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\)"
+#define	DEFAULT_JMP_REGEXP   "\\(\\([a-zA-Z]:\\)?[^ :\n]+\\(:? *\\| at line \\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\)"
 #else
-#define	DEFAULT_REGEXP   "\\([^ :\n]+\\(:? *\\| at line \\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\)"
+#define	DEFAULT_JMP_REGEXP   "\\([^ :\n]+\\(:? *\\| at line \\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\)"
 #endif
-/*
-#define	DEFAULT_REGEXP   "\\([^ :\n]+\\(:? *\\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\|[^ \n]+ \\(at \\)*line [0-9]+\\)"
+/* other regexp
+#define	DEFAULT_JMP_REGEXP   "\\([^ :\n]+\\(:? *\\|, line \\|(\\)[0-9]+\\)\\|\\([0-9]+ *of *[^ \n]+\\|[^ \n]+ \\(at \\)*line [0-9]+\\)"
 */
+#endif /* DEFAULT_JMP_REGEXP */
 
-static	char *grab_filename _PRO(());
+static TRex *jmp_re_exp;
+static NG_WCHAR_t *jmp_re_pat = NULL;
+static NG_WCHAR_t compile_command[NLINE];
+			/* "compile" command buffer.			*
+			 * This	variable is *NOT* buffer local, this is *
+			 * global. 	Y.Koyanagi			*/
+static int compile_firsttime = TRUE;
+
+static NG_WCHAR_t *grab_filename _PRO((NG_WCHAR_t *));
 
 /*
  *
  */
-int
-set_regexp( pat )
-char *pat;
+static int
+set_regexp(pat)
+const char *pat;
 {
-    char *message;
-    
-    re_buff.allocated = 40;
-    re_buff.buffer = (char *) malloc (re_buff.allocated);
-    if (re_buff.buffer == NULL ){
-	ewprintf( "Can't get %d bytes", re_buff.allocated );
-	re_buff.allocated = 0;
+    size_t len;
+    const NG_WCHAR_t *errorp;
+
+    len = strlen(pat)+1;
+    if (jmp_re_pat != NULL)
+	free(jmp_re_pat);
+    jmp_re_pat = (NG_WCHAR_t *)malloc(len*sizeof(NG_WCHAR_t));
+    if (jmp_re_pat == NULL) {
+	ewprintf( "Can't get %d bytes", len*sizeof(NG_WCHAR_t));
 	return FALSE;
     }
-    re_buff.fastmap = fastmap;
-    re_buff.translate = NULL;
-    message = re_compile_pattern (pat, strlen(pat), &re_buff);
-    if (message != '\0') {
-	ewprintf("Regex Error: %s", message);
-	free( re_buff.buffer );
-	re_buff.allocated = 0;
-	return(FALSE);
+    wstrlcpya(jmp_re_pat, pat, len);
+    if ((jmp_re_exp = trex_compile(jmp_re_pat, &errorp)) == NULL) {
+	ewprintf("Regex Error at char %d", errorp - jmp_re_pat);
+	return FALSE;
     }
-    re_compile_fastmap (&re_buff);
     return TRUE;
 }
 
-int
+static int
 parse_error_message(clp, col, namebuf, ip, parse_end)
 LINE *clp;
-char *namebuf;
+NG_WCHAR_t *namebuf;
 int *ip, *parse_end;
 {
-    struct re_registers regs;
-    char buf[BUFLEN+1];
+    NG_WCHAR_t buf[BUFLEN+1];
+    NG_WCHAR_t *filename;
+    const NG_WCHAR_t *ep, *eep;
     int i, len;
-    char *filename;
     
-    if (re_buff.allocated == 0 && !set_regexp(DEFAULT_REGEXP))
+    if (jmp_re_exp == NULL)
 	return FALSE;
 
-    i = re_search (&re_buff, ltext(clp), llength(clp),
-		   col, llength(clp), &regs);
-    if (i < 0)
+    if (trex_searchrange(jmp_re_exp, ltext(clp), ltext(clp) + llength(clp) + 1,
+			 &ep, &eep) == TRex_False)
 	return FALSE;
 
     if (parse_end != NULL)
-	*parse_end = regs.end[0]+1;
-    len = regs.end[0] - regs.start[0];
+	*parse_end = eep - ltext(clp);
+    len = eep - ep;
     if (len > BUFLEN)
 	len = BUFLEN;
-    strncpy( buf, (const char *)&(ltext(clp)[regs.start[0]]), len ); /* XXX */
-    buf[len] = '\0';
+    wstrlcpy(buf, ep, len);
 
     for (i=len; i>0 && ISDIGIT(buf[i-1]); --i )
 	;
     if (i < len) {	/* we are looking filename-first style. */
-	*ip = atoi( &buf[i] );
-	buf[i] = '\0';
-	filename = grab_filename( buf );
+	*ip = watoi(&buf[i]);
+	buf[i] = NG_EOS;
+	filename = grab_filename(buf);
     }
     else {		/* line-number-first style */
-	*ip = atoi(buf);
-	while( ISDIGIT(buf[i]) || buf[i] == ' ' || buf[i] == '\t' )
+	*ip = watoi(buf);
+	while( ISDIGIT(buf[i]) || buf[i] == NG_WSPACE || buf[i] == NG_WTAB)
 	    ++i;
-	filename = grab_filename( buf );
+	filename = grab_filename(buf);
     }
     if (*filename) {
-	strcpy(namebuf, filename);
+	wstrcpy(namebuf, filename);
 	return TRUE;
     }
     return FALSE;
@@ -148,18 +147,34 @@ jumptoerror(f,n)
 int f, n;
 {
     int lineno;
-    char buf[BUFLEN+1];
+    NG_WCHAR_t wbuf[BUFLEN+1];
     int col;
     LINE *dlp;
+    int buflen = 0;
+    char *buf;
+    int code = curbp->b_lang->lm_get_code(NG_CODE_FOR_FILENAME);
 	
+    if (jmp_re_exp == NULL) {
+	if (set_regexp(DEFAULT_JMP_REGEXP) == FALSE)
+	    return FALSE;
+    }
+    
     dlp = curwp->w_dotp;
     while (dlp != curbp->b_linep) {
     /* get filename and line number to visit */
 	col = 0;
 	while (col < llength(dlp) &&
-	       parse_error_message(dlp, col, buf, &lineno, &col ) ) {
-	    if (access( buf, R_OK ) == 0){
-		/* ewprintf( "file:`%s' line %d", buf, lineno ); */
+	       parse_error_message(dlp, col, wbuf, &lineno, &col)) {
+	    int i = curbp->b_lang->lm_out_convert_len(code, wbuf, NULL);
+	    if (i > buflen) {
+		buflen = i;
+		MALLOCROUND(buflen);
+		if ((buf = (char *)malloc(buflen)) == NULL) {
+		}
+	    }
+	    curbp->b_lang->lm_out_convert(code, wbuf, NULL, buf);
+	    if (access(buf, R_OK) == 0) {
+		/* ewprintf( "file:`%ls' line %d", buf, lineno ); */
 		/*
 		 * All the hairly works to give filename to filevisit()
 		 */
@@ -169,7 +184,7 @@ int f, n;
 		curwp->w_lines = 0;
 		if (lforw(dlp) != curbp->b_linep)
 		    curwp->w_dotp = lforw(dlp);
-		eargset(buf);
+		eargset(wbuf);
 		if (f&FFARG) {
 		    if (!filevisit(FFRAND,0))
 			return FALSE;
@@ -178,7 +193,7 @@ int f, n;
 		    if (!poptofile(FFRAND,0))
 			return FALSE;
 		}
-		gotoline( FFARG, lineno );
+		gotoline(FFARG, lineno);
 		return TRUE;
 	    }
 	}
@@ -197,43 +212,41 @@ int f, n;
 /*
  * extract filename removing punctuations around.
  */
-static char *
+static NG_WCHAR_t *
 grab_filename(buf)
-char *buf;
+NG_WCHAR_t *buf;
 {
-    char *p;
+    NG_WCHAR_t *p;
 #ifdef AMIGA
-    int colon_has = FALSE;
+    int colon_accept = TRUE;
+#else
+    int colon_accept = FALSE;
 #endif
 
     if (*buf == '"') {
 	/* "filename" */
 	for(p=buf+1; *p && *p != '"'; ++p )
 	    ;
-	*p = '\0';
+	*p = NG_EOS;
 	return buf+1;
     }
 
     p = buf;
-#ifdef AMIGA
-    for (;*p && !index(" \t,(", *p); ++p ) {
-	if (*p == ':') {
-	    if (colon_has)
+#if defined(MSDOS)||defined(HUMAN68K)||defined(WIN32)
+    if (buf[1]==NG_WCODE(':') && buf[2]!='\0' &&
+	(ISUPPER(buf[0])||ISLOWER(buf[0])))
+	p += 2;
+#endif
+    for (;*p &&
+	  *p!=NG_WSPACE && *p!=NG_WTAB &&
+	  *p!=NG_WCODE(',') && *p!=NG_WCODE('('); ++p ) {
+	if (*p == NG_WCODE(':')) {
+	    if (!colon_accept)
 		break;
-	    else
-		colon_has = TRUE;
+	    colon_accept = FALSE;
 	}
     }
-    *p = '\0';
-#else
-# if defined(MSDOS)||defined(HUMAN68K)||defined(WIN32)
-    if (buf[1]==':' && buf[2]!='\0' && (ISUPPER(buf[0])||ISLOWER(buf[0])))
-	p += 2;
-# endif
-    for(;*p && !index(" \t:,(", *p); ++p )
-	;
-    *p = '\0';
-#endif
+    *p = NG_EOS;
     return buf;
 }
 
@@ -250,16 +263,24 @@ int f, n;
     register BUFFER *bp, *obp;
     register WINDOW *wp, *owp;
     register int s;
-    char  buf[NLINE],*result;
+    NG_WCHAR_t wbuf[NG_WCHARLEN(compile_command)];
+    char *buf, *result;
 
+    /* set default compile command */
+    if (compile_firsttime) {
+	wstrlcpya(compile_command, DEFAULT_COMPILE_CMD,
+		  NG_WCHARLEN(compile_command));
+	compile_firsttime = FALSE;
+    }
+    
     if (compile_command[0] == '\0')
-	s = eread("compile: ", buf, NLINE, EFNEW);
+	s = eread("compile: ", wbuf, NLINE, EFNEW);
     else
-	s = eread("compile: (%s) ", buf, NLINE, EFNEW, compile_command);
+	s = eread("compile: (%ls) ", wbuf, NLINE, EFNEW, compile_command);
     if (s == ABORT)
 	return s;
     if (s == TRUE)
-	strcpy(compile_command, buf);
+	wstrlcpy(compile_command, wbuf, NG_WCHARLEN(compile_command));
     
     if ((bp = bfind("*compilation*", TRUE)) == NULL)
 	return FALSE;
@@ -273,7 +294,10 @@ int f, n;
     if (addline(bp, compile_command) == FALSE)
 	return FALSE;
     update();
-    if ((result = call_process(compile_command, NULL)) == NULL)
+    LM_OUT_CONVERT_TMP2(bp->b_lang, NG_CODE_FOR_FILENAME, compile_command, buf);
+    if (buf == NULL)
+	return FALSE;
+    if ((result = call_process(buf, NULL)) == NULL)
 	return FALSE;
     isetmark();
     s = insertfile(result, (char *)NULL);
@@ -303,9 +327,8 @@ int f, n;
     register WINDOW *wp, *owp;
     register int s;
 
-    if (strcmp(curbp->b_bname,"*compilation*") == 0) {
+    if (strcmp(curbp->b_bname,"*compilation*") == 0)
 	nextwind(FFRAND,1);
-    }
     if ((bp = bfind("*compilation*", TRUE)) == NULL)
 	return FALSE;
     if ((wp = popbuf(bp)) == NULL)
