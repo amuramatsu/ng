@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.9.2.4 2006/01/07 18:17:53 amura Exp $ */
+/* $Id: jump.c,v 1.9.2.5 2006/01/08 18:54:13 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -151,7 +151,7 @@ int f, n;
     int col;
     LINE *dlp;
     int buflen = 0;
-    char *buf;
+    char *buf = NULL;
     int code = curbp->b_lang->lm_get_code(NG_CODE_FOR_FILENAME);
 	
     if (jmp_re_exp == NULL) {
@@ -169,7 +169,9 @@ int f, n;
 	    if (i > buflen) {
 		buflen = i;
 		MALLOCROUND(buflen);
-		if ((buf = (char *)malloc(buflen)) == NULL) {
+		if ((buf = (char *)realloc(buf, buflen)) == NULL) {
+		    ewprintf( "Can't get %d bytes", buflen);
+		    return FALSE;
 		}
 	    }
 	    curbp->b_lang->lm_out_convert(code, wbuf, NULL, buf);
@@ -178,6 +180,8 @@ int f, n;
 		/*
 		 * All the hairly works to give filename to filevisit()
 		 */
+		if (buf != NULL)
+		    free(buf);
 		curwp->w_flag |= WFHARD;
 		curwp->w_doto = 0;
 		curwp->w_linep = dlp;
@@ -204,6 +208,8 @@ int f, n;
     curwp->w_dotp = lback(curbp->b_linep);
     curwp->w_linep = lback(curbp->b_linep);
     curwp->w_lines = 0;
+    if (buf != NULL)
+	free(buf);
     
     ewprintf( "No more errors." );
     return FALSE;
