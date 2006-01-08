@@ -1,4 +1,4 @@
-/* $Id: in_code.c,v 1.1.2.2 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: in_code.c,v 1.1.2.3 2006/01/08 18:57:22 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -71,8 +71,8 @@ wstrlen(s)
 const NG_WCHAR_t *s;
 {
     register const NG_WCHAR_t *p = s;
-    while (*p++ != NG_EOS)
-	/*NOP*/; 
+    while (*p != NG_EOS)
+	++p; 
     return p - s;
 }
 
