@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.7 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.8 2006/01/08 19:09:58 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -463,47 +463,48 @@ BUFFER *bp;
     char *cand, *name;
     NG_WCHAR_t line[NFILEN], cand2[NFILEN];
     char *filenames;
+    int code = bp->b_lang->lm_get_code(NG_CODE_FOR_FILENAME);
 
-    fnnum = wstrlen(wname);
-    if ((name = (char *)alloca(fnnum)) == NULL)
+    fnnum = bp->b_lang->lm_out_convert_len(code, wname, NG_CODE_CHKLEN);
+    if ((name = (char *)alloca(fnnum+1)) == NULL)
 	return FALSE;
-    strlcpyw(name, wname, fnnum+1);
-    dnlen = file_name_part (name) - name;
+    bp->b_lang->lm_out_convert(code, wname, NG_CODE_CHKLEN, name);
+    dnlen = file_name_part(name) - name;
 
     if ((fnnum = fffiles (name, &filenames)) == -1)
-	return (FALSE);    /* error */
+	return FALSE;    /* error */
 
-    line[0] = '\0';
+    line[0] = NG_EOS;
     cand = filenames;
     for (i = 0; i < fnnum; i++) {
 	cand += dnlen;
 	LM_IN_CONVERT2(bp->b_lang, NG_CODE_FOR_FILENAME, cand, cand2);
-	if (line[0] == '\0') {
-	    if (wstrlen (cand2) < LIST_COL)
-		wstrcpy (line, cand2);
+	if (line[0] == NG_EOS) {
+	    if (wstrlen(cand2) < LIST_COL)
+		wstrlcpy(line, cand2, NG_WCHARLEN(line));
 	    else
-		addline (bp, cand2);
+		addline(bp, cand2);
 	}
 	else {
-	    if (wstrlen (cand2) < LIST_COL) {
-		for (j = wstrlen (line); j < LIST_COL; j++)
+	    if (wstrlen(cand2) < LIST_COL) {
+		for (j = wstrlen(line); j < LIST_COL; j++)
 		    line[j] = NG_WSPACE;
-		line[j] = '\0';
-		wstrcat (line, cand2);
-		addline (bp, line);
+		line[j] = NG_EOS;
+		wstrlcat(line, cand2, NG_WCHARLEN(line));
+		addline(bp, line);
 	    }
 	    else {
-		addline (bp, line);
-		addline (bp, cand2);
+		addline(bp, line);
+		addline(bp, cand2);
 	    }
-	    line[0] = '\0';
+	    line[0] = NG_EOS;
 	}
 	cand += (strlen (cand) + 1);
     }
-    if (line[0] != '\0')
-	addline (bp, line);
-    free (filenames);
-    return (TRUE);
+    if (line[0] != NG_EOS)
+	addline(bp, line);
+    free(filenames);
+    return TRUE;
 }
 
 int

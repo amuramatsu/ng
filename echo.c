@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.10 2006/01/06 12:35:25 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.11 2006/01/08 19:09:59 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -1742,8 +1742,6 @@ static VOID
 mb_movech(n)
 int n;
 {
-    int v, m;
-
     if (n > 0) {
 	while (n > 0) {
 	    _mb_buf[_mb_point++] = _mb_buf[_mb_gapend++];
