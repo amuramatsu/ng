@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20.2.3 2006/01/04 17:00:40 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.4 2006/01/08 19:22:43 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -647,6 +647,10 @@ char *dirname;
 	line[strlen(line) - 1] = '\0';		/* remove ^J	*/
 	tmp = (NG_WCHAR_t *)alloca(strlen(line) + 1);
 	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, line, tmp);
+	if (tmp == NULL) {
+	    ewprintf("Memory allocation error");
+	    return NULL;
+	}
 	addline(bp, tmp);
     }
     if (pclose(dirpipe) == -1) {

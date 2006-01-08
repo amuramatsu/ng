@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.5 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: file.c,v 1.15.2.6 2006/01/08 19:22:43 amura Exp $ */
 /*
  *		File commands.
  */
@@ -40,6 +40,8 @@ int f, n;
     NG_WCHAR_t *wtmp;
     ensurecwd();
     LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, wtmp);
+    if (wtmp == NULL)
+	return FALSE;
     edefset(wtmp);
 #endif
 
@@ -57,6 +59,8 @@ int f, n;
     }
 #endif /* READONLY */
     LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, fname, tmp);
+    if (tmp == NULL)
+	return FALSE;
     return insertfile(adjustname(tmp), (char *) NULL);
 					/* don't set buffer name */
 }
@@ -111,6 +115,8 @@ const char *prompt;
 	}
     }
     LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wfname, fname);
+    if (fname == NULL)
+	return FALSE;
     return fileopen_backend(f, n, readonly, popup, code, fname);
 }
 
@@ -129,6 +135,8 @@ char *fname;
     if (ffisdir(adjf)) {
 	NG_WCHAR_t *wtmp;
 	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, adjf, wtmp);
+	if (wtmp == NULL)
+	    return FALSE;
 	eargset(wtmp);
 	return dired(f, n);
     }
@@ -258,6 +266,8 @@ int f, n;
 #ifdef EXTD_DIR
     ensurecwd();
     LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, wtmp);
+    if (wtmp == NULL)
+	return FALSE;
     edefset(wtmp);
 #endif
 
@@ -272,6 +282,8 @@ int f, n;
     if (curbp) {
 	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
 			   curbp->b_bname, wtmp);
+	if (wtmp == NULL)
+	    return FALSE;
 	eargset(wtmp);
 	if (killbuffer(0, 1)) {
 	    eargset(fname);
@@ -700,6 +712,8 @@ int f, n;
 	ensurecwd();
 	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
 			   curbp->b_cwd, wtmp);
+	if (wtmp == NULL)
+	    return FALSE;
 	edefset(wtmp);
     }
 #endif
@@ -715,13 +729,16 @@ int f, n;
     {
 	char aname[NFILEN];
 	char *tmp;
-	LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
-			    fname, tmp);
+	LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, fname, tmp);
+	if (tmp == NULL)
+	    return FALSE;
 	autosave_name(aname, tmp, sizeof(aname));
 	unlink(aname);
     }
 #endif /* AUTOSAVE	*/
     LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, fname, adjfname);
+    if (adjfname == NULL)
+	return FALSE;
     adjfname = adjustname(adjfname);
     if ((s=writeout(curbp, adjfname)) == TRUE) {
 	if ((newname=malloc(strlen(adjfname)+1)) == NULL) {

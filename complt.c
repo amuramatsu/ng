@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.8 2006/01/08 19:09:58 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.9 2006/01/08 19:22:43 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -417,7 +417,7 @@ BUFFER *bp;
     NG_WCHAR_t cand[NFILEN], line[NFILEN];
     LIST *lh;
 
-    fnlen = wstrlen (name);
+    fnlen = wstrlen(name);
 
     line[0] = '\0';
     for (lh = &(bheadp->b_list); lh != NULL; lh = lh->l_next) {
@@ -427,28 +427,28 @@ BUFFER *bp;
 	    continue;
 
 	if (line[0] == '\0') {
-	    if (wstrlen (cand) < LIST_COL)
-		wstrcpy (line, cand);
+	    if (wstrlen(cand) < LIST_COL)
+		wstrlcpy(line, cand, NG_WCHARLEN(line));
 	    else
-		addline (bp, cand);
+		addline(bp, cand);
 	}
 	else {
-	    if (wstrlen (cand) < LIST_COL) {
-		for (j = wstrlen (line); j < LIST_COL; j++)
+	    if (wstrlen(cand) < LIST_COL) {
+		for (j = wstrlen(line); j < LIST_COL; j++)
 		    line[j] = NG_WSPACE;
-		line[j] = '\0';
-		wstrcat (line, cand);
-		addline (bp, line);
+		line[j] = NG_EOS;
+		wstrlcat(line, cand, NG_WCHARLEN(line));
+		addline(bp, line);
 	    }
 	    else {
-		addline (bp, line);
-		addline (bp, cand);
+		addline(bp, line);
+		addline(bp, cand);
 	    }
-	    line[0] = '\0';
+	    line[0] = NG_EOS;
 	}
     }
-    if (line[0] != '\0')
-	addline (bp, line);
+    if (line[0] != NG_EOS)
+	addline(bp, line);
     return (TRUE);
 }
 
@@ -463,12 +463,10 @@ BUFFER *bp;
     char *cand, *name;
     NG_WCHAR_t line[NFILEN], cand2[NFILEN];
     char *filenames;
-    int code = bp->b_lang->lm_get_code(NG_CODE_FOR_FILENAME);
 
-    fnnum = bp->b_lang->lm_out_convert_len(code, wname, NG_CODE_CHKLEN);
-    if ((name = (char *)alloca(fnnum+1)) == NULL)
+    LM_OUT_CONVERT_TMP2(bp->b_lang, NG_CODE_FOR_FILENAME, wname, name);
+    if (name == NULL)
 	return FALSE;
-    bp->b_lang->lm_out_convert(code, wname, NG_CODE_CHKLEN, name);
     dnlen = file_name_part(name) - name;
 
     if ((fnnum = fffiles (name, &filenames)) == -1)

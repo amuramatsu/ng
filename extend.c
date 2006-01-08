@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.4 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.5 2006/01/08 19:22:43 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -616,6 +616,7 @@ int f, n;
 #ifdef EXTD_DIR
     ensurecwd();
     LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, curbp->b_cwd, wtmp);
+    if (wtmp == NULL) return FALSE;
     edefset(wtmp);
 #endif
 #ifndef	NO_FILECOMP
@@ -625,6 +626,7 @@ int f, n;
 #endif
 	return s;
     LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, fname, tmp);
+    if (tmp == NULL) return FALSE;
     return load(tmp);
 }
 
