@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.11 2006/01/08 19:09:59 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.12 2006/01/09 15:01:46 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -17,6 +17,7 @@
 #include "def.h"
 #include "echo.h"
 
+#include "i_lang.h"
 #include "tty.h"
 #include "ttyio.h"
 #include "key.h"
@@ -25,7 +26,6 @@
 #include "macro.h"
 #include "window.h"
 #include "cinfo.h"
-#include "lang.h"
 
 #ifdef SUPPORT_ANSI
 #  include <stdarg.h>
@@ -366,7 +366,7 @@ static int s_put_c _PRO((NG_WCHAR_t *, int, int, int));
 #define mb_begl()	(mb_gotochar(_mb_prompt))
 #define mb_endl()	(mb_gotochar(_mb_bufsize))
 #define mb_flush()	(ttflush())
-#define chsize(s)	(display_lang->lm_width(*(s)))
+#define chsize(s)	(terminal_lang->lm_width(*(s)))
 
 static int  _mb_ccol;
 static int  _mb_crow;
@@ -2282,7 +2282,7 @@ int cpos;
     int w;
     if (cpos <= 0)
 	return (0);
-    w = display_lang->lm_width(buf[cpos]);
+    w = terminal_lang->lm_width(buf[cpos]);
     while (w--) {
 	ttputc('\b');
 	ttputc(' ');
@@ -2450,7 +2450,7 @@ va_list *ap;
 	case CCHR('H'):
 	case CCHR('?'):	/* Rubout, erase.	*/
 	    if (cpos != 0) {
-		int w = display_lang->lm_width(buf[cpos]);
+		int w = terminal_lang->lm_width(buf[cpos]);
 		while (w--) {
 		    ttputc('\b');
 		    ttputc(' ');
@@ -2465,7 +2465,7 @@ va_list *ap;
 	case CCHR('X'):	/* C-X			*/
 	case CCHR('U'):	/* C-U, kill line.	*/
 	    while (cpos != 0) {
-		int w = display_lang->lm_width(buf[cpos]);
+		int w = terminal_lang->lm_width(buf[cpos]);
 		while (w--) {
 		    ttputc('\b');
 		    ttputc(' ');
@@ -2481,7 +2481,7 @@ va_list *ap;
 			/* previous word	*/
 			/* back up to first word character or beginning */
 	    while ((cpos > 0) && !ISWORD(buf[cpos - 1])) {
-		int w = display_lang->lm_width(buf[cpos]);
+		int w = terminal_lang->lm_width(buf[cpos]);
 		while (w--) {
 		    ttputc('\b');
 		    ttputc(' ');
@@ -2491,37 +2491,14 @@ va_list *ap;
 		--cpos;
 	    }
 	    while ((cpos > 0) && ISWORD(buf[cpos - 1])) {
-		int w = display_lang->lm_width(buf[--cpos]);
+		int w = terminal_lang->lm_width(buf[--cpos]);
 		while (w--) {
 		    ttputc('\b');
 		    ttputc(' ');
 		    ttputc('\b');
 		    --ttcol;
 		}
-		if (ISCTRL(buf[--cpos]) != FALSE) {
-		    ttputc('\b');
-		    ttputc(' ');
-		    ttputc('\b');
-		    --ttcol;
-		}
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
-		else if (ISKANJI(buf[cpos])) {
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki  */
-		    if (ISHANKANA(buf[--cpos])) {
-			ttputc('\b');
-			ttputc(' ');
-			ttputc('\b');
-			--ttcol;
-		    }
-#else  /* not HANKANA */
-		    ttputc('\b');
-		    ttputc(' ');
-		    ttputc('\b');
-		    --ttcol;
-		    --cpos;
-#endif  /* HANKANA */
-		}
-#endif /* KANJI */
+		--cpos;
 	    }
 	    ttflush();
 	    break;
