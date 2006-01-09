@@ -1,4 +1,4 @@
-/* $Id: trex.c,v 1.1.2.7 2006/01/09 09:33:48 amura Exp $ */
+/* $Id: trex.c,v 1.1.2.8 2006/01/09 10:13:55 amura Exp $ */
 /* Modified for NG Next Generation */
 /* see copyright notice in trex.h */
 #include <string.h>
@@ -102,7 +102,9 @@ static int trex_newnode(TRex *exp, TRexNodeType type)
 	if(type == OP_EXPR)
 		n.right = exp->_nsubexpr++;
 	if(exp->_nallocated < (exp->_nsize + 1)) {
-		/* int oldsize = exp->_nallocated; */
+#if 0
+		int oldsize = exp->_nallocated;
+#endif
 		exp->_nallocated *= 2;
 		exp->_nodes = (TRexNode *)realloc(exp->_nodes,exp->_nallocated * sizeof(TRexNode));
 		if (exp->_nodes == NULL)
@@ -157,10 +159,12 @@ static TRexChar trex_escapechar(TRex *exp)
 static int trex_charclass(TRex *exp,int classid)
 {
 	int n = trex_newnode(exp,OP_CCLASS);
-	if (exp->_mode & TREX_MODE_IGNORECASE) {
-		if (classid == 'u' || classid == 'l')
+#ifdef TREX_MODE_IGNORECASE
+	if (exp->_mode&TREX_MODE_IGNORECASE) {
+		if (classid=='u' || classid=='l')
 			classid = 'a';
 	}
+#endif /* TREX_MODE_IGNORECASE */
 	exp->_nodes[n].left = classid;
 	return n;
 }
@@ -197,6 +201,23 @@ static int trex_charnode(TRex *exp,TRexBool isclass)
 	else if(!scisprint(*exp->_p)) {
 		trex_error(exp,_SC("letter expected"));
 	}
+#ifdef TREX_MODE_IGNORECASE
+	if (!isclass && (exp->_mode & TREX_MODE_IGNORECASE)) {
+		TRexChar c, c2;
+		int next, ret;
+		
+		c = *exp->_p++;
+		if (!isupper(c) && !islower(c))
+			return trex_newnode(exp,c);
+		
+		ret = trex_newnode(exp,OP_CLASS);
+		if (isupper(c))	c2 = tolower(c);
+		else		c2 = toupper(c);
+		exp->_nodes[ret].left = next = trex_newnode(exp,c);
+		exp->_nodes[next].left = trex_newnode(exp,c2);
+		return ret;
+	}
+#endif /* TREX_MODE_IGNORECASE */
 	return trex_newnode(exp,*exp->_p++);
 }
 static int trex_class(TRex *exp)
@@ -222,7 +243,7 @@ static int trex_class(TRex *exp)
 			if(exp->_nodes[first].type == OP_CCLASS) trex_error(exp,_SC("cannot use character classes in ranges"));
 			exp->_nodes[r].left = exp->_nodes[first].type;
 			exp->_nodes[r].right = trex_escapechar(exp);
-            exp->_nodes[chain].next = r;
+			exp->_nodes[chain].next = r;
 			chain = r;
 			first = -1;
 		}
@@ -231,6 +252,18 @@ static int trex_class(TRex *exp)
 				int c = first;
 				exp->_nodes[chain].next = c;
 				chain = c;
+#ifdef TREX_MODE_IGNORECASE
+				if(exp->_mode&TREX_MODE_IGNORECASE) {
+					TRexChar ch = exp->_nodes[c].type;
+					if(isupper(ch)||islower(ch)) {
+						if(isupper(ch))	ch = tolower(ch);
+						else		ch = toupper(ch);
+						c = trex_newnode(exp,ch);
+						exp->_nodes[chain].next = c;
+						chain = c;
+					}
+				}
+#endif /* TREX_MODE_IGNORECASE */
 				first = trex_charnode(exp,TRex_True);
 			}
 			else{
@@ -242,6 +275,18 @@ static int trex_class(TRex *exp)
 		int c = first;
 		exp->_nodes[chain].next = c;
 		chain = c;
+#ifdef TREX_MODE_IGNORECASE
+		if(exp->_mode&TREX_MODE_IGNORECASE) {
+			TRexChar ch = exp->_nodes[c].type;
+			if(isupper(ch) || islower(ch)) {
+				if(isupper(ch))	ch = tolower(ch);
+				else		ch = toupper(ch);
+				c = trex_newnode(exp,ch);
+				exp->_nodes[chain].next = c;
+				chain = c;
+			}
+		}
+#endif /* TREX_MODE_IGNORECASE */
 		first = -1;
 	}
 	/* hack? */
@@ -392,22 +437,20 @@ static TRexBool trex_matchclass(TRex* exp,TRexNode *node,TRexChar c)
 	do {
 		switch(node->type) {
 			case OP_RANGE:
-				if ((exp->_mode&TREX_MODE_IGNORECASE) && (isupper(c) || islower(c))) {
+#ifdef TREX_MODE_IGNORECASE
+				if((exp->_mode&TREX_MODE_IGNORECASE) && (isupper(c)||islower(c))) {
+				    /* XXX Cannot handle when compile yet ... */
 					if(c >= node->left && c <= node->right) return TRex_True;
-					if (isupper(c))	c = tolower(c);
+					if(isupper(c))	c = tolower(c);
 					else		c = toupper(c);
 				}
+#endif /* TREX_MODE_IGNORECASE */
 				if(c >= node->left && c <= node->right) return TRex_True;
 				break;
 			case OP_CCLASS:
 				if(trex_matchcclass(node->left,c)) return TRex_True;
 				break;
 			default:
-				if ((exp->_mode&TREX_MODE_IGNORECASE) && (isupper(c) || islower(c))) {
-					if(c == node->type)return TRex_True;
-					if (isupper(c))	c = tolower(c);
-					else		c = toupper(c);
-				}
 				if(c == node->type)return TRex_True;
 		}
 	} while((node->next != -1) && (node = &exp->_nodes[node->next]));
@@ -552,17 +595,9 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 		}
 		return NULL;
 	default: /* char */
-		{
-			TRexChar c = *str;
-			if((exp->_mode&TREX_MODE_IGNORECASE) && (isupper(c) || islower(c))) {
-				if(c == node->type) { str++; return str;}
-				if(isupper(c))	c = tolower(c);
-				else		c = toupper(c);
-			}
-			if(c != node->type) return NULL;
-			*str++;
-			return str;
-		}
+		if(*str != node->type) return NULL;
+		*str++;
+		return str;
 	}
 	return NULL;
 }
