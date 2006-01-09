@@ -1,4 +1,4 @@
-/* $Id: trex.c,v 1.1.2.8 2006/01/09 10:13:55 amura Exp $ */
+/* $Id: trex.c,v 1.1.2.9 2006/01/09 10:20:39 amura Exp $ */
 /* Modified for NG Next Generation */
 /* see copyright notice in trex.h */
 #include <string.h>
@@ -202,19 +202,17 @@ static int trex_charnode(TRex *exp,TRexBool isclass)
 		trex_error(exp,_SC("letter expected"));
 	}
 #ifdef TREX_MODE_IGNORECASE
-	if (!isclass && (exp->_mode & TREX_MODE_IGNORECASE)) {
+	if (!isclass && (exp->_mode&TREX_MODE_IGNORECASE)) {
 		TRexChar c, c2;
 		int next, ret;
-		
 		c = *exp->_p++;
 		if (!isupper(c) && !islower(c))
 			return trex_newnode(exp,c);
-		
 		ret = trex_newnode(exp,OP_CLASS);
 		if (isupper(c))	c2 = tolower(c);
 		else		c2 = toupper(c);
 		exp->_nodes[ret].left = next = trex_newnode(exp,c);
-		exp->_nodes[next].left = trex_newnode(exp,c2);
+		exp->_nodes[next].next = trex_newnode(exp,c2);
 		return ret;
 	}
 #endif /* TREX_MODE_IGNORECASE */
@@ -229,10 +227,8 @@ static int trex_class(TRex *exp)
 		exp->_p++;
 	}else ret = trex_newnode(exp,OP_CLASS);
 	
-	if(*exp->_p == ']' || *exp->_p == '-'){
-		first = *exp->_p;
-		exp->_p++;
-	}
+	if(*exp->_p == ']' || *exp->_p == '-')
+		first = trex_charnode(exp, TRex_True);
 	chain = ret;
 	while(*exp->_p != ']' && exp->_p != exp->_eol) {
 		if(*exp->_p == '-' && first != -1){ 
