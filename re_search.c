@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.6.2.3 2006/01/07 16:07:23 amura Exp $ */
+/* $Id: re_search.c,v 1.6.2.4 2006/01/09 08:44:29 amura Exp $ */
 /*
  *		Search commands with Regular Expression
  * The functions are remade from 'search.c' to help from GPL.
@@ -45,7 +45,6 @@
 
 static int re_srch_lastdir = SRCH_NOPR;		/* Last search flags.	*/
 static NG_WCHAR_t re_pat[NPAT];
-static RSIZE re_matchlen;
 static TRex *re_exp = NULL;
 
 static int re_forwsrch _PRO((void));
@@ -182,20 +181,22 @@ int f, n;
      */
     
     while (re_forwsrch() == TRUE) {
+	TRexMatch match;
+	trex_getsubexp(re_exp, 0, &match);
 retry:
 	update();
 	switch (getkey(FALSE)) {
 	case ' ':
 	case 'y':
 	case 'Y':
-	    if (re_doreplace(re_matchlen, news, f) == FALSE)
-		return (FALSE);
+	    if (re_doreplace(match.len, news, f) == FALSE)
+		return FALSE;
 	    rcnt++;
 	    break;
 	    
 	case '.':
-	    if (re_doreplace(re_matchlen, news, f) == FALSE)
-		return (FALSE);
+	    if (re_doreplace(match.len, news, f) == FALSE)
+		return FALSE;
 	    rcnt++;
 	    goto stopsearch;
 	    
@@ -208,7 +209,7 @@ retry:
 	    
 	case '!':
 	    do {
-		if (re_doreplace(re_matchlen, news, f) == FALSE)
+		if (re_doreplace(match.len, news, f) == FALSE)
 		    return (FALSE);
 		rcnt++;
 	    } while (forwsrch() == TRUE);
@@ -312,7 +313,7 @@ re_forwsrch()
 {
     register LINE *clp;
     register int cbo;
-    const NG_WCHAR_t *pp, *epp;
+    const NG_WCHAR_t *pp;
     
     clp = curwp->w_dotp;
     cbo = curwp->w_doto;
@@ -326,11 +327,10 @@ re_forwsrch()
     for (;;) {
 	if (trex_searchrange(re_exp,
 			     ltext(clp) + cbo, ltext(clp) + llength(clp) + 1,
-			     &pp, &epp) == TRex_True) {
+			     &pp, NULL) == TRex_True) {
 	    curwp->w_dotp = clp;
 	    curwp->w_doto = pp - ltext(clp);
 	    curwp->w_flag |= WFMOVE;
-	    re_matchlen = epp - pp;
 	    return TRUE;
 	}
 	if ((clp = lforw(clp)) == curbp->b_linep)
@@ -353,7 +353,7 @@ re_backsrch()
     register LINE *clp;
     register int cbo;
     register int tbo;
-    const NG_WCHAR_t *pp, *epp;
+    const NG_WCHAR_t *pp;
     
     clp = curwp->w_dotp;
     tbo = curwp->w_doto;
@@ -372,14 +372,13 @@ re_backsrch()
 	/* search last match */
 	while (trex_searchrange(re_exp,
 				ltext(clp) + cbo, ltext(clp) + tbo + 1,
-				&pp, &epp) == TRex_True) {
+				&pp, NULL) == TRex_True) {
 	    cbo = pp - ltext(clp) + 1; /* search again from next char */
 	}
 	if (pp != NULL) {
 	    curwp->w_dotp = clp;
 	    curwp->w_doto = pp - ltext(clp);
 	    curwp->w_flag |= WFMOVE;
-	    re_matchlen = epp - pp;
 	    return TRUE;
 	}
 	if ((clp = lback(clp)) == curbp->b_linep)
@@ -416,7 +415,7 @@ const char *prompt;
 	if (re_exp != NULL)
 	    trex_free(re_exp);
 	if ((re_exp = trex_compile(re_pat, &errorp)) == NULL) {
-	    ewprintf("Regexp Error at char %d", errorp - re_pat);
+	    ewprintf("Regexp Error: %ls", errorp);
 	    re_pat[0] = NG_EOS;
 	    return FALSE;
 	}
