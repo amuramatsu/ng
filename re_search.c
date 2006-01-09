@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.6.2.4 2006/01/09 08:44:29 amura Exp $ */
+/* $Id: re_search.c,v 1.6.2.5 2006/01/09 09:33:48 amura Exp $ */
 /*
  *		Search commands with Regular Expression
  * The functions are remade from 'search.c' to help from GPL.
@@ -414,7 +414,9 @@ const char *prompt;
 	wstrcpy(re_pat, tpat);
 	if (re_exp != NULL)
 	    trex_free(re_exp);
-	if ((re_exp = trex_compile(re_pat, &errorp)) == NULL) {
+	re_exp = trex_compile_ex(re_pat,
+	    casefoldsearch?TREX_MODE_IGNORECASE:TREX_MODE_NORMAL, &errorp);
+	if (re_exp == NULL) {
 	    ewprintf("Regexp Error: %ls", errorp);
 	    re_pat[0] = NG_EOS;
 	    return FALSE;

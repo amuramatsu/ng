@@ -1,4 +1,4 @@
-/* $Id: trex.c,v 1.1.2.6 2006/01/09 08:51:01 amura Exp $ */
+/* $Id: trex.c,v 1.1.2.7 2006/01/09 09:33:48 amura Exp $ */
 /* Modified for NG Next Generation */
 /* see copyright notice in trex.h */
 #include <string.h>
@@ -88,6 +88,7 @@ struct TRex{
 	int _currsubexp;
 	void *_jmpbuf;
 	const TRexChar **_error;
+	int _mode;
 };
 
 static int trex_list(TRex *exp);
@@ -156,6 +157,10 @@ static TRexChar trex_escapechar(TRex *exp)
 static int trex_charclass(TRex *exp,int classid)
 {
 	int n = trex_newnode(exp,OP_CCLASS);
+	if (exp->_mode & TREX_MODE_IGNORECASE) {
+		if (classid == 'u' || classid == 'l')
+			classid = 'a';
+	}
 	exp->_nodes[n].left = classid;
 	return n;
 }
@@ -190,7 +195,6 @@ static int trex_charnode(TRex *exp,TRexBool isclass)
 		}
 	}
 	else if(!scisprint(*exp->_p)) {
-		
 		trex_error(exp,_SC("letter expected"));
 	}
 	return trex_newnode(exp,*exp->_p++);
@@ -388,12 +392,22 @@ static TRexBool trex_matchclass(TRex* exp,TRexNode *node,TRexChar c)
 	do {
 		switch(node->type) {
 			case OP_RANGE:
+				if ((exp->_mode&TREX_MODE_IGNORECASE) && (isupper(c) || islower(c))) {
+					if(c >= node->left && c <= node->right) return TRex_True;
+					if (isupper(c))	c = tolower(c);
+					else		c = toupper(c);
+				}
 				if(c >= node->left && c <= node->right) return TRex_True;
 				break;
 			case OP_CCLASS:
 				if(trex_matchcclass(node->left,c)) return TRex_True;
 				break;
 			default:
+				if ((exp->_mode&TREX_MODE_IGNORECASE) && (isupper(c) || islower(c))) {
+					if(c == node->type)return TRex_True;
+					if (isupper(c))	c = tolower(c);
+					else		c = toupper(c);
+				}
 				if(c == node->type)return TRex_True;
 		}
 	} while((node->next != -1) && (node = &exp->_nodes[node->next]));
@@ -538,15 +552,28 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 		}
 		return NULL;
 	default: /* char */
-		if(*str != node->type) return NULL;
-		*str++;
-		return str;
+		{
+			TRexChar c = *str;
+			if((exp->_mode&TREX_MODE_IGNORECASE) && (isupper(c) || islower(c))) {
+				if(c == node->type) { str++; return str;}
+				if(isupper(c))	c = tolower(c);
+				else		c = toupper(c);
+			}
+			if(c != node->type) return NULL;
+			*str++;
+			return str;
+		}
 	}
 	return NULL;
 }
 
 /* public api */
 TRex *trex_compile(const TRexChar *pattern,const TRexChar **error)
+{
+	return trex_compile_ex(pattern, TREX_MODE_NORMAL, error);
+}
+
+TRex *trex_compile_ex(const TRexChar *pattern,int mode,const TRexChar **error)
 {
 	TRex *exp = (TRex *)malloc(sizeof(TRex));
 	if (exp == NULL) {
@@ -563,6 +590,7 @@ TRex *trex_compile(const TRexChar *pattern,const TRexChar **error)
 	exp->_first = trex_newnode(exp,OP_EXPR);
 	exp->_error = error;
 	exp->_jmpbuf = malloc(sizeof(jmp_buf));
+	exp->_mode = mode;
 	if (exp->_nodes == NULL || exp->_jmpbuf == NULL) {
 		free(exp);
 		if (error) *error = _SC("memory allocation error");

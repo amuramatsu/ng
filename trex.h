@@ -1,3 +1,4 @@
+/* $Id: trex.h,v 1.1.2.4 2006/01/09 09:33:48 amura Exp $ */
 /*
  * Modified for NG Next Generation
  * Copyright (C) 2006 MURAMATSU Atsushi
@@ -61,12 +62,16 @@
 typedef unsigned int TRexBool;
 typedef struct TRex TRex;
 
+#define	TREX_MODE_NORMAL	0x00
+#define TREX_MODE_IGNORECASE	0x01
+
 typedef struct {
 	const TRexChar *begin;
 	int len;
 } TRexMatch;
 
 TREX_API TRex *trex_compile(const TRexChar *pattern,const TRexChar **error);
+TREX_API TRex *trex_compile_ex(const TRexChar *pattern, int mode, const TRexChar **error);
 TREX_API void trex_free(TRex *exp);
 TREX_API TRexBool trex_match(TRex* exp,const TRexChar* text);
 TREX_API TRexBool trex_search(TRex* exp,const TRexChar* text, const TRexChar** out_begin, const TRexChar** out_end);
