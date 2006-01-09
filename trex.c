@@ -1,3 +1,4 @@
+/* $Id: trex.c,v 1.1.2.6 2006/01/09 08:51:01 amura Exp $ */
 /* Modified for NG Next Generation */
 /* see copyright notice in trex.h */
 #include <string.h>
@@ -90,6 +91,7 @@ struct TRex{
 };
 
 static int trex_list(TRex *exp);
+static void trex_error(TRex *exp,const TRexChar *error);
 
 static int trex_newnode(TRex *exp, TRexNodeType type)
 {
@@ -102,6 +104,8 @@ static int trex_newnode(TRex *exp, TRexNodeType type)
 		/* int oldsize = exp->_nallocated; */
 		exp->_nallocated *= 2;
 		exp->_nodes = (TRexNode *)realloc(exp->_nodes,exp->_nallocated * sizeof(TRexNode));
+		if (exp->_nodes == NULL)
+			trex_error(exp, _SC("memory allocation error"));
 	}
 	exp->_nodes[exp->_nsize++] = n;
 	return (int)exp->_nsize - 1;
@@ -545,6 +549,10 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 TRex *trex_compile(const TRexChar *pattern,const TRexChar **error)
 {
 	TRex *exp = (TRex *)malloc(sizeof(TRex));
+	if (exp == NULL) {
+		if (error) *error = _SC("memory allocation error");
+		return NULL;
+	}
 	exp->_eol = exp->_bol = NULL;
 	exp->_p = pattern;
 	exp->_nallocated = (int)scstrlen(pattern) * sizeof(TRexChar);
@@ -555,6 +563,11 @@ TRex *trex_compile(const TRexChar *pattern,const TRexChar **error)
 	exp->_first = trex_newnode(exp,OP_EXPR);
 	exp->_error = error;
 	exp->_jmpbuf = malloc(sizeof(jmp_buf));
+	if (exp->_nodes == NULL || exp->_jmpbuf == NULL) {
+		free(exp);
+		if (error) *error = _SC("memory allocation error");
+		return NULL;
+	}
 	if(setjmp(*((jmp_buf*)exp->_jmpbuf)) == 0) {
 		exp->_nodes[exp->_first].left=trex_list(exp);
 		if(*exp->_p!='\0')
@@ -577,6 +590,8 @@ TRex *trex_compile(const TRexChar *pattern,const TRexChar **error)
 		}
 #endif
 		exp->_matches = (TRexMatch *) malloc(exp->_nsubexpr * sizeof(TRexMatch));
+		if (exp->_matches == NULL)
+			trex_error(exp, _SC("memory allocation error"));
 		memset(exp->_matches,0,exp->_nsubexpr * sizeof(TRexMatch));
 	}
 	else{
