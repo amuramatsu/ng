@@ -1,7 +1,6 @@
-# $Id: MANIFEST,v 1.7 2001/03/09 16:17:21 amura Exp $
+# $Id: MANIFEST,v 1.7.4.1 2006/01/11 14:47:34 amura Exp $
    File Name			  Description
 -----------------------------------------------------------
- COPYING			GNU GENERAL PUBLIC LICENSE
  LICENSE			Ng LICENSE (BSD-style)
  MANIFEST			このファイル
  autosave.c                   	共通部分ソース
@@ -31,6 +30,7 @@
  docs/README.Ng			Ng 1.4 説明
  docs/README.SKG		Simple Kanji Generator 説明
  docs/README.W32		Ng Win32 版説明
+ docs/README.trex		正規表現説明 (T-Rex ドキュメント)
  docs/fepctrl.doc		(MS-DOS/Human68K) FEP 自動制御ライブラリ説明
  docs/mg2a.change		Mg チェンジノート
  docs/mgidx.tex			Mg リファレンスマニュアル Index (TeX テキスト)
@@ -44,8 +44,6 @@
  help.c				〃
  jump.c				〃
  kanji.c			〃
- kanji_.c			〃
- kanji_.h			〃
  kbd.c				〃
  kbd.h				〃
  key.h				〃
@@ -61,10 +59,7 @@
  paragraph.c			〃
  random.c			〃
  re_search.c			〃
- regex_e.c			〃
- regex_e.h			〃
- regex_j.c			〃
- regex_j.h			〃
+ regex.c			〃
  region.c			〃
  search.c			〃
  shell.c			〃
@@ -103,12 +98,6 @@
  sys/amiga/varargs.h		ローカルな varargs.h を使う場合のヘッダ (Amiga)
  sys/amiga/zz_pointer.c		AMIGA 依存部分ソース
  sys/amiga/zz_pointer.h		〃
- sys/bsd			BSD 用ディレクトリ
- sys/bsd/Makefile		BSD 用 Makefile
- sys/bsd/fileio.c		BSD 依存部分ソース
- sys/bsd/spawn.c		〃
- sys/bsd/sysdef.h		〃
- sys/bsd/ttyio.c		〃
  sys/default			低レベル共通部分ディレクトリ
  sys/default/README		Mg の termcap に関する注意
  sys/default/alloca.c		alloca() がない機種用の C ソース
@@ -137,16 +126,16 @@
  sys/human68k/ttydef.h		Human68k 依存部分ソース
  sys/human68k/ttyio.c		〃
  sys/msdos                 	MS-DOS 用ディレクトリ
- sys/msdos/alloca.asm      	alloca() がないコンパイラ用のアセンブラソース
+ sys/msdos/alloca.asm      	Turbo C/C++ 用 alloca()
  sys/msdos/dosutil.c		MS-DOS 依存部分ソース
  sys/msdos/fepctrl.c 		〃
  sys/msdos/fepctrl.h		MS-DOS 依存部分ソース
  sys/msdos/fileio.c		〃
  sys/msdos/linkfile		MS-C 用リンクオブジェクトリスト
- sys/msdos/linkfile.tc		Trubo-C 用リンクオブジェクトリスト
+ sys/msdos/linkfile.tc		Trubo C/C++ 用リンクオブジェクトリスト
  sys/msdos/makefile		MS-C 6.0 付属 nmake 用 Makefile
  sys/msdos/makefile.msc		MS-C 5.1 付属 make 用 Makefile
- sys/msdos/makefile.tc		Trubo-C 用 Makefile
+ sys/msdos/makefile.tc		Trubo C 用 Makefile
  sys/msdos/ng.ini		Ng 初期設定サンプルファイル
  sys/msdos/proto.h		MS-DOS 依存部分ソース
  sys/msdos/putline.c		〃
@@ -156,12 +145,6 @@
  sys/msdos/termcap		MS-DOS 用 termcap ファイル
  sys/msdos/tty.c		MS-DOS 依存部分ソース
  sys/msdos/ttyio.c		〃
- sys/sysv			System V 用ディレクトリ
- sys/sysv/Makefile		System V 用 Makefile
- sys/sysv/fileio.c		System V 依存部分ソース
- sys/sysv/spawn.c		〃
- sys/sysv/sysdef.h		〃
- sys/sysv/ttyio.c		〃
  sys/unix			Unix 用ディレクトリ
  sys/unix/Makefile		Unix 用 Makefile
  sys/unix/fileio.c		Unix 依存部分ソース
@@ -169,6 +152,7 @@
  sys/unix/sysdef.h		〃
  sys/unix/ttyio.c		〃
  sys/win32			Win32 用ディレクトリ
+ sys/win32/COPYING		GNU GENERAL PUBLIC LICENSE
  sys/win32/appicon.ico		Win32 用アイコン
  sys/win32/ce1appicon.ico	Win32 用アイコン (白黒)
  sys/win32/ce2appicon.ico	Win32 用アイコン
@@ -191,7 +175,9 @@
  sys/win32/ttyio.c		〃
  sys/win32/winmain.c		〃
  sys/win32/winmain.h		〃
- undo.c				共通部分ソース
+ trex.c				共通部分ソース
+ trex.h				〃
+ undo.c				〃
  undo.h				〃
  version.c			〃
  window.c			〃

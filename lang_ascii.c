@@ -1,4 +1,4 @@
-/* $Id: lang_ascii.c,v 1.1.2.2 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: lang_ascii.c,v 1.1.2.3 2006/01/11 14:47:34 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -239,6 +239,13 @@ NG_WCHAR_t *dst;
     return p-dst;
 }
 
+static NG_WCHAR_t
+ascii_get_keyin_code(c)
+int c;
+{
+    return c;
+}
+
 static int ascii_get_display_code _PRO((int, NG_WCHAR_t, char *, int));
 static int ascii_get_display_code(code, c, buf, buflen)
 int code;
@@ -270,8 +277,11 @@ NG_WCHAR_t c;
 {
     int clen = ascii_width(c);
     NG_WCHAR_t *p;
-
+    NG_WCHAR_t old;
+    int i;
+	
     p = &vbuf[*col];
+    old = *p;
     if (ISMULTIBYTE(c)) {
 	*p++ = NG_WCODE('\\'); *p++ = NG_WCODE('w');
 	to_hex(p, 4, c);
@@ -286,10 +296,22 @@ NG_WCHAR_t c;
     else
 	*p++ = NG_WCODE(c);
 
+    /* clear fillers */
+    if (old == NG_WFILLER) {
+	i = *col - 1;
+	while (i > 0 && vbuf[i] == NG_WFILLER)
+	    vbuf[i--] = NG_WSPACE;
+	vbuf[i] = NG_WSPACE; /* kill first char */
+    }
     *col += clen;
     if (*col >= ncol) {
 	*col = 0;
 	*row++;
+    }
+    else {
+	i = *col;
+	while (i < ncol && vbuf[i] == NG_WFILLER)
+	    vbuf[i++] = NG_WSPACE;
     }
     return clen;
 }
@@ -316,6 +338,7 @@ static LANG_MODULE ascii_lang = {
     ascii_category,
     ascii_set_code,
     ascii_get_code,
+    ascii_get_keyin_code,
     NULL, /* ascii_display_start_code */
     NULL, /* ascii_display_end_code */
     ascii_get_display_code,

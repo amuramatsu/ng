@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.5 2006/01/08 19:22:43 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.6 2006/01/11 14:47:34 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -672,7 +672,7 @@ const char *fname;
 		return FALSE;
 	    }
 	}
-	nbytes = display_lang->lm_in_convert(fio, buf, nbytes, excbuf);
+	nbytes = terminal_lang->lm_in_convert(fio, buf, nbytes, excbuf);
 	excbuf[nbytes] = NG_EOS;
 	if (excline(excbuf) != TRUE) {
 	    s = FIOERR;

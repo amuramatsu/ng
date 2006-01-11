@@ -1,4 +1,4 @@
-/* $Id: lang.c,v 1.1.2.1 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: lang.c,v 1.1.2.2 2006/01/11 14:47:34 amura Exp $ */
 /*
  * Copyright (C) 2006, MURAMATSU Atsushi. all rights reserved.
  * 
@@ -19,15 +19,15 @@
 #include "langlist.h"
 
 LANG_MODULE *default_lang;
-LANG_MODULE *display_lang;
+LANG_MODULE *terminal_lang;
 
 VOID
 langinit()
 {
     if (default_lang == NULL)
 	default_lang = get_ascii_langmodule();
-    if (display_lang == NULL)
-	display_lang = get_ascii_langmodule();
+    if (terminal_lang == NULL)
+	terminal_lang = get_ascii_langmodule();
 }
 
 static LANG_MODULE *
@@ -93,7 +93,7 @@ int f, n;
 }
 
 int
-set_display_lang(f, n)
+set_terminal_lang(f, n)
 int f, n;
 {
     LANG_MODULE *new_lang;
@@ -102,10 +102,10 @@ int f, n;
     int s;
 
 #ifndef	NO_FILECOMP
-    if ((s = eread("Select display language : ",
+    if ((s = eread("Select terminal language : ",
 		   winput, NG_WCHARLEN(winput), EFNEW|EFCR)) != TRUE)
 #else
-    if ((s = ereply("Select display language : ",
+    if ((s = ereply("Select terminal language : ",
 		    winput, NG_WCHARLEN(winput))) != TRUE)
 #endif
 	return s;
@@ -113,7 +113,7 @@ int f, n;
     if ((new_lang = get_lang(input)) == NULL)
 	return FALSE;
 
-    display_lang = new_lang;
+    terminal_lang = new_lang;
     return TRUE;
 }
 

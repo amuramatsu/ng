@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.4 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.5 2006/01/11 14:47:34 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -6,11 +6,13 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "ttydef.h"
 #include "kbd.h"
 
 #include "i_window.h"
 #include "i_lang.h"
 #include "i_buffer.h"
+#include "in_code.h"
 
 #include "autosave.h"
 #include "echo.h"
@@ -129,13 +131,8 @@ int flag;
 	c = pushedc;
 	pushed = FALSE;
     }
-    else {
-#ifdef KANJI	/* 90.01.29  by S.Yoshida */
+    else
 	c = kgetkey();
-#else /* NOT KANJI */
-	c = getkbd();
-#endif /* KANJI */
-    }
 #ifdef BSMAP
     if (bs_map) {
 	if (c==CCHR('H'))
@@ -213,7 +210,7 @@ doin()
 #endif
     curmap = curbp->b_modes[curbp->b_nmodes]->p_map;
     key.k_count = 0;
-    d=getkey(TRUE);
+    d = getkey(TRUE);
 #ifdef MOUSE
     allow_mouse_event = FALSE;
 #endif
@@ -650,4 +647,112 @@ int f, n;
 	    ungetkey(c);
     }
     return selfinsert(f, n);
+}
+
+
+/*
+ * Input one byte from the keyboard with Multibyte code conversion.
+ */
+VOID
+kgetkey_flush()
+{
+    terminal_lang->lm_get_keyin_code(NG_W_INPUTCONT);
+}
+
+static int kgetkey_continue = FALSE;
+/*
+ * Input one byte from the keyboard with Multibyte code conversion.
+ */
+int
+kgetkey_continued()
+{
+    return kgetkey_continue;
+}
+
+int
+kgetkey()
+{
+    register int c1, c2;
+    kgetkey_continue = TRUE;
+    do {
+	c1 = getkbd();
+#ifdef VTCURSOR /* 92.03.16 by Gen KUROKI, renamed by amura */
+	if (c1 == NG_WESC) {
+	    c1 = getkbd();
+	    if (c1 == 'O' || c1 == '[') {
+		c2 = getkbd();
+		switch (c2) {
+		case 'A': c1 = NG_W_UP; break;
+		case 'B': c1 = NG_W_DOWN; break;
+		case 'C': c1 = NG_W_RIGHT; break;
+		case 'D': c1 = NG_W_LEFT; break;
+		case 'P': c1 = NG_W_PF01; break;
+		case 'Q': c1 = NG_W_PF02; break;
+		case 'R': c1 = NG_W_PF03; break;
+		case 'S': c1 = NG_W_PF04; break;
+#if 0 /* vt100?, this codes are minor... */
+		case 't': c1 = NG_W_PF05; break;
+		case 'u': c1 = NG_W_PF06; break;
+		case 'v': c1 = NG_W_PF07; break;
+		case 'l': c1 = NG_W_PF08; break;
+		case 'w': c1 = NG_W_PF09; break;
+		case 'x': c1 = NG_W_PF10; break;
+#endif
+		case '1':
+		case '2': {
+		    int c3, n;
+		    c3 = getkbd();
+		    if ('0' < c3 || c3 > '9') {
+			ungetkbd(c3);
+			ungetkbd(c2);
+			ungetkbd(c1);
+			c1 = NG_WESC;
+			break;
+		    }
+		    if ((n = getkbd()) != '~') {
+			ungetkbd(n);
+			ungetkbd(c3);
+			ungetkbd(c2);
+			ungetkbd(c1);
+			c1 = NG_WESC;
+			break;
+		    }
+		    n = (c2 - '0')*10 + c3 - '0';
+		    switch (n) {
+		    case 15: c1 = NG_W_PF05; break;
+		    case 17: c1 = NG_W_PF06; break;
+		    case 18: c1 = NG_W_PF07; break;
+		    case 19: c1 = NG_W_PF08; break;
+		    case 20: c1 = NG_W_PF09; break;
+		    case 21: c1 = NG_W_PF10; break;
+		    case 23: c1 = NG_W_PF12; break;
+		    case 24: c1 = NG_W_PF13; break;
+		    case 25: c1 = NG_W_PF14; break;
+		    case 26: c1 = NG_W_PF15; break;
+		    case 28: c1 = NG_W_PF16; break;
+		    case 29: c1 = NG_W_PF17; break;
+		    case 31: c1 = NG_W_PF18; break;
+		    case 32: c1 = NG_W_PF19; break;
+		    case 33: c1 = NG_W_PF20; break;
+		    default:
+			ungetkbd('~');
+			ungetkbd(c3);
+			ungetkbd(c2);
+			ungetkbd(c1);
+			c1 = NG_WESC;
+			break;
+		    }
+		}
+		default:
+		    ungetkbd(c2);
+		    ungetkbd(c1);
+		    c1 = NG_WESC;
+		    break;
+		}
+	    }
+	}
+#endif /* VTCURSOR */
+    } while ((c1 = terminal_lang->lm_get_keyin_code(c1)) == NG_W_INPUTCONT);
+    kgetkey_continue = FALSE;
+    return c1;
 }

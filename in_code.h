@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.9 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.10 2006/01/11 14:47:34 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -68,31 +68,35 @@ NG_WCHAR_t *_ng_wstr _PRO((const char *));
 #define NG_EOS		NG_WCODE(0x00)
 #define NG_WSPACE	NG_WCODE(0x20)
 #define NG_WTAB		NG_WCODE(0x09)
+#define NG_WESC		NG_WCODE(0x1b)
 #define NG_WBACKSL	NG_WCODE('\\')
 
 /*
- * 0xFF00-- only available in input key code
+ * 0xFF00-- specials
  */
-#define NG_W_PF01	NG_WCODE(0xFF00)
-#define NG_W_PF02	NG_WCODE(0xFF01)
-#define NG_W_PF03	NG_WCODE(0xFF03)
-#define NG_W_PF04	NG_WCODE(0xFF04)
-#define NG_W_PF05	NG_WCODE(0xFF05)
-#define NG_W_PF06	NG_WCODE(0xFF06)
-#define NG_W_PF07	NG_WCODE(0xFF07)
-#define NG_W_PF08	NG_WCODE(0xFF08)
-#define NG_W_PF09	NG_WCODE(0xFF09)
-#define NG_W_PF10	NG_WCODE(0xFF0A)
-#define NG_W_PF11	NG_WCODE(0xFF0B)
-#define NG_W_PF12	NG_WCODE(0xFF0C)
-#define NG_W_PF13	NG_WCODE(0xFF0D)
-#define NG_W_PF14	NG_WCODE(0xFF0E)
-#define NG_W_PF15	NG_WCODE(0xFF0F)
-#define NG_W_PF16	NG_WCODE(0xFF10)
-#define NG_W_PF17	NG_WCODE(0xFF11)
-#define NG_W_PF18	NG_WCODE(0xFF12)
-#define NG_W_PF19	NG_WCODE(0xFF13)
-#define NG_W_PF20	NG_WCODE(0xFF14)
+#define NG_W_INPUTCONT	NG_WCODE(0xFF00)
+#define NG_WFILLER	NG_WCODE(0xFF01)
+
+#define NG_W_PF01	NG_WCODE(0xFF10)
+#define NG_W_PF02	NG_WCODE(0xFF11)
+#define NG_W_PF03	NG_WCODE(0xFF12)
+#define NG_W_PF04	NG_WCODE(0xFF13)
+#define NG_W_PF05	NG_WCODE(0xFF14)
+#define NG_W_PF06	NG_WCODE(0xFF15)
+#define NG_W_PF07	NG_WCODE(0xFF16)
+#define NG_W_PF08	NG_WCODE(0xFF17)
+#define NG_W_PF09	NG_WCODE(0xFF18)
+#define NG_W_PF10	NG_WCODE(0xFF19)
+#define NG_W_PF11	NG_WCODE(0xFF1A)
+#define NG_W_PF12	NG_WCODE(0xFF1B)
+#define NG_W_PF13	NG_WCODE(0xFF1C)
+#define NG_W_PF14	NG_WCODE(0xFF1D)
+#define NG_W_PF15	NG_WCODE(0xFF1E)
+#define NG_W_PF16	NG_WCODE(0xFF1F)
+#define NG_W_PF17	NG_WCODE(0xFF20)
+#define NG_W_PF18	NG_WCODE(0xFF21)
+#define NG_W_PF19	NG_WCODE(0xFF22)
+#define NG_W_PF20	NG_WCODE(0xFF23)
 
 #define NG_W_UP		NG_WCODE(0xFF40)
 #define NG_W_DOWN	NG_WCODE(0xFF41)

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.6 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: display.c,v 1.20.2.7 2006/01/11 14:47:34 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -142,13 +142,13 @@ static SCORE *score = NULL;
 #define TTPUTC(code, c) do {					\
     char buf[8];						\
     int len, s, i;						\
-    s = display_lang->lm_get_display_code((code), (c),		\
-					  buf, sizeof(buf));	\
+    s = terminal_lang->lm_get_display_code((code), (c),		\
+					   buf, sizeof(buf));	\
     len = s < 0 ? sizeof buf : s;				\
     for (i = 0; i < len; i++)					\
 	ttputc(buf[i]);						\
     while (s <  0) {						\
-	s = display_lang->lm_get_display_code((code), NG_EOS,	\
+	s = terminal_lang->lm_get_display_code((code), NG_EOS,	\
 					      buf, sizeof(buf));\
 	len = s < 0 ? sizeof buf : s;				\
 	for (i = 0; i < len; i++)				\
@@ -283,10 +283,7 @@ vtputc(c)
 register NG_WCHAR_t c;
 {
     register VIDEO *vp;
-#ifdef VARIABLE_TAB
-    int tab = curwp->w_bufp->b_tabwidth;
-#endif
-
+    
     /* vtrow sometimes over-runs the vnrow -1.  In the case, vp at
      * following line becomes an uninitialized pointer.  Then core
      * dump or system error may occur.  To avoid the error.  Some
@@ -299,7 +296,8 @@ register NG_WCHAR_t c;
     vp = vscreen[vtrow];
     if (c == NG_WTAB && !(curwp->w_bufp->b_flag & BFNOTAB)) {
 #ifdef VARIABLE_TAB
-	if ((vtcol/tab +1)*tab <= ncol - 1 ) {
+	int tab = curwp->w_bufp->b_tabwidth;
+	if (vtcol+tab <= ncol-1) {
 	    do {
 		vtputc(NG_WSPACE);
 	    } while (vtcol<ncol && (vtcol%tab)!=0);
@@ -308,7 +306,7 @@ register NG_WCHAR_t c;
 	if ((vtcol | 0x07) + 1 <= ncol - 1 ) {
 	    do {
 		vtputc(NG_WSPACE);
-	    } while (vtcol<ncol && (vtcol%tab)!=0);
+	    } while (vtcol<ncol && (vtcol&0x07)!=0);
 	}
 #endif
 	else {
@@ -319,7 +317,7 @@ register NG_WCHAR_t c;
 	}
 	return;
     }
-    display_lang->lm_displaychar(vp->v_text, &vtcol, &vtrow, ncol, nrow, c);
+    terminal_lang->lm_displaychar(vp->v_text, &vtcol, &vtrow, ncol, nrow, c);
 }
 
 #if defined(MEMMAP) && !defined(HAVE_ORIGINAL_PUTLINE)
@@ -333,14 +331,16 @@ short color;	/* this is dummy */
     unsigned char c;
     int oldrow = vtrow;
     int oldcol = vtcol;
-    int dcode = display_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
+    int dcode = terminal_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
 
     vtrow = row;
     vtcol = col;
 
-    for (i=row; i<=MAXROW; i++, s++)
-	TTPUTC(dcode, *s);
-
+    for (i=row; i<=MAXROW; i++, s++) {
+	if (*s != NG_WFILLER)
+	    TTPUTC(dcode, *s);
+    }
+    
     vtrow = oldrow;
     vtcol = oldcol;
 }
@@ -413,7 +413,7 @@ int *lines;
 #endif
 	}
 	else
-	    (*curcol) += display_lang->lm_width(c);
+	    (*curcol) += terminal_lang->lm_width(c);
 
 	if (*curcol >= ncol -2) {
 	    *curcol = -1;
@@ -607,9 +607,8 @@ update()
     int	x,y;
     int	lines;
     /* 90.01.29  by S.Yoshida */
-    /* XXX extern int input_continued; */		/* Defined at kbd.c */
     
-    if (typeahead())
+    if (typeahead() || kgetkey_continued())
 	return;
     if (sgarbf) {			/* must update everything */
 	wp = wheadp;
@@ -618,16 +617,9 @@ update()
 	    wp = wp->w_wndp;
 	}
 	/* 90.01.29  by S.Yoshida */
-#if 0
-	input_continued = FALSE;	/* Reset multibyte input condition. */
-#endif
+	kgetkey_flush();	/* Reset multibyte input condition. */
     } 
-#if 0    
-    else if (input_continued) {		/* We don't have trailing byte. */
-	return;
-    }
-#endif
-
+    
     old_curwp = curwp;
     hflag = FALSE;			/* Not hard.		*/
     wp = wheadp;
@@ -945,7 +937,8 @@ VIDEO *vvp, *pvp;
     NG_WCHAR_t *cp4;
     NG_WCHAR_t *cp5;
     register int nbflag;
-    int dcode = display_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
+    int dcode = terminal_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
+    int w;
     
     if (vvp->v_color != pvp->v_color) {	/* Wrong color, do a	*/
 	ttmove(row, 0);			/* full redraw.		*/
@@ -954,8 +947,8 @@ VIDEO *vvp, *pvp;
 	    tteeol();
 #endif
 	ttcolor(vvp->v_color);
-	if (display_lang->lm_display_start_code != NULL)
-	    display_lang->lm_display_start_code();
+	if (terminal_lang->lm_display_start_code != NULL)
+	    terminal_lang->lm_display_start_code();
 #ifdef	STANDOUT_GLITCH
 	cp1 = &vvp->v_text[SG > 0 ? SG : 0];
 	/* the odd code for SG==0 is to avoid putting the invisable
@@ -968,11 +961,15 @@ VIDEO *vvp, *pvp;
 	cp2 = &vvp->v_text[ncol];
 #endif	/* STANDOUT_GLITCH */
 	while (cp1 != cp2) {
-	    TTPUTC(dcode, *cp1);
-	    ttcol += display_lang->lm_width(*cp1++);
+	    if (*cp1 != NG_WFILLER) {
+		TTPUTC(dcode, *cp1);
+		w = terminal_lang->lm_width(*cp1);
+		ttcol += w;
+		cp1 += w;
+	    }
 	}
-	if (display_lang->lm_display_end_code != NULL)
-	    display_lang->lm_display_start_code();
+	if (terminal_lang->lm_display_end_code != NULL)
+	    terminal_lang->lm_display_start_code();
 #ifndef MOVE_STANDOUT
 	ttcolor(CTEXT);
 #endif
@@ -1019,14 +1016,18 @@ VIDEO *vvp, *pvp;
     else if (SG < 0)
 #endif /* STANDOUT_GLITCH */
 	ttcolor(vvp->v_color);
-    if (display_lang->lm_display_start_code != NULL)
-	display_lang->lm_display_start_code();
+    if (terminal_lang->lm_display_start_code != NULL)
+	terminal_lang->lm_display_start_code();
     while (cp1 != cp5) {
-	TTPUTC(dcode, *cp1);
-	ttcol += display_lang->lm_width(*cp1++);
+	if (*cp1 != NG_WFILLER) {
+	    TTPUTC(dcode, *cp1);
+	    w = terminal_lang->lm_width(*cp1);
+	    ttcol += w;
+	    cp1 += w;
+	}
     }
-    if (display_lang->lm_display_end_code != NULL)
-	display_lang->lm_display_end_code();
+    if (terminal_lang->lm_display_end_code != NULL)
+	terminal_lang->lm_display_end_code();
     if (cp5 != cp3)				/* Do erase.		*/
 	tteeol();
 #ifndef MOVE_STANDOUT	/* 90.03.21  by S.Yoshida */

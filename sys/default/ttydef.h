@@ -1,10 +1,12 @@
-/* $Id: ttydef.h,v 1.8.2.1 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: ttydef.h,v 1.8.2.2 2006/01/11 14:47:34 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
  */
 /* 90.11.09	Modified for Ng 1.2.1 Human68k by Sawayanagi Yosirou */
 /* 90.02.05	Modified for Ng 1.0 by S.Yoshida */
+#ifndef __TTYDEF_H__
+#define __TTYDEF_H__
 
 #ifdef HAVE_ORIGINAL_PUTLINE
 # ifndef MEMMAP
@@ -43,9 +45,7 @@ typedef unsigned short DISP_ROW_t;
 #endif	/* DO_METAKEY */
 
 #define getkbd()	(ttgetc())
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
 #define	ungetkbd(c)	(ttungetc(c))
-#endif	/* KANJI */
 
 #ifndef XKEYS
 # ifdef	ADDOPT
@@ -82,3 +82,5 @@ int tputs();
 
 #define	KFIRST	K00
 #define	KLAST	K00
+
+#endif /* __TTYDEF_H__ */

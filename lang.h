@@ -1,4 +1,4 @@
-/* $Id: lang.h,v 1.1.2.1 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: lang.h,v 1.1.2.2 2006/01/11 14:47:34 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the NG display editor.
@@ -10,9 +10,6 @@
 #include "in_code.h"
 #include "i_lang.h"
 
-extern LANG_MODULE *default_lang;
-extern LANG_MODULE *display_lang;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,7 +17,7 @@ extern "C" {
 VOID langinit _PRO((void));
 int set_default_lang _PRO((int, int));
 int set_buffer_lang _PRO((int, int));
-int set_display_lang _PRO((int, int));
+int set_terminal_lang _PRO((int, int));
 LANG_MODULE *get_default_lang _PRO((void));
 
 #ifdef __cplusplus
