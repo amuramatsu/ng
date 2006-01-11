@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.7 2006/01/11 14:47:34 amura Exp $ */
+/* $Id: display.c,v 1.20.2.8 2006/01/11 14:54:09 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -407,9 +407,10 @@ int *lines;
 	c = lgetc(lp, i);
 	if (c == NG_WTAB  && !(curbp->b_flag & BFNOTAB) ) {
 #ifdef VARIABLE_TAB
-	    *curcol = ((*curcol)/tab +1)*tab -1;
+	    *curcol = ((*curcol)/tab +1)*tab;
 #else
 	    *curcol |= 0x07;
+	    *curcol += 1;
 #endif
 	}
 	else
