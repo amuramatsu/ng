@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.21.2.5 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: line.c,v 1.21.2.6 2006/01/12 16:01:23 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -23,6 +23,9 @@
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
 #include "line.h"
+#ifdef SUPPORT_ANSI
+#include <stddef.h>
+#endif
 
 #include "i_buffer.h"
 #include "i_window.h"
@@ -32,9 +35,12 @@
 
 /* number of bytes member is from start of structure type	*/
 /* should be computed at compile time				*/
-
 #ifndef OFFSET
+#ifdef offsetof
+#define OFFSET(type,member) (offsetof(type,member))
+#else /* not offsetof */
 #define OFFSET(type,member) ((char *)&(((type *)0)->member)-(char *)((type *)0))
+#endif /* offsetof */
 #endif
 
 #ifndef NBLOCK
@@ -45,7 +51,7 @@
 #define KBLOCK	256			/* Kill buffer block size.	*/
 #endif
 
-static char *kbufp	= NULL;		/* Kill buffer data.		*/
+static NG_WCHAR_t *kbufp= NULL;		/* Kill buffer data.		*/
 static RSIZE kused	= 0;		/* # of bytes used in KB.	*/
 static RSIZE ksize	= 0;		/* # of bytes allocated in KB.	*/
 static RSIZE kstart	= 0;		/* # of first used byte in KB.	*/
@@ -69,7 +75,7 @@ register int used;
     register int size;
 
     /* any padding at the end of the structure is used */
-    if ((size = (used + OFFSET(LINE, l_text[0])*sizeof(NG_WCHAR_t)))
+    if ((size = OFFSET(LINE, l_text[0]) + used*sizeof(NG_WCHAR_t))
 	< sizeof(LINE))
 	size = sizeof(LINE);
 #ifdef MALLOCROUND
@@ -478,7 +484,7 @@ int kflag;
 		return FALSE;	/* End of buffer.	*/
 	    lchange(WFHARD);
 	    if (ldelnewline() == FALSE
-		|| (kflag!=KNONE && kinsert('\n', kflag)==FALSE)) {
+		|| (kflag!=KNONE && kinsert(NG_WCODE('\n'), kflag)==FALSE)) {
 #ifdef	UNDO
 		undo_reset(curbp);
 #endif
@@ -508,7 +514,7 @@ int kflag;
 	    }
 	    else if (undo_bgrow(undo, chunk)) {
 		bcopy(cp1, &(undo->u_buffer[undo->u_used]),
-		      (int)chunk);
+		      chunk*sizeof(NG_WCHAR_t));
 		undo->u_used += chunk;
 	    }
 	}
@@ -518,7 +524,7 @@ int kflag;
 		if (kgrow(FALSE) == FALSE)
 		    return FALSE;
 	    }
-	    bcopy(cp1, &(kbufp[kused]), (int) chunk);
+	    bcopy(cp1, &(kbufp[kused]), chunk*sizeof(NG_WCHAR_t));
 	    kused += chunk;
 	}
 	else if (kflag == KBACK) {
@@ -526,25 +532,25 @@ int kflag;
 		if (kgrow(TRUE) == FALSE)
 		    return FALSE;
 	    }
-	    bcopy(cp1, &(kbufp[kstart-chunk]), (int) chunk);
+	    bcopy(cp1, &(kbufp[kstart-chunk]), chunk*sizeof(NG_WCHAR_t));
 	    kstart -= chunk;
 	}
 	else if (kflag != KNONE)
 	    panic("broken ldelete call");
 	while (cp2 != &dotp->l_text[dotp->l_used])
 	    *cp1++ = *cp2++;
-	dotp->l_used -= (int) chunk;
+	dotp->l_used -= chunk;
 	for (wp = wheadp; wp != NULL; wp = wp->w_wndp ) {
 	    if (wp->w_dotp==dotp && wp->w_doto>=doto) {
 		/*NOSTRICT*/
-		wp->w_doto -= (short)chunk;
+		wp->w_doto -= chunk;
 		if (wp->w_doto < doto)
 		    wp->w_doto = doto;
 	    }
 	}
 	if (curbp->b_markp==dotp && curbp->b_marko>=doto) {
 	    /*NOSTRICT*/
-	    curbp->b_marko -= (short)chunk;
+	    curbp->b_marko -= chunk;
 	    if (curbp->b_marko < doto)
 		curbp->b_marko = doto;
 	}
@@ -610,8 +616,9 @@ ldelnewline()
     }
     if ((lp3=lalloc(lp1->l_used + lp2->l_used)) == NULL)
 	return FALSE;
-    bcopy(&lp1->l_text[0], &lp3->l_text[0], lp1->l_used);
-    bcopy(&lp2->l_text[0], &lp3->l_text[lp1->l_used], lp2->l_used);
+    bcopy(&lp1->l_text[0], &lp3->l_text[0], lp1->l_used*sizeof(NG_WCHAR_t));
+    bcopy(&lp2->l_text[0], &lp3->l_text[lp1->l_used],
+	  lp2->l_used*sizeof(NG_WCHAR_t));
     lp1->l_bp->l_fp = lp3;
     lp3->l_fp = lp2->l_fp;
     lp2->l_fp->l_bp = lp3;
@@ -693,13 +700,13 @@ int f;					/* case hack disable		*/
 	 * Because do_undo() use this function 'lreplace',
 	 */
 	if (undo_balloc(undo, plen+1)) {
-	    bcopy(&(curwp->w_dotp)->l_text[doto], undo->u_buffer, plen);
-	    undo->u_buffer[plen] = '\0';
+	    bcopy(&(curwp->w_dotp)->l_text[doto], undo->u_buffer,
+		  plen*sizeof(NG_WCHAR_t));
+	    undo->u_buffer[plen] = NG_EOS;
 	    undo->u_dotlno = get_lineno(curbp,curwp->w_dotp);
 	    undo->u_doto = doto;
 	    undo->u_type = UDREPL;
 	    undo->u_used = rlen;
-	    
 	    undoptr_save = undoptr;
 	    undoptr = NULL;
 	}
@@ -708,7 +715,7 @@ int f;					/* case hack disable		*/
     if (plen > rlen)
 	(VOID) ldelete((RSIZE) (plen-rlen), KNONE);
     else if (plen < rlen) {
-	if (linsert((int)(rlen-plen), ' ') == FALSE)
+	if (linsert((int)(rlen-plen), NG_WSPACE) == FALSE)
 	    return FALSE;
     }
     curwp->w_doto = doto;
@@ -718,7 +725,7 @@ int f;					/* case hack disable		*/
      * char as if upper, and subsequent chars as if lower.
      * If inserting upper, check replacement for case.
      */
-    while ((c = CHARMASK(*st++)) != '\0') {
+    while ((c = CHARMASK(*st++)) != NG_EOS) {
 	if ((rtype&_NGC_U)!=0  &&  ISLOWER(c)!=0)
 	    c = TOUPPER(c);
 	if (rtype == (_NGC_U|_NGC_L))
@@ -804,21 +811,21 @@ kgrow(back)
 int back;
 {
     register int nstart;
-    register char *nbufp;
+    register NG_WCHAR_t *nbufp;
     
     if ((unsigned)(ksize+KBLOCK) <= (unsigned)ksize) {
 	/* probably 16 bit unsigned */
 	ewprintf("Kill buffer size at maximum");
 	return FALSE;
     }
-    if ((nbufp=malloc((unsigned)(ksize+KBLOCK))) == NULL) {
-	ewprintf("Can't get %ld bytes", (long)(ksize+KBLOCK));
+    if ((nbufp=malloc((ksize+KBLOCK)*sizeof(NG_WCHAR_t))) == NULL) {
+	ewprintf("Can't get %ld bytes", (ksize+KBLOCK)*sizeof(NG_WCHAR_t));
 	return FALSE;
     }
     nstart = (back == TRUE) ? (kstart + KBLOCK) : (KBLOCK / 4) ;
     if (kused-kstart > 0)
 	bcopy(&(kbufp[kstart]), &(nbufp[nstart]),
-	      (int) (kused-kstart));
+	      (kused-kstart)*sizeof(NG_WCHAR_t));
     if (kbufp != NULL)
 	free((char *) kbufp);
     kbufp  = nbufp;
@@ -876,12 +883,12 @@ receive_clipboard()
     recieve_clipboard_(buf, &size);
     ksize = size + 1;
     ksize = (ksize + KBLOCK - 1) / KBLOCK * KBLOCK ;
-    kbufp = malloc(ksize);
+    kbufp = malloc(ksize*sizeof(NG_WCHAR_t));
     if ((kbufp=malloc(ksize)) == NULL) {
 	ksize = 0;
 	return FALSE;
     }
-    bcopy(buf, kbufp, size);
+    bcopy(buf, kbufp, size*sizeof(NG_WCHAR_t));
     kused = size;
     kstart = 0;
     return TRUE;
