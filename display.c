@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.9 2006/01/13 15:35:17 amura Exp $ */
+/* $Id: display.c,v 1.20.2.10 2006/01/13 18:14:09 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -20,6 +20,7 @@
 #include "i_buffer.h"
 #include "i_lang.h"
 #include "i_window.h"
+#include "i_tab.h"
 #include "in_code.h"
 #include "echo.h"
 #include "line.h"
@@ -285,7 +286,7 @@ register NG_WCHAR_t c;
 	return;
 
     vp = vscreen[vtrow];
-    if (c == NG_WTAB && !(curwp->w_bufp->b_flag & BFNOTAB)) {
+    if (ISTAB(c) && !(curwp->w_bufp->b_flag & BFNOTAB)) {
 #ifdef VARIABLE_TAB
 	int tab = curwp->w_bufp->b_tabwidth;
 	if (vtcol+tab <= ncol-1) {
@@ -396,14 +397,8 @@ int *lines;
     *lines = 0;
     for (i=0; i<offset; ++i) {
 	c = lgetc(lp, i);
-	if (c == NG_WTAB  && !(curbp->b_flag & BFNOTAB) ) {
-#ifdef VARIABLE_TAB
-	    *curcol = ((*curcol)/tab +1)*tab;
-#else
-	    *curcol |= 0x07;
-	    *curcol += 1;
-#endif
-	}
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB) )
+	    (*curcol) = tabnext(*curcol, tab);
 	else
 	    (*curcol) += terminal_lang->lm_width(c);
 
@@ -502,12 +497,8 @@ int lines;
 	if (lines == 0)
 	    return i - curcol;
 	c = lgetc(lp, i);
-	if (c == NG_WTAB && !(curbp->b_flag & BFNOTAB)) {
-#ifdef VARIABLE_TAB
-	    curcol = (curcol/tab + 1)*tab - 1;
-#else
-	    curcol |= 0x07;
-#endif
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) {
+	    curcol = tabnext(curcol, tab);
 	    if (curcol >= ncol -2) {
 		curcol = -1;
 		--lines;
@@ -549,12 +540,8 @@ const LINE *lp;
     lines = 0;
     for (i=0; i<llength(lp); ++i) {
 	c = lgetc(lp, i);
-	if (c == NG_WTAB && !(curbp->b_flag & BFNOTAB)) { 
-#ifdef VARIABLE_TAB
-	    curcol = (curcol/tab + 1)*tab - 1;
-#else
-	    curcol |= 0x07;
-#endif
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) { 
+	    curcol = tabnext(curcol, tab);
 	    if (curcol >= ncol -2) {
 		curcol = -1;
 		lines++;

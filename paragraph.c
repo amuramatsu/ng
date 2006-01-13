@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.12.2.4 2006/01/13 18:07:38 amura Exp $ */
+/* $Id: paragraph.c,v 1.12.2.5 2006/01/13 18:14:09 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -12,6 +12,7 @@
 #include "i_buffer.h"
 #include "i_window.h"
 #include "i_lang.h"
+#include "i_tab.h"
 #include "basic.h"
 #include "random.h"
 #include "region.h"
@@ -213,14 +214,8 @@ int f, n;
 	;
     for (clength = 0, i = 0; i < curwp->w_doto; i++) {
 	c = lgetc(curwp->w_dotp, i);
-	if (c == NG_WTAB && !(curbp->b_flag & BFNOTAB)) {
-#ifdef	VARIABLE_TAB
-	    clength = (clength/tab + 1)*tab;
-#else
-	    clength |= 0x07;
-	    clength++;
-#endif
-	}
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB))
+	    clength = tabnext(clength, tab);
 	else
 	    clength += lm_width(c);
     }
@@ -511,14 +506,8 @@ int f, n;
 	if (i == curwp->w_doto)
 	    return selfinsert(f, n) ;
 	c = lgetc(curwp->w_dotp, i);
-	if (c == NG_WTAB && !(curbp->b_flag & BFNOTAB)) {
-#ifdef	VARIABLE_TAB
-	    col = (col/tab + 1)*tab;
-#else
-	    col |= 0x07;
-	    col++;
-#endif
-	}
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB))
+	    col = tabnext(col, tab);
 	else
 	    col += lm_width(c);
     }
@@ -665,15 +654,8 @@ int f, n;
     else {
 	for (i = col = 0; col < fillprefix_col; ++i) {
 	    c = lgetc(curwp->w_dotp, i);
-	    if (c == NG_WTAB && !(curbp->b_flag & BFNOTAB)) {
-#ifdef	VARIABLE_TAB
-
-		col = (col/tab + 1)*tab;
-#else
-	        col |= 0x07;
-		col+=;
-#endif
-	    }
+	    if (ISTAB(c) && !(curbp->b_flag & BFNOTAB))
+		col = tabnext(col, tab);
 	    else
 		col += lm_width(c);
 	    fillprefix[i] = c;
