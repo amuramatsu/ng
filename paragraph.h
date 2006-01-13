@@ -1,4 +1,4 @@
-/* $Id: paragraph.h,v 1.1.2.1 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: paragraph.h,v 1.1.2.2 2006/01/13 17:32:55 amura Exp $ */
 
 #ifndef __PARAGRAPH_H__
 #define __PARAGRAPH_H__
@@ -8,6 +8,7 @@ extern "C" {
 #endif
 
 int gotoeop _PRO((int, int));
+int fillword _PRO((int, int));
 
 #ifdef __cplusplus
 }

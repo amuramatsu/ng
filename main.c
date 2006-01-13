@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.11.2.5 2006/01/04 17:00:40 amura Exp $ */
+/* $Id: main.c,v 1.11.2.6 2006/01/13 17:32:55 amura Exp $ */
 /*
  *		Mainline
  */
@@ -214,9 +214,7 @@ char **argv;
 	case FALSE:
 	default:
 	    ttbeep();
-#ifdef KANJI
-	    kgetkeyflush();
-#endif
+	    kgetkey_flush();
 #ifndef NO_MACRO
 	    macrodef = FALSE;
 #endif

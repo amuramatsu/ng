@@ -1,4 +1,4 @@
-/* $Id: chrdef.h,v 1.4.2.3 2006/01/04 17:00:40 amura Exp $ */
+/* $Id: chrdef.h,v 1.4.2.4 2006/01/13 17:32:55 amura Exp $ */
 /*
  * sys/default/chardef.h: character set specific #defines for mg 2a
  * Warning: System specific ones exist
@@ -38,6 +38,7 @@
 #define ISLOWER(c)	((cinfo[CHARMASK(c)]&_NGC_L)!=0)
 #define ISEOSP(c)	((cinfo[CHARMASK(c)]&_NGC_P)!=0)
 #define	ISDIGIT(c)	((cinfo[CHARMASK(c)]&_NGC_D)!=0)
+#define ISBREAKABLE(c)	(0)
 #define	ISMULTIBYTE(c)	((c) > 255)
 #define TOUPPER(c)	((c)-0x20)
 #define TOLOWER(c)	((c)+0x20)

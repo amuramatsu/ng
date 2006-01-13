@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.5 2006/01/11 14:47:34 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.6 2006/01/13 17:32:55 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -15,6 +15,7 @@
 #include "in_code.h"
 
 #include "autosave.h"
+#include "paragraph.h"
 #include "echo.h"
 #include "undo.h"
 #include "ttyio.h"
@@ -437,7 +438,7 @@ int f, n;
  * all inserted characters.
  */
 /* 90.01.29  by S.Yoshida */
-int inkfill = FALSE;			/* Now we are in a fillword().	*/
+static int inkfill = FALSE;		/* Now we are in a fillword().	*/
 
 int
 selfinsert(f, n)
@@ -467,7 +468,8 @@ int f, n;
     /* This must be done at keymap.c to add KANJI fill trigger list in	*/
     /* a fillmap. But there are too many KANJI chars, so we use this	*/
     /* easy way.							*/
-    if (curbp->b_flag & BFAUTOFILL && !inkfill) { /* Autofill mode and	*/
+    if (c != NG_WCODE('\n') && ISBREAKABLE(c) &&
+	(curbp->b_flag & BFAUTOFILL) && !inkfill) { /* Autofill mode and*/
 	int s;
 #ifdef UNDO
 	if (isundo()) {
@@ -484,11 +486,9 @@ int f, n;
 	    }
 	}
 #endif
-#if 0 /*XXX*/
 	inkfill = TRUE;
 	s = fillword(f, n);		/* fill word with KANJI char.	*/
 	inkfill = FALSE;
-#endif
 	return (s);
     }					/* End of autofill mode add routine. */
 #ifndef NO_MACRO
@@ -530,7 +530,7 @@ int f, n;
 	thisflag |= CFINS;
     }
 #endif
-    if (c == '\n') {
+    if (c == NG_WCODE('\n')) {
 	do {
 	    count = lnewline();
 	} while (--n && count==TRUE);

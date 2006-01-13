@@ -1,7 +1,6 @@
-/* $Id: kinsoku.c,v 1.6 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: kinsoku.c,v 1.6.2.1 2006/01/13 17:32:55 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
- *		These are only used when KANJI is #defined.
  *
  *		Coded by Shigeki Yoshida (shige@csk.CO.JP)
  */
@@ -19,7 +18,7 @@
 
 /* BOL KINSOKU char list (EUC).	*/
 /* This table must be sorted.	*/
-static unsigned short	bolkchar[MAXBOLKC] = {
+static NG_WCHAR_t bolkchar[MAXBOLKC] = {
 	'!',	'\'',	')',	',',	'-',	/*  5 */
 	'.',	':',	';',	'?',	']',	/* 10 */
 	'_',	'}',	'~',	0xa1a2,	0xa1a3,	/* 15 */
@@ -62,15 +61,15 @@ int
 kc_list_char(f, n)
 int f, n;
 {
-    register unsigned short *p;		/* KINSOKU char list pointer.	*/
-    register unsigned short *eop;	/* End of KINSOKU char list.	*/
-    register char c;
-    register char *l;			/* Display line buffer pointer.	*/
-    register char *eol;			/* End of display line buffer.	*/
+    register NG_WCHAR_t *p;		/* KINSOKU char list pointer.	*/
+    register NG_WCHAR_t *eop;		/* End of KINSOKU char list.	*/
+    register NG_WCHAR_t c;
+    register NG_WCHAR_t *l;		/* Display line buffer pointer.	*/
+    register NG_WCHAR_t *eol;		/* End of display line buffer.	*/
     register BUFFER *bp;
     register WINDOW *wp;
 #define	DISPLEN	64
-    char line[DISPLEN + 1];		/* Display line buffer.		*/
+    NG_WCHAR_t line[DISPLEN + 1];	/* Display line buffer.		*/
 
     if ((bp = bfind("*Kinsoku Chars*", TRUE)) == NULL)
 	return FALSE;
@@ -82,77 +81,57 @@ int f, n;
     if (bclear(bp) != TRUE)
 	return FALSE;
 
-    strcpy(line, "kinsoku-bol-chars:"); /* BOL KINSOKU char list. */
+    wstrlcpya(line, "kinsoku-bol-chars:",
+	      NG_WCHARLEN(line));	/* BOL KINSOKU char list. */
     if (addline(bp, line) == FALSE)
 	return FALSE;
     l   = line;
-    *l++ = '\t';			/* List line start with TAB.	*/
+    *l++ = NG_WTAB;			/* List line start with TAB.	*/
     eol = &line[DISPLEN];
     p   = bolkchar;
     eop = &bolkchar[nbolkc];
     while (p < eop) {
 	if (l >= eol) {
-	    *l = '\0';
+	    *l = NG_EOS;
 	    if (addline(bp, line) == FALSE)
 		return FALSE;
 	    l = line;
-	    *l++ = '\t';	/* List line start with TAB.	*/
+	    *l++ = NG_WTAB;	/* List line start with TAB.	*/
 	}
-	else {
-	    if ((c = (*p >> 8) & 0xff) != 0) {
-		*l++ = c;
-	    }
-	    c = *p++ & 0xff;
-	    if (ISCTRL(c)) { /* This may be needless...	*/
-		*l++ = '^';
-		*l++ = CCHR(c);
-	    }
-	    else {
-		*l++ = c;
-	    }
-	}
+	else
+	    *l++ = c;
     }
     if (l > line) {			/* Not shown line exists.	*/
-	*l = '\0';
+	*l = NG_EOS;
 	if (addline(bp, line) == FALSE)
 	    return FALSE;
     }
-    line[0] = '\0';
+    line[0] = NG_EOS;
     if (addline(bp, line) == FALSE)
 	return FALSE;
 
-    strcpy(line, "kinsoku-eol-chars:"); /* EOL KINSOKU char list.	*/
+    wstrlcpya(line, "kinsoku-eol-chars:",
+	      NG_WCHARLEN(line));	/* EOL KINSOKU char list.	*/
     if (addline(bp, line) == FALSE)
 	return FALSE;
     l   = line;
-    *l++ = '\t';			/* List line start with TAB.	*/
+    *l++ = NG_WTAB;			/* List line start with TAB.	*/
     eol = &line[DISPLEN];
     p   = eolkchar;
     eop = &eolkchar[neolkc];
     while (p < eop) {
 	if (l >= eol) {
-	    *l = '\0';
+	    *l = NG_EOS;
 	    if (addline(bp, line) == FALSE)
 		return FALSE;
 	    l = line;
-	    *l++ = '\t';	/* List line start with TAB.	*/
+	    *l++ = NG_WTAB;	/* List line start with TAB.	*/
 	}
-	else {
-	    if ((c = (*p >> 8) & 0xff) != 0) {
-		*l++ = c;
-	    }
-	    c = *p++ & 0xff;
-	    if (ISCTRL(c)) { /* This may be needless...	*/
-		*l++ = '^';
-		*l++ = CCHR(c);
-	    }
-	    else {
-		*l++ = c;
-	    }
-	}
+	else
+	    *l++ = c;
     }
     if (l > line) {			/* Not shown line exists.	*/
-	*l = '\0';
+	*l = NG_EOS;
 	if (addline(bp, line) == FALSE)
 	    return FALSE;
     }
@@ -177,22 +156,16 @@ kc_add_bol(f, n)
 int f, n;
 {
     register int s;
-    register short c;
-    register char *p;
-    char kchar[NFILEN];
+    register NG_WCHAR_t *p;
+    NG_WCHAR_t kchar[NFILEN];
 
-    if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE) {
-	return (s);
-    }
+    if ((s = ereply("Kinsoku Chars : ", kchar, NG_WCHARLEN(kchar))) != TRUE)
+	return s;
 
     for (p = kchar; *p;) {
-	c = *p++ & 0xff;
-	if (ISKANJI(c))
-	    c = (c << 8) | (*p++ & 0xff);
 	if (nbolkc < MAXBOLKC) {
-	    if (kcinsert(bolkchar, c, nbolkc)) {
+	    if (kcinsert(bolkchar, *p++, nbolkc))
 		nbolkc++;
-	    }
 	}
 	else {
 	    ewprintf("Too many kinsoku-bol-chars!");
@@ -213,19 +186,15 @@ kc_del_bol(f, n)
 int f, n;
 {
     register int s;
-    register short c;
-    register char *p;
-    char kchar[NFILEN];
+    register NG_WCHAR_t *p;
+    NG_WCHAR_t kchar[NFILEN];
     
-    if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE)
-	return (s);
+    if ((s = ereply("Kinsoku Chars : ", kchar, NG_WCHARLEN(kchar))) != TRUE)
+	return s;
 
     for (p = kchar; *p;) {
-	c = *p++ & 0xff;
-	if (ISKANJI(c))
-	    c = (c << 8) | (*p++ & 0xff);
 	if (nbolkc > 0) {
-	    if (kcdelete(bolkchar, c, nbolkc))
+	    if (kcdelete(bolkchar, *p++, nbolkc))
 		nbolkc--;
 	}
 	else {
@@ -247,21 +216,16 @@ kc_add_eol(f, n)
 int f, n;
 {
     register int s;
-    register short c;
-    register char *p;
-    char kchar[NFILEN];
+    register NG_WCHAR_t *p;
+    NG_WCHAR_t kchar[NFILEN];
 
-    if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE)
-	return (s);
+    if ((s = ereply("Kinsoku Chars : ", kchar, NG_WCHARLEN(kchar))) != TRUE)
+	return s;
 
     for (p = kchar; *p;) {
-	c = *p++ & 0xff;
-	if (ISKANJI(c))
-	    c = (c << 8) | (*p++ & 0xff);
 	if (neolkc < MAXEOLKC) {
-	    if (kcinsert(eolkchar, c, neolkc)) {
+	    if (kcinsert(eolkchar, *p++, neolkc))
 		neolkc++;
-	    }
 	}
 	else {
 	    ewprintf("Too many kinsoku-eol-chars!");
@@ -282,19 +246,15 @@ kc_del_eol(f, n)
 int f, n;
 {
     register int s;
-    register short c;
-    register char *p;
-    char kchar[NFILEN];
+    register NG_WCHAR_t *p;
+    NG_WCHAR_t kchar[NFILEN];
 
-    if ((s = ereply("Kinsoku Chars : ", kchar, NFILEN)) != TRUE)
-	return (s);
+    if ((s = ereply("Kinsoku Chars : ", kchar, NG_WCHARLEN(kchar))) != TRUE)
+	return s;
 
     for (p = kchar; *p;) {
-	c = *p++ & 0xff;
-	if (ISKANJI(c))
-	    c = (c << 8) | (*p++ & 0xff);
 	if (neolkc > 0) {
-	    if (kcdelete(eolkchar, c, neolkc))
+	    if (kcdelete(eolkchar, *p++, neolkc))
 		neolkc--;
 	}
 	else {
@@ -309,18 +269,14 @@ int f, n;
  * Insert one KINSOKU char in a KINSOKU char list.
  */
 int
-#ifdef SUPPORT_ANSI /* for strict compiler */
-kcinsert(unsigned short *kclist, unsigned short kc, int nkc)
-#else
 kcinsert(kclist, kc, nkc)
-unsigned short *kclist;			/* KINSOKU char list.	*/
-unsigned short kc;			/* Target KINSOKU char.	*/
+NG_WCHAR_t *kclist;			/* KINSOKU char list.	*/
+NG_WCHAR_ta kc;				/* Target KINSOKU char.	*/
 int nkc;				/* Current number of KINSOKU chars. */
-#endif
 {
-    unsigned short *p = kclist;		/* Start of KINSOKU char list.	  */
-    unsigned short *eop = &kclist[nkc];	/* End of KINSOKU char list. */
-    unsigned short *pp;
+    NG_WCHAR_t *p = kclist;		/* Start of KINSOKU char list.	  */
+    NG_WCHAR_t *eop = &kclist[nkc];	/* End of KINSOKU char list. */
+    NG_WCHAR_t *pp;
     
     for (; p < eop; p++) {
 	if (kc < *p)
@@ -344,13 +300,13 @@ int
 kcdelete(unsigned short *kclist, unsigned short kc,int nkc)
 #else
 kcdelete(kclist, kc, nkc)
-unsigned short *kclist;			/* KINSOKU char list.	*/
-unsigned short kc;			/* Target KINSOKU char.	*/
+NG_WCHAR_t *kclist;			/* KINSOKU char list.	*/
+NG_WCHAR_ta kc;				/* Target KINSOKU char.	*/
 int nkc;				/* Current number of KINSOKU chars. */
 #endif
 {
-    unsigned short *p = kclist;		/* Start of KINSOKU char list.	  */
-    unsigned short *eop = &kclist[nkc];	/* End of KINSOKU char list. */
+    NG_WCHAR_t *p = kclist;		/* Start of KINSOKU char list.	  */
+    NG_WCHAR_t *eop = &kclist[nkc];	/* End of KINSOKU char list. */
 
     for (; p < eop; p++) {
 	if (kc == *p)
@@ -365,18 +321,17 @@ int nkc;				/* Current number of KINSOKU chars. */
 
 /*
  * Is this BOL (begin of line) KINSOKU char ?
- * c1 must be KANJI 1st byte or 0 (when c2 is ASCII).
  */
 int
-isbolkchar(c1, c2)
-int c1, c2;
+isbolkchar(ca)
+NG_WCHAR_ta ca;
 {
-    register unsigned short c = ((c1 & 0xff) << 8) | (c2 & 0xff);
-    register unsigned short *p = &bolkchar[0];
-    register unsigned short *eop = &bolkchar[nbolkc];
+    register NG_WCHAR_t c = NG_WCODE(ca);
+    register NG_WCHAR_t *p = &bolkchar[0];
+    register NG_WCHAR_t *eop = &bolkchar[nbolkc];
 
     if (c < *p || c > eop[-1])
-		return FALSE;
+	return FALSE;
     while (p < eop) {
 	if (c == *p++)
 	    return TRUE;
@@ -386,22 +341,20 @@ int c1, c2;
 
 /*
  * Is this EOL (end of line) KINSOKU char ?
- * c1 must be KANJI 1st byte or 0 (when c2 is ASCII).
  */
 int
-iseolkchar(c1, c2)
-int c1, c2;
+iseolkchar(ca)
+NG_WCHAR_ta ca;
 {
-    register unsigned short c = ((c1 & 0xff) << 8) | (c2 & 0xff);
-    register unsigned short *p = &eolkchar[0];
-    register unsigned short *eop = &eolkchar[neolkc];
+    register NG_WCHAR_t c = NG_WCODE(ca);
+    register NG_WCHAR_t *p = &eolkchar[0];
+    register NG_WCHAR_t *eop = &eolkchar[neolkc];
 
     if (c < *p || c > eop[-1])
-		return FALSE;
+	return FALSE;
     while (p < eop) {
-	if (c == *p++) {
+	if (c == *p++)
 	    return TRUE;
-	}
     }
     return FALSE;
 }
