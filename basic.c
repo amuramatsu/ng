@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11.2.6 2006/01/13 15:35:17 amura Exp $ */
+/* $Id: basic.c,v 1.11.2.7 2006/01/13 18:07:38 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -335,9 +335,8 @@ register LINE *dlp;
     while (dbo != llength(dlp)) {
 	c = lgetc(dlp, dbo);
 	newcol = col;
-	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) {
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB))
 	    newcol = tabnext(col, curbp->b_tabwidth);
-	}
 	else
 	    newcol += width(c);
 	if (newcol > curgoal)

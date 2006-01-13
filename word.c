@@ -1,4 +1,4 @@
-/* $Id: word.c,v 1.5.2.3 2006/01/04 17:00:40 amura Exp $ */
+/* $Id: word.c,v 1.5.2.4 2006/01/13 18:07:38 amura Exp $ */
 /*
  *		Word mode commands.
  * The routines in this file
@@ -113,8 +113,8 @@ int f, n;
 	initcategory(BACKWORD);	/* Set category of start char. */
 	while (inword() != FALSE && incategory()) {
 	    c = lgetc(curwp->w_dotp, curwp->w_doto);
-	    if (ISLOWER(c) != FALSE) {
-		c = TOUPPER(c);
+	    if (ISLOWER2(curbp->b_lang, c) != FALSE) {
+		c = TOUPPER2(curbp->b_lang, c);
 		lputc(curwp->w_dotp, curwp->w_doto, c);
 		lchange(WFHARD);
 	    }
@@ -205,8 +205,8 @@ int f, n;
 	initcategory(FORWORD);	/* Set category of start char. */
 	if (inword() != FALSE && incategory()) {
 	    c = lgetc(curwp->w_dotp, curwp->w_doto);
-	    if (ISLOWER(c) != FALSE) {
-		c = TOUPPER(c);
+	    if (ISLOWER2(curbp->b_lang, c) != FALSE) {
+		c = TOUPPER2(curbp->b_lang, c);
 		lputc(curwp->w_dotp, curwp->w_doto, c);
 		lchange(WFHARD);
 	    }

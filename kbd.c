@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.6 2006/01/13 17:32:55 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.7 2006/01/13 18:07:38 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -217,7 +217,7 @@ doin()
 #endif
 #ifdef CANNA
     if ((curbp->b_flag & BFCANNA) &&
-        (ks.length != 0 || !(d==' '||ISCTRL(d)||ISKANJI(d))) )
+        (ks.length != 0 || !(d==' '||ISMULTIBYTE(d)||ISCTRL(d))))
 	return henkan(d);
     else
 #endif
@@ -257,7 +257,8 @@ int f, n;
     int mode = curbp->b_nmodes;
 
     for (;;) {
-	if (ISUPPER(key.k_chars[key.k_count-1])) {
+	if (!ISMULTIBYTE(key.k_chars[key.k_count-1]) &&
+	      ISUPPER(key.k_chars[key.k_count-1])) {
 	    c = TOLOWER(key.k_chars[key.k_count-1]);
 	    curmap = curbp->b_modes[mode]->p_map;
 	    for (i=0; i < key.k_count-1; i++) {
@@ -468,7 +469,7 @@ int f, n;
     /* This must be done at keymap.c to add KANJI fill trigger list in	*/
     /* a fillmap. But there are too many KANJI chars, so we use this	*/
     /* easy way.							*/
-    if (c != NG_WCODE('\n') && ISBREAKABLE(c) &&
+    if (c != NG_WCODE('\n') && ISBREAKABLE2(curbp->b_lang, c) &&
 	(curbp->b_flag & BFAUTOFILL) && !inkfill) { /* Autofill mode and*/
 	int s;
 #ifdef UNDO

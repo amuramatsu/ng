@@ -1,4 +1,4 @@
-/* $Id: match.c,v 1.5.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: match.c,v 1.5.2.3 2006/01/13 18:07:38 amura Exp $ */
 /*
  * Name:	MicroEMACS
  *		Limited parenthesis matching routines
@@ -22,6 +22,7 @@
 
 #include "i_buffer.h"
 #include "i_window.h"
+#include "i_tab.h"
 #include "key.h"
 #include "echo.h"
 
@@ -247,17 +248,12 @@ register int  cbo;
 	bufo = 0;
 	for (cp = 0; cp < llength(clp); cp++) { /* expand tabs	*/
 	    c = lgetc(clp,cp);
-	    if (c != '\t' || (curbp->b_flag & BFNOTAB)) {
-		if (ISCTRL(c)) {
-		    buf[bufo++] = '^';
-		    buf[bufo++] = CCHR(c);
-		}
-		else
-		    buf[bufo++] = c;
+	    if (!ISTAB(c) || (curbp->b_flag & BFNOTAB)) {
+		buf[bufo++] = c;
 	    }
 	    else {
 		do {
-		    buf[bufo++] = ' ';
+		    buf[bufo++] = NG_WSPACE;
 #ifdef	VARIABLE_TABWIDTH
 		} while (bufo % curbp->b_tabwidth);
 #else
@@ -265,7 +261,7 @@ register int  cbo;
 	    }
 #endif
 	}
-	buf[bufo++] = '\0';
-	ewprintf("Matches %s",buf);
+	buf[bufo++] = NG_EOS;
+	ewprintf("Matches %ls", buf);
     }
 }

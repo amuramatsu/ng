@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.8.2.5 2006/01/07 12:19:40 amura Exp $ */
+/* $Id: search.c,v 1.8.2.6 2006/01/13 18:07:38 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -342,7 +342,7 @@ int dir;
 	break;
 #endif
 	default:
-	    if (ISCTRL(c)) {
+	    if (!ISMULTIBYTE(c) && ISCTRL(c)) {
 		ungetkey(c);
 		curwp->w_bufp->b_markp = clp;
 		curwp->w_bufp->b_marko = cbo;
@@ -856,10 +856,10 @@ register int bc, pc;
 	return TRUE;
     if (!casefoldsearch)
 	return FALSE;
-    if (ISUPPER(bc))
-	return TOLOWER(bc) == pc;
-    if (ISUPPER(pc))
-	return bc == TOLOWER(pc);
+    if (ISUPPER2(curbp->b_lang, bc))
+	return TOLOWER2(curbp->b_lang, bc) == pc;
+    if (ISUPPER2(curbp->b_lang, pc))
+	return bc == TOLOWER2(curbp->b_lang, pc);
     return FALSE;
 }
 

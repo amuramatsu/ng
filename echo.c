@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.13 2006/01/13 15:35:17 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.14 2006/01/13 18:07:38 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -18,6 +18,7 @@
 #include "echo.h"
 
 #include "i_lang.h"
+#include "lang.h"
 #include "tty.h"
 #include "ttyio.h"
 #include "key.h"
@@ -362,12 +363,13 @@ static int s_put_c _PRO((NG_WCHAR_t *, int, int, int));
 
 #define mb_iseol() 	(_mb_gapend == _mb_size)
 #define mb_isbol() 	(_mb_point == _mb_prompt)
-#define mb_isword()	(ISWORD(_mb_buf[_mb_gapend]))
+#define mb_isword()	(ISWORD2(_mb_lang, _mb_buf[_mb_gapend]))
 #define mb_begl()	(mb_gotochar(_mb_prompt))
 #define mb_endl()	(mb_gotochar(_mb_bufsize))
 #define mb_flush()	(ttflush())
-#define chsize(s)	(terminal_lang->lm_width(*(s)))
+#define chsize(s)	(_mb_lang->lm_width(*(s)))
 
+static LANG_MODULE *_mb_lang;
 static int  _mb_ccol;
 static int  _mb_crow;
 static NG_WCHAR_t *_mb_buf = NULL;
@@ -451,7 +453,7 @@ va_list *ap;
 	c = getkey(FALSE); 
 #ifdef CANNA
 	if (mb_cannamode &&
-	    (ks.length != 0 || !(c==' '||ISCTRL(c)||ISKANJI(c))) ) {
+	    (ks.length != 0 || !(c==NG_WSPACE||ISMULTIBYTE(c)||ISCTRL(c))) {
 	    if (mb_henkan(c))
 		continue;
 	}
@@ -818,7 +820,9 @@ register va_list *ap;
 {
     NG_WCHAR_t *prompt;
     struct _Line   *lp, *lp2;
-    
+
+    if (_mb_lang == NULL)
+	_mb_lang = get_default_lang();
     prompt = sformat(fp, ap);
     if (_mb_buf == NULL) {
 	_mb_size = nbuf + wstrlen(prompt) + 10;
@@ -2255,9 +2259,9 @@ va_list *ap;
 	case CCHR('W'):	/* C-W, kill to beginning of */
 			/* previous word	*/
 			/* back up to first word character or beginning	*/
-	    while ((cpos > 0) && !ISWORD(buf[cpos - 1]))
+	    while ((cpos > 0) && !ISWORD2(_mb_lang, buf[cpos - 1]))
 		cpos = veread_del_char (buf, cpos);
-	    while ((cpos > 0) && ISWORD(buf[cpos - 1]))
+	    while ((cpos > 0) && ISWORD2(_mb_lang, buf[cpos - 1]))
 		    cpos = veread_del_char (buf, cpos);
 	    break;
 	case CCHR('\\'):
@@ -2348,9 +2352,9 @@ int flag;
     }
     else {
 	if (wflag) {
-	    for (i = cpos + 1; buf[i] != '\0'; i++) {
-	        if (i > cpos && ! ISWORD(buf[i - 1])) {
-		    buf[i] = '\0';
+	    for (i = cpos + 1; buf[i] != NG_EOS; i++) {
+	        if (i > cpos && ! ISWORD2(_mb_lang, buf[i - 1])) {
+		    buf[i] = NG_EOS;
 		    break;
 		}
 	    }
@@ -2480,7 +2484,7 @@ va_list *ap;
 	case CCHR('W'):	/* C-W, kill to beginning of */
 			/* previous word	*/
 			/* back up to first word character or beginning */
-	    while ((cpos > 0) && !ISWORD(buf[cpos - 1])) {
+	    while ((cpos > 0) && !ISWORD2(_mb_lang, buf[cpos - 1])) {
 		int w = terminal_lang->lm_width(buf[cpos]);
 		while (w--) {
 		    ttputc('\b');
@@ -2490,7 +2494,7 @@ va_list *ap;
 		}
 		--cpos;
 	    }
-	    while ((cpos > 0) && ISWORD(buf[cpos - 1])) {
+	    while ((cpos > 0) && ISWORD2(_mb_lang, buf[cpos - 1])) {
 		int w = terminal_lang->lm_width(buf[--cpos]);
 		while (w--) {
 		    ttputc('\b');
@@ -2681,7 +2685,7 @@ register int wflag;
 	if (lp1->l_name[i] != lp2->l_name[i] || lp1->l_name[i] == '\0')
 	    break;
 	++i;
-	if (wflag && !ISWORD(lp1->l_name[i-1]))
+	if (wflag && !ISWORD2(_mb_lang, lp1->l_name[i-1]))
 	    break;
     }
     return (i - cpos);
@@ -2940,7 +2944,7 @@ int cpos, c;
 		if (try[bxtra] != hit[bxtra] || try[bxtra] == '\0')
 		    break;
 		bxtra++;
-		if (wflag && !ISWORD(try[bxtra-1]))
+		if (wflag && !ISWORD2(_mb_lang, try[bxtra-1]))
 		    break;
 	    }
 	    if (hit[bxtra] == '\0')
@@ -2967,7 +2971,7 @@ int cpos, c;
 	for (i=cpos, j=strlen(files); i<j;) {
 	    buf[i] = files[i];
 	    i++;
-	    if (wflag && !ISWORD(buf[i-1]))
+	    if (wflag && !ISWORD2(_mb_lang, buf[i-1]))
 		break;
 	}
 	buf[i] = '\0';

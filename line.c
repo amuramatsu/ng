@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.21.2.6 2006/01/12 16:01:23 amura Exp $ */
+/* $Id: line.c,v 1.21.2.7 2006/01/13 18:07:38 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -676,11 +676,11 @@ int f;					/* case hack disable		*/
     (VOID) backchar(FFARG | FFRAND, (int) plen);
     rtype = _NGC_L;
     c = lgetc(curwp->w_dotp, curwp->w_doto);
-    if (ISUPPER(c)!=FALSE  &&  f==FALSE) {
+    if (ISUPPER2(curbp->b_lang, c)!=FALSE  &&  f==FALSE) {
 	rtype = _NGC_U|_NGC_L;
 	if (curwp->w_doto+1 < llength(curwp->w_dotp)) {
 	    c = lgetc(curwp->w_dotp, curwp->w_doto+1);
-	    if (ISUPPER(c) != FALSE)
+	    if (ISUPPER2(curbp->b_lang, c) != FALSE)
 		rtype = _NGC_U;
 	}
     }

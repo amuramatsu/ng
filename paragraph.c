@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.12.2.3 2006/01/13 17:32:55 amura Exp $ */
+/* $Id: paragraph.c,v 1.12.2.4 2006/01/13 18:07:38 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -250,7 +250,7 @@ int f, n;
 		eopflag = TRUE;
 	}
 	
-	if (!eopflag && ISBREAKABLE(c)) {
+	if (!eopflag && ISBREAKABLE2(curbp->b_lang, c)) {
 	    if (wordlen > 0
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 		&& lastiseolkc == NG_EOS && !isbolkchar(c)
@@ -270,7 +270,7 @@ int f, n;
 	    }
 	}
 	
-	if (0 < wordlen && ISBREAKABLE(wbuf[wordlen]) &&
+	if (0 < wordlen && ISBREAKABLE2(curbp->b_lang, wbuf[wordlen]) &&
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 	    !lastiseolkc && !isbolkchar(c) &&
 #endif /* KINSOKU */
@@ -424,7 +424,7 @@ int f, n;
 	    lastsepchar = ksepflag ? NG_EOS : (eolflag ? NG_WCODE('\n'): c);
 	    kexist = FALSE;
 	    kstart = FALSE;
-	    kend   = (0 < wordlen && ISBREAKABLE(wbuf[wordlen]));
+	    kend   = (0 < wordlen && ISBREAKABLE2(curbp->b_lang, wbuf[wordlen]));
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 	    bolkclen = 0;
 #endif /* KINSOKU */
@@ -553,7 +553,7 @@ int f, n;
 
     if (curwp->w_doto < llength(curwp->w_dotp) && curwp->w_doto > 0 &&
 	((c = lgetc(curwp->w_dotp, curwp->w_doto)) != NG_WSPACE
-	 && c != NG_WTAB && !ISBREAKABLE(c)
+	 && c != NG_WTAB && !ISBREAKABLE2(curbp->b_lang, c)
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 	 || iseolkchar(lgetc(curwp->w_dotp, curwp->w_doto - 1))
 #endif /* KINSOKU */
@@ -562,7 +562,7 @@ int f, n;
 	    (VOID) backchar(FFRAND, 1);
 	} while (curwp->w_doto > 0 &&
 		 ((c = lgetc(curwp->w_dotp, curwp->w_doto)) != NG_WSPACE
-		  && c != NG_WTAB && !ISBREAKABLE(c)
+		  && c != NG_WTAB && !ISBREAKABLE2(curbp->b_lang, c)
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 		  || iseolkchar(lgetc(curwp->w_dotp, curwp->w_doto - 1))
 #endif /* KINSOKU */
@@ -574,7 +574,7 @@ int f, n;
 	    (VOID) forwchar(FFRAND, 1);
 	} while (curwp->w_doto < llength(curwp->w_dotp) &&
 		 ((c = lgetc(curwp->w_dotp, curwp->w_doto)) != NG_WSPACE
-		  && c != NG_WTAB && !ISBREAKABLE(c)
+		  && c != NG_WTAB && !ISBREAKABLE2(curbp->b_lang, c)
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 		  || iseolkchar(lgetc(curwp->w_dotp, curwp->w_doto - 1))
 #endif /* KINSOKU */
