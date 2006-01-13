@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11.2.5 2005/12/30 17:37:28 amura Exp $ */
+/* $Id: basic.c,v 1.11.2.6 2006/01/13 15:35:17 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -328,7 +328,7 @@ register LINE *dlp;
     register int col;
     register int newcol;
     register int dbo;
-    int (*width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
+    int (*width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
 
     col = 0;
     dbo = 0;

@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.12 2006/01/09 15:01:46 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.13 2006/01/13 15:35:17 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -314,7 +314,7 @@ static int mb_init _PRO((int, const char *, va_list *));
 static int mb_get_buffer _PRO((NG_WCHAR_t *, int));
 static int mb_bufsize _PRO((void));
 static NG_WCHAR_t mb_pointchar _PRO((void));
-static int mb_pointoverwrite _PRO((NG_WCHAR_t));
+static int mb_pointoverwrite _PRO((NG_WCHAR_ta));
 static int mb_gotochar _PRO((int));
 static int mb2_gotochar _PRO((int));
 static int mb_insert _PRO((int, int));
@@ -911,7 +911,7 @@ mb_pointchar()
 
 static int
 mb_pointoverwrite(ch)
-NG_WCHAR_t ch;
+NG_WCHAR_ta ch;
 {
     if (_mb_point == 0)
 	return NG_EOS;

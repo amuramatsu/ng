@@ -1,4 +1,4 @@
-/* $Id: lang_ascii.c,v 1.1.2.3 2006/01/11 14:47:34 amura Exp $ */
+/* $Id: lang_ascii.c,v 1.1.2.4 2006/01/13 15:35:17 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -88,10 +88,9 @@ get_ascii_langmodule()
     return &ascii_lang;
 }
 
-static int ascii_width _PRO((NG_WCHAR_t));
 static int
 ascii_width(c)
-NG_WCHAR_t c;
+NG_WCHAR_ta c;
 {
     if (ISMULTIBYTE(c))
 	return 6;
@@ -246,10 +245,8 @@ int c;
     return c;
 }
 
-static int ascii_get_display_code _PRO((int, NG_WCHAR_t, char *, int));
-static int ascii_get_display_code(code, c, buf, buflen)
-int code;
-NG_WCHAR_t c;
+static int ascii_get_display_code(c, buf, buflen)
+NG_WCHAR_ta c;
 char *buf;
 int buflen;
 {
@@ -265,7 +262,6 @@ int buflen;
     return 1;
 }
 
-static int ascii_displaychar _PRO((NG_WCHAR_t*,int*,int*,int,int,NG_WCHAR_t));
 static int
 ascii_displaychar(vbuf, col, row, ncol, nrow, c)
 NG_WCHAR_t *vbuf;
@@ -273,7 +269,7 @@ int *col;
 int *row;
 int ncol;
 int nrow;
-NG_WCHAR_t c;
+NG_WCHAR_ta c;
 {
     int clen = ascii_width(c);
     NG_WCHAR_t *p;
@@ -316,10 +312,9 @@ NG_WCHAR_t c;
     return clen;
 }
 
-static int ascii_category _PRO((NG_WCHAR_t));
 static int
 ascii_category(c)
-NG_WCHAR_t c;
+NG_WCHAR_ta c;
 {
     if (ISMULTIBYTE(c))
 	return 0;
@@ -328,8 +323,7 @@ NG_WCHAR_t c;
 
 static LANG_MODULE ascii_lang = {
     "ascii",
-    ascii_width,
-    ascii_get_codemap,
+     ascii_get_codemap,
     ascii_code_expect,
     ascii_out_convert_len,
     ascii_out_convert,
@@ -339,7 +333,8 @@ static LANG_MODULE ascii_lang = {
     ascii_set_code,
     ascii_get_code,
     ascii_get_keyin_code,
-    NULL, /* ascii_display_start_code */
+    ascii_width,
+   NULL, /* ascii_display_start_code */
     NULL, /* ascii_display_end_code */
     ascii_get_display_code,
     ascii_displaychar,

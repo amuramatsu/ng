@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.10 2006/01/11 14:47:34 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.11 2006/01/13 15:35:17 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -7,6 +7,7 @@
 #define __IN_CODE_H__
 
 typedef unsigned short NG_WCHAR_t;
+typedef unsigned int NG_WCHAR_ta;
 #define NG_WCODE(n)	((NG_WCHAR_t)(n))
 #define NG_WCHARLEN(s)	(sizeof(s)/sizeof(NG_WCHAR_t))
 #define NG_WSTR_NULL	((NG_WCHAR_t *)"")

@@ -1,4 +1,4 @@
-/* $Id: random.c,v 1.13.2.4 2006/01/01 18:34:13 amura Exp $ */
+/* $Id: random.c,v 1.13.2.5 2006/01/13 15:35:17 amura Exp $ */
 /*
  *		Assorted commands.
  * The file contains the command
@@ -93,7 +93,7 @@ getcolpos()
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
-    int (*lm_width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
+    int (*lm_width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
     col = 0;				/* Determine column.	*/
     
     for (i=0; i<curwp->w_doto; ++i) {

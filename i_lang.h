@@ -1,4 +1,4 @@
-/* $Id: i_lang.h,v 1.1.2.10 2006/01/11 14:47:34 amura Exp $ */
+/* $Id: i_lang.h,v 1.1.2.11 2006/01/13 15:35:17 amura Exp $ */
 /*
  * This file is the language module definition of the NG
  * display editor.
@@ -39,13 +39,11 @@ typedef struct CODEMAP {
 
 
 #define NG_CODE_CHKLEN		-1
+#define NG_CODE_MAXLEN		8
 
 typedef struct LANG_MODULE {
     /* LANG_MODULE name */
     char *lm_name;
-    
-    /* Return display width at this code*/
-    int (*lm_width)_PRO((NG_WCHAR_t));
     
     /* return codemaps */
     CODEMAP *(*lm_get_codemap)_PRO((void));
@@ -62,7 +60,7 @@ typedef struct LANG_MODULE {
     int (*lm_in_convert)_PRO((int, const char *, int, NG_WCHAR_t *));
     
     /* get charactor category */
-    int (*lm_get_category)_PRO((NG_WCHAR_t));
+    int (*lm_get_category)_PRO((NG_WCHAR_ta));
 
     /* set display and keyboard coding */
     int (*lm_set_code)_PRO((int, int));
@@ -74,13 +72,15 @@ typedef struct LANG_MODULE {
     NG_WCHAR_t (*lm_get_keyin_code)_PRO((int));
     
     /* for display */
+    /* Return display width at this code*/
+    int (*lm_width)_PRO((NG_WCHAR_ta));
     /* reset display for statefull coding */
     int (*lm_display_start_code)_PRO((void));
     int (*lm_display_end_code)_PRO((void));
     /* return display codes to buffer */
-    int (*lm_get_display_code)_PRO((int, NG_WCHAR_t, char *, int));
+    int (*lm_get_display_code)_PRO((NG_WCHAR_ta, char *, int));
     /* */
-    int (*lm_displaychar)_PRO((NG_WCHAR_t*, int*, int*, int, int, NG_WCHAR_t));
+    int (*lm_displaychar)_PRO((NG_WCHAR_t*, int*, int*, int, int, NG_WCHAR_ta));
 } LANG_MODULE;
 
 #define LM_OUT_CONVERT_TMP(lm, code, src, dst)	do {	\

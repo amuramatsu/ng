@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.8 2006/01/11 14:54:09 amura Exp $ */
+/* $Id: display.c,v 1.20.2.9 2006/01/13 15:35:17 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -113,7 +113,7 @@ static VIDEO *blanks   = NULL;		/* Blank line image.		*/
  * Some predeclerations to make ANSI compilers happy
  */
 static VOID vtmove _PRO((int, int));
-static VOID vtmarkyen _PRO((int));
+static VOID vtmarkyen _PRO((NG_WCHAR_ta));
 static VOID vteeol _PRO((void));
 static VOID ucopy _PRO((VIDEO *, VIDEO *));
 static VOID uline _PRO((int, VIDEO *, VIDEO *));
@@ -139,21 +139,12 @@ static VOID traceback _PRO((void));
 static SCORE *score = NULL;
 #endif
 
-#define TTPUTC(code, c) do {					\
-    char buf[8];						\
-    int len, s, i;						\
-    s = terminal_lang->lm_get_display_code((code), (c),		\
-					   buf, sizeof(buf));	\
-    len = s < 0 ? sizeof buf : s;				\
+#define TTPUTC(c) do {						\
+    char buf[NG_CODE_MAXLEN];					\
+    int len, i;							\
+    len = terminal_lang->lm_get_display_code((c), buf, sizeof(buf));\
     for (i = 0; i < len; i++)					\
 	ttputc(buf[i]);						\
-    while (s <  0) {						\
-	s = terminal_lang->lm_get_display_code((code), NG_EOS,	\
-					      buf, sizeof(buf));\
-	len = s < 0 ? sizeof buf : s;				\
-	for (i = 0; i < len; i++)				\
-	    ttputc(buf[i]);					\
-    }								\
 } while (/*CONSTCOND*/0)
 
 VOID
@@ -351,7 +342,7 @@ short color;	/* this is dummy */
  */
 static VOID
 vtmarkyen(fillchar)
-NG_WCHAR_t fillchar;
+NG_WCHAR_ta fillchar;
 {
     register VIDEO *vp;
 
@@ -447,7 +438,7 @@ int col, row;
     register int curcol;
     register char c;
     register int width;
-    int (*lm_width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
+    int (*lm_width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
@@ -500,7 +491,7 @@ int lines;
     register int curcol;
     register char c;
     register int c1;
-    int (*lm_width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
+    int (*lm_width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
@@ -548,7 +539,7 @@ const LINE *lp;
     register int lines;
     register char c;
     register int c1;
-    int (*lm_width)(NG_WCHAR_t) = curbp->b_lang->lm_width;
+    int (*lm_width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
@@ -938,7 +929,6 @@ VIDEO *vvp, *pvp;
     NG_WCHAR_t *cp4;
     NG_WCHAR_t *cp5;
     register int nbflag;
-    int dcode = terminal_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
     int w;
     
     if (vvp->v_color != pvp->v_color) {	/* Wrong color, do a	*/
@@ -963,7 +953,7 @@ VIDEO *vvp, *pvp;
 #endif	/* STANDOUT_GLITCH */
 	while (cp1 != cp2) {
 	    if (*cp1 != NG_WFILLER) {
-		TTPUTC(dcode, *cp1);
+		TTPUTC(*cp1);
 		w = terminal_lang->lm_width(*cp1);
 		ttcol += w;
 		cp1 += w;
@@ -1021,7 +1011,7 @@ VIDEO *vvp, *pvp;
 	terminal_lang->lm_display_start_code();
     while (cp1 != cp5) {
 	if (*cp1 != NG_WFILLER) {
-	    TTPUTC(dcode, *cp1);
+	    TTPUTC(*cp1);
 	    w = terminal_lang->lm_width(*cp1);
 	    ttcol += w;
 	    cp1 += w;
