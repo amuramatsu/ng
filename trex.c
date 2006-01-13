@@ -1,4 +1,4 @@
-/* $Id: trex.c,v 1.1.2.9 2006/01/09 10:20:39 amura Exp $ */
+/* $Id: trex.c,v 1.1.2.10 2006/01/13 18:45:30 amura Exp $ */
 /* Modified for NG Next Generation */
 /* see copyright notice in trex.h */
 #include <string.h>
@@ -10,7 +10,7 @@
 #include "trex.h"
 
 #ifdef ng
-#define scisprint	isprint
+#define scisprint(c)	(!ISCTRL(c))
 #define scstrlen	wstrlen
 #define scprintf	ewprintf
 #define _SC(x)		_NG_WSTR(x)
@@ -206,11 +206,20 @@ static int trex_charnode(TRex *exp,TRexBool isclass)
 		TRexChar c, c2;
 		int next, ret;
 		c = *exp->_p++;
+#ifdef ng
+		if (!ISUPPER2(curbp->b_lang,c) && !ISLOWER2(curbp->b_lang,c))
+#else
 		if (!isupper(c) && !islower(c))
+#endif
 			return trex_newnode(exp,c);
 		ret = trex_newnode(exp,OP_CLASS);
+#ifdef ng 
+		if (ISUPPER2(curbp->b_lang,c))	c2 = TOLOWER2(curbp->b_lang,c);
+		else				c2 = TOUPPER2(curbp->b_lang,c);
+#else
 		if (isupper(c))	c2 = tolower(c);
 		else		c2 = toupper(c);
+#endif
 		exp->_nodes[ret].left = next = trex_newnode(exp,c);
 		exp->_nodes[next].next = trex_newnode(exp,c2);
 		return ret;
@@ -251,9 +260,17 @@ static int trex_class(TRex *exp)
 #ifdef TREX_MODE_IGNORECASE
 				if(exp->_mode&TREX_MODE_IGNORECASE) {
 					TRexChar ch = exp->_nodes[c].type;
+#ifdef ng
+					if(ISUPPER2(curbp->b_lang,ch)||ISLOWER2(curbp->b_lang,ch)) {
+						if(ISUPPER2(curbp->b_lang,ch))
+						 	ch = TOLOWER2(curbp->b_lang,ch);
+						else
+							ch = TOUPPER2(curbp->b_lang,ch);
+#else
 					if(isupper(ch)||islower(ch)) {
 						if(isupper(ch))	ch = tolower(ch);
 						else		ch = toupper(ch);
+#endif
 						c = trex_newnode(exp,ch);
 						exp->_nodes[chain].next = c;
 						chain = c;
@@ -274,9 +291,17 @@ static int trex_class(TRex *exp)
 #ifdef TREX_MODE_IGNORECASE
 		if(exp->_mode&TREX_MODE_IGNORECASE) {
 			TRexChar ch = exp->_nodes[c].type;
+#ifdef ng
+			if(ISUPPER2(curbp->b_lang,ch) || ISLOWER2(curbp->b_lang,ch)) {
+				if(ISUPPER2(curbp->b_lang,ch))
+					ch = TOLOWER2(curbp->b_lang,ch);
+				else
+					ch = TOUPPER2(curbp->b_lang,ch);
+#else
 			if(isupper(ch) || islower(ch)) {
 				if(isupper(ch))	ch = tolower(ch);
 				else		ch = toupper(ch);
+#endif
 				c = trex_newnode(exp,ch);
 				exp->_nodes[chain].next = c;
 				chain = c;
@@ -296,7 +321,11 @@ static int trex_parsenumber(TRex *exp)
 	int ret = *exp->_p-'0';
 	int positions = 10;
 	exp->_p++;
+#ifdef ng
+	while(!ISMULTIBYTE(*exp->_p) && ISDIGIT(*exp->_p)) {
+#else
 	while(isdigit(*exp->_p)) {
+#endif
 		ret = ret*10+(*exp->_p++-'0');
 		if(positions==1000000000) trex_error(exp,_SC("overflow in numeric constant"));
 		positions *= 10;
@@ -347,7 +376,11 @@ static int trex_element(TRex *exp)
 		case TREX_SYMBOL_GREEDY_ZERO_OR_ONE: p0 = 0; p1 = 1; exp->_p++; goto __end;
 		case '{':{
 			exp->_p++;
+#ifdef ng
+			if(ISMULTIBYTE(*exp->_p)||!ISDIGIT(*exp->_p)) trex_error(exp,_SC("number expected"));
+#else
 			if(!isdigit(*exp->_p)) trex_error(exp,_SC("number expected"));
+#endif
 			p0 = trex_parsenumber(exp);
 			switch(*exp->_p) {
 			case '}':
@@ -356,7 +389,11 @@ static int trex_element(TRex *exp)
 			case ',':
 				exp->_p++;
 				p1 = 0xFFFF;
+#ifdef ng
+				if(ISDIGIT(*exp->_p)){
+#else
 				if(isdigit(*exp->_p)){
+#endif
 					p1 = trex_parsenumber(exp);
 				}
 				trex_expect(exp,'}');
@@ -434,11 +471,23 @@ static TRexBool trex_matchclass(TRex* exp,TRexNode *node,TRexChar c)
 		switch(node->type) {
 			case OP_RANGE:
 #ifdef TREX_MODE_IGNORECASE
+#ifdef ng
+				if((exp->_mode&TREX_MODE_IGNORECASE) &&
+				   (ISUPPER2(curbp->b_lang,c)||ISLOWER2(curbp->b_lang,c))) {
+#else
 				if((exp->_mode&TREX_MODE_IGNORECASE) && (isupper(c)||islower(c))) {
+#endif
 				    /* XXX Cannot handle when compile yet ... */
 					if(c >= node->left && c <= node->right) return TRex_True;
+#ifdef ng
+					if(ISUPPER2(curbp->b_lang,c))
+						c = TOLOWER2(curbp->b_lang,c);
+					else
+						c = TOUPPER2(curbp->b_lang,c);
+#else
 					if(isupper(c))	c = tolower(c);
 					else		c = toupper(c);
+#endif
 				}
 #endif /* TREX_MODE_IGNORECASE */
 				if(c >= node->left && c <= node->right) return TRex_True;
@@ -560,10 +609,17 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 			return cur;
 	}				 
 	case OP_WB:
+#ifdef ng
+		if((str == exp->_bol && !ISSPACE(*str))
+		 || (str == exp->_eol && !ISSPACE(*(str-1)))
+		 || (!ISSPACE(*str) && ISSPACE(*(str+1)))
+		 || (ISSPACE(*str) && !ISSPACE(*(str+1))) ) {
+#else
 		if((str == exp->_bol && !isspace(*str))
 		 || (str == exp->_eol && !isspace(*(str-1)))
 		 || (!isspace(*str) && isspace(*(str+1)))
 		 || (isspace(*str) && !isspace(*(str+1))) ) {
+#endif
 			return (node->left == 'b')?str:NULL;
 		}
 		return (node->left == 'b')?NULL:str;

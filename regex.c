@@ -1,4 +1,4 @@
-/* $Id: regex.c,v 1.2.2.3 2006/01/07 17:19:09 amura Exp $ */
+/* $Id: regex.c,v 1.2.2.4 2006/01/13 18:45:30 amura Exp $ */
 /* This source is select Regular Expression routine */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
@@ -9,30 +9,41 @@
 # include	"chrdef.h"
 
 # define ng
-# include	<ctype.h>	/* for isspace, isxdigit, ispunct */
 # include	"trex.h"
+
+#define ISSPACE(c)	((c)==NG_WTAB||(c)==NG_WSPACE||(c)==NG_WCODE('\v')\
+			 ||(c)==NG_WCODE('\f')||(c)==NG_WCODE('\r'))
 static TRexBool
 trex_matchcclass(int cclass, TRexChar c)
 {
-    if (ISMULTIBYTE(c))	/* cannot handle yet */
-	return TRex_False;
     switch (cclass) {
-    case 'a': return (ISUPPER(c)||ISLOWER(c))?TRex_True:TRex_False;
-    case 'A': return !(ISUPPER(c)||ISLOWER(c))?TRex_True:TRex_False;
-    case 'w': return ISWORD(c)?TRex_True:TRex_False;
-    case 'W': return !ISWORD(c)?TRex_True:TRex_False;
-    case 's': return isspace(c)?TRex_True:TRex_False;
-    case 'S': return !isspace(c)?TRex_True:TRex_False;
-    case 'd': return ISDIGIT(c) ?TRex_True:TRex_False;
-    case 'D': return !ISDIGIT(c)?TRex_True:TRex_False;
-    case 'x': return isxdigit(c)?TRex_True:TRex_False;
-    case 'X': return !isxdigit(c)?TRex_True:TRex_False;
-    case 'c': return ISCTRL(c)  ? TRex_True : TRex_False;
-    case 'C': return !ISCTRL(c) ? TRex_True : TRex_False;
-    case 'p': return ispunct(c)?TRex_True:TRex_False;
-    case 'P': return !ispunct(c)?TRex_True:TRex_False;
-    case 'l': return ISLOWER(c)?TRex_True:TRex_False;
-    case 'u': return ISUPPER(c)?TRex_True:TRex_False;
+    case 'w': return ISWORD2(curbp->b_lang,c)?TRex_True:TRex_False;
+    case 'W': return !ISWORD2(curbp->b_lang,c)?TRex_True:TRex_False;
+    case 'l': return ISLOWER2(curbp->b_lang,c)?TRex_True:TRex_False;
+    case 'u': return ISUPPER2(curbp->b_lang,c)?TRex_True:TRex_False;
+    case 'a': return (ISUPPER2(curbp->b_lang,c)||ISLOWER2(curbp->b_lang,c))
+	?TRex_True:TRex_False;
+    case 'A': return !(ISUPPER2(curbp->b_lang,c)||ISLOWER2(curbp->b_lang,c))
+	?TRex_True:TRex_False;
+    default:
+	if (ISMULTIBYTE(c))
+	    return TRex_False;
+	switch (cclass) {
+	case 's': return ISSPACE(c)?TRex_True:TRex_False;
+	case 'S': return !ISSPACE(c)?TRex_True:TRex_False;
+	case 'd': return ISDIGIT(c) ?TRex_True:TRex_False;
+	case 'D': return !ISDIGIT(c)?TRex_True:TRex_False;
+	case 'x': return (ISDIGIT(c)||(c>='a'&&c<='f')||(c>='A'&&c<='F'))
+	    ?TRex_True:TRex_False;
+	case 'X': return !(ISDIGIT(c)||(c>='a'&&c<='f')||(c>='A'&&c<='F'))
+	    ?TRex_True:TRex_False;
+	case 'c': return ISCTRL(c)  ? TRex_True : TRex_False;
+	case 'C': return !ISCTRL(c) ? TRex_True : TRex_False;
+	case 'p': return !(c==NG_WSPACE||ISUPPER(c)||ISLOWER(c)||ISDIGIT(c))
+	    ?TRex_True:TRex_False;
+	case 'P': return (c==NG_WSPACE||ISUPPER(c)||ISLOWER(c)||ISDIGIT(c))
+	    ?TRex_True:TRex_False;
+	}
     }
     return TRex_False; /*cannot happen*/
 }
