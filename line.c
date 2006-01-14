@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.21.2.7 2006/01/13 18:07:38 amura Exp $ */
+/* $Id: line.c,v 1.21.2.8 2006/01/14 20:04:19 amura Exp $ */
 /*
  *		Text line handling.
  * The functions in this file
@@ -397,7 +397,7 @@ lnewline()
     }
 #endif
     if (nlen != 0)
-	bcopy(&lp1->l_text[doto], &lp2->l_text[0], nlen);
+	bcopy(&lp1->l_text[doto], &lp2->l_text[0], nlen*sizeof(NG_WCHAR_t));
     lp1->l_used = doto;
     lp2->l_bp = lp1;
     lp2->l_fp = lp1->l_fp;
@@ -593,7 +593,8 @@ ldelnewline()
     if (lp2 == curbp->b_linep)		/* At the buffer end.	*/
 	return TRUE;
     if (lp2->l_used <= lp1->l_size - lp1->l_used) {
-	bcopy(&lp2->l_text[0], &lp1->l_text[lp1->l_used], lp2->l_used);
+	bcopy(&lp2->l_text[0], &lp1->l_text[lp1->l_used],
+	      lp2->l_used*sizeof(NG_WCHAR_t));
 	for (wp = wheadp; wp != NULL; wp = wp->w_wndp) {
 	    if (wp->w_linep == lp2) {
 		wp->w_linep = lp1;

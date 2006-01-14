@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.10 2006/01/14 19:59:59 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.11 2006/01/14 20:04:19 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -503,7 +503,8 @@ int f, n;
 		lp->l_fp = maclcur->l_fp;
 		lp->l_bp = maclcur->l_bp;
 		lp->l_fp->l_bp = lp->l_bp->l_fp = lp;
-		bcopy(maclcur->l_text, lp->l_text, maclcur->l_used);
+		bcopy(ltext(maclcur), ltext(lp),
+		      maclcur->l_used*sizeof(NG_WCHAR_t));
 		for (count = maclcur->l_used; count < lp->l_used; count++)
 		    lp->l_text[count] = c;
 		free((char *)maclcur);
