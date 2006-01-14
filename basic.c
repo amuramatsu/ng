@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11.2.7 2006/01/13 18:07:38 amura Exp $ */
+/* $Id: basic.c,v 1.11.2.8 2006/01/14 13:10:05 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -160,7 +160,9 @@ int f, n;
 	if ((s = ereply("next-line-add-newlines : ", buf, sizeof(buf)))
 	    != TRUE)
 	    return (s);
-	if (ISDIGIT(buf[0]) || buf[0] == '-')
+	if (!ISASCII(buf[0]))
+	    n = FALSE;
+	else if (ISDIGIT(buf[0]) || buf[0] == '-')
 	    n = watoi(buf) > 0;
 	else if (buf[0] == 't' || buf[0] == 'T')
 	    n = TRUE;
@@ -186,7 +188,9 @@ int f, n;
     if ((f & FFARG) == 0) {
 	if ((s = ereply("line-number-mode : ", buf, sizeof(buf))) != TRUE)
 	    return (s);
-	if (ISDIGIT(buf[0]) || buf[0] == '-')
+	if (!ISASCII(buf[0]))
+	    n = FALSE;
+	else if (ISDIGIT(buf[0]) || buf[0] == '-')
 	    n = (watoi(buf) > 0);
 	else if (buf[0] == 't' || buf[0] == 'T')
 	    n = TRUE;

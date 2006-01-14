@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.7 2006/01/13 18:07:38 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.8 2006/01/14 13:10:05 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -217,12 +217,11 @@ doin()
 #endif
 #ifdef CANNA
     if ((curbp->b_flag & BFCANNA) &&
-        (ks.length != 0 || !(d==' '||ISMULTIBYTE(d)||ISCTRL(d))))
+        (ks.length != 0 || !(d==NG_WSPACE||!ISASCII(d)||ISCTRL(d))))
 	return henkan(d);
     else
 #endif
-    while ((funct=doscan(curmap,(key.k_chars[key.k_count++]=d)))
-		== prefix) {
+    while ((funct=doscan(curmap,(key.k_chars[key.k_count++]=d))) == prefix) {
 #ifdef FEPCTRL	/* 90.11.26  by K.Takano */
 	fepmode_off();
 #endif
@@ -257,8 +256,8 @@ int f, n;
     int mode = curbp->b_nmodes;
 
     for (;;) {
-	if (!ISMULTIBYTE(key.k_chars[key.k_count-1]) &&
-	      ISUPPER(key.k_chars[key.k_count-1])) {
+	if (ISASCII(key.k_chars[key.k_count-1]) &&
+		ISUPPER(key.k_chars[key.k_count-1])) {
 	    c = TOLOWER(key.k_chars[key.k_count-1]);
 	    curmap = curbp->b_modes[mode]->p_map;
 	    for (i=0; i < key.k_count-1; i++) {

@@ -1,4 +1,4 @@
-/* $Id: help.c,v 1.6.2.5 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: help.c,v 1.6.2.6 2006/01/14 13:10:05 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -230,7 +230,7 @@ int f, n;
 #endif
     do {
 	int c = getkey(FALSE);
-	if (ISMULTIBYTE(c))
+	if (!ISASCII(c))
 	    return ABORT;
 	funct = doscan(kp, c);
     } while (funct==NULL || funct==help_help);

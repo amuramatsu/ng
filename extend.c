@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.6 2006/01/11 14:47:34 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.7 2006/01/14 13:10:05 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -728,13 +728,13 @@ register NG_WCHAR_t *line;
     f = 0;
     n = 1;
     funcp = skipwhite(line);
-    if (*funcp == '\0')
+    if (*funcp == NG_EOS)
 	return TRUE;	/* No error on blank lines */
     line = parsetoken(funcp);
-    if (*line != '\0') {
-	*line++ = '\0';
+    if (*line != NG_EOS) {
+	*line++ = NG_EOS;
 	line = skipwhite(line);
-	if ((*line >= '0' && *line <= '9') || *line == '-') {
+	if (ISASCII(*line) && (ISDIGIT(*line) || *line == NG_WCODE('-'))) {
 	    argp = line;
 	    line = parsetoken(line);
 	}
@@ -767,19 +767,19 @@ register NG_WCHAR_t *line;
     if ((np = lalloc(0)) == FALSE)
 	return FALSE;
     np->l_fp = np->l_bp = maclcur = np;
-    while (*line != '\0') {
+    while (*line != NG_EOS) {
 	argp = skipwhite(line);
-	if (*argp == '\0')
+	if (*argp == NG_EOS)
 	    break;
 	line = parsetoken(argp);
-	if (*argp != '"') {
-	    if (*argp == '\'')
+	if (*argp != NG_WCODE('"')) {
+	    if (*argp == NG_WCODE('\''))
 		++argp;
 	    if ((lp = lalloc((int)(line-argp)+BINDEXT))==NULL) {
 		status = FALSE;
 		goto cleanup;
 	    }
-	    bcopy(argp, ltext(lp), (int)(line-argp));
+	    bcopy(argp, ltext(lp), (line-argp)*sizeof(NG_WCHAR_t));
 #ifdef FKEYS
 	    lp->l_used--;	/* don't count BINDEXT! */
 	    if (bind == BINDARG)
@@ -801,8 +801,8 @@ register NG_WCHAR_t *line;
 	    else
 		key.k_count = 0;
 #endif
-	    while (*argp != '"' && *argp != '\0') {
-		if (*argp != '\\')
+	    while (*argp != NG_WCODE('"') && *argp != NG_EOS) {
+		if (*argp != NG_WCODE('\\'))
 		    c = *argp++;
 		else {
 		    switch(*++argp) {
@@ -821,11 +821,10 @@ register NG_WCHAR_t *line;
 		    case '^':
 /* split into two statements due to bug in OSK cpp */
 			c = CHARMASK(*++argp);
-			if (c == '\\') {
+			if (c == NG_WCODE('\\'))
 			    c = CHARMASK(*++argp);
-			}
-			c = ISLOWER(c) ?
-			    CCHR(TOUPPER(c)) : CCHR(c);
+			c = (ISASCII(c) && ISLOWER(c))
+			    ? CCHR(TOUPPER(c)) : CCHR(c);
 			break;
 		    case '0': case '1': case '2': case '3':
 		    case '4': case '5': case '6': case '7':
@@ -842,7 +841,7 @@ register NG_WCHAR_t *line;
 #ifdef FKEYS
 		    case 'f': case 'F':
 			c = *++argp - '0';
-			if (ISDIGIT(argp[1])) {
+			if (ISASCII(argv[1]) && ISDIGIT(argp[1])) {
 			    c *= 10;
 			    c += *++argp - '0';
 			}

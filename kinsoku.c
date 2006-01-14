@@ -1,4 +1,4 @@
-/* $Id: kinsoku.c,v 1.6.2.1 2006/01/13 17:32:55 amura Exp $ */
+/* $Id: kinsoku.c,v 1.6.2.2 2006/01/14 13:10:05 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *
@@ -296,14 +296,10 @@ int nkc;				/* Current number of KINSOKU chars. */
  * Delete one KINSOKU char form a KINSOKU char list.
  */
 int
-#ifdef SUPPORT_ANSI /* for strict compiler */
-kcdelete(unsigned short *kclist, unsigned short kc,int nkc)
-#else
 kcdelete(kclist, kc, nkc)
 NG_WCHAR_t *kclist;			/* KINSOKU char list.	*/
 NG_WCHAR_ta kc;				/* Target KINSOKU char.	*/
 int nkc;				/* Current number of KINSOKU chars. */
-#endif
 {
     NG_WCHAR_t *p = kclist;		/* Start of KINSOKU char list.	  */
     NG_WCHAR_t *eop = &kclist[nkc];	/* End of KINSOKU char list. */

@@ -1,4 +1,4 @@
-/* $Id: chrdef.h,v 1.4.2.5 2006/01/13 18:07:38 amura Exp $ */
+/* $Id: chrdef.h,v 1.4.2.6 2006/01/14 13:10:05 amura Exp $ */
 /*
  * sys/default/chardef.h: character set specific #defines for mg 2a
  * Warning: System specific ones exist
@@ -42,7 +42,7 @@
 #define TOLOWER(c)	((c)+0x20)
 
 /* */
-#define	ISMULTIBYTE(c)	((c) > 255)
+#define	ISASCII(c)	(((c)&0xFF80) == 0)
 #define ISBREAKABLE2(l,c)	(0)
 #define ISWORD2(l,c)	ISWORD(c)
 #define ISUPPER2(l,c)	ISUPPER(c)

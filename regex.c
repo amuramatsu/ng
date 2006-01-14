@@ -1,4 +1,4 @@
-/* $Id: regex.c,v 1.2.2.4 2006/01/13 18:45:30 amura Exp $ */
+/* $Id: regex.c,v 1.2.2.5 2006/01/14 13:10:05 amura Exp $ */
 /* This source is select Regular Expression routine */
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
@@ -26,7 +26,7 @@ trex_matchcclass(int cclass, TRexChar c)
     case 'A': return !(ISUPPER2(curbp->b_lang,c)||ISLOWER2(curbp->b_lang,c))
 	?TRex_True:TRex_False;
     default:
-	if (ISMULTIBYTE(c))
+	if (!ISASCII(c))
 	    return TRex_False;
 	switch (cclass) {
 	case 's': return ISSPACE(c)?TRex_True:TRex_False;

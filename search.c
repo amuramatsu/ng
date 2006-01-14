@@ -1,4 +1,4 @@
-/* $Id: search.c,v 1.8.2.6 2006/01/13 18:07:38 amura Exp $ */
+/* $Id: search.c,v 1.8.2.7 2006/01/14 13:10:05 amura Exp $ */
 /*
  *		Search commands.
  * The functions in this file implement the
@@ -342,7 +342,7 @@ int dir;
 	break;
 #endif
 	default:
-	    if (!ISMULTIBYTE(c) && ISCTRL(c)) {
+	    if (ISASCII(c) && ISCTRL(c)) {
 		ungetkey(c);
 		curwp->w_bufp->b_markp = clp;
 		curwp->w_bufp->b_marko = cbo;

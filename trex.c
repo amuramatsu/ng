@@ -1,4 +1,4 @@
-/* $Id: trex.c,v 1.1.2.10 2006/01/13 18:45:30 amura Exp $ */
+/* $Id: trex.c,v 1.1.2.11 2006/01/14 13:10:05 amura Exp $ */
 /* Modified for NG Next Generation */
 /* see copyright notice in trex.h */
 #include <string.h>
@@ -322,7 +322,7 @@ static int trex_parsenumber(TRex *exp)
 	int positions = 10;
 	exp->_p++;
 #ifdef ng
-	while(!ISMULTIBYTE(*exp->_p) && ISDIGIT(*exp->_p)) {
+	while(ISASCII(*exp->_p) && ISDIGIT(*exp->_p)) {
 #else
 	while(isdigit(*exp->_p)) {
 #endif
@@ -377,7 +377,7 @@ static int trex_element(TRex *exp)
 		case '{':{
 			exp->_p++;
 #ifdef ng
-			if(ISMULTIBYTE(*exp->_p)||!ISDIGIT(*exp->_p)) trex_error(exp,_SC("number expected"));
+			if(!ISASCII(*exp->_p)||!ISDIGIT(*exp->_p)) trex_error(exp,_SC("number expected"));
 #else
 			if(!isdigit(*exp->_p)) trex_error(exp,_SC("number expected"));
 #endif

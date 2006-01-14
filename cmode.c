@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.7.2.5 2005/09/17 05:17:18 amura Exp $ */
+/* $Id: cmode.c,v 1.7.2.6 2006/01/14 13:10:05 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -84,7 +84,9 @@ int f, n;
     if ((f & FFARG) == 0) {
 	if ((s = ereply("use-c-mode : ", buf, NINPUT)) != TRUE)
 	    return (s);
-	if (ISDIGIT(buf[0]) || buf[0] == NG_WCODE('-'))
+	if (!ISASCII(buf[0]))
+	    n = FALSE;
+	else if (ISDIGIT(buf[0]) || buf[0] == NG_WCODE('-'))
 	    n = (watoi(buf) > 0);
 	else if (buf[0] == NG_WCODE('t') || buf[0] == NG_WCODE('T'))
 	    n = TRUE;

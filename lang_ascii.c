@@ -1,4 +1,4 @@
-/* $Id: lang_ascii.c,v 1.1.2.4 2006/01/13 15:35:17 amura Exp $ */
+/* $Id: lang_ascii.c,v 1.1.2.5 2006/01/14 13:10:05 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -92,12 +92,12 @@ static int
 ascii_width(c)
 NG_WCHAR_ta c;
 {
-    if (ISMULTIBYTE(c))
+    if (c > 0xff)
 	return 6;
+    if (!ISASCII(c))
+	return 3;
     if (ISCTRL(c))
 	return 2;
-    if (c >= 0x80)
-	return 3;
     return 1;
 }
 
@@ -150,7 +150,7 @@ char *dst;
     case NG_CODE_PASCII:
 	if (n == NG_CODE_CHKLEN) {
 	    while (*src != NG_EOS) {
-		if (ISMULTIBYTE(*src)) {
+		if (*src > 0xff) {
 		    *p++ = '\\'; *p++ = 'w';
 		    to_hex(p, 4, *src);
 		}
@@ -169,7 +169,7 @@ char *dst;
 	}
 	else {
 	    while (n--) {
-		if (ISMULTIBYTE(*src)) {
+		if (*src > 0xff) {
 		    *p++ = '\\'; *p++ = 'w';
 		    to_hex(p, 4, *src);
 		}
@@ -190,7 +190,7 @@ char *dst;
     case NG_CODE_ASCII:
 	if (n == NG_CODE_CHKLEN) {
 	    while (*src != NG_EOS) {
-		if (ISMULTIBYTE(*src))
+		if (*src > 0xff)
 		    *p++ = ' ';
 		else
 		    *p++ = *src & 0xFF;
@@ -200,7 +200,7 @@ char *dst;
 	}
 	else {
 	    while (n--) {
-		if (ISMULTIBYTE(*src))
+		if (*src > 0xff)
 		    *p++ = ' ';
 		else
 		    *p++ = *src & 0xFF;
@@ -255,7 +255,7 @@ int buflen;
 	return -1;
     if (c != NG_EOS)
 	ch = c;
-    if (ISMULTIBYTE(ch) || ISCTRL(ch) || ch >= 0x80)
+    if (!ISASCII(ch) || ISCTRL(ch))
 	buf[0] = ' ';
     else
 	buf[0] = ch & 0x7f;
@@ -278,7 +278,7 @@ NG_WCHAR_ta c;
 	
     p = &vbuf[*col];
     old = *p;
-    if (ISMULTIBYTE(c)) {
+    if (c > 0xff) {
 	*p++ = NG_WCODE('\\'); *p++ = NG_WCODE('w');
 	to_hex(p, 4, c);
     }
@@ -316,7 +316,7 @@ static int
 ascii_category(c)
 NG_WCHAR_ta c;
 {
-    if (ISMULTIBYTE(c))
+    if (c > 0xff)
 	return 0;
     return cinfo[c & 0xff];
 }
