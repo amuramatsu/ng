@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.8 2006/01/14 13:10:05 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.9 2006/01/14 15:35:35 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -677,7 +677,7 @@ kgetkey()
     do {
 	c1 = getkbd();
 #ifdef VTCURSOR /* 92.03.16 by Gen KUROKI, renamed by amura */
-	if (c1 == NG_WESC) {
+	if (c1 == NG_WESC && ttwait()==FALSE) {
 	    c1 = getkbd();
 	    if (c1 == 'O' || c1 == '[') {
 		c2 = getkbd();
@@ -690,7 +690,7 @@ kgetkey()
 		case 'Q': c1 = NG_W_PF02; break;
 		case 'R': c1 = NG_W_PF03; break;
 		case 'S': c1 = NG_W_PF04; break;
-#if 0 /* vt100?, this codes are minor... */
+#if 0 /* vt100?, but these codes are minor... */
 		case 't': c1 = NG_W_PF05; break;
 		case 'u': c1 = NG_W_PF06; break;
 		case 'v': c1 = NG_W_PF07; break;
@@ -749,6 +749,10 @@ kgetkey()
 		    c1 = NG_WESC;
 		    break;
 		}
+	    }
+	    else {
+		ungetkbd(c1);
+		c1 = NG_WESC;
 	    }
 	}
 #endif /* VTCURSOR */

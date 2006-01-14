@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.12 2006/01/13 18:07:38 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.13 2006/01/14 15:35:35 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -109,10 +109,21 @@ NG_WCHAR_t *_ng_wstr _PRO((const char *));
 #define NG_W_END	NG_WCODE(0xFF45)
 #define NG_W_PGUP	NG_WCODE(0xFF46)
 #define NG_W_PGDN	NG_WCODE(0xFF47)
+#define NG_W_HELP	NG_WCODE(0xFF48)
+#define NG_W_CLEAR	NG_WCODE(0xFF49)
+#define NG_W_PAUSE	NG_WCODE(0xFF4A)
 
-#define NG_W_HELP	NG_WCODE(0xFF50)
-#define NG_W_CLEAR	NG_WCODE(0xFF51)
-#define NG_W_PAUSE	NG_WCODE(0xFF52)
+#define NG_W_SUP	NG_WCODE(0xFF50)
+#define NG_W_SDOWN	NG_WCODE(0xFF51)
+#define NG_W_SLEFT	NG_WCODE(0xFF52)
+#define NG_W_SRIGHT	NG_WCODE(0xFF53)
+#define NG_W_SHOME	NG_WCODE(0xFF54)
+#define NG_W_SEND	NG_WCODE(0xFF55)
+#define NG_W_SPGUP	NG_WCODE(0xFF56)
+#define NG_W_SPGDN	NG_WCODE(0xFF57)
+#define NG_W_SHELP	NG_WCODE(0xFF58)
+#define NG_W_SCLEAR	NG_WCODE(0xFF59)
+#define NG_W_SPAUSE	NG_WCODE(0xFF5A)
 
 /*
  * SPECIAL CHARACTORS TRAILING next code
