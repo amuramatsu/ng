@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.7 2006/01/14 13:10:05 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.8 2006/01/14 19:03:23 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -14,7 +14,6 @@
 
 #include "cinfo.h"
 #include "echo.h"
-//#include "buffer.h"
 #include "line.h"
 #include "fileio.h"
 #include "kbd.h"
@@ -105,7 +104,7 @@ int f, n;
 static int
 remap(curmap, c, funct, pref_map)
 register KEYMAP	*curmap;/* pointer to the map being changed */
-int c;			/* character being changed */
+NG_WCHAR_ta c;		/* character being changed */
 PF funct;		/* function being changed to */
 KEYMAP *pref_map;	/* if funct==prefix, map to bind to or NULL for new */
 /* extern MAP_ELEMENT *ele;	must be set before calling */
@@ -374,13 +373,13 @@ int unbind;
 	fepmode_off();
 #endif
 	for (;;) {
-	    ewprintf("%S", prompt);
+	    ewprintf("%s", prompt);
 	    pep[-1] = ' ';
 	    pep = keyname(pep, c = getkey(FALSE));
 	    if (doscan(curmap,c) != prefix)
 		break;
 	    *pep++ = '-';
-	    *pep = '\0';
+	    *pep = NG_EOS;
 	    curmap = ele->k_prefmap;
 	}
 #ifndef NO_STARTUP
@@ -786,6 +785,25 @@ register NG_WCHAR_t *line;
 		bind = BINDNO;
 #endif
 	}
+#ifdef FKEYS
+	else if (bind == BINDARG && *argp == '[') {
+	    char *buf, *p;
+	    buf  = p = malloc(wstrlen(argp) + 1);
+	    if (buf == NULL) {
+		status = FALSE;
+		goto cleanup;
+	    }
+	    while (*++argp != NG_EOS && *argp != ']')
+		*p++ = *argp & 0xff;
+	    if (*argp = ']') {
+		*p = '\0';
+		c = encode_keyname(buf);
+		if (c != NG_EOS)
+		    key.k_chars[key.k_count++] = c;
+	    }
+	    free(buf);
+	}
+#endif /* FKEYS */
 	else {	/* Quoted strings special */
 	    ++argp;
 #ifdef FKEYS
@@ -826,6 +844,25 @@ register NG_WCHAR_t *line;
 			c = (ISASCII(c) && ISLOWER(c))
 			    ? CCHR(TOUPPER(c)) : CCHR(c);
 			break;
+			
+		    case 'x':
+			c = 0;
+			if (argp[1] >= '0' && argp[1] <= '9')
+			    c = *++argp - '0';
+			else if (argp[1] >= 'a' && argp[1] <= 'f')
+			    c = *++argp - 'a';
+			else if (argp[1] >= 'A' && argp[1] <= 'F')
+			    c = *++argp - 'A';
+			else
+			    break;
+			if (argp[1] >= '0' && argp[1] <= '9')
+			    c = c*16 + *++argp - '0';
+			else if (argp[1] >= 'a' && argp[1] <= 'f')
+			    c = c*16 + *++argp - 'a';
+			else if (argp[1] >= 'A' && argp[1] <= 'F')
+			    c = c*16 + *++argp - 'A';
+			break;
+			
 		    case '0': case '1': case '2': case '3':
 		    case '4': case '5': case '6': case '7':
 			c = *argp - '0';
@@ -845,9 +882,29 @@ register NG_WCHAR_t *line;
 			    c *= 10;
 			    c += *++argp - '0';
 			}
-			c += KFIRST;
+			c += NG_W_PF01;
+			if (c < NG_W_PF01 || c > NG_W_PF20) 
+			    continue;
 			break;
-#endif
+			
+		    case '[': {
+			char *buf, *p;
+			buf  = p = malloc(wstrlen(argp) + 1);
+			if (buf == NULL) {
+			    status = FALSE;
+			    goto cleanup;
+			}
+			while (*++argp != NG_EOS && *argp != ']')
+			    *p++ = *argp & 0xff;
+			if (*argp = ']') {
+			    *p = '\0';
+			    c = encode_keyname(buf);
+			}
+			free(buf);
+			if (c == NG_EOS)
+			    continue;
+		    }
+#endif /* FKEYS */
 		    default:
 			c = CHARMASK(*argp);
 			break;
@@ -870,16 +927,25 @@ register NG_WCHAR_t *line;
 	    bind = BINDDO;
 	    break;
 	case BINDNEXT:
-	    lp->l_text[lp->l_used] = '\0';
-	    if ((mp = name_mode(lp->l_text)) == NULL) {
-		ewprintf("No such mode: %s", lp->l_text);
-		status = FALSE;
+	    {
+		char *buf;
+		mp = NULL;
+		if ((buf = malloc(lp->l_used+1)) != NULL) {
+		    strlcpyw(buf, lp->l_text, lp->l_used+1);
+		    mp = name_mode(buf);
+		}
+		if (mp == NULL) {
+		    ewprintf("No such mode: %s", buf);
+		    status = FALSE;
+		    free(buf);
+		    free((char *)lp);
+		    goto cleanup;
+		}
+		curmap = mp->p_map;
+		free(buf);
 		free((char *)lp);
-		goto cleanup;
+		bind = BINDARG;
 	    }
-	    curmap = mp->p_map;
-	    free((char *)lp);
-	    bind = BINDARG;
 	    break;
 	default:
 #endif

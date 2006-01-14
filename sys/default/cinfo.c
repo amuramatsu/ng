@@ -1,4 +1,4 @@
-/* $Id: cinfo.c,v 1.4.2.1 2006/01/04 17:00:40 amura Exp $ */
+/* $Id: cinfo.c,v 1.4.2.2 2006/01/14 19:03:23 amura Exp $ */
 /*
  *		Character class tables.
  * Do it yourself character classification
@@ -10,6 +10,8 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "in_code.h"
+
 /*
  * This table, indexed by a character drawn
  * from the 256 member character set, is used by my
@@ -85,6 +87,33 @@ _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,	_NGC_L|_NGC_W,
 _NGC_L|_NGC_W,	_NGC_L|_NGC_W,	0,		0
 };
 
+#ifndef PF_KEYSTRINGS
+static const char *pf_keystrings[] = {
+    "F1",		"F2",		"F3",		"F4",
+    "F5",		"F6",		"F7",		"F8",
+    "F9",		"F10",		"F11",		"F12",
+    "F13",		"F14",		"F15",		"F16",
+    "F17",		"F18",		"F19",		"F20",
+    NULL
+};
+#else
+extern const char *pf_keystrings[];
+#endif /* PF_KEYSTRINGS */
+
+#ifndef SP_KEYSTRINGS
+static const char *sp_keystrings[] = {
+    "Up",		"Down",		"Left",		"Right",
+    "Home",		"End",		"PageUp",	"PageDown",
+    "Help",		"Clear",	"Pause",	"",
+    "",			"",		"",		"",
+    "Shift-Up",		"Shift-Down",	"Shift-Left",	"Shift-Right",
+    "Shift-Home",	"Shift-End",	"Shift-PageUp",	"Shift-PageDown",
+    "Shift-Help",	"Shift-Clear",	"Shift-Pause",	NULL,
+};
+#else
+extern const char *sp_keystrings[];
+#endif /* SP_KEYSTRINGS */
+
 /*
  * Find the name of a keystroke.  Needs to be changed to handle 8-bit printing
  * characters and function keys better.	 Returns a pointer to the terminating
@@ -96,11 +125,7 @@ keyname(cp, k)
 register char *cp;
 register int k;
 {
-    register char *np;
-#ifdef	FKEYS
-    extern char *keystrings[];
-#endif
-
+    register const char *np;
     if (k < 0)
 	k = CHARMASK(k);			/* sign extended char */
     switch (k) {
@@ -112,11 +137,12 @@ register int k;
     case ' ':	np = "SPC"; break; /* yuck again */
     case CCHR('?'): np = "DEL"; break;
     default:
-#ifdef	FKEYS
-	if (k >= KFIRST && k <= KLAST &&
-	    (np = keystrings[k - KFIRST]) != NULL)
+	if (k >= NG_W_PF01 && k <= NG_W_PF20 &&
+	    (np = pf_keystrings[k - NG_W_PF01]) != NULL)
 	    break;
-#endif
+	if (k >= NG_W_UP && k <= NG_W_LAST &&
+	    (np = sp_keystrings[k - NG_W_UP]) != NULL)
+	    break;
 	if (k > CCHR('?')) {
 	    *cp++ = '0';
 	    *cp++ = ((k>>6)&7) + '0';
@@ -137,4 +163,41 @@ register int k;
     }
     (VOID) strcpy(cp, np);
     return cp + strlen(cp);
+}
+
+static int
+keyname_match(name, list)
+const char *name;
+const char *list[];
+{
+    const char *p1, *p2;
+    char c1, c2;
+    int i;
+    for (i=0; list[i] != NULL; i++) {
+	p1 = name;
+	p2 = list[i];
+	while (*p1) {
+	    c1 = ISUPPER(*p1) ? TOLOWER(*p1) : *p1;
+	    c2 = ISUPPER(*p2) ? TOLOWER(*p2) : *p2;
+	    if (c1 != c2)
+		break;
+	}
+	if (*p1 == '\0' && *p2 == '\0')
+	    return i;
+    }
+    return -1;
+}
+
+NG_WCHAR_t
+keyname_encode(name)
+const char *name;
+{
+    int s;
+    s = keyname_match(name, pf_keystrings);
+    if (s > 0)
+	return NG_W_PF01 + s;
+    s = keyname_match(name, sp_keystrings);
+    if (s > 0)
+	return NG_W_UP + s;
+    return NG_EOS;
 }
