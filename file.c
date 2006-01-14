@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.6 2006/01/08 19:22:43 amura Exp $ */
+/* $Id: file.c,v 1.15.2.7 2006/01/14 15:27:44 amura Exp $ */
 /*
  *		File commands.
  */
@@ -423,8 +423,7 @@ const char *fname, *newname;
 	if (bp->b_fname != NULL)
 	    free(bp->b_fname);
 	if ((bp->b_fname=malloc(strlen(newname)+1)) == NULL) {
-	    ewprintf("Could not allocate %d bytes",
-		     strlen(newname) + 1);
+	    ewprintf("Could not allocate %d bytes", strlen(newname) + 1);
 	    return FALSE;
 	}
 	(VOID) strcpy(bp->b_fname, newname);
@@ -454,7 +453,7 @@ const char *fname, *newname;
     }
     nline = 0;			/* Don't count fake line at end */
     fio = bp->b_fio;
-    while ((s=ffgetline(line, NLINE, &nbytes)) != FIOERR) {
+    while ((s = ffgetline(line, sizeof(line), &nbytes)) != FIOERR) {
 	switch(s) {
 	case FIOSUC:
 	    ++nline;
@@ -462,13 +461,12 @@ const char *fname, *newname;
 	case FIOEOF:	/* the last line of the file		*/
 	    if (fio == NG_CODE_NONE)
 		bp->b_fio = fio = lang->lm_code_expect(line, nbytes);
-	    leng = lang->lm_in_convert_len(bp->b_fio, line, nbytes);
-	    if ((lp1=lalloc(leng > nbytes ? leng : nbytes)) == NULL) {
+	    leng = lang->lm_in_convert_len(fio, line, nbytes);
+	    if ((lp1 = lalloc(leng)) == NULL) {
 		s = FIOERR;		/* Keep message on the	*/
 		goto endoffile;		/* display.		*/
 	    }
-	    lp1->l_used =
-		lang->lm_in_convert(bp->b_fio, line, nbytes, &ltext(lp1)[0]);
+	    lp1->l_used = lang->lm_in_convert(fio, line, nbytes, ltext(lp1));
     lineread:
 	    lp2 = lback(curwp->w_dotp);
 	    lp2->l_fp = lp1;
@@ -499,7 +497,7 @@ const char *fname, *newname;
 		    free(cp2);
 		    cp2 = (char *)NULL;
 		}
-		bcopy(line, cp+nbytes, NLINE);
+		bcopy(line, cp+nbytes, sizeof(line));
 		nbytes += NLINE;
 		switch (s = ffgetline(line, NLINE, &i)) {
 		case FIOERR:
@@ -511,7 +509,7 @@ const char *fname, *newname;
 		case FIOEOF:
 		case FIOSUC:
 		    cp2 = cp;
-		    if ((cp = malloc((unsigned)( nbytes + i )))	== NULL) {
+		    if ((cp = malloc((unsigned)(nbytes + i)))	== NULL) {
 			ewprintf("Could not allocate %d bytes", nbytes + i);
 			s = FIOERR;
 			free(cp2);
@@ -524,16 +522,14 @@ const char *fname, *newname;
 		    cp2 = (char *)NULL;
 		    if (fio == NG_CODE_NONE)
 			bp->b_fio = fio = lang->lm_code_expect(cp, nbytes+1);
-		    leng = lang->lm_in_convert_len(bp->b_fio, cp, nbytes+i);
-		    if ((lp1=lalloc(leng > nbytes+i ? leng : nbytes+i))
-			== NULL) {
+		    leng = lang->lm_in_convert_len(fio, cp, nbytes+i);
+		    if ((lp1 = lalloc(leng)) == NULL) {
 			s = FIOERR;
 			free(cp);
 			goto endoffile;
 		    }
-		    lp1->l_used =
-			lang->lm_in_convert(bp->b_fio, cp,
-					    nbytes+i, &ltext(lp1)[0]);
+		    lp1->l_used = lang->lm_in_convert(fio, cp,
+						      nbytes+i, ltext(lp1));
 		    free(cp);
 		    goto lineread;
 		}

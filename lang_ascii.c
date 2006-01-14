@@ -1,4 +1,4 @@
-/* $Id: lang_ascii.c,v 1.1.2.5 2006/01/14 13:10:05 amura Exp $ */
+/* $Id: lang_ascii.c,v 1.1.2.6 2006/01/14 15:27:44 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -323,7 +323,7 @@ NG_WCHAR_ta c;
 
 static LANG_MODULE ascii_lang = {
     "ascii",
-     ascii_get_codemap,
+    ascii_get_codemap,
     ascii_code_expect,
     ascii_out_convert_len,
     ascii_out_convert,
@@ -334,7 +334,7 @@ static LANG_MODULE ascii_lang = {
     ascii_get_code,
     ascii_get_keyin_code,
     ascii_width,
-   NULL, /* ascii_display_start_code */
+    NULL, /* ascii_display_start_code */
     NULL, /* ascii_display_end_code */
     ascii_get_display_code,
     ascii_displaychar,
