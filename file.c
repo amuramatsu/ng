@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.8 2006/01/14 16:43:26 amura Exp $ */
+/* $Id: file.c,v 1.15.2.9 2006/01/14 23:45:32 amura Exp $ */
 /*
  *		File commands.
  */
@@ -928,9 +928,9 @@ char *fn;
     fio = bp->b_fio;
     lp = lforw(lpend);
     do {
+	len = bp->b_lang->lm_out_convert_len(fio, ltext(lp), llength(lp));
 	if ((lp = lforw(lp)) == lpend)	/* no implied newline on last line */
 	    break;
-	len = bp->b_lang->lm_out_convert_len(fio, ltext(lp), llength(lp));
 	if (len > buflen) {
 	    buflen = len;
 	    MALLOCROUND(buflen);

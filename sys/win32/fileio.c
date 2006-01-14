@@ -1,3 +1,4 @@
+/* $Id: fileio.c,v 1.19.2.2 2006/01/14 23:45:32 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32

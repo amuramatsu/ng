@@ -1,3 +1,4 @@
+/* $Id: fileio.c,v 1.14.2.2 2006/01/14 23:45:32 amura Exp $ */
 /*
  *		Human68k file I/O
  */
