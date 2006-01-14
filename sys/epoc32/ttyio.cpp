@@ -1,4 +1,4 @@
-/* $Id: ttyio.cpp,v 1.3 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: ttyio.cpp,v 1.3.2.1 2006/01/14 23:43:38 amura Exp $ */
 /*
  *		Epoc32 terminal I/O. (Tested only at Psion S5mx)
  *		I make this file from MSDOS ttyio.c.
@@ -90,10 +90,8 @@ ttflush()
 }
 
 static	int	ahead = -1;		/* Typeahead charactor.		*/
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
 static	int	nkey = 0;		/* The number of ungetc charactor. */
 static	char	keybuf[4];		/* Ungetc charactors.		*/
-#endif	/* KANJI */
 
 /*
  * Read character from terminal without ^C check.
@@ -104,25 +102,22 @@ int
 ttgetc(void)
 {
     int c;
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0) {
-	return(keybuf[--nkey]);
-    } else
-#endif	/* KANJI */
-    if (ahead != -1) {
+	return keybuf[--nkey];
+    }
+    else if (ahead != -1) {
 	c = ahead;
 	ahead = -1;
-	return(c);
+	return c;
     }
     while ((c = epoctty->Getch()) == -1) {
 #ifdef	AUTOSAVE
 	autosave_handler();
 #endif	
     }
-    return (c);
+    return c;
 }
 
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
 /*
  * Save pre-readed char to read again.
  */
@@ -131,7 +126,6 @@ ttungetc(int c)
 {
     keybuf[nkey++] = c;
 }
-#endif	/* KANJI */
 
 /*
  * set the tty size.
@@ -151,14 +145,12 @@ setttysize(void)
 int
 typeahead(void)
 {
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0)
-	return(TRUE);
-#endif	/* KANJI */
+	return TRUE;
     if (ahead != -1)
-	return(TRUE);
+	return TRUE;
     ahead = epoctty->Getch();
-    return (ahead != -1);
+    return ahead != -1;
 }
 
 /*
@@ -182,19 +174,17 @@ panic(char *s)
 int
 ttwait(void)
 {
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0)
 	return(FALSE);
-#endif	/* KANJI */
     TTime nowTime;
     nowTime.UniversalTime();
     TTime endTime = nowTime + TTimeIntervalSeconds(1);
     do {
 	if (typeahead())
-	    return(FALSE);
+	    return FALSE;
 	nowTime.UniversalTime();
     } while (nowTime < endTime);
-    return(TRUE);
+    return TRUE;
 }
 #endif
 
@@ -207,7 +197,7 @@ epoc_ttattr(int attribute)
 void
 epoc_ttmove(int x, int y)
 {
-    epoctty->SetPos(x, y);
+    epoctty->SetPos(y, x);
 }
 
 void
@@ -216,16 +206,8 @@ epoc_tteeol(void)
     epoctty->ClearToEndOfLine();
 }
 
-#ifdef SS_SUPPORT
 void
-putline(int row, int column, unsigned char *s, unsigned char *t, short color)
+putline(int row, const NG_WCHAR_t *s, int color)
 {
-    epoctty->PutLine(row, column, s, t, color);
+    epoctty->PutLine(row, column, s, color);
 }
-#else
-void
-putline(int row, int column, unsigned char *s, short color)
-{
-    epoctty->PutLine(row, column, s, NULL, color);
-}
-#endif

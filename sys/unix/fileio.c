@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20.2.6 2006/01/14 16:43:26 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.7 2006/01/14 23:43:38 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -64,7 +64,7 @@ ffclose()
  */
 int
 ffputline(buf, len)
-register char *buf;
+register const char *buf;
 register int len;
 {
     while (len--) {

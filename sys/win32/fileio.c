@@ -1,4 +1,3 @@
-/* $Id: fileio.c,v 1.19 2003/02/22 08:09:47 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -484,56 +483,19 @@ ffclose()
 
 /*
  * Write a buffer to the already
- * opened file. bp points to the
- * buffer. Return the status.
- * Check only at the newline and
- * end of buffer.
+ * opened file. Return the status.
+ * Check only at the newline and end of buffer.
  */
 int
-ffputbuf(BUFFER *bp)
+ffputline(register const char *buf, register int len)
 {
-    char *cp;
-    char *cpend;
-    LINE *lp;
-    LINE *lpend;
-#ifdef KANJI
-    int kfio;
-#endif
-    
-    lpend = bp->b_linep;
-#ifdef KANJI
-    kfio  = bp->b_kfio;
-#endif
-    lp = lforw(lpend);
-    do {
-	cp = &ltext(lp)[0];		/* begining of line	*/
-	cpend = &cp[llength(lp)];	/* end of line		*/
-	while (cp != cpend) {
-#ifdef KANJI
-	    kputc(*cp, NULL, kfio);
-#else
-	    putc(*cp, NULL);
-#endif
-	    cp ++;	/* putc may evalualte arguments more than once */
-	}
-#ifdef KANJI
-	if (kfio == JIS)
-	    kfselectcode(NULL, FALSE);
-#endif
-	lp = lforw(lp);
-	if (lp == lpend)
-	    break;		/* no implied newline on last line */
-#ifdef	USE_UNICODE
-	if (kfio == UCS2) {
-	    putc('\0', NULL);
-	}
-#endif
-	putc('\n', NULL);
-    } while(!Ferror());
-    if (Ferror()) {
-	ewprintf("Write I/O error");
-	return FIOERR;
+    while (len--) {
+	putc(*buf, ffp);
+	buf++;	/* putc may evalualte arguments more than once */
     }
+    putc('\n', ffp);
+    if (ferror(ffp))
+	return FIOERR;
     return FIOSUC;
 }
 

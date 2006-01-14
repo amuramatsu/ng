@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.13 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: fileio.c,v 1.13.2.1 2006/01/14 23:43:38 amura Exp $ */
 /*
  * Name:	MG 2a401
  *		Commodore Amiga file I/O.
@@ -169,65 +169,22 @@ ffclose()
 }
 
 /*
- * Write a buffer to the already opened file. bp points to the
- * buffer. Return the status. Check only at the newline and
- * end of buffer.
+ * Write a buffer to the already
+ * opened file. Return the status.
+ * Check only at the newline and end of buffer.
  */
 int
-ffputbuf(bp)
-BUFFER *bp;
+ffputline(buf, len)
+register const char *buf;
+register int len;
 {
-    register char *cp;
-    register char *cpend;
-    register LINE *lp;
-    register LINE *lpend;
-#ifdef	KANJI	/* Dec. 15, 1992 by H.Ohkubo */
-    register int  kfio;
-    VOID kputc _PRO((int, FILE *, int));
-# ifdef   AMIGA_STDIO
-#   define  FFP		(ffp)
-# else
-    My_FILE ffp;
-#   define  FFP		(&ffp)
-# endif
-#endif	/* KANJI */
-    
-    lpend = bp->b_linep;
-#ifdef	KANJI	/* Dec. 15, 1992 by H.Ohkubo */
-    if (bp->b_kfio == NIL)
-	ksetbufcode(bp);		/* Set buffer local KANJI code.	*/
-    kfio  = bp->b_kfio;
-# ifndef   AMIGA_STDIO
-    ffp.niobuf = &niobuf;
-    ffp.bufmax = NIOBUF;
-    ffp.iobuf = iobuf;
-# endif
-#endif	/* KANJI */
-    lp = lforw(lpend);
-    do {
-	cp = &ltext(lp)[0];		/* begining of line	*/
-	cpend = &cp[llength(lp)];	/* end of line		*/
-	while(cp != cpend) {
-#ifdef	KANJI	/* Dec. 15, 1992 by H.Ohkubo / 19 May 1999 by amura*/
-	    kputc(*cp, FFP, kfio);
-#else	/* NOT KANJI */
-	    PUTC(*cp, FFP);
-#endif	/* KANJI */
-	    cp++;
-	}
-#ifdef	KANJI	/* Dec. 15, 1992 by H.Ohkubo */
-	if (kfio == JIS)
-	    kfselectcode(FFP, FALSE);
-#endif	/* KANJI */
-	lp = lforw(lp);
-	if (lp == lpend)		/* no implied newline on last line */
-	    break;
-	PUTC('\n', ffp);
-    } while (!FERROR(ffp));
-    if (FERROR(ffp)) {
-	ewprintf("Write I/O error");
-	return FIOERR;
+    while (len--) {
+	PUTC(*buf, ffp);
+	buf++;
     }
+    PUTC('\n', ffp);
+    if (FERROR(ffp))
+	return FIOERR;
     return FIOSUC;
 }
 

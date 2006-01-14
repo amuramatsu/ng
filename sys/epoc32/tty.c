@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.3 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: tty.c,v 1.3.2.1 2006/01/14 23:43:38 amura Exp $ */
 /*
  * Epoc32 Tty display driver
  *
@@ -23,15 +23,17 @@ static void setttysize(void);
 void ttputc(int);
 
 /* These are dummy variables */
-int tceeol = 1;			/* Costs are set later */
-int tcinsl = 1;
-int tcdell = 1;
-int SG = -1;/* number of glitches, 0 for invisible, -1 for none	*/
+int tceeol;			/* Costs are set later */
+int tcinsl;
+int tcdell;
 
 void
 ttinit(void)
 {
     ttresize();			/* set nrow & ncol	*/
+    tceeol = 1;			/* Costs are set later */
+    tcinsl = NCOL*NROW;
+    tcdell = NCOL*NROW;
 }
 
 /*
@@ -82,7 +84,7 @@ tteeop(void)
     ttflush();
     epoc_tteeol();
     for (line = ttrow + 1; line <= nrow; ++line) {
-	epoc_ttmove(0,line);
+	epoc_ttmove(line, 0);
 	epoc_tteeol();
     }
     ttrow = ttcol = HUGE;
@@ -109,21 +111,20 @@ ttbeep(void)
 void
 ttinsl(int row, int bot, int nchunk)
 {
-    register int	i, nl;
+    register int i, nl;
     
     if (row == bot) {		/* Case of one line insert is	*/
 	ttmove(row, 0);		/*	special			*/
 	tteeol();
 	return;
     }
-    ttmove(1+bot-nchunk, 0);
-    nl = nrow - ttrow;
+    epoc_ttmove(1+bot-nchunk, 0);
     for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-	/* putpad(DL, nl)*/ ;
-    ttmove(row, 0);
-    nl = nrow - ttrow;	/* ttmove() changes ttrow */
+	epoc_tteeol();
+    epoc_ttmove(row, 0);
     for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-	/* putpad(AL, nl) */;
+	ttputc('\n');
+    ttflush();
     ttrow = HUGE;
     ttcol = HUGE;
 }
@@ -146,14 +147,13 @@ ttdell(int row, int bot, int nchunk)
 	tteeol();
 	return;
     }
-    ttmove(row, 0);			/* Else use insert/delete line	*/
-    nl = nrow - ttrow;
+    epoc_ttmove(row, 0);		/* Else use insert/delete line	*/
     for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-	/* putpad(DL, nl) */;
-    ttmove(1+bot-nchunk,0);
-    nl = nrow - ttrow;	/* ttmove() changes ttrow */
+	epoc_tteeol();
+    epoc_ttmove(1+bot-nchunk,0);
     for (i=0; i<nchunk; i++)	/* For all lines in the chunk	*/
-	/* putpad(AL, nl) */;
+	ttputc('\n');
+    ttflush();
     ttrow = HUGE;
     ttcol = HUGE;
 }
@@ -173,6 +173,7 @@ ttdell(int row, int bot, int nchunk)
 void
 ttwindow(int top, int bot)
 {
+    /* NOP */
 }
 
 /*
@@ -188,6 +189,7 @@ ttwindow(int top, int bot)
 void
 ttnowindow(void)
 {
+    /* NOP */
 }
 
 /*

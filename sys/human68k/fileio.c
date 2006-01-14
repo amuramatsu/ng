@@ -1,4 +1,3 @@
-/* $Id: fileio.c,v 1.14 2003/02/22 08:09:47 amura Exp $ */
 /*
  *		Human68k file I/O
  */
@@ -74,54 +73,21 @@ ffclose()
 
 /*
  * Write a buffer to the already
- * opened file. bp points to the
- * buffer. Return the status.
- * Check only at the newline and
- * end of buffer.
+ * opened file. Return the status.
+ * Check only at the newline and end of buffer.
  */
 int
-ffputbuf(bp)
-BUFFER *bp;
+ffputline(buf, len)
+register const char *buf;
+register int len;
 {
-    register char *cp;
-    register char *cpend;
-    register LINE *lp;
-    register LINE *lpend;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-    register int  kfio;
-#endif	/* KANJI */
-
-    lpend = bp->b_linep;
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-    if (bp->b_kfio == NIL)
-	ksetbufcode(bp);		/* Set buffer local KANJI code.	*/
-    kfio  = bp->b_kfio;
-#endif	/* KANJI */
-    lp = lforw(lpend);
-    do {
-	cp = &ltext(lp)[0];		/* begining of line	*/
-	cpend = &cp[llength(lp)];	/* end of line		*/
-	while(cp != cpend) {
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	    kputc(*cp, ffp, kfio);
-#else	/* NOT KANJI */
-	    putc(*cp, ffp);
-#endif	/* KANJI */
-	    cp++;	/* putc may evalualte arguments more than once */
-	}
-#ifdef	KANJI	/* 90.01.29  by S.Yoshida */
-	if (kfio == JIS)
-	    kfselectcode(ffp, FALSE);
-#endif	/* KANJI */
-	lp = lforw(lp);
-	if (lp == lpend)		/* no implied newline on last line */
-	    break;
-	putc('\n', ffp);
-    } while(!ferror(ffp));
-    if (ferror(ffp)) {
-	ewprintf("Write I/O error");
-	return FIOERR;
+    while (len--) {
+	putc(*buf, ffp);
+	buf++;	/* putc may evalualte arguments more than once */
     }
+    putc('\n', ffp);
+    if (ferror(ffp))
+	return FIOERR;
     return FIOSUC;
 }
 

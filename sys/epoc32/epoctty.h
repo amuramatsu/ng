@@ -1,4 +1,4 @@
-/* $Id: epoctty.h,v 1.1 2001/09/30 15:59:12 amura Exp $ */
+/* $Id: epoctty.h,v 1.1.2.1 2006/01/14 23:43:38 amura Exp $ */
 /*
  *		Epoc32 Tty support class header (Tested only at Psion S5mx)
  */
@@ -14,8 +14,7 @@ private:
     
 public:
     static EpocTty* NewL(const TDesC &aTitle, const TSize &aSize);
-    void PutLine(int row, int column,
-		 unsigned char *s, unsigned char *t, short aColor);
+    void PutLine(int row, const NG_WCHAR_t *s, short aColor);
     void Putch(int ch);
     void SetColor(short aColor);
 };
