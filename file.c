@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.7 2006/01/14 15:27:44 amura Exp $ */
+/* $Id: file.c,v 1.15.2.8 2006/01/14 16:43:26 amura Exp $ */
 /*
  *		File commands.
  */
@@ -910,19 +910,51 @@ register BUFFER *bp;
 char *fn;
 {
     register int s;
+    register LINE *lp;
+    register LINE *lpend;
+    register int fio;
+    register int len;
+    char *buffer = NULL;
+    int buflen = -1;
     
     if (fn == NULL)
 	return (FALSE);
     if ((s=ffwopen(fn)) != FIOSUC)	/* Open writes message. */
 	return (FALSE);
-    s = ffputbuf(bp);
-    if (s == FIOSUC) {			/* No write error.	*/
+    
+    lpend = bp->b_linep;
+    if (bp->b_fio == NG_CODE_NONE)
+	bp->b_fio = bp->b_lang->lm_get_code(NG_CODE_FOR_FILE);
+    fio = bp->b_fio;
+    lp = lforw(lpend);
+    do {
+	if ((lp = lforw(lp)) == lpend)	/* no implied newline on last line */
+	    break;
+	len = bp->b_lang->lm_out_convert_len(fio, ltext(lp), llength(lp));
+	if (len > buflen) {
+	    buflen = len;
+	    MALLOCROUND(buflen);
+	    buffer = realloc(buffer, buflen);
+	    if (buffer == NULL) {
+		ewprintf("Memory allocate error");
+		ffclose();
+		return FALSE;
+	    }
+	}
+	len = bp->b_lang->lm_out_convert(fio, ltext(lp), llength(lp), buffer);
+    } while ((s=ffputline(buffer, len)) == FIOSUC);
+    if (buffer)
+	free(buffer);
+    
+    if (s != FIOSUC) {
+	ewprintf("Write I/O error");
+	ffclose();			/* Ignore close error	*/
+    }
+    else {				/* No write error.	*/
 	s = ffclose();
 	if (s == FIOSUC)
 	    ewprintf("Wrote %s", fn);
     }
-    else				/* Ignore close error	*/
-	(VOID) ffclose();		/* if a write error.	*/
     return s == FIOSUC;
 }
 

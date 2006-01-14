@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20.2.5 2006/01/14 16:05:37 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.6 2006/01/14 16:43:26 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -57,62 +57,23 @@ ffclose()
     return (FIOSUC);
 }
 
-#define putlf(ffp, fio)		putc('\n', ffp)
 /*
  * Write a buffer to the already
- * opened file. bp points to the
- * buffer. Return the status.
- * Check only at the newline and
- * end of buffer.
+ * opened file. Return the status.
+ * Check only at the newline and end of buffer.
  */
 int
-ffputbuf(bp)
-BUFFER *bp;
+ffputline(buf, len)
+register char *buf;
+register int len;
 {
-    register LINE *lp;
-    register LINE *lpend;
-    register int  fio;
-    char *buffer = NULL;
-    int buflen = -1;
-    
-    lpend = bp->b_linep;
-    if (bp->b_fio == NG_CODE_NONE)
-	bp->b_fio = bp->b_lang->lm_get_code(NG_CODE_FOR_FILE);
-    fio  = bp->b_fio;
-    lp = lforw(lpend);
-    do {
-	char *p;
-	int i;
-	i = bp->b_lang->lm_out_convert_len(fio, ltext(lp), llength(lp));
-	if (i > buflen) {
-	    buflen = i;
-	    MALLOCROUND(buflen);
-	    buffer = realloc(buffer, buflen);
-	    if (buffer == NULL) {
-		ewprintf("Memory allocate error");
-		return FIOERR;
-	    }
-	}
-	i = bp->b_lang->lm_out_convert(fio, ltext(lp), llength(lp), buffer);
-	p = buffer;
-	while (i--) {
-	    putc(*p, ffp);
-	    p++;	/* putc may evalualte arguments more than once */
-	}
-	lp = lforw(lp);
-	if (lp == lpend)	/* no implied newline on last line */
-	    break;
-	putlf(ffp, fio);
-    } while (!ferror(ffp));
-    
-    if (ferror(ffp)) {
-	ewprintf("Write I/O error");
-	if (buffer)
-	    free(buffer);
-	return FIOERR;
+    while (len--) {
+	putc(*buf, ffp);
+	buf++;	/* putc may evalualte arguments more than once */
     }
-    if (buffer)
-	free(buffer);
+    putc('\n', ffp);
+    if (ferror(ffp))
+	return FIOERR;
     return FIOSUC;
 }
 
