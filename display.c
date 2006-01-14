@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.10 2006/01/13 18:14:09 amura Exp $ */
+/* $Id: display.c,v 1.20.2.11 2006/01/14 22:47:48 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -44,11 +44,7 @@
 #endif
 
 #ifdef STANDOUT_GLITCH
-# ifdef WITHOUT_TERMCAP
-#  undef STANDOUT_GLITCH
-# else
 extern int SG;				/* number of standout glitches	*/
-# endif /* WITHOUT_TERMCAP */
 #endif /* STANDOUT_GLITCH */
 #ifdef GOSLING
 # undef GOSLING				/* GOSLING too slow?		*/
@@ -314,23 +310,20 @@ register NG_WCHAR_t c;
 
 #if defined(MEMMAP) && !defined(HAVE_ORIGINAL_PUTLINE)
 static VOID
-putline(row, col, s, color)
+putline(row, s, color)
 int row, col;
-NG_WCHAR_t *s;
-short color;	/* this is dummy */
+const NG_WCHAR_t *s;
+int color;	/* this is dummy */
 {
     register int i;
-    unsigned char c;
     int oldrow = vtrow;
     int oldcol = vtcol;
-    int dcode = terminal_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
 
     vtrow = row;
-    vtcol = col;
-
-    for (i=row; i<=MAXROW; i++, s++) {
+    vtcol = 0;
+    for (i=0; i<ncol; i++, s++) {
 	if (*s != NG_WFILLER)
-	    TTPUTC(dcode, *s);
+	    TTPUTC(*s);
     }
     
     vtrow = oldrow;
@@ -908,7 +901,7 @@ VIDEO *vvp, *pvp;
 {
 #ifdef	MEMMAP
     ttflush();	/* 90.06.09  by A.Shirahashi */
-    putline(row+1, 1, &vvp->v_text[0], vvp->v_color);
+    putline(row, &vvp->v_text[0], vvp->v_color);
 #else   /* not MEMMAP */
     register NG_WCHAR_t *cp1;
     register NG_WCHAR_t *cp2;

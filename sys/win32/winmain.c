@@ -1,4 +1,4 @@
-/* $Id: winmain.c,v 1.10 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: winmain.c,v 1.10.2.1 2006/01/14 22:47:48 amura Exp $ */
 /*  OS dependent code used by Ng for WinCE.
  *    Copyright (C) 1998 Eiichiro Ito
  *  Modified for Ng for Win32
@@ -36,7 +36,6 @@
 #include "winmain.h"
 #include "tools.h"
 
-#ifdef KANJI
 #ifdef USE_KCTRL
 #include "kctrl.h"
 #include "cefep.h"
@@ -44,7 +43,6 @@
 #else /* not USE_KCTRL */
 #include <imm.h>
 #endif /* USE_KCTRL */
-#endif /* KANJI */
 
 #if defined(WIN32_PLATFORM_PSPC) && 300 <= _WIN32_WCE
 #define USE_SHMENU /* Define a macro to indicate using PocketPC menu */
@@ -78,13 +76,8 @@
 #define IDM_EXIT			(1002)
 #define IDC_TTY				(2001)
 
-#ifdef KANJI
 #define MGTITLE				TEXT("Ng")
 #define MGCLASS				TEXT("NG")
-#else
-#define MGTITLE				TEXT("Mg")
-#define MGCLASS				TEXT("MG")
-#endif
 
 HINSTANCE g_hInst ;
 HWND      g_hwndMain ;
@@ -107,7 +100,7 @@ DWORD     g_ctrlmap;
 #endif
 DWORD     g_beepsound, g_keyboardlocale;
 TCHAR     g_beepfile[NFILEN];
-#if defined(KANJI) && defined(USE_KCTRL)
+#if defined(USE_KCTRL)
 DWORD     g_dwDllVersion = 0 ;
 #endif
 
@@ -195,7 +188,7 @@ WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst,
     MSG msg ;
     
     g_hInst = hThisInst ;
-#if defined(KANJI) && defined(USE_KCTRL)
+#if defined(USE_KCTRL)
     g_dwDllVersion = GetKVersion() ;
     if ( g_dwDllVersion < VALID_KCTRL_VERSION ) {
 	wsprintf(MessageBuf,
@@ -217,7 +210,7 @@ WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst,
 	MessageBox( NULL, MessageBuf, g_szTitleName, MB_OK|MB_ICONASTERISK ) ;
 	return FALSE ;
     }
-#endif
+#endif /* USE_KCTRL */
     /* define a TTY Window */
     if ( !TtyViewRegisterClass( g_hInst ) )
 	goto ExitMain ;
@@ -285,7 +278,7 @@ ExitMain:
 	/* close the event for keyboard input notification */
 	CloseHandle( g_hevtGetChar ) ;
     }
-#if defined(KANJI) && defined(USE_KCTRL)
+#if defined(USE_KCTRL)
     ReleaseKanjiControls() ;
 #endif
     return TRUE ;
@@ -1266,63 +1259,24 @@ fepmode_toggle( int f, int n )
 }
 #endif /* FEPCTRL */
 
-#ifdef KANJI
-#include "kanji.h"
-#endif
-
 void
-#ifdef SS_SUPPORT  /* 92.11.21  by S.Sasaki */
-putline(int row, int column, unsigned char *s, unsigned char *t, short color)
-#else
-putline(int row, int column, unsigned char *s, short color)
-#endif
+putline(int row, const NG_WCHAR_t *str, int color)
 {
-#ifdef KANJI
-    int c1 = 0, c2;
-#ifdef SS_SUPPORT
-    unsigned char *ccp1;
-#endif
-#endif
-    int c;
-    unsigned char sjis[256], *dst, *cp1, *cp2;
+    int s;
+    unsigned char sjis[256], *dst;
+    const NG_WCHAR_t *cp1, *cp2;
     
-    dst = sjis ;
-    cp1 = &s[0] ;
-    cp2 = &s[ncol] ;
-#ifdef SS_SUPPORT
-    ccp1 = &t[0] ;
-#endif
-    while ( cp1 != cp2 ) {
-	c = *cp1 ++ ;
-#ifdef KANJI
-#ifdef SS_SUPPORT
-	c2 = *ccp1 ++ ;
-#endif
-	if (c1) {
-	    etos(c1, c) ;
-	    *dst++ = c1 ;
-	    *dst++ = c ;
-	    c1 = 0 ;
-#ifdef HANKANA
-	}
-	else if (ISHANKANA(c) && c2 != 0 ) {
-	    *dst++ = c2 ;
-#endif
-#ifdef HOJO_KANJI
-	}
-	else if (ISHOJO(c) && c2 != 0 ) {
-	    *dst++ = c2 ;
-#endif
-	}
-	else if ( ISKANJI( c ) ) {
-	    c1 = c ;
-	}
-	else
-#endif
-	    *dst++ = c ;
+    dst = sjis;
+    cp1 = &str[0];
+    cp2 = &str[ncol];
+    while (cp1 < cp2) {
+	if ((s = terminal_lang->lm_get_display_code(*cp1++, dst,
+					    sizeof(sjis)-(dst-sjis)) < 0)
+	    break;
+	dst += s;
     }
-    *dst = 0 ;
-    PutLine(row-1, sjis, (short)(color == CMODE ? 1 : 0));
+    *dst = 0;
+    PutLine(row, sjis, color == CMODE ? 1 : 0);
 }
 
 #if defined(COMMANDBANDS) && !defined(USE_SHMENU)

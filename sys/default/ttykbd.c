@@ -1,4 +1,4 @@
-/* $Id: ttykbd.c,v 1.4.2.1 2006/01/14 19:59:59 amura Exp $ */
+/* $Id: ttykbd.c,v 1.4.2.2 2006/01/14 22:47:48 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Termcap keyboard driver using key files
@@ -43,7 +43,7 @@ ttykeymapinit()
 VOID
 ttykeypadstart()
 {
-#ifndef	WITHOUT_TERMCAP
+#ifdef	TERMCAP
     extern char *KS;
     if (KS && *KS)			/* turn on keypad	*/
 	putpad(KS, 1);
@@ -56,7 +56,7 @@ ttykeypadstart()
 VOID
 ttykeymaptidy()
 {
-#ifndef	WITHOUT_TERMCAP
+#ifdef	TERMCAP
     extern char *KE;
     if (KE && *KE)
 	putpad(KE, 1);	/* turn off keypad		*/

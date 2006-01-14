@@ -1,4 +1,4 @@
-/* $Id: putline.c,v 1.6 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: putline.c,v 1.6.2.1 2006/01/14 22:47:48 amura Exp $ */
 /*
   VRAM direct write routine for PC9801
   written by A.Shirahashi, KEK
@@ -11,19 +11,30 @@
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
 
+#ifdef	PC9801	/* 90.03.30  by S.Yoshida ("#ifdef" line only) */
 #include <dos.h>
 
 #ifndef	__TURBOC__	/* 90.04.06  by S.Yoshida */
 #define MK_FP(seg,ofs)	((void far *) \
 			   (((unsigned long)(seg) << 16) | (unsigned)(ofs)))
-
 #define poke(a,b,c)	(*((int  far*)MK_FP((a),(b))) = (int)(c))
 #define pokeb(a,b,c)	(*((char far*)MK_FP((a),(b))) = (char)(c))
 #endif	/* __TURBOC__ */
 
-#ifdef	PC9801	/* 90.03.30  by S.Yoshida ("#ifdef" line only) */
-#define	iseuc1st(c)	((c) >= 0xa1 && (c) <= 0xfe)
-#define	etoj(c1, c2)	{c1 &= 0x7f; c2 &= 0x7f;}
+#define	stoj(c1, c2)	do {			\
+    if ((c1) >= 0xe0)				\
+	(c1) -=  0x40;				\
+    if ((c2) >= 0x9f) {				\
+	(c1) = ((c1) - 0x88)*2 + 0x20;		\
+	(c2) = ((c2) + 0x02)&0x7f;		\
+    }						\
+    else {					\
+	if ((c2) >= 0x7f)			\
+	    (c2) -= 0x01;			\
+	(c1) = ((c1) - 0x89)*2 + 0x21;		\
+	(c2) = ((c2) + 0x61)&0x7f;		\
+    }						\
+} while (/*CONSTCOND*/0)
 
 #define VRAM_SEG	0xa000
 #define ATTR_SEG	0xa200
@@ -43,31 +54,23 @@
 #define CTEXT		1		/* Text color.		*/
 #define CMODE		2		/* Mode line color.	*/
 
-#ifndef TCCONIO
+#ifdef TERMCAP
 extern char *SO;
 #endif
 
-#ifdef HOJO_KANJI
-#include "kinit.h"	/* for TOUFU charactor */
-#endif
-
 VOID
-#ifdef SS_SUPPORT  /* 92.11.21  by S.Sasaki */
-putline(int row, int column, unsigned char *s, unsigned char *t, short color)
-#else  /* not  SS_SUPPORT */
-putline(int row, int column, unsigned char *s, short color)
-#endif /* SS_SUPPORT */    
+putline(int row, const NG_WCHAR_t *s, int color)
 {
     unsigned int dest;
     unsigned int c1, c2;
     int attr;
 
-    dest = 160 * (row - 1);
+    dest = 160*row;
     if (color == CTEXT) {
         attr = C_WHITE|A_NORMAL;
     }
     else if( color == CMODE ) {
-#ifdef TCCONIO
+#ifndef TERMCAP
 	attr = C_WHITE|A_REVERSE;
 #else
     	switch (atoi(SO+2)) {
@@ -91,44 +94,8 @@ putline(int row, int column, unsigned char *s, short color)
 #endif
     }
     
-    while ( *s && dest < 160 * row) {
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	if (ISHANKANA(*s)) {
-            pokeb(ATTR_SEG, dest, attr);
-            poke(VRAM_SEG, dest, *t++);
-	    ++s;
-	    dest += 2;
-	}
-	else
-#endif /* HANKANA */    
-#ifdef HOJO_KANJI
-	if (ISHOJO(*s)) {
-            pokeb(ATTR_SEG, dest, attr);
-            pokeb(VRAM_SEG, dest++, TOUFU1ST - 0x20);
-            pokeb(VRAM_SEG, dest++, TOUFU2ND);
-            pokeb(ATTR_SEG, dest, attr);
-            pokeb(VRAM_SEG, dest++, TOUFU1ST - 0x20);
-            pokeb(VRAM_SEG, dest++, TOUFU2ND + 0x80);
-	    s += 2;
-	    t += 2;
-	}
-	else
-#endif
-        if (iseuc1st(*s)) {
-            c1 = *s++;
-            c2 = *s++;
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	    t += 2;
-#endif /* HANKANA */    
-            etoj(c1, c2);
-            pokeb(ATTR_SEG, dest, attr);
-            pokeb(VRAM_SEG, dest++, c1 - 0x20);
-            pokeb(VRAM_SEG, dest++, c2);
-            pokeb(ATTR_SEG, dest, attr);
-            pokeb(VRAM_SEG, dest++, c1 - 0x20);
-            pokeb(VRAM_SEG, dest++, c2 + 0x80);
-        }
-	else {
+    while (*s && dest < 160 * row) {
+	if (ISASCII(*s)) {
             pokeb(ATTR_SEG, dest, attr);
 #ifdef BACKSLASH
             if (*s == '\\') {
@@ -138,11 +105,26 @@ putline(int row, int column, unsigned char *s, short color)
 	    else
 #endif /* BACKSLASH */
                 poke(VRAM_SEG, dest, *s++);
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	    ++t;
-#endif /* HANKANA */    
             dest += 2;
-        }
+	}
+	else {
+	    unsigned char buf[2];
+	    i = terminal_lang->lm_get_display_code(*s++, buf, 2);
+	    if (i == 1) {
+		pokeb(ATTR_SEG, dest, attr);
+		poke(VRAM_SEG, dest, buf[0]);
+		dest += 2;
+	    }
+	    else if (i == 2) {
+		stoj(buf[0], buf[1]);
+		pokeb(ATTR_SEG, dest, attr);
+		pokeb(VRAM_SEG, dest++, buf[0] - 0x20);
+		pokeb(VRAM_SEG, dest++, buf[1]);
+		pokeb(ATTR_SEG, dest, attr);
+		pokeb(VRAM_SEG, dest++, buf[0] - 0x20);
+		pokeb(VRAM_SEG, dest++, buf[1] + 0x80);
+	    }
+	}
     }
 }
 #endif	/* PC9801 */

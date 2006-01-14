@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.12 2003/02/25 14:11:16 amura Exp $ */
+/* $Id: ttyio.c,v 1.12.2.1 2006/01/14 22:47:48 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
@@ -34,7 +34,6 @@
 #define FNCKEY_HOME	31
 #define FNCKEY_UNDO	32
 
-short ospeed = 13;			/* We think 9600 bps is used.	*/
 int nrow;				/* Terminal size, rows.		*/
 int ncol;				/* Terminal size, columns.	*/
 
@@ -365,60 +364,31 @@ ttwait()
 #endif
 
 VOID
-#ifdef SS_SUPPORT
-putline(int row, int column, unsigned char *s, unsigned char *t, short color)
-#else  /* not  SS_SUPPORT */
-putline(int row, int column, unsigned char *s, short color)
-#endif /* SS_SUPPORT */    
+putline(int row, const NG_WCHAR_t *s, int color)
 {
     static char buf[NCOL + 1];
-    register int c1, c2;
-    int attr;
-    char *p = buf;
+    char *p, *endp;
+    register int i = 0;
+    int attr = 3;
 
     if (color == CTEXT)
         attr = 3;
     else if (color == CMODE)
 	attr = 11;
-
-    while (*s && p < buf+96) {
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	if (ISHANKANA(*s)) {
-	    *p++ = *t++;
-	    s++;
-	}
-	else
-#endif /* HANKANA */    
-	if (iseuc1st(*s)) {
-#ifdef HOJO_KANJI
-	    if (ISHOJO(*s)) {
-		c1 = TOUFU1ST;
-		c2 = TOUFU2ND;
-		s += 2;
-	    }
-	    else
-#endif
-	    {
-		c1 = *s++;
-		c2 = *s++;
-	    }
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	    t += 2;
-#endif /* HANKANA */
-            etos(c1, c2);
-	    *p++ = c1;
-	    *p++ = c2;
-        }
+    p = buf;
+    endp = &buf[NCOL];
+    while (p < endp) {
+	if (ISASCII(*s))
+	    *p++ = *s++ & 0x7f;
 	else {
-	    *p++ = *s++;
-#ifdef HANKANA  /* 92.11.21  by S.Sasaki */
-	    t++;
-#endif /* HANKANA */    
+	    if ((i=terminal_lang->lm_get_display_code(*s++, p, endp - p)) < 0)
+	        break;
+	    p += i;
 	}
     }
     *p = '\0';
     B_CUROFF();
-    B_PUTMES(attr, column-1, row-1, NCOL, buf);
+    B_PUTMES(attr, 0, row, NCOL, buf);
     B_CURON();
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ttydef.h,v 1.8.2.2 2006/01/11 14:47:34 amura Exp $ */
+/* $Id: ttydef.h,v 1.8.2.3 2006/01/14 22:47:48 amura Exp $ */
 /*
  *	Termcap terminal file, nothing special, just make it big
  *	enough for windowing systems.
@@ -31,8 +31,10 @@ typedef unsigned short DISP_ROW_t;
 #endif	/* MSDOS or HUMAN68K */
 #endif	/* NROW && NCOL */
 /* #define	MOVE_STANDOUT*/		/* don't move in standout mode	*/
+#ifndef WITOUT_TERMCAP
 #define STANDOUT_GLITCH			/* possible standout glitch	*/
 #define TERMCAP				/* for possible use in ttyio.c	*/
+#endif
 
 #ifdef	DO_METAKEY
 #ifndef METABIT
