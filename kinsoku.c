@@ -1,4 +1,4 @@
-/* $Id: kinsoku.c,v 1.6.2.2 2006/01/14 13:10:05 amura Exp $ */
+/* $Id: kinsoku.c,v 1.6.2.3 2006/01/14 19:59:59 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *
@@ -11,10 +11,20 @@
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 #include "def.h"
 
+#include "kinsoku.h"
+#include "in_code.h"
+#include "i_buffer.h"
+#include "i_window.h"
+#include "buffer.h"
+#include "echo.h"
+
 #define	MAXBOLKC	128		/* Maximum number of BOL (begin	*/
 					/* of line) KINSOKU chars.	*/
 #define	MAXEOLKC	64		/* Maximum number of EOL (end	*/
 					/* of line) KINSOKU chars.	*/
+
+static int kcinsert _PRO((NG_WCHAR_t *,NG_WCHAR_ta,int));
+static int kcdelete _PRO((NG_WCHAR_t *,NG_WCHAR_ta,int));
 
 /* BOL KINSOKU char list (EUC).	*/
 /* This table must be sorted.	*/
@@ -63,7 +73,6 @@ int f, n;
 {
     register NG_WCHAR_t *p;		/* KINSOKU char list pointer.	*/
     register NG_WCHAR_t *eop;		/* End of KINSOKU char list.	*/
-    register NG_WCHAR_t c;
     register NG_WCHAR_t *l;		/* Display line buffer pointer.	*/
     register NG_WCHAR_t *eol;		/* End of display line buffer.	*/
     register BUFFER *bp;
@@ -98,8 +107,7 @@ int f, n;
 	    l = line;
 	    *l++ = NG_WTAB;	/* List line start with TAB.	*/
 	}
-	else
-	    *l++ = c;
+	*l++ = *p++;
     }
     if (l > line) {			/* Not shown line exists.	*/
 	*l = NG_EOS;
@@ -127,8 +135,7 @@ int f, n;
 	    l = line;
 	    *l++ = NG_WTAB;	/* List line start with TAB.	*/
 	}
-	else
-	    *l++ = c;
+	*l++ = *p++;
     }
     if (l > line) {			/* Not shown line exists.	*/
 	*l = NG_EOS;
@@ -268,7 +275,7 @@ int f, n;
 /*
  * Insert one KINSOKU char in a KINSOKU char list.
  */
-int
+static int
 kcinsert(kclist, kc, nkc)
 NG_WCHAR_t *kclist;			/* KINSOKU char list.	*/
 NG_WCHAR_ta kc;				/* Target KINSOKU char.	*/
@@ -295,7 +302,7 @@ int nkc;				/* Current number of KINSOKU chars. */
 /*
  * Delete one KINSOKU char form a KINSOKU char list.
  */
-int
+static int
 kcdelete(kclist, kc, nkc)
 NG_WCHAR_t *kclist;			/* KINSOKU char list.	*/
 NG_WCHAR_ta kc;				/* Target KINSOKU char.	*/

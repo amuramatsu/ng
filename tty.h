@@ -1,4 +1,4 @@
-/* $Id: tty.h,v 1.1.2.3 2005/04/07 17:15:20 amura Exp $ */
+/* $Id: tty.h,v 1.1.2.4 2006/01/14 19:59:59 amura Exp $ */
 /*
  * This file is the header file for tty parts
  * of the NG display editor.
@@ -26,6 +26,14 @@ VOID ttputc _PRO((int));
 VOID ttmove _PRO((int, int));
 VOID ttresize _PRO((void));
 VOID ttmove _PRO((int, int));
+
+#ifdef ADDOPT
+VOID ttykeymapinit _PRO((char *ngrcfile));
+#else
+VOID ttykeymapinit _PRO((void));
+#endif
+VOID ttykeypadstart _PRO(());
+VOID ttykeymaptidy _PRO(());
 
 #ifdef __cplusplus
 }

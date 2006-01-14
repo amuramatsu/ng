@@ -1,4 +1,4 @@
-/* $Id: ttykbd.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: ttykbd.c,v 1.4.2.1 2006/01/14 19:59:59 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Termcap keyboard driver using key files
@@ -6,26 +6,13 @@
  */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
-#include "def.h"
 
 #ifdef	XKEYS
-/*
- * Get keyboard character.  Very simple if you use keymaps and keys files.
- * Bob was right -- the old XKEYS code is not the right solution.
- * FKEYS code is not usefull other than to help debug FKEYS code in
- * extend.c.
- */
+#include "def.h"
 
-#ifdef FKEYS
-char *keystrings[] = { NULL };
-#endif
-
-/*
- * Turn on function keys using KS, then load a keys file, if available.
- * The keys file is located in the same manner as the startup file is,
- * depending on what startupfile() does on your system.
- */
-extern int ttputc _PRO((int));
+#include "extend.h"
+#include "echo.h"
+#include "tty.h"
 
 VOID
 #ifdef ADDOPT
@@ -35,13 +22,10 @@ char *ngrcfile;
 ttykeymapinit()
 #endif
 {
-#ifndef WITHOUT_TERMCAP
-    extern char *KS;
-#endif
 #ifndef	NO_STARTUP
     char *cp, *startupfile();
 
-    if (cp = gettermtype()) {
+    if ((cp = gettermtype()) != NULL) {
 #ifdef ADDOPT
 	if (((cp = startupfile(ngrcfile, cp)) != NULL)
 #else

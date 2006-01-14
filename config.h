@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.22.2.3 2006/01/07 18:17:53 amura Exp $ */
+/* $Id: config.h,v 1.22.2.4 2006/01/14 19:59:59 amura Exp $ */
 /*
  *		config.h - defines compile time options.
  */
@@ -72,31 +72,15 @@
 
 #define AUTOSAVE	/* enable autosaver (ported form M.Suziki's work) */
 
-/*----------------------------------------------------------------------*/
-/*	Features for Ng/KANgee (KANJI version Mg2a).			*/
-/*----------------------------------------------------------------------*/
-
-#undef	KANJI		/* Create KANJI handling version.	*/
-
-#define	HANKANA		/* Create Hankaku KANA  handling version. */
-
-#define HOJO_KANJI	/* Create Hojo KANJI handling version. */
-
-#define CURSOR_POS	/* Cursor locates on next CHR after POINT */
-
 #define	KINSOKU		/* Create KINSOKU handling version. If defined, */
 			/* KANJI must be also.				*/
 
 #define	ADDFUNC		/* Create additional misc functions.	*/
 
-#undef	REGEX_JAPANESE	/* Enable Japanese regular expression.	*/
-			/* (by amura, Selow) */
-
-#define	INCLUDE_SKG	/* Enable SKG(Simple Kanji Generator System)	*/
+#undef	INCLUDE_SKG	/* Enable SKG(Simple Kanji Generator System)	*/
 			/* (by H.Konishi) */ 
 
-#define VTCURSOR	/* Use DEC vt cursor key on JIS input mode */
-			/* (by Gen.KUROKI) */
+#define	FKEYS		/* Enable to use function key */
 
 /*----------------------------------------------------------------------*/
 /*	SystemV / BSD machine dependent features.			*/
@@ -104,7 +88,7 @@
 /*................................................*/
 #ifdef HAVE_CONFIG_H	/* Do not edit this line. */
 #include "sysconfig.h"	/* Do not edit this line. */
-#else			/* Do not edit this line. */
+#endif			/* Do not edit this line. */
 #if defined(_WIN32)&&!defined(__CYGWIN__)&&!defined(WIN32)
 #define	WIN32		/* Do not edit this line. */
 #endif			/* Do not edit this line. */
@@ -118,18 +102,14 @@
 #ifndef EPOC32		/* Do not edit this line. */
 /*................................................*/
 
-#undef	SVR2		/* System V is Release 2.	*/
-#undef	SVR3		/* System V is Release 3.x.	*/
-#define	SVR4		/* System V is Release 4.x. (or linux)	*/
-
-#define POSIXTTY	/* System V has POSIX termios */
-
 #define XKEYS		/* use numelic keypad (by Gen.KUROKI) */
 
-/*#define CANNA*/	/* use CANNA kana-kanji server (by Endo) */
+#define VTCURSOR	/* Use DEC vt cursor key on JIS input mode */
+			/* (by Gen.KUROKI) */
+
+/*#define CANNA*/	/* use CANNA			*/
 
 /*................................................*/
-#endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
 #endif			/* Do not edit this line. */
@@ -171,6 +151,8 @@
 #define FEPCTRL		/* Enable FEP auto control. */
 
 #define CLIPBOARD	/* Enable Clipboard cut & paste */
+
+#define MOUSE		/* Enable Mouse */
 
 #define DROPFILES	/* Drag'n Drop file open */
 			/* If defined, ADDFUNC must be also. */
@@ -218,8 +200,6 @@
 
 #define	MOUSE		/* Enable mouse */
 
-#define	FKEYS		/* Enable to use function key */
-
 #define	DO_ICONIFY	/* Enable iconify */
 
 #define	CHANGE_COLOR	/* Enable color setting */
@@ -266,58 +246,6 @@
 /*	Do not edit following lines.					*/
 /************************************************************************/
 
-#ifdef KANJI
-#  ifdef NO_KANJI /* in order to use same source for Ng and MG, Tillanosoft */
-#    undef KANJI
-#  endif
-#else /* not KANJI */
-#  ifdef HANKANA
-#   undef HANKANA
-#  endif
-#  ifdef HOJO_KANJI
-#    undef HOJO_KANJI
-#  endif
-#  ifdef USE_UNICODE
-#    undef USE_UNICODE
-#  endif
-#endif
-
-#ifdef HANKANA
-#  ifndef SS_SUPPORT
-#    define SS_SUPPORT
-#  endif
-#endif
-
-#ifdef HOJO_KANJI
-#  ifndef SS_SUPPORT
-#    define SS_SUPPORT
-#  endif
-#endif
-
-#ifdef JAPANESE_KEYBOARD
-#  ifndef KANJI
-#    undef JAPANESE_KEYBOARD
-#  endif
-#endif
-
-#ifdef CURSOR_POS
-#  ifndef KANJI
-#    undef CURSOR_POS
-#  endif
-#endif
-
-#ifdef INCLUDE_SKG
-#  ifndef KANJI
-#    undef INCLUDE_SKG
-#  endif
-#endif
-
-#ifdef CANNA
-#    ifndef KANJI
-#      undef CANNA
-#   endif
-#endif
-
 #ifdef NO_DIR
 #  ifndef NO_STARTUP
 #    define NO_STARTUP
@@ -330,12 +258,6 @@
 #ifdef NO_MACRO
 #  ifndef NO_STARTUP
 #    define NO_STARTUP
-#  endif
-#endif
-
-#ifdef KINSOKU
-#  ifndef KANJI
-#    undef KINSOKU
 #  endif
 #endif
 
@@ -401,19 +323,6 @@
 #  endif
 #endif
 
-#ifdef REGEX_JAPANESE
-#  ifndef REGEX
-#    define REGEX
-#  endif
-#  ifndef KANJI
-#    undef REGEX_JAPANESE
-#  endif
-#endif
-
-#ifdef WIN32
-#  define MOUSE
-#endif
-
 #ifdef DIRECT_IOCS
 #  ifndef WITHOUT_TERMCAP
 #    define WITHOUT_TERMCAP
@@ -424,6 +333,14 @@
 #  ifndef WIN32
 #    ifndef AMIGA
 #      undef CLIPBOARD
+#     endif
+#   endif
+#endif
+
+#ifdef MOUSE
+#  ifndef WIN32
+#    ifndef AMIGA
+#      undef MOUSE
 #     endif
 #   endif
 #endif
@@ -444,32 +361,16 @@
 #  endif
 #endif
 
-#ifdef SVR2
-#  ifdef SVR3
-#    undef SVR3
-#  endif
-#  ifdef SVR4
-#    undef SVR4
-#  endif
-#endif
-
-#ifdef SVR3
-#  ifdef SVR4
-#    undef SVR4
-#  endif
-#endif
-
-#ifdef SVR4
-#  ifndef POSIXTTY
-#    define POSIXTTY
-#  endif
-#endif
-
 #ifndef	SUPPORT_ANSI
 #  ifdef __STDC__
 #    define SUPPORT_ANSI
-#  endif
-#  ifdef WIN32 /* all compilers on Win32 are ANSI-C! */
-#    define SUPPORT_ANSI
+#  else
+#    ifdef __GNUC__ /* gcc support ANSI-C */
+#      define SUPPORT_ANSI
+#    else
+#      ifdef WIN32 /* all compilers on Win32 are ANSI-C! */
+#        define SUPPORT_ANSI
+#      endif
+#    endif
 #  endif
 #endif

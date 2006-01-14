@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.9 2006/01/14 15:35:35 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.10 2006/01/14 19:59:59 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -438,7 +438,7 @@ int f, n;
  * all inserted characters.
  */
 /* 90.01.29  by S.Yoshida */
-static int inkfill = FALSE;		/* Now we are in a fillword().	*/
+int inkfill = FALSE;		/* Now we are in a fillword().	*/
 
 int
 selfinsert(f, n)

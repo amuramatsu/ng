@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.8 2006/01/14 19:03:23 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.9 2006/01/14 19:59:59 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -701,7 +701,7 @@ register NG_WCHAR_t *line;
 {
     register NG_WCHAR_t *funcp, *argp = NULL;
     char funcname[NLINE];
-    register int c;
+    register NG_WCHAR_t c;
     int status;
     int f, n;
     LINE *lp, *np;
@@ -726,6 +726,7 @@ register NG_WCHAR_t *line;
 
     f = 0;
     n = 1;
+    c = NG_EOS;
     funcp = skipwhite(line);
     if (*funcp == NG_EOS)
 	return TRUE;	/* No error on blank lines */
@@ -795,9 +796,9 @@ register NG_WCHAR_t *line;
 	    }
 	    while (*++argp != NG_EOS && *argp != ']')
 		*p++ = *argp & 0xff;
-	    if (*argp = ']') {
+	    if (*argp == ']') {
 		*p = '\0';
-		c = encode_keyname(buf);
+		c = keyname_encode(buf);
 		if (c != NG_EOS)
 		    key.k_chars[key.k_count++] = c;
 	    }
@@ -878,7 +879,7 @@ register NG_WCHAR_t *line;
 #ifdef FKEYS
 		    case 'f': case 'F':
 			c = *++argp - '0';
-			if (ISASCII(argv[1]) && ISDIGIT(argp[1])) {
+			if (ISASCII(argp[1]) && ISDIGIT(argp[1])) {
 			    c *= 10;
 			    c += *++argp - '0';
 			}
@@ -896,9 +897,9 @@ register NG_WCHAR_t *line;
 			}
 			while (*++argp != NG_EOS && *argp != ']')
 			    *p++ = *argp & 0xff;
-			if (*argp = ']') {
+			if (*argp == ']') {
 			    *p = '\0';
-			    c = encode_keyname(buf);
+			    c = keyname_encode(buf);
 			}
 			free(buf);
 			if (c == NG_EOS)

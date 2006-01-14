@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.12.2.5 2006/01/13 18:14:09 amura Exp $ */
+/* $Id: paragraph.c,v 1.12.2.6 2006/01/14 19:59:59 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -20,6 +20,9 @@
 #include "undo.h"
 #include "echo.h"
 #include "word.h"
+#ifdef KINSOKU
+#include "kinsoku.h"
+#endif
 
 static int fillcol = 70 ;
 #define MG_MAXWORD 256
@@ -494,6 +497,9 @@ int f, n;
 #ifdef  VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif  /* VARIABLE_TAB */
+#ifdef KINSOKU
+    extern int inkfill; /* defined at kbd.c */
+#endif
     
 #ifdef	READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
@@ -541,17 +547,17 @@ int f, n;
 #endif /* KINSOKU */
 
     if (curwp->w_doto < llength(curwp->w_dotp) && curwp->w_doto > 0 &&
-	((c = lgetc(curwp->w_dotp, curwp->w_doto)) != NG_WSPACE
-	 && c != NG_WTAB && !ISBREAKABLE2(curbp->b_lang, c)
+	(((c = lgetc(curwp->w_dotp, curwp->w_doto)) != NG_WSPACE
+	  && c != NG_WTAB && !ISBREAKABLE2(curbp->b_lang, c))
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 	 || iseolkchar(lgetc(curwp->w_dotp, curwp->w_doto - 1))
 #endif /* KINSOKU */
-	)) {
+	 )) {
 	do {
 	    (VOID) backchar(FFRAND, 1);
 	} while (curwp->w_doto > 0 &&
-		 ((c = lgetc(curwp->w_dotp, curwp->w_doto)) != NG_WSPACE
-		  && c != NG_WTAB && !ISBREAKABLE2(curbp->b_lang, c)
+		 (((c = lgetc(curwp->w_dotp, curwp->w_doto)) != NG_WSPACE
+		   && c != NG_WTAB && !ISBREAKABLE2(curbp->b_lang, c))
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 		  || iseolkchar(lgetc(curwp->w_dotp, curwp->w_doto - 1))
 #endif /* KINSOKU */
@@ -562,8 +568,8 @@ int f, n;
 	do {
 	    (VOID) forwchar(FFRAND, 1);
 	} while (curwp->w_doto < llength(curwp->w_dotp) &&
-		 ((c = lgetc(curwp->w_dotp, curwp->w_doto)) != NG_WSPACE
-		  && c != NG_WTAB && !ISBREAKABLE2(curbp->b_lang, c)
+		 (((c = lgetc(curwp->w_dotp, curwp->w_doto)) != NG_WSPACE
+		   && c != NG_WTAB && !ISBREAKABLE2(curbp->b_lang, c))
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
 		  || iseolkchar(lgetc(curwp->w_dotp, curwp->w_doto - 1))
 #endif /* KINSOKU */

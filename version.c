@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.15.2.4 2006/01/04 17:00:40 amura Exp $ */
+/* $Id: version.c,v 1.15.2.5 2006/01/14 19:59:59 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -72,9 +72,6 @@ static char *compile_opts[] = {
 #ifndef	NO_BACKUP
     "BACKUP\t\t(Enable backup files)",
 #endif
-#ifdef CURSOR_POS
-    "CURSOR_POS\t(Cursor locates on next CHR after POINT)",
-#endif
 #ifdef C_MODE
     "C_MODE\t\t(Enable \"c-mode\" functions)",
 #endif
@@ -107,9 +104,6 @@ static char *compile_opts[] = {
 #ifdef FILLPREFIX
     "FILLPREFIX\t(Enable fill prefix function)",
 #endif
-#ifdef HANKANA
-    "HANKANA\t\t(Enable Hankaku KANA handling)",
-#endif
 #ifndef	NO_HELP
     "HELP\t\t(Enable help)",
 #endif
@@ -129,11 +123,7 @@ static char *compile_opts[] = {
     "READONLY\t(Enable read-only buffer mode)",
 #endif
 #ifdef REGEX
-# ifdef REGEX_JAPANESE
-    "REGEX\t\t(Enable Japanese regular expression)",
-# else
     "REGEX\t\t(Enable regular expression functions)",
-# endif
 #endif
 #ifndef NO_SHELL
     "SHELL\t\t(Enable shell-command function)",
