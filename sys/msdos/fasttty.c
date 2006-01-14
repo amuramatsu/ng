@@ -1,4 +1,4 @@
-/* $Id: fasttty.c,v 1.1.2.1 2006/01/14 21:11:07 amura Exp $ */
+/* $Id: fasttty.c,v 1.1.2.2 2006/01/14 21:39:51 amura Exp $ */
 /*
  * Turbo C direct display driver
  */
@@ -13,6 +13,10 @@ extern int tttop;
 extern int ttbot;
 extern int tthue;
 
+int tceeol;			/* Costs are set later */
+int tcinsl;
+int tcdell;
+
 #ifdef NO_RESIZE
 static VOID setttysize _PRO((void));
 #endif
@@ -21,6 +25,9 @@ VOID
 ttinit()
 {
     ttresize();			/* set nrow & ncol	*/
+    tceeol = 1;
+    tcinsl = 2;
+    tcdell = 2;
 }
 
 /*
