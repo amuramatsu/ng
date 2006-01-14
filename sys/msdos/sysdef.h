@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.9.2.1 2003/02/28 17:52:48 amura Exp $ */
+/* $Id: sysdef.h,v 1.9.2.2 2006/01/14 21:11:07 amura Exp $ */
 /*
  *		MS-DOS based systems
  */
@@ -30,6 +30,9 @@ extern void *alloca(int);		/* defind in alloca.asm		*/
 #endif	/* __TURBOC__ */
 #ifdef PC9801
 #define HAVE_ORIGINAL_PUTLINE		/* Use port specified putline()	*/
+#endif
+#ifdef TCCONIO
+#define FASTTTY				/* Use original FastTTY routine */
 #endif
 
 typedef long	RSIZE;			/* Type for file/region sizes	*/

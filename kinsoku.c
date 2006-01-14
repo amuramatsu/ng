@@ -1,4 +1,4 @@
-/* $Id: kinsoku.c,v 1.6.2.3 2006/01/14 19:59:59 amura Exp $ */
+/* $Id: kinsoku.c,v 1.6.2.4 2006/01/14 21:11:07 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *
@@ -18,17 +18,12 @@
 #include "buffer.h"
 #include "echo.h"
 
-#define	MAXBOLKC	128		/* Maximum number of BOL (begin	*/
-					/* of line) KINSOKU chars.	*/
-#define	MAXEOLKC	64		/* Maximum number of EOL (end	*/
-					/* of line) KINSOKU chars.	*/
-
 static int kcinsert _PRO((NG_WCHAR_t *,NG_WCHAR_ta,int));
 static int kcdelete _PRO((NG_WCHAR_t *,NG_WCHAR_ta,int));
 
 /* BOL KINSOKU char list (EUC).	*/
 /* This table must be sorted.	*/
-static NG_WCHAR_t bolkchar[MAXBOLKC] = {
+NG_WCHAR_t bolkchar[MAXBOLKC] = {
 	'!',	'\'',	')',	',',	'-',	/*  5 */
 	'.',	':',	';',	'?',	']',	/* 10 */
 	'_',	'}',	'~',	0xa1a2,	0xa1a3,	/* 15 */
@@ -51,7 +46,7 @@ static NG_WCHAR_t bolkchar[MAXBOLKC] = {
 
 /* EOL KINSOKU char list (EUC).	*/
 /* This table must be sorted.	*/
-static unsigned short eolkchar[MAXEOLKC] = {
+NG_WCHAR_t eolkchar[MAXEOLKC] = {
 	'(',	'[',	'{',	0xa1c6,	0xa1c8,	/*  5 */
 	0xa1ca,	0xa1cc,	0xa1ce,	0xa1d0,	0xa1d2,	/* 10 */
 	0xa1d4,	0xa1d6,	0xa1d8,	0xa1da,	0xa1eb,	/* 15 */

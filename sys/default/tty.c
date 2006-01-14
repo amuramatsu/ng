@@ -1,4 +1,4 @@
-/* $Id: tty.c,v 1.6.2.1 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: tty.c,v 1.6.2.2 2006/01/14 21:11:07 amura Exp $ */
 /*
  * Termcap/terminfo display driver
  *
@@ -29,8 +29,12 @@
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
 #include "tty.h"
-
 #include "ttyio.h"
+
+#ifdef FASTTTY
+# include "fasttty.c"
+#else /* not FASTTTY */
+
 #include "display.h"
 
 #define BEL	0x07			/* BEL character.		*/
@@ -511,4 +515,4 @@ char *s;
      tputs(s, nrow, fakec);
     return cci;
 }
-
+#endif /* not FASTTTY */
