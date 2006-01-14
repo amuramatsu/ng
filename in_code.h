@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.13 2006/01/14 15:35:35 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.14 2006/01/14 17:39:58 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -130,15 +130,18 @@ NG_WCHAR_t *_ng_wstr _PRO((const char *));
  */
 #define NG_HAS_NEXTCODE(c)	(((c)&0xFF80) == 0xFF80)
 
-#define NG_WW_MOUSE_L		NG_WCODE(0xFF80)
-#define NG_WW_MOUSE_M		NG_WCODE(0xFF81)
-#define NG_WW_MOUSE_R		NG_WCODE(0xFF82)
-#define NG_WW_MOUSE_SHIFT_L	NG_WCODE(0xFF83)
-#define NG_WW_MOUSE_SHIFT_M	NG_WCODE(0xFF84)
-#define NG_WW_MOUSE_SHIFT_R	NG_WCODE(0xFF85)
-#define NG_WW_MOUSE_CTRL_L	NG_WCODE(0xFF86)
-#define NG_WW_MOUSE_CTRL_M	NG_WCODE(0xFF87)
-#define NG_WW_MOUSE_CTRL_R	NG_WCODE(0xFF88)
+#define NG_WW_MOUSE____L	NG_WCODE(0xFF80)
+#define NG_WW_MOUSE____M	NG_WCODE(0xFF81)
+#define NG_WW_MOUSE____R	NG_WCODE(0xFF82)
+#define NG_WW_MOUSE_S__L	NG_WCODE(0xFF83)
+#define NG_WW_MOUSE_S__M	NG_WCODE(0xFF84)
+#define NG_WW_MOUSE_S__R	NG_WCODE(0xFF85)
+#define NG_WW_MOUSE__C_L	NG_WCODE(0xFF86)
+#define NG_WW_MOUSE__C_M	NG_WCODE(0xFF87)
+#define NG_WW_MOUSE__C_R	NG_WCODE(0xFF88)
+#define NG_WW_MOUSE_SC_L	NG_WCODE(0xFF89)
+#define NG_WW_MOUSE_SC_M	NG_WCODE(0xFF8A)
+#define NG_WW_MOUSE_SC_R	NG_WCODE(0xFF8B)
 /* trailing code: COLUMN*256 + LINE */
 
 #define NG_WW_MENU_M	NG_WCODE(0xFFC0)

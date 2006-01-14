@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.8.2.1 2006/01/04 17:00:40 amura Exp $ */
+/* $Id: sysdef.h,v 1.8.2.2 2006/01/14 17:39:58 amura Exp $ */
 /*
  *	unix based systems (for configure)
  */
@@ -41,7 +41,7 @@ char *alloca ();
 #define ITIMER		TRUE		/* Interval timer support	*/
 
 typedef long	RSIZE;			/* Type for file/region sizes	*/
-typedef short	KCHAR;			/* Type for internal keystrokes	*/
+typedef unsigned short KCHAR;		/* Type for internal keystrokes	*/
 
 #ifndef FD_SET
 #  define FD_SET(fd,fdsp)       ((*fdsp) |= (1<<(fd)))

@@ -1,4 +1,4 @@
-/* $Id: keymap.c,v 1.11.2.3 2006/01/07 12:19:40 amura Exp $ */
+/* $Id: keymap.c,v 1.11.2.4 2006/01/14 17:39:58 amura Exp $ */
 /*
  * Keyboard maps.  This is character set dependent.
  * The terminal specific parts of building the
@@ -477,7 +477,7 @@ extern	int	modebackground _PF();	/*  ""				*/
  * mode keymap and the dired mode keymap.  See the declaration of
  * diredmap and fundmap for details.
  */
-#include "amiga_maps.c"
+/* #include "amiga_maps.c" */
 
 #endif	/* AMIGA */
 
@@ -869,13 +869,63 @@ static PF fund_del[] = {
     backdel,		/* DEL */
 };
 
+static PF fund_pf[] = {
+    filevisit,		/* PF01		(0xFF10)*/
+    filesave,		/* PF02			*/
+    forwpage,		/* PF03			*/
+    enlargewind,	/* PF04			*/
+    fillpara,		/* PF05			*/
+    splitwind,		/* PF06			*/
+    twiddle,		/* PF07			*/
+    definemacro,	/* PF08			*/
+    executemacro,	/* PF09			*/
+    listbuffers,	/* PF10			*/
+    poptofile,		/* PF11		(0xFF19)*/
+    filewrite,		/* PF12			*/
+    backpage,		/* PF13			*/
+    shrinkwind,		/* PF14			*/
+    queryrepl,		/* PF15			*/
+    onlywind,		/* PF16			*/
+    justone,		/* PF17			*/
+    finishmacro,	/* PF18			*/
+    wallchart,		/* PF19			*/
+    quit,		/* PF20		(0xFF23)*/
+};
+
+static PF fund_sp[] = {
+    backline,		/* Up			(0xFF40)*/
+    forwline,		/* Down				*/
+    backchar,		/* Left				*/
+    forwchar,		/* Right			*/
+    gotobob,		/* Home				*/
+    gotoeob,		/* End				*/
+    backpage,		/* PageUp			*/
+    forwpage,		/* PageDown			*/
+    desckey,		/* Help				*/
+    refresh,		/* Clear			*/
+    rescan,		/* Pause			*/
+    rescan, rescan, rescan, rescan, rescan,
+    gotobop,		/* Shift-Up		(0xFF50)*/
+    gotoeop,		/* Shift-Down			*/
+    backword,		/* Shift-Left			*/
+    forwword,		/* Shift-Right			*/
+    gotobob,		/* Shift-Home			*/
+    gotoeob,		/* Shift-End			*/
+    gotobob,		/* Shift-PageUp			*/
+    gotoeob,		/* Shift-PageDown		*/
+    desckey,		/* Shift-Help			*/
+    refresh,		/* Shift-Clear			*/
+    rescan,		/* Shift-Pause			*/
+    rescan, rescan, rescan, rescan, rescan
+};
+
 #ifndef	FUND_XMAPS
 #define NFUND_XMAPS	0	/* extra map sections after normal ones */
 #endif
 
-static struct KEYMAPE(4+NFUND_XMAPS+IMAPEXT) fundmap = {
-    4 + NFUND_XMAPS,
-    4 + NFUND_XMAPS + IMAPEXT,
+static struct KEYMAPE(6+NFUND_XMAPS+IMAPEXT) fundmap = {
+    6 + NFUND_XMAPS,
+    6 + NFUND_XMAPS + IMAPEXT,
     selfinsert,
     {
 #ifndef NO_HELP
@@ -886,6 +936,8 @@ static struct KEYMAPE(4+NFUND_XMAPS+IMAPEXT) fundmap = {
 	{CCHR('J'),CCHR('Z'),	fund_CJ, (KEYMAP *)&cXmap},
 	{CCHR('['),CCHR('_'),	fund_esc,(KEYMAP *)&metamap},
 	{CCHR('?'),CCHR('?'),	fund_del,(KEYMAP *)NULL},
+	{NG_W_PF01,NG_W_PF20,	fund_pf, (KEYMAP *)NULL},
+	{NG_W_UP,NG_W_SPAUSE,	fund_sp, (KEYMAP *)NULL},
 #ifdef	FUND_XMAPS
 	FUND_XMAPS,
 #endif
