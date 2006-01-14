@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.6.2.5 2006/01/09 09:33:48 amura Exp $ */
+/* $Id: re_search.c,v 1.6.2.6 2006/01/14 16:05:37 amura Exp $ */
 /*
  *		Search commands with Regular Expression
  * The functions are remade from 'search.c' to help from GPL.
@@ -255,7 +255,7 @@ int f;					/* case hack disable		*/
     while (*st != NG_EOS) {
 	switch (state) {
 	case 2:
-	    if (ISDIGIT(*st)) {
+	    if (ISASCII(*st) && ISDIGIT(*st)) {
 		num = num*10 + (*st - NG_WCODE('0'));
 		break;
 	    }
@@ -282,7 +282,7 @@ int f;					/* case hack disable		*/
 	    break;
 
 	case 1:
-	    if (ISDIGIT(*st)) {
+	    if (ISASCII(*st) && *st != NG_WCODE('0') && ISDIGIT(*st)) {
 		num = *st - NG_WCODE('0');
 		state = 2;
 	    }

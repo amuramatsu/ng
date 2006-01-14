@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20.2.4 2006/01/08 19:22:43 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.5 2006/01/14 16:05:37 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -69,8 +69,6 @@ int
 ffputbuf(bp)
 BUFFER *bp;
 {
-    register NG_WCHAR_t *cp;
-    register NG_WCHAR_t *cpend;
     register LINE *lp;
     register LINE *lpend;
     register int  fio;
@@ -85,19 +83,17 @@ BUFFER *bp;
     do {
 	char *p;
 	int i;
-	cp = &ltext(lp)[0];		/* begining of line	*/
-	cpend = &cp[llength(lp)];	/* end of line		*/
-	i = bp->b_lang->lm_out_convert_len(fio, cp, cpend-cp);
+	i = bp->b_lang->lm_out_convert_len(fio, ltext(lp), llength(lp));
 	if (i > buflen) {
-	    i = buflen;
+	    buflen = i;
 	    MALLOCROUND(buflen);
-	    buffer = realloc(NULL, buflen);
+	    buffer = realloc(buffer, buflen);
 	    if (buffer == NULL) {
 		ewprintf("Memory allocate error");
 		return FIOERR;
 	    }
 	}
-	i = bp->b_lang->lm_out_convert(fio, cp, cpend-cp, buffer);
+	i = bp->b_lang->lm_out_convert(fio, ltext(lp), llength(lp), buffer);
 	p = buffer;
 	while (i--) {
 	    putc(*p, ffp);
