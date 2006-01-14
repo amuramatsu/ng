@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.14 2006/01/13 18:07:38 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.15 2006/01/14 13:54:09 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -453,7 +453,7 @@ va_list *ap;
 	c = getkey(FALSE); 
 #ifdef CANNA
 	if (mb_cannamode &&
-	    (ks.length != 0 || !(c==NG_WSPACE||ISMULTIBYTE(c)||ISCTRL(c))) {
+	    (ks.length != 0 || !(c==NG_WSPACE||!ISASCII(c)||ISCTRL(c))) {
 	    if (mb_henkan(c))
 		continue;
 	}
