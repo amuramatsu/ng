@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.12 2006/01/15 10:59:32 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.13 2006/01/15 11:12:02 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -213,6 +213,7 @@ NG_WCHAR_t *wname;
 int nbuf;
 {
     char *name;
+    NG_WCHAR_t *wname_tmp;
     int fnlen;
     int minlen = 0;
     int matchnum;
@@ -222,13 +223,13 @@ int nbuf;
     char *cand;
     char *filenames;
 
-    if ((name = alloca(NFILEN)) == NULL)
-        return -1;
-    LM_OUT_CONVERT2(curbp->b_lang, NG_CODE_FOR_FILENAME, wname, name);
+    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wname, name);
+    if (name == NULL)
+	return -1;	/* error */
     fnlen = strlen(name);
     
     if ((fnnum = fffiles (name, &filenames)) == -1)
-	return (-1);    /* error */
+	return -1;    /* error */
 
     /* compare names and make a common string of them */
     matchnum = 0;
@@ -253,7 +254,10 @@ int nbuf;
 	cand += (strlen (cand) + 1);
     }
     free (filenames);
-    LM_IN_CONVERT2(curbp->b_lang, NG_CODE_FOR_FILENAME, name, wname);
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, name, wname_tmp);
+    if (wname_tmp == NULL)
+	return -1;	/* error */
+    wstrlcpy(wname, wname_tmp, nbuf);
     
     if (matchnum > 1)
 	res = (minlen == strlen (name)) ? COMPLT_NOT_UNIQUE : COMPLT_AMBIGUOUS;

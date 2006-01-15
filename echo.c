@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.16 2006/01/15 01:14:06 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.17 2006/01/15 11:12:02 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -613,7 +613,7 @@ Cmd:
 		mb_get_buffer(buf, nbuf);
 		if (flag & EFFUNC) {
 		    int    matchnum;
-		    matchnum = complete(buf, mb_bufsize(), flag);
+		    matchnum = complete(buf, nbuf, flag);
 		    if (matchnum != COMPLT_SOLE
 			&& matchnum != COMPLT_NOT_UNIQUE) {
 		/* complete() will be called again, but i don't mind it */
@@ -752,7 +752,7 @@ int nbuf, c, flag;
     if (wflag) {
 	mb2_insert(1, ' ');
 	mb_get_buffer(buf, nbuf);
-	if (complete(buf, mb_bufsize(), flag) == COMPLT_NO_MATCH)
+	if (complete(buf, nbuf, flag) == COMPLT_NO_MATCH)
 	    mb2_erasec(1);
 	else {
 	    mb_appenddiff(buf);
@@ -760,7 +760,7 @@ int nbuf, c, flag;
 	}
     }
     mb_get_buffer(buf, nbuf);
-    matchnum = complete(buf, mb_bufsize(), flag);
+    matchnum = complete(buf, nbuf, flag);
     mb_appenddiff(buf);
     if (wflag) {
 	if (matchnum == COMPLT_AMBIGUOUS
