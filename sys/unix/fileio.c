@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20.2.9 2006/01/15 11:46:39 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.10 2006/01/15 17:50:56 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -8,7 +8,6 @@
 #include "config.h"
 #include "def.h"
 
-#include "i_lang.h"
 #include "fileio.h"
 #include "file.h"
 #include "echo.h"
@@ -557,6 +556,8 @@ notfound:
 #ifdef	HAVE_VFORK_H
 #include <vfork.h>
 #endif
+
+#include "i_lang.h"
 #include "buffer.h"
 #include "dir.h"
 #include "kbd.h"
@@ -582,8 +583,7 @@ const char *frname, *toname;
     if (pid == -1)
 	return	-1;
     while (wait((int*)&status) != pid)
-	;
-
+	/* NOP */;
     return status == 0;
 }
 
@@ -596,6 +596,8 @@ char *dirname;
     BUFFER *findbuffer();
     FILE *dirpipe;
     FILE *popen();
+    NG_WCHAR_t *buf = NULL;
+    int buflen = 0;
 
     if ((dirname = adjustname(dirname)) == NULL) {
 	ewprintf("Bad directory name");
@@ -609,6 +611,7 @@ char *dirname;
     }
     if (bclear(bp) != TRUE)
 	return FALSE;
+    bp->b_lang = terminal_lang;	/* dired lang is same as terminal lang */
 #ifdef	EXTD_DIR
     if (bp->b_cwd != NULL)
 	free(bp->b_cwd);
@@ -629,16 +632,23 @@ char *dirname;
     }
     line[0] = line[1] = ' ';
     while (fgets(&line[2], 254, dirpipe) != NULL) {
-	NG_WCHAR_t *tmp;
+	int len;
 	line[strlen(line) - 1] = '\0';		/* remove ^J	*/
-	tmp = (NG_WCHAR_t *)alloca(strlen(line) + 1);
-	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, line, tmp);
-	if (tmp == NULL) {
-	    ewprintf("Memory allocation error");
-	    return NULL;
+	len = bp->b_lang->lm_in_convert_len(
+	   bp->b_lang->lm_get_code(NG_CODE_FOR_FILENAME), line, NG_CODE_CHKLEN);
+	if (buf == NULL || buflen < (len+1)*sizeof(NG_WCHAR_t)) {
+	    buflen = (len+1)*sizeof(NG_WCHAR_t);
+	    MALLOCROUND(buflen);
+	    if ((buf = realloc(buf, buflen)) == NULL) {
+		ewprintf("Memory allocation error");
+		return NULL;
+	    }
 	}
-	addline(bp, tmp);
+	LM_IN_CONVERT2(bp->b_lang, NG_CODE_FOR_FILENAME, line, buf);
+	addline(bp, buf);
     }
+    if (buf != NULL)
+	free(buf);
     if (pclose(dirpipe) == -1) {
 	ewprintf("Problem closing pipe to ls");
 	return NULL;
@@ -668,7 +678,7 @@ int buflen;
     char c;
 
     /* '30' is a magic number and is not correct always */
-    if (llength( lp ) <= 30) {
+    if (llength(lp) <= 30) {
 	return ABORT ;
     }
     l = llength(lp); 
