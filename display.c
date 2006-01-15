@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.16 2006/01/15 09:41:24 amura Exp $ */
+/* $Id: display.c,v 1.20.2.17 2006/01/15 10:14:31 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -418,7 +418,11 @@ int *lines;
 	}
 	else {
 	    n = terminal_lang->lm_width(c);
-	    if (*curcol+n >= ncol) {
+	    if (*curcol+n >= ncol
+#ifdef NOWRAPMODE
+		&& !(curbp->b_flag & BFNOWRAP)
+#endif
+		) {
 		*curcol = n;
 		++(*lines);
 	    }
@@ -480,7 +484,11 @@ int col, row;
 	if (row == 0 && col < curcol + (width+1)/2)
 	    return i;
 	curcol += width;
-	if (curcol >= ncol-width) {
+	if (curcol >= ncol-width
+#ifdef NOLINEWRAP
+	    && !(curbp->b_flag & BFNOWRAP)
+#endif
+	    ) {
 	    curcol = curcol - ncol + width;
 	    --row;
 	}
@@ -515,7 +523,11 @@ int lines;
 	else
 	    n = lm_width(c);
 
-	if (curcol+n >= ncol) {
+	if (curcol+n >= ncol
+#ifdef NOWRAPMODE
+	    && !(curbp->b_flag & BFNOWRAP)
+#endif
+	    ) {
 	    curcol = n;
 	    --lines;
 	}
@@ -553,7 +565,11 @@ const LINE *lp;
 	    n = tabnext(curcol, tab) - curcol;
 	else
 	    n = lm_width(c);
-	if (curcol+n >= ncol) {
+	if (curcol+n >= ncol
+#ifdef NOWRAPMODE
+	    && !(curbp->b_flag & BFNOWRAP)
+#endif
+	    ) {
 	    curcol = 0;
 	    lines++;
 	}
@@ -689,13 +705,25 @@ out:
 		    vscreen[lines]->v_color = CTEXT;
 		    vscreen[lines]->v_flag |= (VFCHG|VFHBAD);
 		}
-		vtmove(i, 0);
-		for (j=x; j<y; ++j)
-		    vtputc(lgetc(lp, j));
-		if (y < llength(lp))
-		    vtmarkyen(NG_WBACKSL);
+#ifdef NOWRAPMODE
+		if (wp->w_bufp->b_flag & BFNOWRAP) {
+		    curwp = wp;		/* for variable tab */
+		    updext(i, wp->w_doto);
+		    curwp = old_curwp;
+		}
 		else
-		    vteeol();
+#endif
+		{
+		    vtmove(i, 0);
+		    curwp = wp;		/* for variable tab */
+		    for (j=x; j<y; ++j)
+			vtputc(lgetc(lp, j));
+		    curwp = old_curwp;
+		    if (y < llength(lp))
+			vtmarkyen(NG_WBACKSL);
+		    else
+			vteeol();
+		}
 	    }
 	    else if ((wp->w_flag&(WFEDIT|WFHARD)) != 0) {
 		hflag = TRUE;
@@ -725,15 +753,25 @@ out:
 			vscreen[lines]->v_color =CTEXT;
 			vscreen[lines]->v_flag |= (VFCHG|VFHBAD);
 		    }
-		    vtmove(i, 0);
-		    curwp = wp;		/* for variable tab */
-		    for (j=x; j<y; ++j)
-			vtputc(lgetc(lp, j));
-		    curwp = old_curwp;
-		    if (y < llength(lp))
-			vtmarkyen(NG_WBACKSL);
+#ifdef NOWRAPMODE
+		    if (wp->w_bufp->b_flag & BFNOWRAP) {
+			curwp = wp;		/* for variable tab */
+			updext(i, wp->w_doto);
+			curwp = old_curwp;
+		    }
 		    else
-			vteeol();
+#endif
+		    {
+			vtmove(i, 0);
+			curwp = wp;		/* for variable tab */
+			for (j=x; j<y; ++j)
+			    vtputc(lgetc(lp, j));
+			curwp = old_curwp;
+			if (y < llength(lp))
+			    vtmarkyen(NG_WBACKSL);
+			else
+			    vteeol();
+		    }
 		    i = lines;
 		    lp = lforw(lp);
 		}
@@ -871,10 +909,11 @@ register VIDEO *pvp;
     bcopy(vvp->v_text, pvp->v_text, vncol*sizeof(NG_WCHAR_t));
 }
 
-#if 0
+#ifdef NOWRAPMODE
 static VOID
-vtpute(c)
+vtpute(c, lbound)
 int c;
+int lbound;
 {
     register VIDEO *vp;
     int cwidth;
@@ -925,16 +964,19 @@ int currow, curcol;
 {
     register LINE *lp;			/* pointer to current line */
     register int j;			/* index into line */
+    int lbound;				/* window left char offset */
 
     /* calculate what column the left bound should be */
     /* (force cursor into middle half of screen) */
     lbound = curcol - (curcol % (ncol>>1)) - (ncol>>2);
+    if (lbound < 0)
+	lbound = 0;
     /* scan through the line outputing characters to the virtual screen */
     /* once we reach the left edge */
     vtmove(currow, -lbound);			/* start scanning offscreen */
     lp = curwp->w_dotp;				/* line to output */
     for (j=0; j<llength(lp); ++j)		/* until the end-of-line */
-	vtpute(lgetc(lp, j));
+	vtpute(lgetc(lp, j), lbound);
     vteeol();					/* truncate the virtual line */
     if (vscreen[currow]->v_text[ncol - 2] == NG_WFILLER) {
 	j = ncol - 2;
@@ -943,7 +985,7 @@ int currow, curcol;
 	vscreen[currow]->v_text[j] = NG_WCODE('$');
     }
 }
-#endif
+#endif /* NOWRAPMODE */
 
 /*
  * Update a single line. This routine only

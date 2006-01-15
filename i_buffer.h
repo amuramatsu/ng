@@ -1,4 +1,4 @@
-/* $Id: i_buffer.h,v 1.1.2.4 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: i_buffer.h,v 1.1.2.5 2006/01/15 10:14:31 amura Exp $ */
 /*
  * This file is the internal buffer definition of the NG
  * display editor.
@@ -32,7 +32,7 @@ typedef struct BUFFER {
     LINE_OFF_t b_marko;			/* ditto for the "mark"		*/
     LINE_OFF_t b_nmodes;		/* number of non-fundamental modes */
     LINE_OFF_t b_nwnd;			/* Count of windows on buffer	*/
-    char b_flag;			/* Flags			*/
+    short b_flag;			/* Flags			*/
     char *b_fname;			/* File name			*/
 #ifdef	EXTD_DIR
     char *b_cwd;			/* Current working directory for
@@ -63,12 +63,15 @@ typedef struct BUFFER {
 #ifdef	READONLY
 #define	BFRONLY		0x20		/* Read only mode.		*/
 #endif	/* READONLY */
-#ifdef CANNA
+#ifdef	CANNA
 #define BFCANNA		0x40
-#endif /* CANNA */
+#endif	/* CANNA */
 #ifdef	AUTOSAVE
 #define	BFACHG		0x80		/* Auto save after changed.	*/
 #endif	/* AUTOSAVE */
+#ifdef	NOWRAPMODE
+#define	BFNOWRAP	0x100		/* no line wrap */
+#endif	/* NOWRAPMODE */
 
 extern BUFFER *curbp;
 extern BUFFER *bheadp;
