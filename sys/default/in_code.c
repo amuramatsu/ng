@@ -1,4 +1,4 @@
-/* $Id: in_code.c,v 1.1.2.3 2006/01/08 18:57:22 amura Exp $ */
+/* $Id: in_code.c,v 1.1.2.4 2006/01/15 02:51:43 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -39,7 +39,7 @@ size_t n;
 {
     while (*a != NG_EOS) {
 	int s;
-	if (n-- < 0)
+	if (n-- <= 0)
 	    return 0;
 	s = *a++ - *b++;
 	if (s)
@@ -57,7 +57,7 @@ size_t n;
     register const unsigned char *bp = (const unsigned char *)b;
     while (*a != NG_EOS) {
 	int s;
-	if (n-- < 0)
+	if (n-- <= 0)
 	    return 0;
 	s = *a++ - *bp++;
 	if (s)
@@ -153,7 +153,24 @@ size_t n;
     return p - src;
 }
 
-/* XXX size_t wstrlcata _PRO((NG_WCHAR_t *, const char *, size_t)); */
+size_t
+wstrlcata(dst, src, n)
+NG_WCHAR_t *dst;
+const char *src;
+size_t n;
+{
+    size_t i;
+    register const char *psrc = src;
+    register const NG_WCHAR_t *pdst = dst;
+    while (*pdst++ != NG_EOS)
+	/*NOP*/;
+    for (i=n-(pdst-dst)-1; i>0 && *src != NG_EOS; i--)
+	*dst++ = *src++;
+    *dst = NG_EOS;
+    while (*src++ != NG_EOS)
+	/*NOP*/;
+    return (pdst-dst) + (psrc-src);
+}
 
 size_t
 strlcpyw(dst, src, n)
