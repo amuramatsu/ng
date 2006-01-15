@@ -1,4 +1,4 @@
-/* $Id: lang_ascii.c,v 1.1.2.7 2006/01/15 02:40:38 amura Exp $ */
+/* $Id: lang_ascii.c,v 1.1.2.8 2006/01/15 09:41:24 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -271,27 +271,31 @@ NG_WCHAR_ta c;
 {
     NG_WCHAR_t *p;
     NG_WCHAR_t old;
-    int i;
 	
     p = &vbuf[col];
     old = *p;
     if (c > 0xff) {
 	*p++ = NG_WBACKSL; *p++ = NG_WCODE('w');
 	to_hex(p, 4, c);
+	col += 4;
     }
     else if (ISCTRL(c) && c != NG_WTAB) {
 	*p++ = NG_WCODE('^'); *p++ = NG_WCODE(ctrl_char(c));
+	col += 2;
     }
     else if (c >= 0x80) {
 	*p++ = NG_WBACKSL; *p++ = NG_WCODE('x');
 	to_hex(p, 2, c);
+	col += 3;
     }
-    else
+    else {
 	*p++ = NG_WCODE(c);
+	col++;
+    }
     
     /* clear fillers */
     if (old == NG_WFILLER) {
-	i = col - 1;
+	int i = col - 1;
 	while (i > 0 && vbuf[i] == NG_WFILLER)
 	    vbuf[i--] = NG_WSPACE;
 	vbuf[i] = NG_WSPACE; /* kill first char */

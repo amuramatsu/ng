@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.15 2006/01/15 09:36:11 amura Exp $ */
+/* $Id: display.c,v 1.20.2.16 2006/01/15 09:41:24 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -391,19 +391,16 @@ vteeol()
 /* Calculate offset to col and row
 */
 int
-#ifdef SUPPORT_ANSI /* for strict compiler */
-colrow(const LINE *lp, LINE_OFF_t offset, int *curcol, int *lines)
-#else
-colrow(lp, offset, curcol, lines)
+colrow(lp, offset_, curcol, lines)
 const LINE *lp;
-LINE_OFF_t offset;
+LINE_OFF_ta offset_;
 int *curcol;
 int *lines;
-#endif
 {
     register int i;
     register char c;
     register int n;
+    LINE_OFF_t offset = (LINE_OFF_t)offset_;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif
