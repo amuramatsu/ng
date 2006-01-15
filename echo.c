@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.17 2006/01/15 11:12:02 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.18 2006/01/15 15:57:46 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -1187,7 +1187,7 @@ static int
 mb_delw(n)
 int n;
 {
-    int ocol, opt, col, pt, i;
+    int ocol, opt, col, pt;
     struct _Line *lp;
     
     if (n <= 0)
@@ -1201,7 +1201,7 @@ int n;
 	    goto End;
 	if (!mb_isword()) {
 	    while (!mb_iseol() && !mb_isword()) {
-		kinsert(_mb_buf[_mb_gapend+i], KFORW);
+		kinsert(_mb_buf[_mb_gapend], KFORW);
 		_mb_gapend++;
 		_mb_bufsize--;
 		if (_mb_gapend == _mb_size)
@@ -1209,7 +1209,7 @@ int n;
 	    }
 	}
 	while (!mb_iseol() && mb_isword()) {
-	    kinsert(_mb_buf[_mb_gapend+i], KFORW);
+	    kinsert(_mb_buf[_mb_gapend], KFORW);
 	    _mb_gapend++;
 	    _mb_bufsize--;
 	    if (_mb_gapend == _mb_size)
@@ -1497,9 +1497,9 @@ static int
 mb_trans(n)
 int n;
 {
-    int ocol, opt, col, pt, i;
+    int ocol, opt, col, pt;
     struct _Line *lp;
-    char s[2];
+    NG_WCHAR_t s;
     
     if (n > 0) {
 	ocol = 0;
@@ -1523,9 +1523,9 @@ int n;
 		    break;
 		}
 	    }
-	    s[i] = _mb_buf[--_mb_point];
+	    s = _mb_buf[--_mb_point];
 	    _mb_buf[_mb_point++] = _mb_buf[_mb_gapend++];
-	    _mb_buf[--_mb_gapend] = s[-i];
+	    _mb_buf[--_mb_gapend] = s;
 	    
 	    if (mb_iseol())
 		break;
@@ -1535,7 +1535,8 @@ int n;
 	    mb_refresh(ocol, opt);
 	else 
 	    mb_redisplay();
-    } else if (n < 0) {
+    }
+    else if (n < 0) {
 	while (n++ < 0) {
 	    if (mb_isbol())
 		break;
@@ -1546,9 +1547,9 @@ int n;
 		    break;
 		}
 	    }
-	    s[i] = _mb_buf[--_mb_point];
+	    s = _mb_buf[--_mb_point];
 	    _mb_buf[_mb_point++] = _mb_buf[_mb_gapend++];
-	    _mb_buf[--_mb_gapend] = s[1-i-1];
+	    _mb_buf[--_mb_gapend] = s;
 	    
 	    if (mb_isbol())
 		break;

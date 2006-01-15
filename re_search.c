@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.6.2.6 2006/01/14 16:05:37 amura Exp $ */
+/* $Id: re_search.c,v 1.6.2.7 2006/01/15 15:57:46 amura Exp $ */
 /*
  *		Search commands with Regular Expression
  * The functions are remade from 'search.c' to help from GPL.
@@ -247,7 +247,7 @@ int f;					/* case hack disable		*/
 {
     NG_WCHAR_t newstr[NLINE];
     NG_WCHAR_t *p, *newstr_end;
-    int num;
+    int num = 0;
     register int state = 0;
     
     p = newstr;
@@ -327,7 +327,7 @@ re_forwsrch()
     for (;;) {
 	if (trex_searchrange(re_exp,
 			     ltext(clp) + cbo, ltext(clp) + llength(clp) + 1,
-			     &pp, NULL) == TRex_True) {
+			     &pp, (const NG_WCHAR_t**)NULL) == TRex_True) {
 	    curwp->w_dotp = clp;
 	    curwp->w_doto = pp - ltext(clp);
 	    curwp->w_flag |= WFMOVE;
@@ -372,7 +372,7 @@ re_backsrch()
 	/* search last match */
 	while (trex_searchrange(re_exp,
 				ltext(clp) + cbo, ltext(clp) + tbo + 1,
-				&pp, NULL) == TRex_True) {
+				&pp, (const NG_WCHAR_t**)NULL) == TRex_True) {
 	    cbo = pp - ltext(clp) + 1; /* search again from next char */
 	}
 	if (pp != NULL) {
@@ -471,7 +471,7 @@ int cond;
 	TRexBool match;
         match = trex_searchrange(re_exp,
 				 ltext(clp), ltext(clp) + llength(clp) + 1,
-				 NULL, NULL);
+				 (const NG_WCHAR_t**)NULL, (const NG_WCHAR_t**)NULL);
 	/* Delete line when appropriate */
 	if ((cond == FALSE && match == TRex_False) ||
 	    (cond == TRUE && match != TRex_True)) {
@@ -529,7 +529,7 @@ int cond;
 	TRexBool match;
 	match = trex_searchrange(re_exp,
 				 ltext(clp), ltext(clp) + llength(clp) + 1,
-				 NULL, NULL);
+				 (const NG_WCHAR_t**)NULL, (const NG_WCHAR_t**)NULL);
 	if ((cond == FALSE && match == TRex_False) ||
 	    (cond == TRUE && match != TRex_True))
 	    count++;

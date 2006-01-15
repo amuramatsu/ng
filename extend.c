@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.10 2006/01/15 01:14:06 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.11 2006/01/15 15:57:46 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -727,6 +727,7 @@ register NG_WCHAR_t *line;
     f = 0;
     n = 1;
     c = NG_EOS;
+    lp = NULL;
     funcp = skipwhite(line);
     if (*funcp == NG_EOS)
 	return TRUE;	/* No error on blank lines */

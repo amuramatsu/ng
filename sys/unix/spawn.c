@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.8.2.1 2005/04/09 06:26:14 amura Exp $ */
+/* $Id: spawn.c,v 1.8.2.2 2006/01/15 15:57:46 amura Exp $ */
 /*
  *	Spawn. (for configure)
  * This interracts with the job control stuff
@@ -112,7 +112,7 @@ int f, n;
 	sigfillset(&newmask);
 	sigprocmask(SIG_UNBLOCK, &newmask, &omask);
 	kill(0, SIGTSTP);
-	sigprocmask(SIG_SETMASK, &omask, NULL);
+	sigprocmask(SIG_SETMASK, &omask, (sigset_t *)NULL);
 #else
 	omask = sigsetmask(0);
 	kill(0, SIGTSTP);

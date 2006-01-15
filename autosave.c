@@ -1,4 +1,4 @@
-/* $Id: autosave.c,v 1.5.2.2 2005/04/07 17:15:19 amura Exp $ */
+/* $Id: autosave.c,v 1.5.2.3 2006/01/15 15:57:46 amura Exp $ */
 /*
  Auto save support code programed by M.Suzuki
  Ver	1.0.0	1997/01/07	Create
@@ -34,13 +34,13 @@ int flag;
 #ifdef	ITIMER
 	itimer(autosave_handler, autosave_interval);
 #else
-	check_time = time(NULL);
+	check_time = time((time_t*)NULL);
 #endif
     }
     else {
 	autosave_flag = FALSE;
 #ifdef	ITIMER
-	itimer(NULL, 0);
+	itimer((void (*)())NULL, 0);
 #endif
     }
 }
@@ -52,12 +52,12 @@ autosave_handler()
     int currow;
     int curcol;
 #ifdef	ITIMER
-    itimer(NULL, 0);
+    itimer((void (*)())NULL, 0);
 #else	/* not ITIMER */
     time_t now_time;
     if (!autosave_flag || autosaved)
 	return;
-    now_time = time(NULL);
+    now_time = time((time_t*)NULL);
     if ((now_time - check_time) < autosave_interval)
 	return;
 #endif	/* ITIMER */

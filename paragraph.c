@@ -1,4 +1,4 @@
-/* $Id: paragraph.c,v 1.12.2.6 2006/01/14 19:59:59 amura Exp $ */
+/* $Id: paragraph.c,v 1.12.2.7 2006/01/15 15:57:46 amura Exp $ */
 /*
  * Code for dealing with paragraphs and filling. Adapted from MicroEMACS 3.6
  * and GNU-ified by mwm@ucbvax.	 Several bug fixes by blarson@usc-oberon.
@@ -247,7 +247,7 @@ int f, n;
 	    if (lforw(curwp->w_dotp) == eopline)
 		eopflag = TRUE;
 	}
-	
+	ksepflag = FALSE;
 	if (!eopflag && ISBREAKABLE2(curbp->b_lang, c)) {
 	    if (wordlen > 0
 #ifdef KINSOKU	/* 90.01.29  by S.Yoshida */
