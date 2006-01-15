@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20.2.7 2006/01/14 23:43:38 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.8 2006/01/15 00:06:30 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -63,15 +63,27 @@ ffclose()
  * Check only at the newline and end of buffer.
  */
 int
-ffputline(buf, len)
+ffputline(buf, len, linefeed)
 register const char *buf;
 register int len;
+int linefeed;
 {
     while (len--) {
 	putc(*buf, ffp);
 	buf++;	/* putc may evalualte arguments more than once */
     }
-    putc('\n', ffp);
+    switch (linefeed) {
+    case NG_EOL_LF:
+	putc('\n', ffp);
+	break;
+    case NG_EOL_CRLF:
+	putc('\r', ffp);
+	putc('\n', ffp);
+	break;
+    case NG_EOL_CR:
+	putc('\r', ffp);
+	break;
+    }
     if (ferror(ffp))
 	return FIOERR;
     return FIOSUC;
@@ -84,16 +96,26 @@ register int len;
  * of data without the normally implied \n.
  */
 int
-ffgetline(buf, nbuf, nbytes)
+ffgetline(buf, nbuf, nbytes, linefeed)
 register char *buf;
 register int nbuf;
 register int *nbytes;
+int linefeed;
 {
     register int c;
     register int i;
-
+    register int lc;
+    
+    switch (NG_EOL_MASK(linefeed)) {
+    case NG_EOL_CR:
+	lc = '\r';
+	break;
+    default:
+	lc = '\n';
+	break;
+    }
     i = 0;
-    while ((c = getc(ffp))!=EOF && c!='\n') {
+    while ((c = getc(ffp))!=EOF && c!=lc) {
 	buf[i++] = c;
 	if (i >= nbuf)
 	    return FIOLONG;
@@ -102,6 +124,8 @@ register int *nbytes;
 	ewprintf("File read error");
 	return FIOERR;
     }
+    if (linefeed == NG_EOL_CRLF && buf[i-1] == '\r')
+	i--;
     *nbytes = i;
     return c==EOF ? FIOEOF : FIOSUC;
 }

@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.9 2006/01/14 23:45:32 amura Exp $ */
+/* $Id: file.c,v 1.15.2.10 2006/01/15 00:06:30 amura Exp $ */
 /*
  *		File commands.
  */
@@ -416,6 +416,7 @@ const char *fname, *newname;
     char line[NLINE];
     int leng, fio;
     LANG_MODULE *lang;
+    int eol = NG_EOL_LF;
     
     bp = curbp;				/* Cheap.		*/
     lang = bp->b_lang;
@@ -453,7 +454,7 @@ const char *fname, *newname;
     }
     nline = 0;			/* Don't count fake line at end */
     fio = bp->b_fio;
-    while ((s = ffgetline(line, sizeof(line), &nbytes)) != FIOERR) {
+    while ((s = ffgetline(line, sizeof(line), &nbytes, eol)) != FIOERR) {
 	switch(s) {
 	case FIOSUC:
 	    ++nline;
@@ -499,7 +500,7 @@ const char *fname, *newname;
 		}
 		bcopy(line, cp+nbytes, sizeof(line));
 		nbytes += NLINE;
-		switch (s = ffgetline(line, NLINE, &i)) {
+		switch (s = ffgetline(line, NLINE, &i, eol)) {
 		case FIOERR:
 		    free(cp);
 		    goto endoffile;
@@ -916,7 +917,8 @@ char *fn;
     register int len;
     char *buffer = NULL;
     int buflen = -1;
-    
+    int eol = NG_EOL_LF;
+
     if (fn == NULL)
 	return (FALSE);
     if ((s=ffwopen(fn)) != FIOSUC)	/* Open writes message. */
@@ -929,8 +931,6 @@ char *fn;
     lp = lforw(lpend);
     do {
 	len = bp->b_lang->lm_out_convert_len(fio, ltext(lp), llength(lp));
-	if ((lp = lforw(lp)) == lpend)	/* no implied newline on last line */
-	    break;
 	if (len > buflen) {
 	    buflen = len;
 	    MALLOCROUND(buflen);
@@ -942,7 +942,9 @@ char *fn;
 	    }
 	}
 	len = bp->b_lang->lm_out_convert(fio, ltext(lp), llength(lp), buffer);
-    } while ((s=ffputline(buffer, len)) == FIOSUC);
+	if ((lp = lforw(lp)) == lpend)
+	    eol = NG_EOL_NONE;	/* when lastline, linefeed is not need */
+    } while ((s=ffputline(buffer, len, eol)) == FIOSUC && lp != lpend);
     if (buffer)
 	free(buffer);
     
