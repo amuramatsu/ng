@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.12 2006/01/15 01:14:06 amura Exp $ */
+/* $Id: display.c,v 1.20.2.13 2006/01/15 02:40:38 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -271,7 +271,15 @@ vtputc(c)
 register NG_WCHAR_t c;
 {
     register VIDEO *vp;
+    int width;
     
+    width = terminal_lang->lm_width(c);
+    if (!ISTAB(c) && vtrow+width >= nrow) {
+	vtmarkyen(NG_WBACKSL);
+	vtrow++;
+	vtcol = 0;
+    }
+
     /* vtrow sometimes over-runs the vnrow -1.  In the case, vp at
      * following line becomes an uninitialized pointer.  Then core
      * dump or system error may occur.  To avoid the error.  Some
@@ -285,27 +293,23 @@ register NG_WCHAR_t c;
     if (ISTAB(c) && !(curwp->w_bufp->b_flag & BFNOTAB)) {
 #ifdef VARIABLE_TAB
 	int tab = curwp->w_bufp->b_tabwidth;
-	if (vtcol+tab <= ncol-1) {
+#else
+	int tab = 8;
+#endif
+	if (tabnext(vtcol,tab) < ncol-1) {
 	    do {
 		vtputc(NG_WSPACE);
 	    } while (vtcol<ncol && (vtcol%tab)!=0);
 	}
-#else
-	if ((vtcol | 0x07) + 1 <= ncol - 1 ) {
-	    do {
-		vtputc(NG_WSPACE);
-	    } while (vtcol<ncol && (vtcol&0x07)!=0);
-	}
-#endif
 	else {
-	    vteeol();
 	    vp->v_text[ncol-1] = NG_WBACKSL;
-	    vtcol = 0;
 	    vtrow++;
+	    vtcol = 0;
 	}
 	return;
     }
-    terminal_lang->lm_displaychar(vp->v_text, &vtcol, &vtrow, ncol, nrow, c);
+    terminal_lang->lm_displaychar(vp->v_text, vtcol, ncol, c);
+    vtcol += width;
 }
 
 #if defined(MEMMAP) && !defined(HAVE_ORIGINAL_PUTLINE)
@@ -361,6 +365,13 @@ vteeol()
     register VIDEO *vp;
     
     vp = vscreen[vtrow];
+    /* clear fillers */
+    if (vp->v_text[vtcol] == NG_WFILLER) {
+	int i = vtcol - 1;
+	while (i > 0 && vp->v_text[i] == NG_WFILLER)
+	    vp->v_text[i--] = NG_WSPACE;
+	vp->v_text[i] = NG_WSPACE; /* kill first char */
+    }
     while (vtcol < ncol)
 	vp->v_text[vtcol++] = NG_WSPACE;
 }
@@ -380,25 +391,26 @@ int *lines;
 {
     register int i;
     register char c;
-    register int c1;
+    register int n;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif
 
-    c1 = 0;
     *curcol = 0;
     *lines = 0;
     for (i=0; i<offset; ++i) {
 	c = lgetc(lp, i);
 	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB) )
-	    (*curcol) = tabnext(*curcol, tab);
+	    n = tabnext(*curcol, tab) - *curcol;
 	else
-	    (*curcol) += terminal_lang->lm_width(c);
+	    n = terminal_lang->lm_width(c);
 
-	if (*curcol >= ncol -2) {
-	    *curcol = -1;
+	if (n + *curcol >= ncol-1) {
+	    *curcol = n;
 	    (*lines)++;
 	}
+	else
+	    *curcol += n;
     }
     return *lines;
 }
@@ -475,34 +487,30 @@ skipline(lp, lines)
 const LINE *lp;
 int lines;
 {
-    register int i;
+    register int i, n;
     register int curcol;
     register char c;
-    register int c1;
     int (*lm_width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
 
-    c1 = 0;
     curcol = 0;
     for (i=0; i<llength(lp); ++i) {
 	if (lines == 0)
 	    return i - curcol;
 	c = lgetc(lp, i);
-	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) {
-	    curcol = tabnext(curcol, tab);
-	    if (curcol >= ncol -2) {
-		curcol = -1;
-		--lines;
-	    }
-	}
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB))
+	    n = tabnext(curcol, tab) - curcol;
 	else
-	    curcol += lm_width(c);
-	if (curcol >= ncol-1) {
-	    curcol = 0;
+	    n = lm_width(c);
+
+	if (n + curcol >= ncol-1) {
+	    curcol = n;
 	    --lines;
 	}
+	else
+	    curcol += n;
     }
     if (lines == 0)
 	return i - curcol;
@@ -522,20 +530,18 @@ const LINE *lp;
     register int curcol;
     register int lines;
     register char c;
-    register int c1;
     int (*lm_width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
 #endif /* VARIABLE_TAB */
 
-    c1 = 0;
     curcol = 0;
     lines = 0;
     for (i=0; i<llength(lp); ++i) {
 	c = lgetc(lp, i);
 	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) { 
 	    curcol = tabnext(curcol, tab);
-	    if (curcol >= ncol -2) {
+	    if (curcol >= ncol-1) {
 		curcol = -1;
 		lines++;
 	    }
@@ -680,7 +686,7 @@ out:
 		for (j=x; j<y; ++j)
 		    vtputc(lgetc(lp, j));
 		if (y < llength(lp))
-		    vtmarkyen('\\');
+		    vtmarkyen(NG_WBACKSL);
 		else
 		    vteeol();
 	    }

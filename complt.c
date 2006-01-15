@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.10 2006/01/15 01:14:06 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.11 2006/01/15 02:40:38 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -116,7 +116,7 @@ int nbuf;
     
     for (i = name_fent(name, TRUE); i < nfunct; i++) {
         cand = functnames[i].n_name;
-	j = strncmp (cand, name, fnlen);
+	j = strncmp(cand, name, fnlen);
         if (j < 0)
 	    continue;
         else if (j > 0)
@@ -172,7 +172,7 @@ int nbuf;
     matchnum = 0;
     for (lh = &(bheadp->b_list); lh != NULL; lh = lh->l_next) {
         cand = lh->l_name;
-        if (wstrncmp (cand, name, fnlen) != 0)
+        if (wstrncmp(cand, name, fnlen) != 0)
 	    continue;
 	if (matchnum == 0) {
 	    for (j = fnlen; cand[j] != NG_EOS; j++)
@@ -358,8 +358,7 @@ BUFFER *bp;
     int fnlen;
     int i, j;
     char *cand;
-    char line[NFILEN];
-    NG_WCHAR_t wline[NFILEN];
+    NG_WCHAR_t line[NFILEN];
 
     fnlen = wstrlen(wname);
     if ((name = (char *)alloca(fnlen+1)) == NULL)
@@ -375,36 +374,33 @@ BUFFER *bp;
         else if (j > 0)
 	    break;	/* because functnames[] are in dictionary order */
 
-	if (line[0] == '\0') {
-	    if (strlen (cand) < LIST_COL)
-		strcpy (line, cand);
+	if (line[0] == NG_EOS) {
+	    if (strlen(cand) < LIST_COL)
+		wstrlcpya(line, cand, NG_WCHARLEN(line));
 	    else {
-		wstrlcpya(wline, cand, NG_WCHARLEN(wline));
-		addline (bp, wline);
+		wstrlcpya(line, cand, NG_WCHARLEN(line));
+		addline(bp, line);
+		line[0] = NG_EOS;
 	    }
 	}
 	else {
-	    if (strlen (cand) < LIST_COL) {
-		for (j = strlen (line); j < LIST_COL; j++)
-		    line[j] = ' ';
-		line[j] = '\0';
-		strcat (line, cand);
-		wstrlcpya(wline, line, NG_WCHARLEN(wline));
-		addline (bp, wline);
+	    if (strlen(cand) < LIST_COL) {
+		for (j = wstrlen(line); j < LIST_COL; j++)
+		    line[j] = NG_WSPACE;
+		line[j] = NG_EOS;
+		wstrlcata(line, cand, NG_WCHARLEN(line));
+		addline(bp, line);
 	    }
 	    else {
-		wstrlcpya(wline, line, NG_WCHARLEN(wline));
-		addline (bp, wline);
-		wstrlcpya(wline, cand, NG_WCHARLEN(wline));
-		addline (bp, wline);
+		addline(bp, line);
+		wstrlcpya(line, cand, NG_WCHARLEN(line));
+		addline(bp, line);
 	    }
-	    line[0] = '\0';
+	    line[0] = NG_EOS;
 	}
     }
-    if (line[0] != '\0') {
-	wstrlcpya(wline, line, NG_WCHARLEN(wline));
-	addline (bp, wline);
-    }
+    if (line[0] != NG_EOS)
+	addline(bp, line);
     return (TRUE);
 }
 
@@ -424,10 +420,10 @@ BUFFER *bp;
     line[0] = NG_EOS;
     for (lh = &(bheadp->b_list); lh != NULL; lh = lh->l_next) {
 	cand = lh->l_name;
-        if (wstrncmp (cand, name, fnlen) != 0)
+        if (wstrncmp(cand, name, fnlen) != 0)
 	    continue;
 
-	if (line[0] == '\0') {
+	if (line[0] == NG_EOS) {
 	    if (wstrlen(cand) < LIST_COL)
 		wstrlcpy(line, cand, NG_WCHARLEN(line));
 	    else

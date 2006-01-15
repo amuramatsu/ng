@@ -1,4 +1,4 @@
-/* $Id: lang_ascii.c,v 1.1.2.6 2006/01/14 15:27:44 amura Exp $ */
+/* $Id: lang_ascii.c,v 1.1.2.7 2006/01/15 02:40:38 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -262,54 +262,42 @@ int buflen;
     return 1;
 }
 
-static int
-ascii_displaychar(vbuf, col, row, ncol, nrow, c)
+static VOID
+ascii_displaychar(vbuf, col, ncol, c)
 NG_WCHAR_t *vbuf;
-int *col;
-int *row;
+int col;
 int ncol;
-int nrow;
 NG_WCHAR_ta c;
 {
-    int clen = ascii_width(c);
     NG_WCHAR_t *p;
     NG_WCHAR_t old;
     int i;
 	
-    p = &vbuf[*col];
+    p = &vbuf[col];
     old = *p;
     if (c > 0xff) {
-	*p++ = NG_WCODE('\\'); *p++ = NG_WCODE('w');
+	*p++ = NG_WBACKSL; *p++ = NG_WCODE('w');
 	to_hex(p, 4, c);
     }
     else if (ISCTRL(c) && c != NG_WTAB) {
 	*p++ = NG_WCODE('^'); *p++ = NG_WCODE(ctrl_char(c));
     }
     else if (c >= 0x80) {
-	*p++ = NG_WCODE('\\'); *p++ = NG_WCODE('x');
+	*p++ = NG_WBACKSL; *p++ = NG_WCODE('x');
 	to_hex(p, 2, c);
     }
     else
 	*p++ = NG_WCODE(c);
-
+    
     /* clear fillers */
     if (old == NG_WFILLER) {
-	i = *col - 1;
+	i = col - 1;
 	while (i > 0 && vbuf[i] == NG_WFILLER)
 	    vbuf[i--] = NG_WSPACE;
 	vbuf[i] = NG_WSPACE; /* kill first char */
     }
-    *col += clen;
-    if (*col >= ncol) {
-	*col = 0;
-	*row++;
-    }
-    else {
-	i = *col;
-	while (i < ncol && vbuf[i] == NG_WFILLER)
-	    vbuf[i++] = NG_WSPACE;
-    }
-    return clen;
+    while (col < ncol && vbuf[col] == NG_WFILLER)
+	vbuf[col++] = NG_WSPACE;
 }
 
 static int
