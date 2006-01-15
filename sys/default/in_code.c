@@ -1,4 +1,4 @@
-/* $Id: in_code.c,v 1.1.2.4 2006/01/15 02:51:43 amura Exp $ */
+/* $Id: in_code.c,v 1.1.2.5 2006/01/15 10:59:32 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -24,11 +24,11 @@ register const NG_WCHAR_t *a;
 register const NG_WCHAR_t *b;
 {
     while (*a != NG_EOS) {
-	int s = *a++ - *b++;
+	int s = (long)*a++ - *b++;
 	if (s)
 	    return s;
     }
-    return *a - *b;
+    return (int)*a - *b;
 }
 
 int
@@ -41,11 +41,11 @@ size_t n;
 	int s;
 	if (n-- <= 0)
 	    return 0;
-	s = *a++ - *b++;
+	s = (long)*a++ - *b++;
 	if (s)
 	    return s;
     }
-    return *a - *b;
+    return (long)*a - *b;
 }
 
 int
@@ -59,11 +59,11 @@ size_t n;
 	int s;
 	if (n-- <= 0)
 	    return 0;
-	s = *a++ - *bp++;
+	s = (long)*a++ - (*bp++ & 0xff);
 	if (s)
 	    return s;
     }
-    return *a - *bp;
+    return (long)*a - (*bp & 0xff);
 }
 
 size_t
