@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.11 2006/01/15 02:40:38 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.12 2006/01/15 10:59:32 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -35,6 +35,7 @@ static int complete_filename _PRO((NG_WCHAR_t *, int));
 static int complete_list_funcnames _PRO((NG_WCHAR_t *, BUFFER *));
 static int complete_list_buffernames _PRO((NG_WCHAR_t *, BUFFER *));
 static int complete_list_filenames _PRO((NG_WCHAR_t *, BUFFER *));
+static int wstrwidth _PRO((LANG_MODULE *, const NG_WCHAR_t *));
 
 /*
  * do some completion.
@@ -106,10 +107,10 @@ int nbuf;
     int i, j;
     char *cand;
     
-    fnlen = wstrlen(wname);
     if ((name = (char *)alloca(nbuf)) == NULL)
 	return -1;
     strlcpyw(name, wname, nbuf);
+    fnlen = strlen(name);
     
     /* compare names and make the common string of them */
     matchnum = 0;
@@ -141,7 +142,7 @@ int nbuf;
     }
     wstrlcpya(wname, name, nbuf);
     if (matchnum > 1)
-	res = (minlen == (int) wstrlen (wname)) ?
+	res = (minlen == (int) wstrlen(wname)) ?
 	    COMPLT_NOT_UNIQUE : COMPLT_AMBIGUOUS;
     else if (matchnum == 1)
 	res = COMPLT_SOLE;
@@ -385,7 +386,9 @@ BUFFER *bp;
 	}
 	else {
 	    if (strlen(cand) < LIST_COL) {
-		for (j = wstrlen(line); j < LIST_COL; j++)
+		int len = wstrlen(line);
+		int n = LIST_COL - wstrwidth(bp->b_lang, line);
+		for (j = len; j < len+n; j++)
 		    line[j] = NG_WSPACE;
 		line[j] = NG_EOS;
 		wstrlcata(line, cand, NG_WCHARLEN(line));
@@ -424,14 +427,16 @@ BUFFER *bp;
 	    continue;
 
 	if (line[0] == NG_EOS) {
-	    if (wstrlen(cand) < LIST_COL)
+	    if (wstrwidth(bp->b_lang, cand) < LIST_COL)
 		wstrlcpy(line, cand, NG_WCHARLEN(line));
 	    else
 		addline(bp, cand);
 	}
 	else {
-	    if (wstrlen(cand) < LIST_COL) {
-		for (j = wstrlen(line); j < LIST_COL; j++)
+	    if (wstrwidth(bp->b_lang, cand) < LIST_COL) {
+		int len = wstrlen(line);
+		int n = LIST_COL - wstrwidth(bp->b_lang, line);
+		for (j = len; j < n; j++)
 		    line[j] = NG_WSPACE;
 		line[j] = NG_EOS;
 		wstrlcat(line, cand, NG_WCHARLEN(line));
@@ -466,7 +471,7 @@ BUFFER *bp;
 	return FALSE;
     dnlen = file_name_part(name) - name;
 
-    if ((fnnum = fffiles (name, &filenames)) == -1)
+    if ((fnnum = fffiles(name, &filenames)) == -1)
 	return FALSE;    /* error */
 
     line[0] = NG_EOS;
@@ -475,14 +480,16 @@ BUFFER *bp;
 	cand += dnlen;
 	LM_IN_CONVERT2(bp->b_lang, NG_CODE_FOR_FILENAME, cand, cand2);
 	if (line[0] == NG_EOS) {
-	    if (wstrlen(cand2) < LIST_COL)
+	    if (wstrwidth(bp->b_lang, cand2) < LIST_COL)
 		wstrlcpy(line, cand2, NG_WCHARLEN(line));
 	    else
 		addline(bp, cand2);
 	}
 	else {
-	    if (wstrlen(cand2) < LIST_COL) {
-		for (j = wstrlen(line); j < LIST_COL; j++)
+	    if (wstrwidth(bp->b_lang, cand2) < LIST_COL) {
+		int len = wstrlen(line);
+		int n = LIST_COL - wstrwidth(bp->b_lang, line);
+		for (j = len; j < len+n; j++)
 		    line[j] = NG_WSPACE;
 		line[j] = NG_EOS;
 		wstrlcat(line, cand2, NG_WCHARLEN(line));
@@ -494,7 +501,7 @@ BUFFER *bp;
 	    }
 	    line[0] = NG_EOS;
 	}
-	cand += (strlen (cand) + 1);
+	cand += (strlen(cand) + 1);
     }
     if (line[0] != NG_EOS)
 	addline(bp, line);
@@ -571,5 +578,16 @@ complete_scroll_down ()
     update ();
     ttmove (cur_row, cur_col);
     return (TRUE);
+}
+
+int
+wstrwidth(lang, s)
+LANG_MODULE *lang;
+const NG_WCHAR_t *s;
+{
+    int len = 0;
+    while (*s != NG_EOS)
+	len += lang->lm_width(*s++);
+    return len;
 }
 #endif	/* NEW_COMPLETE */

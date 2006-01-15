@@ -1,4 +1,4 @@
-/* $Id: in_code.c,v 1.1.2.5 2006/01/15 10:59:32 amura Exp $ */
+/* $Id: in_code.c,v 1.1.2.6 2006/01/15 11:00:35 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -94,8 +94,8 @@ NG_WCHAR_t *dst;
 register const NG_WCHAR_t *src;
 {
     register NG_WCHAR_t *p = dst;
-    while (*p++ != NG_EOS)
-	/*NOP*/;
+    while (*p != NG_EOS)
+	p++;
     while (*src != NG_EOS)
 	*p++ = *src++;
     *p = NG_EOS;
@@ -126,13 +126,13 @@ size_t n;
 {
     size_t i;
     register const NG_WCHAR_t *psrc = src;
-    register const NG_WCHAR_t *pdst = dst;
-    while (*pdst++ != NG_EOS)
-	/*NOP*/;
-    for (i=n-(pdst-dst)-1; i>0 && *src != NG_EOS; i--)
-	*dst++ = *src++;
-    *dst = NG_EOS;
-    while (*src++ != NG_EOS)
+    register NG_WCHAR_t *pdst = dst;
+    while (*pdst != NG_EOS)
+	pdst++;
+    for (i=n-(pdst-dst)-1; i>0 && *psrc != NG_EOS; i--)
+	*pdst++ = *psrc++;
+    *pdst = NG_EOS;
+    while (*psrc++ != NG_EOS)
 	/*NOP*/;
     return (pdst-dst) + (psrc-src);
 }
@@ -146,7 +146,7 @@ size_t n;
     size_t i;
     register const char *p = src;
     for (i=n-1; i>0 && *p!='\0'; i--)
-	*dst++ = NG_WCODE(*p++);
+	*dst++ = NG_WCODE(*p++ & 0xff);
     *dst = NG_EOS;
     while (*p++ != NG_EOS)
 	/*NOP*/;
@@ -161,13 +161,13 @@ size_t n;
 {
     size_t i;
     register const char *psrc = src;
-    register const NG_WCHAR_t *pdst = dst;
-    while (*pdst++ != NG_EOS)
-	/*NOP*/;
-    for (i=n-(pdst-dst)-1; i>0 && *src != NG_EOS; i--)
-	*dst++ = *src++;
-    *dst = NG_EOS;
-    while (*src++ != NG_EOS)
+    register NG_WCHAR_t *pdst = dst;
+    while (*pdst != NG_EOS)
+	pdst++;
+    for (i=n-(pdst-dst)-1; i>0 && *psrc != '\0'; i--)
+	*pdst++ = NG_WCODE(*psrc++ & 0xff);
+    *pdst = NG_EOS;
+    while (*psrc++ != '\0')
 	/*NOP*/;
     return (pdst-dst) + (psrc-src);
 }
