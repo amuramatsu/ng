@@ -1,4 +1,4 @@
-/* $Id: cmode.c,v 1.7.2.6 2006/01/14 13:10:05 amura Exp $ */
+/* $Id: cmode.c,v 1.7.2.7 2006/01/15 01:14:06 amura Exp $ */
 /*
  *		C code editing commands
  *		There are only used when C_MODE is #defined.
@@ -863,7 +863,7 @@ int f, n;
     register WINDOW *wp;
     NG_WCHAR_t line[80];
     
-    if ((bp = bfind("*C Mode Variables*", TRUE)) == NULL)
+    if ((bp = bfind(_NG_WSTR("*C Mode Variables*"), TRUE)) == NULL)
 	return FALSE;
     bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
     if (bclear(bp) != TRUE)

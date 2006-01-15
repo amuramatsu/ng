@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.11.2.6 2006/01/13 17:32:55 amura Exp $ */
+/* $Id: main.c,v 1.11.2.7 2006/01/15 01:14:06 amura Exp $ */
 /*
  *		Mainline
  */
@@ -235,7 +235,7 @@ edinit()
     register WINDOW *wp;
 
     bheadp = NULL;
-    bp = bfind("*scratch*", TRUE);		/* Text buffer.		*/
+    bp = bfind(_NG_WSTR("*scratch*"), TRUE);	/* Text buffer.		*/
     wp = (WINDOW *)malloc(sizeof(WINDOW));	/* Initial window.	*/
     if (bp==NULL || wp==NULL)
 	panic("edinit");

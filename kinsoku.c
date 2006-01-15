@@ -1,4 +1,4 @@
-/* $Id: kinsoku.c,v 1.6.2.4 2006/01/14 21:11:07 amura Exp $ */
+/* $Id: kinsoku.c,v 1.6.2.5 2006/01/15 01:14:06 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *
@@ -75,7 +75,7 @@ int f, n;
 #define	DISPLEN	64
     NG_WCHAR_t line[DISPLEN + 1];	/* Display line buffer.		*/
 
-    if ((bp = bfind("*Kinsoku Chars*", TRUE)) == NULL)
+    if ((bp = bfind(_NG_WSTR("*Kinsoku Chars*"), TRUE)) == NULL)
 	return FALSE;
 #ifdef AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
     bp->b_flag &= ~(BFCHG | BFACHG);		/* Blow away old.	*/

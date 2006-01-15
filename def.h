@@ -1,4 +1,4 @@
-/* $Id: def.h,v 1.21.2.4 2005/02/20 03:25:59 amura Exp $ */
+/* $Id: def.h,v 1.21.2.5 2006/01/15 01:14:06 amura Exp $ */
 /*
  * This file is the general header file for all parts
  * of the MicroEMACS display editor. It contains all of the
@@ -18,34 +18,6 @@
 #include "sysdef.h"		/* Order is critical.		*/
 #include "ttydef.h"
 #include "chrdef.h"
-
-/*
- * All repeated structures are kept as linked lists of structures.
- * All of these start with a LIST structure (except lines, which
- * have their own abstraction). This will allow for
- * later conversion to generic list manipulation routines should
- * I decide to do that. it does mean that there are four extra
- * bytes per window. I feel that this is an acceptable price,
- * considering that there are usually only one or two windows.
- */
-struct WINDOW;
-struct BUFFER;
-struct LANG_MODULE;
-struct LIST;
-typedef struct LIST {
-    union {
-	struct WINDOW *l_wp;
-	struct BUFFER *x_bp;	/* l_bp is used by LINE */
-	struct LANG_MODULE *l_mp;
-	struct LIST *l_nxt;
-    } l_p;
-    char *l_name;
-} LIST;
-/*
- * Usual hack - to keep from uglifying the code with lotsa
- * references through the union, we #define something for it.
- */
-#define l_next	l_p.l_nxt
 
 /*
  * If your system and/or compiler does not support the "void" type
@@ -76,6 +48,35 @@ typedef struct LIST {
 
 typedef int (*PF) _PRO((int, int)); /* generaly useful type */
 
+/*
+ * All repeated structures are kept as linked lists of structures.
+ * All of these start with a LIST structure (except lines, which
+ * have their own abstraction). This will allow for
+ * later conversion to generic list manipulation routines should
+ * I decide to do that. it does mean that there are four extra
+ * bytes per window. I feel that this is an acceptable price,
+ * considering that there are usually only one or two windows.
+ */
+struct WINDOW;
+struct BUFFER;
+struct LANG_MODULE;
+struct LIST;
+#include "in_code.h"
+typedef struct LIST {
+    union {
+	struct WINDOW *l_wp;
+	struct BUFFER *x_bp;	/* l_bp is used by LINE */
+	struct LANG_MODULE *l_mp;
+	struct LIST *l_nxt;
+    } l_p;
+    NG_WCHAR_t *l_name;
+} LIST;
+
+/*
+ * Usual hack - to keep from uglifying the code with lotsa
+ * references through the union, we #define something for it.
+ */
+#define l_next	l_p.l_nxt
 /*
  * Table sizes, etc.
  */

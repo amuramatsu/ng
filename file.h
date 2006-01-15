@@ -1,4 +1,4 @@
-/* $Id: file.h,v 1.1.2.5 2005/09/17 05:17:18 amura Exp $ */
+/* $Id: file.h,v 1.1.2.6 2006/01/15 01:14:06 amura Exp $ */
 /*
  * This file is the header file for file parts
  * of the NG display editor.
@@ -24,7 +24,7 @@ VOID makepath _PRO((char *, char *, int));
 int readin _PRO((const char *));
 int insertfile _PRO((const char *, const char *));
 BUFFER *findbuffer _PRO(());
-VOID makename _PRO(());
+VOID makename _PRO((NG_WCHAR_t *, const char *));
 VOID upmodes _PRO(());
 
 #ifdef __cplusplus

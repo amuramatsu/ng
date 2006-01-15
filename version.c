@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.15.2.5 2006/01/14 19:59:59 amura Exp $ */
+/* $Id: version.c,v 1.15.2.6 2006/01/15 01:14:06 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -198,7 +198,7 @@ int f, n;
     NG_WCHAR_t line[80];
     int i;
 
-    if ((bp = bfind("*" PROGNAME " Version*", TRUE)) == NULL)
+    if ((bp = bfind(_NG_WSTR("*" PROGNAME " Version*"), TRUE)) == NULL)
 	return FALSE;
     if (bclear(bp) != TRUE)
 	return FALSE;

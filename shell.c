@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.5.2.6 2006/01/04 17:00:40 amura Exp $ */
+/* $Id: shell.c,v 1.5.2.7 2006/01/15 01:14:06 amura Exp $ */
 /*
  *		Shell commands.
  * The file contains the command
@@ -35,7 +35,7 @@ int f, n;
     if (s != TRUE)
 	return s;
     if ((f & FFARG) == 0) {
-	if ((bp = bfind("*Shell Command Output*", TRUE)) == NULL)
+	if ((bp = bfind(_NG_WSTR("*Shell Command Output*"), TRUE)) == NULL)
 	    return FALSE;
 	if ((wp = popbuf(bp)) == NULL)
 	    return FALSE;

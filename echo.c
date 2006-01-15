@@ -1,4 +1,4 @@
-/* $Id: echo.c,v 1.16.2.15 2006/01/14 13:54:09 amura Exp $ */
+/* $Id: echo.c,v 1.16.2.16 2006/01/15 01:14:06 amura Exp $ */
 /*
  *		Echo line reading and writing.
  *
@@ -47,7 +47,7 @@ static VOID eputs _PRO((const char *));
 static VOID eputls _PRO((const NG_WCHAR_t *));
 static VOID eputc _PRO((int));
 #ifndef NEW_COMPLETE	/* 90.12.10    Sawayanagi Yosirou */
-static int complt _PRO((int, int, char *, int));
+static int complt _PRO((int, int, NG_WCHAR_t *, int));
 #endif /* NEW_COMPLETE */
 
 #define	GETNUMLEN	6
@@ -613,7 +613,7 @@ Cmd:
 		mb_get_buffer(buf, nbuf);
 		if (flag & EFFUNC) {
 		    int    matchnum;
-		    matchnum = complete(buf, flag);
+		    matchnum = complete(buf, mb_bufsize(), flag);
 		    if (matchnum != COMPLT_SOLE
 			&& matchnum != COMPLT_NOT_UNIQUE) {
 		/* complete() will be called again, but i don't mind it */
@@ -752,16 +752,15 @@ int nbuf, c, flag;
     if (wflag) {
 	mb2_insert(1, ' ');
 	mb_get_buffer(buf, nbuf);
-	if (complete(buf, flag) == COMPLT_NO_MATCH) {
+	if (complete(buf, mb_bufsize(), flag) == COMPLT_NO_MATCH)
 	    mb2_erasec(1);
-	}
 	else {
 	    mb_appenddiff(buf);
 	    return 0;
 	}
     }
     mb_get_buffer(buf, nbuf);
-    matchnum = complete(buf, flag);
+    matchnum = complete(buf, mb_bufsize(), flag);
     mb_appenddiff(buf);
     if (wflag) {
 	if (matchnum == COMPLT_AMBIGUOUS
@@ -2369,7 +2368,8 @@ int flag;
 #else /* NOT NEW_COMPLETE */
 static int
 veread(fp, buf, nbuf, flag, ap)
-char *fp, *buf;
+char *fp;
+NG_WCHAR_t *buf;
 int nbuf, flag;
 va_list *ap;
 {
@@ -2529,7 +2529,7 @@ done:
 static int
 complt(flags, c, buf, cpos)
 int flags, c;
-register char *buf;
+register NG_WCHAR_t *buf;
 register int cpos;
 {
     register LIST *lh, *lh2;
@@ -2915,7 +2915,7 @@ register int c;
 #ifndef NO_FILECOMP	/* 90.04.04  by K.Maeda */
 int
 complete_filename(buf, cpos, c)
-char *buf;
+NG_WCHAR_t *buf;
 int cpos, c;
 {
     register int nhits, i, j;

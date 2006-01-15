@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.11 2006/01/14 22:47:48 amura Exp $ */
+/* $Id: display.c,v 1.20.2.12 2006/01/15 01:14:06 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -1063,12 +1063,8 @@ register WINDOW *wp;
     vtputc('-');
     n += 5;
     n += vtputs(_NG_WSTR("Ng: "));
-    if (bp->b_bname[0] != '\0') {
-	NG_WCHAR_t *wtmp;
-	LM_IN_CONVERT_TMP2(bp->b_lang, NG_CODE_FOR_FILENAME, bp->b_bname, wtmp);
-	if (wtmp != NULL)
-	    n += vtputs(wtmp);
-    }
+    if (bp->b_bname[0] != NG_EOS)
+	n += vtputs(bp->b_bname);
     while (n < 30/*42*/) {			/* Pad out with blanks	*/
 	vtputc(' ');
 	++n;

@@ -1,4 +1,4 @@
-/* $Id: file.c,v 1.15.2.10 2006/01/15 00:06:30 amura Exp $ */
+/* $Id: file.c,v 1.15.2.11 2006/01/15 01:14:06 amura Exp $ */
 /*
  *		File commands.
  */
@@ -20,7 +20,7 @@
 #include "modes.h"
 #include "autosave.h"
 
-static char *itos _PRO((char *, unsigned int));
+static NG_WCHAR_t *itos _PRO((NG_WCHAR_t *, unsigned int));
 static int fileopen_backend _PRO((int, int, int, int, int, char *));
 
 /*
@@ -280,11 +280,7 @@ int f, n;
 	return FALSE;
     }
     if (curbp) {
-	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
-			   curbp->b_bname, wtmp);
-	if (wtmp == NULL)
-	    return FALSE;
-	eargset(wtmp);
+	eargset(curbp->b_bname);
 	if (killbuffer(0, 1)) {
 	    eargset(fname);
 	    return filevisit(f, n);
@@ -302,7 +298,7 @@ findbuffer(fname)
 char *fname;
 {
     register BUFFER *bp;
-    char bname[NBUFN], *cp;
+    NG_WCHAR_t bname[NBUFN], *cp;
     unsigned count = 1;
     
     for (bp=bheadp; bp!=NULL; bp=bp->b_bufp) {
@@ -310,10 +306,10 @@ char *fname;
 	    return bp;
     }
     makename(bname, fname);			/* New buffer name.	*/
-    cp = bname + strlen(bname);
+    cp = bname + wstrlen(bname);
     while (bfind(bname, FALSE) != NULL) {
 	*cp = '<';		/* add "<count>" to then name	*/
-	(VOID) strcpy(itos(cp, ++count)+1, ">");
+	wstrlcpya(itos(cp, ++count)+1, ">", NG_WCHARLEN(bname));
     }
     return bfind(bname, TRUE);
 }
@@ -322,9 +318,9 @@ char *fname;
  * Put the decimal representation of num into a buffer.  Hacked to be
  * faster, smaller, and less general.
  */
-static char *
+static NG_WCHAR_t *
 itos(bufp, num)
-char *bufp;
+NG_WCHAR_t *bufp;
 unsigned int num;
 {
     if (num >= 10) {
@@ -621,10 +617,13 @@ out:
  */
 VOID
 makename(bname, fname)
-char *bname, *fname;
+NG_WCHAR_t *bname;
+const char *fname;
 {
-    register char *cp1;
+    register const char *cp1;
     register char *cp2;
+    NG_WCHAR_t *tmp;
+    char buf[NFILEN];
     
     cp1 = &fname[0];
     while (*cp1 != 0)
@@ -636,14 +635,17 @@ char *bname, *fname;
 #endif
 	   )
 	--cp1;
-    cp2 = &bname[0];
-    while (cp2!=&bname[NBUFN-1] && *cp1!=0
+
+    cp2 = buf;
+    while (cp2!=&buf[NFILEN-1] && *cp1!=0
 #ifdef BDC3
 	   && *cp1!=BDC3
 #endif
 	   )
 	*cp2++ = *cp1++;
     *cp2 = 0;
+    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, buf, tmp);
+    wstrlcpy(bname, tmp, NBUFN);
 }
 
 #ifdef EXTD_DIR
@@ -767,21 +769,22 @@ int f, n;
 #endif /* AUTOSAVE */
 	{
 	    BUFFER *bp;
-	    char bname[NBUFN], *cp;
+	    NG_WCHAR_t bname[NBUFN], *cp;
 	    unsigned count = 1;
 	    
 	    makename(bname, adjfname);	/* New buffer name.	*/
-	    cp = bname + strlen(bname);
+	    cp = bname + wstrlen(bname);
 	    while ((bp = bfind(bname, FALSE)) != NULL) {
 		if (bp->b_fname!=NULL &&
 		    (fncmp(bp->b_fname, adjfname)==0)) {
 		    break;
 		}
 		*cp = '<';	/* add "<count>" to then name	*/
-		(VOID) strcpy(itos(cp, ++count)+1, ">");
+		(VOID) wstrlcpya(itos(cp, ++count)+1, ">", NG_WCHARLEN(bname));
 	    }
-	    if ((cp = malloc((unsigned)(strlen(bname)+1))) != NULL) {
-		(VOID) strcpy(cp, bname);
+	    if ((cp = malloc((unsigned)(wstrlen(bname)+1)*sizeof(NG_WCHAR_t)))
+		  != NULL) {
+		wstrcpy(cp, bname);
 		free(curbp->b_bname);
 		curbp->b_bname = cp;
 	    }

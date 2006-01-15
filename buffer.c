@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.20.2.8 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: buffer.c,v 1.20.2.9 2006/01/15 01:14:06 amura Exp $ */
 /*
  *		Buffer handling.
  */
@@ -39,12 +39,12 @@ int f, n;
 
     /* Get buffer to use from user */
     if ((curbp->b_altb == NULL)
-	&& ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
+	&& ((curbp->b_altb = bfind(_NG_WSTR("*scratch*"), TRUE)) == NULL))
 	return FALSE;
     
     bp = bheadp;
     while (bp != NULL) {
-	if (fncmp(curbp->b_bname, bp->b_bname) == 0){
+	if (wstrcmp(curbp->b_bname, bp->b_bname) == 0){
 	    bp = bp->b_bufp;
 	    break;
 	}
@@ -67,12 +67,12 @@ int f,n;
     register BUFFER *bp,*bp1;
     
     if ((curbp->b_altb == NULL)
-	&& ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
+	&& ((curbp->b_altb = bfind(_NG_WSTR("*scratch*"), TRUE)) == NULL))
 	return FALSE;
     
     bp1 = bp = bheadp;
     while (bp != NULL) {
-	if (fncmp(curbp->b_bname, bp->b_bname) == 0){
+	if (wstrcmp(curbp->b_bname, bp->b_bname) == 0){
 	    if (bp == bp1) {		/* abnomal found */
 		while (bp != NULL) {	/* last search */
 		    bp1 = bp;
@@ -104,27 +104,18 @@ int f, n;
 {
     register BUFFER *bp;
     register int s;
-    NG_WCHAR_t wbufn[NBUFN];
-    char *bufn;
+    NG_WCHAR_t bufn[NBUFN];
 
     /* Get buffer to use from user */
     if ((curbp->b_altb == NULL)
-	&& ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
-	s = eread("Switch to buffer: ", wbufn, NG_WCHARLEN(wbufn), EFNEW|EFBUF);
-    else {
-	NG_WCHAR_t *tmp;
-	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
-			   curbp->b_altb->b_bname, tmp);
-	if (tmp == NULL) return FALSE;
-	s = eread("Switch to buffer: (default %ls) ", wbufn, NG_WCHARLEN(wbufn),
-		  EFNEW|EFBUF, tmp);
-    }
+	&& ((curbp->b_altb = bfind(_NG_WSTR("*scratch*"), TRUE)) == NULL))
+	s = eread("Switch to buffer: ", bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF);
+    else
+	s = eread("Switch to buffer: (default %ls) ", bufn, NG_WCHARLEN(bufn),
+		  EFNEW|EFBUF, curbp->b_altb->b_bname);
     
     if (s == ABORT)
 	return s;
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wbufn, bufn);
-    if (bufn == NULL)
-	return FALSE;
     if (s == FALSE && curbp->b_altb != NULL)
 	bp = curbp->b_altb;
     else if ((bp=bfind(bufn, TRUE)) == NULL)
@@ -146,27 +137,19 @@ int f, n;
     register BUFFER *bp;
     register WINDOW *wp;
     register int s;
-    NG_WCHAR_t wbufn[NBUFN];
-    char *bufn;
+    NG_WCHAR_t bufn[NBUFN];
     
     /* Get buffer to use from user */
     if ((curbp->b_altb == NULL)
-	&& ((curbp->b_altb = bfind("*scratch*", TRUE)) == NULL))
+	&& ((curbp->b_altb = bfind(_NG_WSTR("*scratch*"), TRUE)) == NULL))
 	s = eread("Switch to buffer in other window: ",
-		  wbufn, NG_WCHARLEN(wbufn), EFNEW|EFBUF);
-    else {
-	NG_WCHAR_t *tmp;
-	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
-			   curbp->b_altb->b_bname, tmp);
-	if (tmp == NULL) return FALSE;
+		  bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF);
+    else
 	s = eread("Switch to buffer in other window: (default %ls) ",
-		  wbufn, NG_WCHARLEN(wbufn), EFNEW|EFBUF, tmp);
-    }
+		  bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF,
+		  curbp->b_altb->b_bname);
     if (s == ABORT)
 	return s;
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wbufn, bufn);
-    if (bufn == NULL)
-	return FALSE;
     if (s == FALSE && curbp->b_altb != NULL)
 	bp = curbp->b_altb;
     else if ((bp=bfind(bufn, TRUE)) == NULL)
@@ -197,22 +180,14 @@ int f, n;
     register BUFFER *bp2;
     WINDOW *wp;
     register int s;
-    NG_WCHAR_t wbufn[NBUFN];
-    NG_WCHAR_t *tmp;
-    char *bufn;
+    NG_WCHAR_t bufn[NBUFN];
     
-    LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
-		       curbp->b_bname, tmp);
-    if (tmp == NULL) return FALSE;
-    if ((s=eread("Kill buffer: (default %s) ", wbufn, NG_WCHARLEN(wbufn),
-		 EFNEW|EFBUF, tmp)) == ABORT)
+    if ((s=eread("Kill buffer: (default %ls) ", bufn, NG_WCHARLEN(bufn),
+		 EFNEW|EFBUF, curbp->b_bname)) == ABORT)
 	return (s);
     else if (s == FALSE)
 	bp = curbp;
     else {
-	LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wbufn, bufn);
-	if (bufn == NULL)
-	    return FALSE;
 	if ((bp=bfind(bufn, FALSE)) == NULL)
 	    return FALSE;
     }
@@ -226,10 +201,10 @@ int f, n;
 	bp1 = (bp == bheadp) ? bp->b_bufp : bheadp;
 	if (bp1 == NULL) {
 	    /* only one buffer. see if it's *scratch* */
-	    if (bp == bfind("*scratch*",FALSE))
+	    if (bp == bfind(_NG_WSTR("*scratch*"),FALSE))
 		return FALSE;
 	    /* create *scratch* for alternate buffer */
-	    if ((bp1 = bfind("*scratch*",TRUE)) == NULL)
+	    if ((bp1 = bfind(_NG_WSTR("*scratch*"),TRUE)) == NULL)
 		return FALSE;
 	}
     }
@@ -342,7 +317,7 @@ makelist() {
     BUFFER *blp;
     NG_WCHAR_t line[4+NBUFN+7+NFILEN+4];
     
-    if ((blp = bfind("*Buffer List*", TRUE)) == NULL)
+    if ((blp = bfind(_NG_WSTR("*Buffer List*"), TRUE)) == NULL)
 	return NULL;
     if (bclear(blp) != TRUE)
 	return NULL;
@@ -499,7 +474,7 @@ int f;
  */
 BUFFER	*
 bfind(bname, cflag)
-register const char *bname;
+register const NG_WCHAR_t *bname;
 int cflag;
 {
     register BUFFER *bp;
@@ -509,7 +484,7 @@ int cflag;
     assert(bname != NULL);
     bp = bheadp;
     while (bp != NULL) {
-	if (fncmp(bname, bp->b_bname) == 0)
+	if (wstrcmp(bname, bp->b_bname) == 0)
 	    return bp;
 	bp = bp->b_bufp;
     }
@@ -520,8 +495,9 @@ int cflag;
 	ewprintf("Can't get %d bytes", sizeof(BUFFER));
 	return NULL;
     }
-    if ((bp->b_bname=malloc((unsigned)(strlen(bname)+1))) == NULL) {
-	ewprintf("Can't get %d bytes", strlen(bname)+1);
+    if ((bp->b_bname=malloc((unsigned)(wstrlen(bname)+1)*sizeof(NG_WCHAR_t)))
+	  == NULL) {
+	ewprintf("Can't get %d bytes", (wstrlen(bname)+1)*sizeof(NG_WCHAR_t));
 	free((char *) bp);
 	return NULL;
     }
@@ -560,7 +536,7 @@ int cflag;
 	    strcpy(bp->b_cwd, curbp->b_cwd);
     }
 #endif
-    (VOID) strcpy(bp->b_bname, bname);
+    wstrcpy(bp->b_bname, bname);
     bp->b_lang = default_lang;
     lp->l_fp = lp;
     lp->l_bp = lp;
@@ -693,8 +669,7 @@ int f, n;
     register int clo;
     register int nline;
     int s;
-    NG_WCHAR_t wbufn[NBUFN];
-    char *bufn;
+    NG_WCHAR_t bufn[NBUFN];
 
 #ifdef READONLY	/* 91.01.05  by S.Yoshida */
     if (curbp->b_flag & BFRONLY) {	/* If this buffer is read-only, */
@@ -704,24 +679,16 @@ int f, n;
 #endif /* READONLY */
 
     /* Get buffer to use from user */
-    if (curbp->b_altb != NULL) {
-	NG_WCHAR_t *tmp;
-	LM_IN_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME,
-			   curbp->b_altb->b_bname, tmp);
-	if (tmp == NULL) return FALSE;
-	s = eread("Insert buffer: (default %s) ", wbufn, NG_WCHARLEN(wbufn),
-		  EFNEW|EFBUF, tmp);
-    }
+    if (curbp->b_altb != NULL)
+	s = eread("Insert buffer: (default %ls) ", bufn, NG_WCHARLEN(bufn),
+		  EFNEW|EFBUF, curbp->b_altb->b_bname);
     else
-	s = eread("Insert buffer: ", wbufn, sizeof(wbufn), EFNEW|EFBUF);
+	s = eread("Insert buffer: ", bufn, NG_WCHARLEN(bufn), EFNEW|EFBUF);
     if (s == ABORT)
 	return (s);
     if (s == FALSE && curbp->b_altb != NULL)
 	bp = curbp->b_altb;
     else {
-	LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wbufn, bufn);
-	if (bufn == NULL)
-	    return FALSE;
 	if ((bp=bfind(bufn, FALSE)) == NULL)
 	    return FALSE;
     }
@@ -916,7 +883,7 @@ int len;
     while (p < ep) {
 	*q++ = *p++;
     }
-    *q = '\0';
+    *q = NG_EOS;
     return TRUE;
 }
   
@@ -925,7 +892,7 @@ int
 b_thiswin(f, n)
 int f, n;
 {
-    char bufname[NBUFN];
+    NG_WCHAR_t bufname[NBUFN];
     register BUFFER *bp;
     LINE *lp = curwp->w_dotp;
     
@@ -937,7 +904,7 @@ int f, n;
 	return showbuffer(bp, curwp, WFFORCE|WFHARD);
     }
     else {
-	ewprintf("No buffer named \"%s\"", bufname);
+	ewprintf("No buffer named \"%ls\"", bufname);
     }
     return FALSE;
 }

@@ -1,4 +1,4 @@
-/* $Id: help.c,v 1.6.2.6 2006/01/14 13:10:05 amura Exp $ */
+/* $Id: help.c,v 1.6.2.7 2006/01/15 01:14:06 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -116,7 +116,7 @@ int f, n;
     int m;
     NG_WCHAR_t locbind[80];
     
-    if ((bp = bfind("*help*", TRUE)) == NULL)
+    if ((bp = bfind(_NG_WSTR("*help*"), TRUE)) == NULL)
 	return FALSE;
 #ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
     bp->b_flag &= ~(BFCHG | BFACHG);/* Blow away old.	*/
@@ -258,7 +258,7 @@ int f, n;
     /* FALSE means we got a 0 character string, which is fine */
     if (eread("apropos: ", string, NG_WCHARLEN(string), EFNEW) == ABORT)
 	return ABORT;
-    if ((bp = bfind("*help*", TRUE)) == NULL)
+    if ((bp = bfind(_NG_WSTR("*help*"), TRUE)) == NULL)
 	return FALSE;
     bp->b_flag &= ~BFCHG;		/* Blow away old.	*/
     if (bclear(bp) == FALSE)

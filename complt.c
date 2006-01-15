@@ -1,4 +1,4 @@
-/* $Id: complt.c,v 1.11.2.9 2006/01/08 19:22:43 amura Exp $ */
+/* $Id: complt.c,v 1.11.2.10 2006/01/15 01:14:06 amura Exp $ */
 /*
  *	Complete completion functions.
  */
@@ -29,9 +29,9 @@ static BUFFER *prev_bp = NULL;
 static WINDOW *prev_wp = NULL;
 static WINDOW prev_window;
 
-static int complete_funcname _PRO((NG_WCHAR_t *));
-static int complete_buffername _PRO((NG_WCHAR_t *));
-static int complete_filename _PRO((NG_WCHAR_t *));
+static int complete_funcname _PRO((NG_WCHAR_t *, int));
+static int complete_buffername _PRO((NG_WCHAR_t *, int));
+static int complete_filename _PRO((NG_WCHAR_t *, int));
 static int complete_list_funcnames _PRO((NG_WCHAR_t *, BUFFER *));
 static int complete_list_buffernames _PRO((NG_WCHAR_t *, BUFFER *));
 static int complete_list_filenames _PRO((NG_WCHAR_t *, BUFFER *));
@@ -40,21 +40,22 @@ static int complete_list_filenames _PRO((NG_WCHAR_t *, BUFFER *));
  * do some completion.
  */
 int
-complete(buf, flags)
+complete(buf, nbuf, flags)
 NG_WCHAR_t *buf;
+int nbuf;
 int flags;
 {
     int res;
     
     switch (flags & EFAUTO) {
     case EFFUNC:
-	res = complete_funcname (buf);
+	res = complete_funcname(buf, nbuf);
 	break;
     case EFBUF:
-	res = complete_buffername (buf);
+	res = complete_buffername(buf, nbuf);
 	break;
     case EFFILE:
-	res = complete_filename (buf);
+	res = complete_filename(buf, nbuf);
 	break;
     default:
 	res = 0; /* dummy to prevent compile time warning */
@@ -93,8 +94,9 @@ int matchnum;
 
 /* complete function name */
 static int
-complete_funcname(wname)
+complete_funcname(wname, nbuf)
 NG_WCHAR_t *wname;
+int nbuf;
 {
     int fnlen;
     char *name;
@@ -105,9 +107,9 @@ NG_WCHAR_t *wname;
     char *cand;
     
     fnlen = wstrlen(wname);
-    if ((name = (char *)alloca(fnlen+1)) == NULL)
+    if ((name = (char *)alloca(nbuf)) == NULL)
 	return -1;
-    strlcpyw(name, wname, fnlen+1);
+    strlcpyw(name, wname, nbuf);
     
     /* compare names and make the common string of them */
     matchnum = 0;
@@ -137,9 +139,9 @@ NG_WCHAR_t *wname;
 	}
         matchnum++;
     }
-
+    wstrlcpya(wname, name, nbuf);
     if (matchnum > 1)
-	res = (minlen == (int) strlen (name)) ?
+	res = (minlen == (int) wstrlen (wname)) ?
 	    COMPLT_NOT_UNIQUE : COMPLT_AMBIGUOUS;
     else if (matchnum == 1)
 	res = COMPLT_SOLE;
@@ -152,49 +154,46 @@ NG_WCHAR_t *wname;
 }
 
 static int
-complete_buffername(wname)
-NG_WCHAR_t *wname;
+complete_buffername(name, nbuf)
+NG_WCHAR_t *name;
+int nbuf;
 {
     int fnlen;
-    char *name;
     int minlen = 0;
     int matchnum;
     int res;
     int j;
-    char *cand;
+    NG_WCHAR_t *cand;
     LIST *lh;
     
-    fnlen = wstrlen(wname);
-    if ((name = (char *)alloca(fnlen+1)) == NULL)
-	return -1;
-    strlcpyw(name, wname, fnlen+1);
+    fnlen = wstrlen(name);
     
     /* compare names and make the common string of them */
     matchnum = 0;
     for (lh = &(bheadp->b_list); lh != NULL; lh = lh->l_next) {
         cand = lh->l_name;
-        if (strncmp (cand, name, fnlen) != 0)
+        if (wstrncmp (cand, name, fnlen) != 0)
 	    continue;
 	if (matchnum == 0) {
-	    for (j = fnlen; cand[j] != '\0'; j++)
+	    for (j = fnlen; cand[j] != NG_EOS; j++)
 		name[j] = cand[j];
 	    name[j] = '\0';
 	    minlen = j;
 	}
 	else {
-            for (j = fnlen; name[j] != '\0'; j++) {
+            for (j = fnlen; name[j] != NG_EOS; j++) {
                 if (cand[j] != name[j])
 		    break;
 	    }
-	    name[j] = '\0';
-	    if (cand[j] == '\0')
+	    name[j] = NG_EOS;
+	    if (cand[j] == NG_EOS)
 	        minlen = j;
 	}
         matchnum++;
     }
-
+    
     if (matchnum > 1)
-	res = (minlen == (int) strlen (name)) ?
+	res = (minlen == (int) wstrlen (name)) ?
 	    COMPLT_NOT_UNIQUE : COMPLT_AMBIGUOUS;
     else if (matchnum == 1)
 	res = COMPLT_SOLE;
@@ -208,8 +207,9 @@ NG_WCHAR_t *wname;
 
 #ifndef NO_FILECOMP
 static int
-complete_filename(wname)
+complete_filename(wname, nbuf)
 NG_WCHAR_t *wname;
+int nbuf;
 {
     char *name;
     int fnlen;
@@ -221,9 +221,9 @@ NG_WCHAR_t *wname;
     char *cand;
     char *filenames;
 
-    LM_OUT_CONVERT_TMP2(curbp->b_lang, NG_CODE_FOR_FILENAME, wname, name);
-    if (name == NULL)
-	return -1;
+    if ((name = alloca(NFILEN)) == NULL)
+        return -1;
+    LM_OUT_CONVERT2(curbp->b_lang, NG_CODE_FOR_FILENAME, wname, name);
     fnlen = strlen(name);
     
     if ((fnnum = fffiles (name, &filenames)) == -1)
@@ -252,7 +252,8 @@ NG_WCHAR_t *wname;
 	cand += (strlen (cand) + 1);
     }
     free (filenames);
-
+    LM_IN_CONVERT2(curbp->b_lang, NG_CODE_FOR_FILENAME, name, wname);
+    
     if (matchnum > 1)
 	res = (minlen == strlen (name)) ? COMPLT_NOT_UNIQUE : COMPLT_AMBIGUOUS;
     else if (matchnum == 1)
@@ -276,7 +277,7 @@ int flags;
     int cur_col;
     WINDOW *wp;
     
-    if ((bp = bfind ("*Completions*", TRUE)) == NULL)
+    if ((bp = bfind (_NG_WSTR("*Completions*"), TRUE)) == NULL)
 	return (FALSE);
 #ifdef	AUTOSAVE	/* 96.12.24 by M.Suzuki	*/
     bp->b_flag &= ~(BFCHG|BFACHG);    /* avoid recursive veread */
@@ -414,15 +415,15 @@ BUFFER *bp;
 {
     int fnlen;
     int j;
-    NG_WCHAR_t cand[NFILEN], line[NFILEN];
+    NG_WCHAR_t *cand;
+    NG_WCHAR_t line[NFILEN];
     LIST *lh;
 
     fnlen = wstrlen(name);
 
-    line[0] = '\0';
+    line[0] = NG_EOS;
     for (lh = &(bheadp->b_list); lh != NULL; lh = lh->l_next) {
-	LM_IN_CONVERT2(bp->b_lang, NG_CODE_FOR_FILENAME, lh->l_name, cand);
-	
+	cand = lh->l_name;
         if (wstrncmp (cand, name, fnlen) != 0)
 	    continue;
 

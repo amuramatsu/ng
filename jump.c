@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.9.2.5 2006/01/08 18:54:13 amura Exp $ */
+/* $Id: jump.c,v 1.9.2.6 2006/01/15 01:14:06 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -288,7 +288,7 @@ int f, n;
     if (s == TRUE)
 	wstrlcpy(compile_command, wbuf, NG_WCHARLEN(compile_command));
     
-    if ((bp = bfind("*compilation*", TRUE)) == NULL)
+    if ((bp = bfind(_NG_WSTR("*compilation*"), TRUE)) == NULL)
 	return FALSE;
     if ((wp = popbuf(bp)) == NULL)
 	return FALSE;
@@ -333,9 +333,9 @@ int f, n;
     register WINDOW *wp, *owp;
     register int s;
 
-    if (strcmp(curbp->b_bname,"*compilation*") == 0)
+    if (wstrncmpa(curbp->b_bname, "*compilation*", 20) == 0)
 	nextwind(FFRAND,1);
-    if ((bp = bfind("*compilation*", TRUE)) == NULL)
+    if ((bp = bfind(_NG_WSTR("*compilation*"), TRUE)) == NULL)
 	return FALSE;
     if ((wp = popbuf(bp)) == NULL)
 	return FALSE;

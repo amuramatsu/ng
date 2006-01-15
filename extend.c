@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.9 2006/01/14 19:59:59 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.10 2006/01/15 01:14:06 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -653,7 +653,7 @@ const char *fname;
     lang = get_default_lang();
     fio = lang->lm_get_code(NG_CODE_FOR_FILE);
     ewprintf("Loading %s ...", fname);
-    while ((s = ffgetline(buf, sizeof(buf)-1, &nbytes)) == FIOSUC) {
+    while ((s = ffgetline(buf, sizeof(buf)-1, &nbytes, NG_EOL_LF)) == FIOSUC) {
 	lineno++;
 	if (lang != get_default_lang()) {
 	    lang = get_default_lang();
