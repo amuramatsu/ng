@@ -98,6 +98,9 @@
 /* Define if you have the getgroups function.  */
 #undef HAVE_GETGROUPS
 
+/* Define if you have the lstat function.  */
+#undef HAVE_LSTAT
+
 /* Define if you have the mkstemp function.  */
 #undef HAVE_MKSTEMP
 
@@ -121,6 +124,9 @@
 
 /* Define if you have the symlink function.  */
 #undef HAVE_SYMLINK
+
+/* Define if you have the <assert.h> header file.  */
+#undef HAVE_ASSERT_H
 
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H

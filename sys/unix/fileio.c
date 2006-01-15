@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.20.2.8 2006/01/15 00:06:30 amura Exp $ */
+/* $Id: fileio.c,v 1.20.2.9 2006/01/15 11:46:39 amura Exp $ */
 /*
  *	unix file I/O. (for configure)
  *
@@ -219,9 +219,14 @@ islink(fn)
 const char *fn;
 {
     struct stat filestat;
-    
+   
+#ifdef HAVE_LSTAT 
+    if (lstat(fn, &filestat) < 0)
+	return TRUE;
+#else
     if (stat(fn, &filestat) < 0)
-	return FALSE;
+	return TRUE;
+#endif
     if (filestat.st_nlink >= 2)
 	return TRUE;
 #ifdef S_ISLNK
