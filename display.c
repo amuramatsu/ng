@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.13 2006/01/15 02:40:38 amura Exp $ */
+/* $Id: display.c,v 1.20.2.14 2006/01/15 03:01:30 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -271,15 +271,8 @@ vtputc(c)
 register NG_WCHAR_t c;
 {
     register VIDEO *vp;
-    int width;
+    int cwidth = terminal_lang->lm_width(c);
     
-    width = terminal_lang->lm_width(c);
-    if (!ISTAB(c) && vtrow+width >= nrow) {
-	vtmarkyen(NG_WBACKSL);
-	vtrow++;
-	vtcol = 0;
-    }
-
     /* vtrow sometimes over-runs the vnrow -1.  In the case, vp at
      * following line becomes an uninitialized pointer.  Then core
      * dump or system error may occur.  To avoid the error.  Some
@@ -288,14 +281,14 @@ register NG_WCHAR_t c;
      */
     if (vnrow - 1 <= vtrow)
 	return;
-
-    vp = vscreen[vtrow];
+    
     if (ISTAB(c) && !(curwp->w_bufp->b_flag & BFNOTAB)) {
 #ifdef VARIABLE_TAB
 	int tab = curwp->w_bufp->b_tabwidth;
 #else
 	int tab = 8;
 #endif
+	vp = vscreen[vtrow];
 	if (tabnext(vtcol,tab) < ncol-1) {
 	    do {
 		vtputc(NG_WSPACE);
@@ -308,8 +301,15 @@ register NG_WCHAR_t c;
 	}
 	return;
     }
+    
+    if (!ISTAB(c) && vtrow+cwidth >= ncol-1) {
+	vtmarkyen(NG_WBACKSL);
+	vtrow++;
+	vtcol = 0;
+    }
+    vp = vscreen[vtrow];
     terminal_lang->lm_displaychar(vp->v_text, vtcol, ncol, c);
-    vtcol += width;
+    vtcol += cwidth;
 }
 
 #if defined(MEMMAP) && !defined(HAVE_ORIGINAL_PUTLINE)
@@ -400,17 +400,22 @@ int *lines;
     *lines = 0;
     for (i=0; i<offset; ++i) {
 	c = lgetc(lp, i);
-	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB) )
-	    n = tabnext(*curcol, tab) - *curcol;
-	else
-	    n = terminal_lang->lm_width(c);
-
-	if (n + *curcol >= ncol-1) {
-	    *curcol = n;
-	    (*lines)++;
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) {
+	    *curcol = tabnext(*curcol, tab);
+	    if (*curcol >= ncol) {
+		*curcol = 0;
+		(*lines)++;
+	    }
 	}
-	else
-	    *curcol += n;
+	else {
+	    n = terminal_lang->lm_width(c);
+	    if (*curcol+n >= ncol-1) {
+		*curcol = n;
+		(*lines)++;
+	    }
+	    else
+		*curcol += n;
+	}
     }
     return *lines;
 }
@@ -505,7 +510,7 @@ int lines;
 	else
 	    n = lm_width(c);
 
-	if (n + curcol >= ncol-1) {
+	if (curcol+n >= ncol-1) {
 	    curcol = n;
 	    --lines;
 	}
@@ -526,7 +531,7 @@ int
 countlines(lp)
 const LINE *lp;
 {
-    register int i;
+    register int i, n;
     register int curcol;
     register int lines;
     register char c;
@@ -539,19 +544,16 @@ const LINE *lp;
     lines = 0;
     for (i=0; i<llength(lp); ++i) {
 	c = lgetc(lp, i);
-	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) { 
-	    curcol = tabnext(curcol, tab);
-	    if (curcol >= ncol-1) {
-		curcol = -1;
-		lines++;
-	    }
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB))
+	    n = tabnext(curcol, tab) - curcol;
+	else
+	    n = lm_width(c);
+	if (curcol+n >= ncol-1) {
+	    curcol = 0;
+	    lines++;
 	}
 	else
-	    curcol += lm_width(c);
-	if (curcol >= ncol-1) {
-	    curcol=0;
-	    ++lines;
-	}
+	    curcol += n;
     }
     return lines+1;
 }
