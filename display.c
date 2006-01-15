@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.14 2006/01/15 03:01:30 amura Exp $ */
+/* $Id: display.c,v 1.20.2.15 2006/01/15 09:36:11 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -271,7 +271,7 @@ vtputc(c)
 register NG_WCHAR_t c;
 {
     register VIDEO *vp;
-    int cwidth = terminal_lang->lm_width(c);
+    int cwidth;
     
     /* vtrow sometimes over-runs the vnrow -1.  In the case, vp at
      * following line becomes an uninitialized pointer.  Then core
@@ -289,20 +289,21 @@ register NG_WCHAR_t c;
 	int tab = 8;
 #endif
 	vp = vscreen[vtrow];
-	if (tabnext(vtcol,tab) < ncol-1) {
+	if (tabnext(vtcol,tab) < ncol) {
 	    do {
 		vtputc(NG_WSPACE);
 	    } while (vtcol<ncol && (vtcol%tab)!=0);
 	}
 	else {
+	    vteeol();
 	    vp->v_text[ncol-1] = NG_WBACKSL;
 	    vtrow++;
 	    vtcol = 0;
 	}
 	return;
     }
-    
-    if (!ISTAB(c) && vtrow+cwidth >= ncol-1) {
+    cwidth = terminal_lang->lm_width(c);
+    if (vtcol+cwidth >= ncol) {
 	vtmarkyen(NG_WBACKSL);
 	vtrow++;
 	vtcol = 0;
@@ -313,9 +314,9 @@ register NG_WCHAR_t c;
 }
 
 #if defined(MEMMAP) && !defined(HAVE_ORIGINAL_PUTLINE)
-static VOID
+VOID
 putline(row, s, color)
-int row, col;
+int row;
 const NG_WCHAR_t *s;
 int color;	/* this is dummy */
 {
@@ -325,13 +326,24 @@ int color;	/* this is dummy */
 
     vtrow = row;
     vtcol = 0;
+    ttmove(vtrow, 0);
+    ttcolor(color);
+    if (terminal_lang->lm_display_start_code != NULL)
+	terminal_lang->lm_display_start_code();
     for (i=0; i<ncol; i++, s++) {
 	if (*s != NG_WFILLER)
 	    TTPUTC(*s);
     }
-    
+    if (terminal_lang->lm_display_end_code != NULL)
+	terminal_lang->lm_display_end_code();
     vtrow = oldrow;
     vtcol = oldcol;
+    ttmove(vtrow, vtcol);
+#ifndef MOVE_STANDOUT
+    if (color != CTEXT)
+	ttcolor(CTEXT);
+#endif
+    ttflush();
 }
 #endif /* MEMMAP && !HAVE_ORIGINAL_PUTLINE */
 
@@ -409,9 +421,9 @@ int *lines;
 	}
 	else {
 	    n = terminal_lang->lm_width(c);
-	    if (*curcol+n >= ncol-1) {
+	    if (*curcol+n >= ncol) {
 		*curcol = n;
-		(*lines)++;
+		++(*lines);
 	    }
 	    else
 		*curcol += n;
@@ -457,7 +469,7 @@ int col, row;
 #ifdef VARIABLE_TAB
 	    width = (curcol/tab + 1)*tab - curcol;
 #else
-	    width = (curcol | 0x07) - curcol + 1;
+	    width = (curcol | 0x07) +1 - curcol;
 #endif
 	    /*
 	     * I should pay more care for the above line.
@@ -468,21 +480,17 @@ int col, row;
 	}
 	else
 	    width = lm_width(c);
-	if (row == 0 && col < curcol + (width + 1) / 2) {
+	if (row == 0 && col < curcol + (width+1)/2)
 	    return i;
-	}
 	curcol += width;
 	if (curcol >= ncol-width) {
 	    curcol = curcol - ncol + width;
 	    --row;
 	}
     }
-    if (row <= 0) {
+    if (row <= 0)
 	return i;
-    }
-    else {
-	return -row;
-    }
+    return -row;
 }
 
 /* Return offset of #th lines
@@ -510,7 +518,7 @@ int lines;
 	else
 	    n = lm_width(c);
 
-	if (curcol+n >= ncol-1) {
+	if (curcol+n >= ncol) {
 	    curcol = n;
 	    --lines;
 	}
@@ -548,7 +556,7 @@ const LINE *lp;
 	    n = tabnext(curcol, tab) - curcol;
 	else
 	    n = lm_width(c);
-	if (curcol+n >= ncol-1) {
+	if (curcol+n >= ncol) {
 	    curcol = 0;
 	    lines++;
 	}
@@ -725,7 +733,7 @@ out:
 		    for (j=x; j<y; ++j)
 			vtputc(lgetc(lp, j));
 		    curwp = old_curwp;
-		    if ( y < llength(lp) )
+		    if (y < llength(lp))
 			vtmarkyen(NG_WBACKSL);
 		    else
 			vteeol();
@@ -867,6 +875,48 @@ register VIDEO *pvp;
 }
 
 #if 0
+static VOID
+vtpute(c)
+int c;
+{
+    register VIDEO *vp;
+    int cwidth;
+#ifdef VARIABLE_TAB
+    int tab = curwp->w_bufp->b_tabwidth;
+#endif
+
+    vp = vscreen[vtrow];
+    if (vtcol >= ncol)
+	return;
+    else if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) {
+#ifdef VARIABLE_TAB
+	int tab = curwp->w_bufp->b_tabwidth;
+#else
+	int tab = 8;
+#endif
+	vp = vscreen[vtrow];
+	if (tabnext(vtcol, tab) <= ncol) {
+	    do {
+		vtpute(NG_WSPACE);
+	    } while (vtcol<ncol && ((vtcol+lbound)%tab)!=0);
+	}
+	return;
+    }
+    else if (vtcol >= ncol)
+	vp->v_text[ncol-1] = NG_WCODE('$');
+    cwidth = terminal_lang->lm_width(c);
+    if (vtcol < 0) {
+	if ((vtcol+cwidth) > 1) {
+	    for (i=0; i<vtcol+cwidth; i++)
+		vp->v_text[i] = NG_WCODE('$');
+	}
+	vtcol += cwidth;
+    }
+    vp = vscreen[vtrow];
+    terminal_lang->lm_displaychar(vp->v_text, vtcol, ncol, c);
+    vtcol += cwidth;
+}
+
 /* updext: update the extended line which the cursor is currently
  * on at a column greater than the terminal width. The line
  * will be scrolled right or left to let the user see where
@@ -889,7 +939,12 @@ int currow, curcol;
     for (j=0; j<llength(lp); ++j)		/* until the end-of-line */
 	vtpute(lgetc(lp, j));
     vteeol();					/* truncate the virtual line */
-    vscreen[currow]->v_text[0] = NG_WCODE('$');	/* and put a '$' in column 1 */
+    if (vscreen[currow]->v_text[ncol - 2] == NG_WFILLER) {
+	j = ncol - 2;
+	while (vscreen[currow]->v_text[j] == NG_WFILLER)
+	    vscreen[currow]->v_text[j--] = NG_WCODE('$');
+	vscreen[currow]->v_text[j] = NG_WCODE('$');
+    }
 }
 #endif
 
@@ -1010,9 +1065,9 @@ VIDEO *vvp, *pvp;
     if (cp5 != cp3)				/* Do erase.		*/
 	tteeol();
 #ifndef MOVE_STANDOUT	/* 90.03.21  by S.Yoshida */
-     ttcolor(CTEXT);
+    ttcolor(CTEXT);
 #endif
-     ttflush(); /* 90.06.09  by A.Shirahashi */
+    ttflush(); /* 90.06.09  by A.Shirahashi */
 #endif  /* MEMMAP */
 }
 
