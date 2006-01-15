@@ -1,4 +1,4 @@
-/* $Id: i_lang.h,v 1.1.2.12 2006/01/15 02:40:38 amura Exp $ */
+/* $Id: i_lang.h,v 1.1.2.13 2006/01/15 19:08:08 amura Exp $ */
 /*
  * This file is the language module definition of the NG
  * display editor.
@@ -75,8 +75,8 @@ typedef struct LANG_MODULE {
     /* Return display width at this code*/
     int (*lm_width)_PRO((NG_WCHAR_ta));
     /* reset display for statefull coding */
-    int (*lm_display_start_code)_PRO((void));
-    int (*lm_display_end_code)_PRO((void));
+    const char *(*lm_display_start_code)_PRO((int *));
+    const char *(*lm_display_end_code)_PRO((int *));
     /* return display codes to buffer */
     int (*lm_get_display_code)_PRO((NG_WCHAR_ta, char *, int));
     /* */

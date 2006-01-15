@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.17 2006/01/15 10:14:31 amura Exp $ */
+/* $Id: display.c,v 1.20.2.18 2006/01/15 19:08:08 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -318,7 +318,7 @@ VOID
 putline(row, s, color)
 int row;
 const NG_WCHAR_t *s;
-int color;	/* this is dummy */
+int color;
 {
     register int i;
     int oldrow = vtrow;
@@ -328,14 +328,22 @@ int color;	/* this is dummy */
     vtcol = 0;
     ttmove(vtrow, 0);
     ttcolor(color);
-    if (terminal_lang->lm_display_start_code != NULL)
-	terminal_lang->lm_display_start_code();
+    if (terminal_lang->lm_display_start_code != NULL) {
+	const char *p; int n;
+	p = terminal_lang->lm_display_start_code(&n);
+	while (n--)
+	    ttputc(*p++);
+    }
     for (i=0; i<ncol; i++, s++) {
 	if (*s != NG_WFILLER)
 	    TTPUTC(*s);
     }
-    if (terminal_lang->lm_display_end_code != NULL)
-	terminal_lang->lm_display_end_code();
+    if (terminal_lang->lm_display_end_code != NULL) {
+	const char *p; int n;
+	p = terminal_lang->lm_display_end_code(&n);
+	while (n--)
+	    ttputc(*p++);
+    }
     vtrow = oldrow;
     vtcol = oldcol;
     ttmove(vtrow, vtcol);
@@ -842,8 +850,7 @@ out:
 	while (offs != nrow-1) {
 	    vp1 = vscreen[offs];
 	    vp2 = pscreen[offs];
-	    if (vp1->v_color != vp2->v_color
-		    ||  vp1->v_hash != vp2->v_hash)
+	    if (vp1->v_color != vp2->v_color ||  vp1->v_hash != vp2->v_hash)
 		break;
 	    uline(offs, vp1, vp2);
 	    ucopy(vp1, vp2);
@@ -858,8 +865,7 @@ out:
 	while (size != offs) {
 	    vp1 = vscreen[size-1];
 	    vp2 = pscreen[size-1];
-	    if (vp1->v_color != vp2->v_color
-		||  vp1->v_hash	 != vp2->v_hash)
+	    if (vp1->v_color != vp2->v_color ||  vp1->v_hash != vp2->v_hash)
 		break;
 	    uline(size-1, vp1, vp2);
 	    ucopy(vp1, vp2);
@@ -1020,8 +1026,12 @@ VIDEO *vvp, *pvp;
 	    tteeol();
 #endif
 	ttcolor(vvp->v_color);
-	if (terminal_lang->lm_display_start_code != NULL)
-	    terminal_lang->lm_display_start_code();
+	if (terminal_lang->lm_display_start_code != NULL) {
+	    const char *p; int n;
+	    p = terminal_lang->lm_display_start_code(&n);
+	    while (n--)
+		ttputc(*p++);
+	}
 #ifdef	STANDOUT_GLITCH
 	cp1 = &vvp->v_text[SG > 0 ? SG : 0];
 	/* the odd code for SG==0 is to avoid putting the invisable
@@ -1033,7 +1043,7 @@ VIDEO *vvp, *pvp;
 	cp1 = &vvp->v_text[0];
 	cp2 = &vvp->v_text[ncol];
 #endif	/* STANDOUT_GLITCH */
-	while (cp1 != cp2) {
+	while (cp1 < cp2) {
 	    if (*cp1 != NG_WFILLER) {
 		TTPUTC(*cp1);
 		w = terminal_lang->lm_width(*cp1);
@@ -1041,8 +1051,12 @@ VIDEO *vvp, *pvp;
 		cp1 += w;
 	    }
 	}
-	if (terminal_lang->lm_display_end_code != NULL)
-	    terminal_lang->lm_display_start_code();
+	if (terminal_lang->lm_display_end_code != NULL) {
+	    const char *p; int n;
+	    p = terminal_lang->lm_display_end_code(&n);
+	    while (n--)
+		ttputc(*p++);
+	}
 #ifndef MOVE_STANDOUT
 	ttcolor(CTEXT);
 #endif
@@ -1089,9 +1103,13 @@ VIDEO *vvp, *pvp;
     else if (SG < 0)
 #endif /* STANDOUT_GLITCH */
 	ttcolor(vvp->v_color);
-    if (terminal_lang->lm_display_start_code != NULL)
-	terminal_lang->lm_display_start_code();
-    while (cp1 != cp5) {
+    if (terminal_lang->lm_display_start_code != NULL) {
+	const char *p; int n;
+	p = terminal_lang->lm_display_start_code(&n);
+	while (n--)
+	    ttputc(*p++);
+    }
+    while (cp1 < cp5) {
 	if (*cp1 != NG_WFILLER) {
 	    TTPUTC(*cp1);
 	    w = terminal_lang->lm_width(*cp1);
@@ -1099,8 +1117,12 @@ VIDEO *vvp, *pvp;
 	    cp1 += w;
 	}
     }
-    if (terminal_lang->lm_display_end_code != NULL)
-	terminal_lang->lm_display_end_code();
+    if (terminal_lang->lm_display_end_code != NULL) {
+	const char *p; int n;
+	p = terminal_lang->lm_display_end_code(&n);
+	while (n--)
+	    ttputc(*p++);
+    }
     if (cp5 != cp3)				/* Do erase.		*/
 	tteeol();
 #ifndef MOVE_STANDOUT	/* 90.03.21  by S.Yoshida */
