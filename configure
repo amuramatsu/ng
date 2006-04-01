@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.12.2.2 
+# From configure.in Revision: 1.12.2.4 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13 
 # Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.
@@ -2517,11 +2517,66 @@ else
 fi
 done
 
+for ac_func in strlcpy strlcat
+do
+echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+echo "configure:2524: checking for $ac_func" >&5
+if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 2529 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char $ac_func();
+
+int main() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
+choke me
+#else
+$ac_func();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:2552: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=no"
+fi
+rm -f conftest*
+fi
+
+if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+    ac_tr_func=HAVE_`echo $ac_func | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_func 1
+EOF
+ 
+else
+  echo "$ac_t""no" 1>&6
+fi
+done
+
 
 # Extract the first word of "cp", so it can be a program name with args.
 set dummy cp; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:2525: checking for $ac_word" >&5
+echo "configure:2580: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_cp_cmd'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -2560,7 +2615,7 @@ EOF
 # Extract the first word of "mv", so it can be a program name with args.
 set dummy mv; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:2564: checking for $ac_word" >&5
+echo "configure:2619: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_mv_cmd'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -2599,7 +2654,7 @@ EOF
 # Extract the first word of "ls", so it can be a program name with args.
 set dummy ls; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:2603: checking for $ac_word" >&5
+echo "configure:2658: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_ls_cmd'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -2638,7 +2693,7 @@ EOF
 # Extract the first word of "rmdir", so it can be a program name with args.
 set dummy rmdir; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:2642: checking for $ac_word" >&5
+echo "configure:2697: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_rmdir_cmd'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -2676,7 +2731,7 @@ EOF
 
 
 echo $ac_n "checking if --enable-unicode option specified""... $ac_c" 1>&6
-echo "configure:2680: checking if --enable-unicode option specified" >&5
+echo "configure:2735: checking if --enable-unicode option specified" >&5
 # Check whether --enable-unicode or --disable-unicode was given.
 if test "${enable_unicode+set}" = set; then
   enableval="$enable_unicode"
@@ -2704,19 +2759,19 @@ if test "$cv_unicode" = "yes"; then
 	fi
 
 	echo $ac_n "checking for iconv.h""... $ac_c" 1>&6
-echo "configure:2708: checking for iconv.h" >&5
+echo "configure:2763: checking for iconv.h" >&5
 	if eval "test \"`echo '$''{'ac_cv_iconvhdrcheck'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   	cat > conftest.$ac_ext <<EOF
-#line 2713 "configure"
+#line 2768 "configure"
 #include "confdefs.h"
 #include <iconv.h>
 int main() {
 iconv_t ic;
 ; return 0; }
 EOF
-if { (eval echo configure:2720: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2775: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_iconvhdrcheck="yes"
 else
@@ -2740,7 +2795,7 @@ fi
 	fi
 
 	echo $ac_n "checking for library containing iconv_open""... $ac_c" 1>&6
-echo "configure:2744: checking for library containing iconv_open" >&5
+echo "configure:2799: checking for library containing iconv_open" >&5
 	OLD_LIBS=$LIBS
 	for x_libname in iconv giconv dld ''; do
 		if test "$x_libname" != ""; then
@@ -2751,7 +2806,7 @@ echo "configure:2744: checking for library containing iconv_open" >&5
   iconv_euc_code="EUC-JP"
 else
   cat > conftest.$ac_ext <<EOF
-#line 2755 "configure"
+#line 2810 "configure"
 #include "confdefs.h"
 
 #include <iconv.h>
@@ -2763,7 +2818,7 @@ int main(){
     return 0;
 }
 EOF
-if { (eval echo configure:2767: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:2822: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   iconv_euc_code=$x_euc
 else
@@ -2796,7 +2851,7 @@ EOF
 fi
 
 echo $ac_n "checking if --enable-canna option specified""... $ac_c" 1>&6
-echo "configure:2800: checking if --enable-canna option specified" >&5
+echo "configure:2855: checking if --enable-canna option specified" >&5
 # Check whether --enable-canna or --disable-canna was given.
 if test "${enable_canna+set}" = set; then
   enableval="$enable_canna"
@@ -2831,19 +2886,19 @@ if test "$cv_canna" = "yes"; then
 	fi
 
 	echo $ac_n "checking for canna/jrkanji.h""... $ac_c" 1>&6
-echo "configure:2835: checking for canna/jrkanji.h" >&5
+echo "configure:2890: checking for canna/jrkanji.h" >&5
 	if eval "test \"`echo '$''{'ac_cv_cannahdrcheck'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   	cat > conftest.$ac_ext <<EOF
-#line 2840 "configure"
+#line 2895 "configure"
 #include "confdefs.h"
 #include <canna/jrkanji.h>
 int main() {
 jrKanjiStatus ks;
 ; return 0; }
 EOF
-if { (eval echo configure:2847: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2902: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_cannahdrcheck="yes"
 else
@@ -2867,7 +2922,7 @@ fi
 	fi
 
 	echo $ac_n "checking for jrKanjiControl in -lcanna""... $ac_c" 1>&6
-echo "configure:2871: checking for jrKanjiControl in -lcanna" >&5
+echo "configure:2926: checking for jrKanjiControl in -lcanna" >&5
 ac_lib_var=`echo canna'_'jrKanjiControl | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2875,7 +2930,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lcanna  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2879 "configure"
+#line 2934 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2886,7 +2941,7 @@ int main() {
 jrKanjiControl()
 ; return 0; }
 EOF
-if { (eval echo configure:2890: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2945: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
