@@ -1,4 +1,4 @@
-# $Id: GNUmakefile,v 1.7 2003/02/25 14:12:01 amura Exp $
+# $Id: GNUmakefile,v 1.7.2.1 2006/04/01 15:19:28 amura Exp $
 # GNUmakefile for Ng on Human68k (SHARP X68000)
 #	This makefile requires GNU make		91.01.20  by K.Maeda.
 #
@@ -22,6 +22,7 @@ else
 CP		= copy
 PATHDELIM	= \\
 endif
+PERL		= perl
 
 SYSDIR = sys$(PATHDELIM)$(SYS)$(PATHDELIM)
 SYSDEF = sys$(PATHDELIM)default$(PATHDELIM)
@@ -49,27 +50,28 @@ OBJS	= basic.o dir.o dired.o shell.o version.o window.o \
 IND	= buffer.o complt.o display.o cmode.o echo.o extend.o file.o \
 	  help.o kbd.o keymap.o line.o macro.o main.o match.o modes.o \
 	  paragraph.o random.o region.o regex.o re_search.o search.o \
-	  skg.o kanji.o undo.o word.o
+	  skg.o kanji.o undo.o word.o lang.o lang_ascii.o
 
 # System dependent objects
-OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o fileio.o
+OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o fileio.o in_code.o lstring.o
 
 # Human68k additional objects
 HOBJS	= sysinit.o dosutil.o h68kfncmp.o termcap.o fepctrl.o hentrap.o
 
 OBJ	= $(OBJS) $(IND) $(OOBJS) $(HOBJS)
 
-OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c
+OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c in_code.c lstring.c
 HSRCS	= sysinit.c dosutil.c h68kfncmp.c termcap.c fepctrl.c hentrap.s
+LSRCS	= lang_ascii.c
 SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  random.c region.c search.c shell.c version.c window.c word.c \
 	  buffer.c complt.c display.c echo.c extend.c help.c kbd.c \
 	  keymap.c macro.c main.c modes.c regex.c re_search.c kanji.c \
-	  kinsoku.c skg.c jump.c undo.c autosave.c
+	  kinsoku.c skg.c jump.c undo.c autosave.c lang.c
 
 OINCS =	ttydef.h sysdef.h chrdef.h
-INCS =	config.h def.h extern.h
-REINCS = regex_e.h regex_j.h regex_j.c regex_e.h kanji_.h kanji_.c
+INCS =	config.h def.h extern.h lstring.h
+REINCS = trex.h trex.c
 
 PROG = ng.x
 
@@ -123,6 +125,10 @@ skg.o: 		$(INCS) $(OINCS) macro.h key.h undo.h
 
 ttyio.o:	$(INCS) $(OINCS) fepctrl.h kanji.h kinit.h
 
+tty.o:		$(INCS) $(OINCS) fasttty.c
+
+lang.o:		$(INCS) $(OINCS) langlist.h
+
 sysdef.h:	$(SYSDIR)sysdef.h	# Update, if needed.
 	$(CP) $(SYSDIR)sysdef.h .
 
@@ -144,11 +150,14 @@ spawn.c:	$(SYSDIR)spawn.c
 ttyio.c:	$(SYSDIR)ttyio.c
 	$(CP) $(SYSDIR)ttyio.c .
 
-tty.c:		$(SYSDIR)tty.c
-	$(CP) $(SYSDIR)tty.c .
-
 ttykbd.c:	$(SYSDEF)ttykbd.c
 	$(CP) $(SYSDEF)ttykbd.c .
+
+tty.c:		$(SYSDEF)tty.c
+	$(CP) $(SYSDEF)tty.c .
+
+fasttty.c:	$(SYSDIR)fasttty.c
+	$(CP) $(SYSDIR)fasttty.c .
 
 fileio.c:	$(SYSDIR)fileio.c
 	$(CP) $(SYSDIR)fileio.c .
@@ -175,6 +184,18 @@ fepctrl.o:	fepctrl.c fepctrl.h
 
 hentrap.s:	$(SYSDIR)hentrap.s
 	$(CP) $(SYSDIR)hentrap.s .
+
+in_code.c:	$(SYSDEF)/in_code.c
+	$(CP) $(SYSDEF)in_code.c .
+
+lstring.c:	$(SYSDEF)/lstring.c
+	$(CP) $(SYSDEF)lstring.c .
+
+lstring.h:	$(SYSDEF)/lstring.h
+	$(CP) $(SYSDEF)lstring.h .
+
+langlist.h:	$(LSRCS) make_langlist.pl
+	$(PERL) make_langlist.pl $(LSRCS) > langlist.h
 
 clean:
 ifeq ($(UNIX_STYLE),yes)

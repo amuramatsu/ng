@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.14.2.2 2006/01/14 23:45:32 amura Exp $ */
+/* $Id: fileio.c,v 1.14.2.3 2006/04/01 15:19:28 amura Exp $ */
 /*
  *		Human68k file I/O
  */
@@ -7,7 +7,9 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+
 #include <doslib.h>
+#include "i_buffer.h"
 
 #define	A_RDONLY	0x01
 #define	A_HIDEN		0x02

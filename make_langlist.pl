@@ -1,9 +1,9 @@
 #! /usr/local/bin/perl
-$RCSid = '$Id: make_langlist.pl,v 1.1.2.1 2006/01/01 18:34:13 amura Exp $';
+$RCSid = '$Id: make_langlist.pl,v 1.1.2.2 2006/04/01 15:19:28 amura Exp $';
 # This is a part of NG Next Generation
 #
-# This file is not need perl5, but only perl4.  Because some platforms like
-# as Human68k don't have implement of perl5.
+# This file is not need perl5, but only perl version 4. Because some platforms
+# like Human68k don't have a implementation of perl5.
 #
 #    making language table
 #
@@ -13,11 +13,11 @@ sub find_define {
     local (@list, %result);
     
     open(INPUT, "<$file") || die "cannot open '$file'";
-    local (@list) = grep /^LANG_DEFINE/, <INPUT>;
+    local (@list) = grep(/^LANG_DEFINE/, <INPUT>);
     close(INPUT);
     foreach (@list) {
         if (/LANG_DEFINE\s*\(\"([a-zA-Z_ ]+)\"\s*,\s*([a-zA-Z_]+)\)/) {
-	    $result{lc($1)} = $2;
+	    $result{"\l$1"} = $2;
 	}
     }
     return %result;
@@ -72,6 +72,6 @@ __EOS__
 
 %data = ();
 foreach (@ARGV) {
-    %data = (%data, find_define($_));
+    %data = (%data, &find_define($_));
 }
-make_langlist(%data);
+&make_langlist(%data);

@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.12.2.1 2006/01/14 22:47:48 amura Exp $ */
+/* $Id: ttyio.c,v 1.12.2.2 2006/04/01 15:19:28 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
@@ -12,13 +12,11 @@
 #include <doslib.h>
 #include <iocslib.h>
 #include <time.h>
+#include "tty.h"
 #ifdef FEPCTRL
 #include "fepctrl.h"
 #endif
-#include "kanji.h"
-#ifdef HOJO_KANJI
-#include "kinit.h"	/* for TOUFU charactor */
-#endif
+#include "i_lang.h"
 
 #define	RAW_MODE	0x20
 #define	COOKED_MODE	0x00
@@ -218,10 +216,8 @@ ttflush()
     nobuf = 0;
 }
 
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
 static int nkey = 0;		/* The number of ungetc charactor. */
 static int keybuf[4];		/* Ungetc charactors.		*/
-#endif	/* KANJI */
 
 /*
  * Read character from terminal.
@@ -254,10 +250,8 @@ ttgetc()
 #  define XF3		(0x80 << 16)
 #endif	/* XF1_3GROUP */
 
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0)
 	return(keybuf[--nkey]);
-#endif	/* KANJI */
 #ifdef	AUTOSAVE
     while (!kbhit())
 	autosave_handler();	/* this is polling */
@@ -274,7 +268,6 @@ ttgetc()
     return (KCHAR)c;
 }
 
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
 /*
  * Save pre-readed char to read again.
  */
@@ -284,7 +277,6 @@ int c;
 {
     keybuf[nkey++] = c;
 }
-#endif	/* KANJI */
 
 /*
  * set the tty size.
@@ -311,10 +303,8 @@ setttysize()
 int
 typeahead()
 {
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0)
 	return(TRUE);
-#endif	/* KANJI */
 #ifdef	FEPCTRL
     if (fep_get_mode())	/* This hack for ASK68k */
 	return(FALSE);
@@ -327,7 +317,7 @@ typeahead()
  */
 VOID
 panic(s)
-char *s;
+const char *s;
 {
     fputs("panic: ", stderr);
     fputs(s, stderr);
@@ -346,10 +336,8 @@ ttwait()
     int start;
     int lap;
     
-#ifdef	KANJI	/* 90.02.05  by S.Yoshida */
     if (nkey > 0)
 	return(FALSE);
-#endif	/* KANJI */
     start = ONTIME();
     lap = 0;
     while (lap < 100) {

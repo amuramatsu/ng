@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.7.2.2 2006/01/14 21:11:07 amura Exp $ */
+/* $Id: sysdef.h,v 1.7.2.3 2006/04/01 15:19:28 amura Exp $ */
 /*
  *		Human68k system definitions
  */
@@ -8,10 +8,9 @@
 #ifndef __SYSDEF_H__
 #define __SYSDEF_H__
 
+#include <assert.h>
 #include <stdio.h>
-/*
-#include <string.h>		 need to use memcpy(). but defined in def.h
-*/
+#include <time.h>
 
 #define NFILEN		128		/* Length, file name.		*/
 #define	KBLOCK		1024		/* Kill grow.			*/

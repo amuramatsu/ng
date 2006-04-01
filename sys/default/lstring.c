@@ -1,4 +1,4 @@
-/* $Id: lstring.c,v 1.1.2.1 2006/04/01 14:29:43 amura Exp $ */
+/* $Id: lstring.c,v 1.1.2.2 2006/04/01 15:19:28 amura Exp $ */
 /*
  * strlcpy and strlcat for old platform
  */
@@ -17,7 +17,7 @@ size_t n;
 {
     size_t i;
     register const char *p = src;
-    for (i=n-1; i>0 && *p!=NG_EOS; i--)
+    for (i=n-1; i>0 && *p!='\0'; i--)
 	*dst++ = *p++;
     *dst = '\0';
     while (*p++ != '\0')
@@ -36,12 +36,12 @@ size_t n;
     size_t i;
     register const char *psrc = src;
     register char *pdst = dst;
-    while (*pdst != NG_EOS)
+    while (*pdst != '\0')
 	pdst++;
     for (i=n-(pdst-dst)-1; i>0 && *psrc != '\0'; i--)
 	*pdst++ = *psrc++;
     *pdst = '\0';
-    while (*psrc++ != '\0';
+    while (*psrc++ != '\0');
 	/*NOP*/;
     return (pdst-dst) + (psrc-src);
 }

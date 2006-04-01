@@ -1,4 +1,4 @@
-/* $Id: spawn.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: spawn.c,v 1.4.2.1 2006/04/01 15:19:28 amura Exp $ */
 /*
  *		Spawn CLI for Human68k
  */
@@ -11,6 +11,7 @@
 
 #include <signal.h>
 #include <process.h>
+#include "ttyio.h"
 
 char *toh68kfn _PRO((char *));
 static char *shellp = NULL;		/* Saved "SHELL" name.		*/
