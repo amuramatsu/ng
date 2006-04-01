@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.9.2.6 2006/01/15 01:14:06 amura Exp $ */
+/* $Id: jump.c,v 1.9.2.7 2006/04/01 13:43:16 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -165,7 +165,7 @@ int f, n;
 	col = 0;
 	while (col < llength(dlp) &&
 	       parse_error_message(dlp, col, wbuf, &lineno, &col)) {
-	    int i = curbp->b_lang->lm_out_convert_len(code, wbuf, NULL);
+	    int i = curbp->b_lang->lm_out_convert_len(code, wbuf, NG_CODE_CHKLEN);
 	    if (i > buflen) {
 		buflen = i;
 		MALLOCROUND(buflen);
@@ -174,7 +174,7 @@ int f, n;
 		    return FALSE;
 		}
 	    }
-	    curbp->b_lang->lm_out_convert(code, wbuf, NULL, buf);
+	    curbp->b_lang->lm_out_convert(code, wbuf, NG_CODE_CHKLEN, buf);
 	    if (access(buf, R_OK) == 0) {
 		/* ewprintf( "file:`%ls' line %d", buf, lineno ); */
 		/*
