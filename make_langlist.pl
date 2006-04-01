@@ -1,5 +1,5 @@
 #! /usr/local/bin/perl
-$RCSid = '$Id: make_langlist.pl,v 1.1.2.2 2006/04/01 15:19:28 amura Exp $';
+$RCSid = '$Id: make_langlist.pl,v 1.1.2.3 2006/04/01 17:36:07 amura Exp $';
 # This is a part of NG Next Generation
 #
 # This file is not need perl5, but only perl version 4. Because some platforms
@@ -17,7 +17,7 @@ sub find_define {
     close(INPUT);
     foreach (@list) {
         if (/LANG_DEFINE\s*\(\"([a-zA-Z_ ]+)\"\s*,\s*([a-zA-Z_]+)\)/) {
-	    $result{"\l$1"} = $2;
+	    $result{"\L$1"} = $2;
 	}
     }
     return %result;
