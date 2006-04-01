@@ -1,4 +1,4 @@
-/* $Id: help.c,v 1.6.2.7 2006/01/15 01:14:06 amura Exp $ */
+/* $Id: help.c,v 1.6.2.8 2006/04/01 17:15:15 amura Exp $ */
 /* Help functions for MicroGnuEmacs 2 */
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
@@ -6,6 +6,8 @@
 
 #ifndef NO_HELP
 #include "help.h"
+
+#include "lstring.h"
 
 #include "i_buffer.h"
 #include "echo.h"

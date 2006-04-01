@@ -1,4 +1,4 @@
-/* $Id: dosutil.c,v 1.4 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: dosutil.c,v 1.4.2.1 2006/04/01 17:15:15 amura Exp $ */
 /*
  *		UNIX like functions for Human68k.
  *
@@ -11,6 +11,7 @@
 
 #include <iocslib.h>
 #include <time.h>
+#include <conio.h>
 
 /* Sleep (busily) for n seconds */
 /* But return on key input (kaoru) */
@@ -33,4 +34,5 @@ int n;
 	if (laps >= s)
 	    return 0;
     }
+    return 0;
 }

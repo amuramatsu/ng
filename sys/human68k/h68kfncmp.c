@@ -1,4 +1,4 @@
-/* $Id: h68kfncmp.c,v 1.3 2003/02/22 08:09:47 amura Exp $ */
+/* $Id: h68kfncmp.c,v 1.3.2.1 2006/04/01 17:15:15 amura Exp $ */
 /*
  *		Human68k file name comparison
  */
@@ -8,8 +8,8 @@
 
 int
 h68kfncmp(s1, s2)
-register char *s1;
-register char *s2;
+const register char *s1;
+const register char *s2;
 {
     register int c1;
     register int c2;

@@ -1,4 +1,4 @@
-/* $Id: dir.c,v 1.16.2.5 2006/01/04 17:00:39 amura Exp $ */
+/* $Id: dir.c,v 1.16.2.6 2006/04/01 17:15:14 amura Exp $ */
 /*
  * Name:	MG 2a
  *		Directory management functions
@@ -10,6 +10,7 @@
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
 
+#include "lstring.h"
 #include "dir.h"
 #include "i_buffer.h"
 #include "i_lang.h"

@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.7.2.3 2006/04/01 15:19:28 amura Exp $ */
+/* $Id: sysdef.h,v 1.7.2.4 2006/04/01 17:15:15 amura Exp $ */
 /*
  *		Human68k system definitions
  */
@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>		/* with libc */
+#include <sys/types.h>		/* with libc */
 
 #define NFILEN		128		/* Length, file name.		*/
 #define	KBLOCK		1024		/* Kill grow.			*/
@@ -62,6 +64,18 @@ typedef short	KCHAR;			/* Type for internal keystrokes	*/
 
 #ifdef __GNUC__
 #define alloca		__builtin_alloca
+#endif
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void sysinit(void);
+int h68kfncmp(const char *, const char *);
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __SYSDEF_H__ */

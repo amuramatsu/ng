@@ -1,7 +1,9 @@
-/* $Id: fasttty.c,v 1.1.2.2 2006/01/14 21:39:51 amura Exp $ */
+/* $Id: fasttty.c,v 1.1.2.3 2006/04/01 17:15:15 amura Exp $ */
 /*
  * IOCS direct display driver
  */
+
+#include "display.h"
 #include <iocslib.h>
 
 #define BEL	0x07			/* BEL character.		*/

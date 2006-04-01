@@ -1,4 +1,4 @@
-/* $Id: kbd.c,v 1.13.2.11 2006/01/14 20:04:19 amura Exp $ */
+/* $Id: kbd.c,v 1.13.2.12 2006/04/01 17:15:15 amura Exp $ */
 /*
  *		Terminal independent keyboard handling.
  */
@@ -673,7 +673,7 @@ kgetkey_continued()
 int
 kgetkey()
 {
-    register int c1, c2;
+    register int c1;
     kgetkey_continue = TRUE;
     do {
 	c1 = getkbd();
@@ -681,7 +681,7 @@ kgetkey()
 	if (c1 == NG_WESC && ttwait()==FALSE) {
 	    c1 = getkbd();
 	    if (c1 == 'O' || c1 == '[') {
-		c2 = getkbd();
+		register int c2 = getkbd();
 		switch (c2) {
 		case 'A': c1 = NG_W_UP; break;
 		case 'B': c1 = NG_W_DOWN; break;

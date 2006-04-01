@@ -1,4 +1,4 @@
-/* $Id: jump.c,v 1.9.2.7 2006/04/01 13:43:16 amura Exp $ */
+/* $Id: jump.c,v 1.9.2.8 2006/04/01 17:15:15 amura Exp $ */
 /*
  * jump-to-error
  *
@@ -96,6 +96,7 @@ const char *pat;
 static int
 parse_error_message(clp, col, namebuf, ip, parse_end)
 LINE *clp;
+int col;
 NG_WCHAR_t *namebuf;
 int *ip, *parse_end;
 {

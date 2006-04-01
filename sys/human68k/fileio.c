@@ -1,4 +1,4 @@
-/* $Id: fileio.c,v 1.14.2.3 2006/04/01 15:19:28 amura Exp $ */
+/* $Id: fileio.c,v 1.14.2.4 2006/04/01 17:15:15 amura Exp $ */
 /*
  *		Human68k file I/O
  */
@@ -7,9 +7,13 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "fileio.h"
 
 #include <doslib.h>
+
 #include "i_buffer.h"
+#include "buffer.h"
+#include "echo.h"
 
 #define	A_RDONLY	0x01
 #define	A_HIDEN		0x02
@@ -453,7 +457,6 @@ register char *fn;
 	}
 	else {			/* change drives to get default directory */
 	    int drive;
-	    int ndrive;
 	    drive = fnb[0];
 	    if (ISUPPER(drive))
 		drive = TOLOWER(drive);
@@ -595,11 +598,7 @@ char *suffix;
 #endif
     }
 #endif
-#ifdef	KANJI	/* 90.02.10  by S.Yoshida */
     strcat(home, "/ng.ini");
-#else	/* NOT KANJI */
-    strcat(home, "/mg.ini");
-#endif	/* KANJI */
     if (suffix != NULL) {
 	strcat(home, "-");
 	strcat(home, suffix);
@@ -639,7 +638,6 @@ copy(frname, toname)
 char *frname, *toname;
 {
     char cmd[CMDLINELENGTH];
-    char *ptr;
     char frnames[NFILEN];
     char tonames[NFILEN];
 
@@ -683,7 +681,7 @@ char *dirname;
 	return NULL;
     }
     for (i = 0; i < numfiles; i++) {
-	addline(bp, filelist[i]);
+	addline(bp, filelist[i]); /* XXX */
 	free(filelist[i]);
     }
     free(filelist);
@@ -710,6 +708,7 @@ int
 d_makename(lp, fn, buflen)
 register LINE *lp;
 register char *fn;
+int buflen;
 {
     register char *cp;
     int len;
@@ -787,7 +786,8 @@ char *dirname;
 	    mkfileline(filelist[*numfiles], &fileinfo);
 	    (*numfiles)++;
 	}
-	qsort(filelist, *numfiles, sizeof (char *), filelinecmp);
+	qsort(filelist, *numfiles, sizeof (char *),
+	      (int (*)(const VOIDptr, const VOIDptr))filelinecmp);
 	return(filelist);
     }
     return(NULL);

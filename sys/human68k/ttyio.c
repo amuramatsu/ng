@@ -1,4 +1,4 @@
-/* $Id: ttyio.c,v 1.12.2.2 2006/04/01 15:19:28 amura Exp $ */
+/* $Id: ttyio.c,v 1.12.2.3 2006/04/01 17:15:15 amura Exp $ */
 /*
  *		Human68k terminal I/O
  */
@@ -8,15 +8,23 @@
 
 #include "config.h"	/* 90.12.20  by S.Yoshida */
 #include "def.h"
+#include "ttyio.h"
 
 #include <doslib.h>
 #include <iocslib.h>
 #include <time.h>
+#include <conio.h>
+
+#include "i_lang.h"
 #include "tty.h"
+#include "echo.h"
+
+#ifdef	AUTOSAVE
+#include "autosave.h"
+#endif
 #ifdef FEPCTRL
 #include "fepctrl.h"
 #endif
-#include "i_lang.h"
 
 #define	RAW_MODE	0x20
 #define	COOKED_MODE	0x00
@@ -51,6 +59,9 @@ VOID fepmode_off _PRO((void));
 int fepmode_toggle _PRO((void));
 #endif
 
+static int ttraw _PRO((VOID));
+static int ttcooked _PRO((VOID));
+
 static VOID assignkey _PRO((void));
 static VOID cancelkey _PRO((void));
 VOID setttysize _PRO((void));
@@ -62,10 +73,10 @@ VOID setttysize _PRO((void));
 VOID
 ttopen()
 {
+#ifndef DIRECT_IOCS
     register char *tv_stype;
     char tcbuf[TERMCAP_BUF_LEN], err_str[72];
 
-#ifndef DIRECT_IOCS
     /* do this the REAL way */
     if ((tv_stype = getenv("TERM")) == NULL) {
 	puts("Environment variable TERM not defined!");
@@ -92,7 +103,7 @@ ttopen()
  * Ng expects.	Thus, stty changes done while spawncli() is in effect
  * will be reflected in Ng.
  */
-int
+static int
 ttraw()
 {
     if ((stdinstat = IOCTRLGT(0)) < 0) {
@@ -128,7 +139,7 @@ ttclose()
  * This function restores all terminal settings to their default values,
  * in anticipation of exiting or suspending the editor.
  */
-int
+static int
 ttcooked()
 {
     ttflush();
