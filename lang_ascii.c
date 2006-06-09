@@ -1,4 +1,4 @@
-/* $Id: lang_ascii.c,v 1.1.2.9 2006/06/09 16:06:25 amura Exp $ */
+/* $Id: lang_ascii.c,v 1.1.2.10 2006/06/09 16:44:29 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -239,7 +239,8 @@ int c;
     return c;
 }
 
-static int ascii_get_display_code(c, buf, buflen)
+static int ascii_get_display_code(code, c, buf, buflen)
+int code;
 NG_WCHAR_ta c;
 char *buf;
 int buflen;

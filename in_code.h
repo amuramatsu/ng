@@ -1,4 +1,4 @@
-/* $Id: in_code.h,v 1.1.2.16 2006/06/09 16:06:25 amura Exp $ */
+/* $Id: in_code.h,v 1.1.2.17 2006/06/09 16:44:29 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -80,8 +80,8 @@ NG_WCHAR_t *_ng_wstr _PRO((const char *));
 #define NG_W_INPUTCONT	NG_WCODE(0xFF00)
 #define NG_WFILLER	NG_WCODE(0xFF01)
 #define NG_WRESET	NG_WCODE(0xFF02)
-#define NG_WSTART	NG_WCODE(0xFF02)
-#define NG_WFINISH	NG_WCODE(0xFF03)
+#define NG_WSTART	NG_WCODE(0xFF03)
+#define NG_WFINISH	NG_WCODE(0xFF04)
 
 #define NG_W_PF01	NG_WCODE(0xFF10)
 #define NG_W_PF02	NG_WCODE(0xFF11)

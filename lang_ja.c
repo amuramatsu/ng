@@ -1,4 +1,4 @@
-/* $Id: lang_ja.c,v 1.1.2.2 2006/06/09 16:06:25 amura Exp $ */
+/* $Id: lang_ja.c,v 1.1.2.3 2006/06/09 16:44:29 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -112,6 +112,8 @@ static unsigned int keyin_first = 0; /* common buffer for multibyte input */
 
 #define	SS2	0x8e
 #define	SS3	0x8f
+#define SI	0x0e
+#define SO	0x0f
 
 static int
 ja_code_expect(buf, n)
@@ -307,6 +309,7 @@ NG_WCHAR_t *dst;
 #define _JA_JISESC_START	1
 #define _JA_JISESC_1BYTE	2
 #define _JA_JISESC_2BYTE	3
+#define _JA_JISESC_2BYTE_G0	4
 
 #define _JA_G0		0
 #define _JA_G1		1
@@ -362,35 +365,88 @@ int c;
 	break;
 
     case _JA_JISESC_START:
-	if (c == '$')
+	keyin_first = 0;
+	switch (c) {
+	case '$':
 	    jis_keyin_mode = _JA_JISESC_2BYTE;
-	else if (c == '(')
+	    c = NG_W_INPUTCONT;
+	    break;
+	case NG_WCODE('('):
 	    jis_keyin_mode = _JA_JISESC_1BYTE;
-	else {
+	    c = NG_W_INPUTCONT;
+	    break;
+	default:
 	    ungetkbd(c);
 	    c = NG_WESC;
+	    jis_keyin_mode = _JA_JISESC_NONE;
 	}
 	break;
 
     case _JA_JISESC_1BYTE:
+	keyin_first = 0;
 	switch (c) {
-	case 'B':
+	case NG_WCODE('B'):
 	    jis_keyin_G0map = _JA_ASCII;
+	    c = NG_W_INPUTCONT;
 	    break;
-	case 'I':
+	case NG_WCODE('I'):
 	    jis_keyin_G0map = _JA_KANA;
+	    c = NG_W_INPUTCONT;
 	    break;
+	default:
+	    ungetkbd(c);
+	    ungetkbd(NG_WCODE('('));
+	    c = NG_WESC;
 	}
+	jis_keyin_mode = _JA_JISESC_NONE;
 	break;
 
     case _JA_JISESC_2BYTE:
+	keyin_first = 0;
 	switch (c) {
 	case '@':
 	case 'B':
 	    jis_keyin_G0map = _JA_KANJI;
+	    jis_keyin_mode = _JA_JISESC_NONE;
+	    c = NG_W_INPUTCONT;
 	    break;
+	case '$':
+	    jis_keyin_mode = _JA_JISESC_2BYTE_G0;
+	    c = NG_W_INPUTCONT;
+	    break;
+	default:
+	    ungetkbd(c);
+	    ungetkbd(NG_WCODE('$'));
+	    jis_keyin_mode = _JA_JISESC_NONE;
+	    c = NG_WESC;
 	}
 	break;
+
+    case _JA_JISESC_2BYTE_G0:
+	keyin_first = 0;
+	switch (c) {
+	case '@':
+	case 'B':
+	    jis_keyin_G0map = _JA_KANJI;
+	    jis_keyin_mode = _JA_JISESC_NONE;
+	    c = NG_W_INPUTCONT;
+	    break;
+	case 'D':
+	    jis_keyin_G0map = _JA_HOJOKANJI;
+	    jis_keyin_mode = _JA_JISESC_NONE;
+	    c = NG_W_INPUTCONT;
+	    break;
+	default:
+	    ungetkbd(c);
+	    ungetkbd(NG_WCODE('('));
+	    ungetkbd(NG_WCODE('$'));
+	    jis_keyin_mode = _JA_JISESC_NONE;
+	    c = NG_WESC;
+	}
+	break;
+
+    default:
+	assert(0);
     }
     return c;
 }
@@ -484,7 +540,7 @@ int buflen;
     if (ch <= 0xff)
 	buf[0] = ch;
     else 
-	buf[0] = ' ';
+	buf[0] = '?';
     return 1;
 }
 
@@ -508,8 +564,8 @@ int buflen;
     }
     else if (ISHOJOKANJI(ch)) {
 	if (buflen >= 2) {
-	    buf[0] = ' ';
-	    buf[1] = ' ';
+	    buf[0] = '?';
+	    buf[1] = '?';
 	    return 2;
 	}
 	return -1;
@@ -531,77 +587,183 @@ int buflen;
 }
 
 static int
-ja_jis_get_display_code(c, buf, buflen)
+ja_jis_get_display_code(code, c, buf, buflen)
+int code;
 NG_WCHAR_ta c;
 char *buf;
 int buflen;
 {
-    static int jis_dispaly_GLmap = _JA_G0;
-    static int jis_display_G0map = _JA_ASCII;
+    static int display_GLmap = _JA_G0;
+    static int display_G0map = _JA_ASCII;
     static NG_WCHAR_t ch;
     int len = 0;
-    if (c == NG_WRESET) {
-	jis_display_GLmap = _JA_G0;
-	jis_display_G0map = _JA_ASCII;
-	return c;
-    }
-    
-    if (buflen <= 0)
-	return -1;
+
     if (c != NG_EOS)
 	ch = c;
     
+    if (c == NG_WRESET) {
+	display_GLmap = _JA_G0;
+	display_G0map = _JA_ASCII;
+	return 0;
+    }
+
+    if (buflen <= 0)
+	return -1;
+    
+    if (c == NG_WSTART || c == NG_WFINISH) {
+	if (display_G0map != _JA_ASCII) {
+	    if (buflen <= 3)
+		return -1;
+	    buflen--;
+	    len += 3;
+	    *buf++ = 0x1b; *buf++ = '('; *buf++ = 'B';
+	}
+	if (display_GLmap != _JA_G0) {
+	    if (buflen <= 1)
+		return -1;
+	    buflen--;
+	    len++;
+	    *buf++ = SI;
+	}
+	display_GLmap = _JA_G0;
+	display_G0map = _JA_ASCII;
+	return len;
+    }
+    
     if (ISKANA(c)) {
-	switch (display_code) {
-	case NG_CODE_ISO2022_8BIT:
+	switch (code) {
+	case NG_CODE_ISO2022JP_8BIT:
 	    buf[0] = c & 0xff;
 	    return 1;
 	    
-	case NG_CODE_ISO2022:
-	case NG_CODE_ISO2022_7BIT:
-	    if (jis_display_GLmap != _JA_G0) {
-		if (buflen <= 1)
-		    return -1;
-		buflen--;
-		len++;
-		*buf++ = SI;
-	    }
-	    if (jis_display_G0map != _JA_KANA) {
+	case NG_CODE_ISO2022JP:
+	case NG_CODE_ISO2022JP_7BIT:
+	    if (display_G0map != _JA_KANA) {
 		if (buflen <= 3)
 		    return -1;
 		buflen--;
 		len += 3;
 		*buf++ = 0x1b; *buf++ = '('; *buf++ = 'I';
 	    }
-	    display_GLmap = _JA_G0;
+	    if (display_GLmap != _JA_G0) {
+		if (buflen <= 1)
+		    return -1;
+		buflen--;
+		len++;
+		*buf++ = SI;
+	    }
 	    display_G0map = _JA_KANA;
+	    display_GLmap = _JA_G0;
 	    break;
 	    
-	case NG_CODE_ISO2022_SISO:
+	case NG_CODE_ISO2022JP_SISO:
+	    if (display_GLmap != _JA_G1) {
+		if (buflen <= 1)
+		    return -1;
+		buflen--;
+		len++;
+		*buf++ = SO;
+		display_GLmap = _JA_G1;
+	    }
+	    break;
 	}
+	buf[0] = c & 0x7f;
     }
     else if (ISHOJOKANJI(c)) {
+	if (display_G0map != _JA_HOJOKANJI) {
+	    if (buflen <= 4)
+		return -1;
+	    buflen--;
+	    len += 4;
+	    *buf++ = 0x1b; *buf++ = '$'; *buf++ = '('; *buf++ = 'D';
+	}
+	if (display_GLmap != _JA_G0) {
+	    if (buflen <= 1)
+		return -1;
+	    buflen--;
+	    len++;
+	    *buf++ = SI;
+	}
+	display_GLmap = _JA_G0;
+	display_G0map = _JA_HOJOKANJI;
 	if (buflen >= 2) {
-	    buf[0] = ' ';
-	    buf[1] = ' ';
-	    return 2;
+	    buf[0] = (c >> 8) & 0x7f;
+	    buf[1] = (c & 0x7f);
+	    return len;
 	}
 	return -1;
     }
     else if (ISKANJI(c)) {
+	if (display_G0map != _JA_KANJI) {
+	    if (buflen <= 3)
+		return -1;
+	    buflen--;
+	    len += 3;
+	    *buf++ = 0x1b; *buf++ = '$'; *buf++ = 'B';
+	}
+	if (display_GLmap != _JA_G0) {
+	    if (buflen <= 1)
+		return -1;
+	    buflen--;
+	    len++;
+	    *buf++ = SI;
+	}
+	display_GLmap = _JA_G0;
+	display_G0map = _JA_KANJI;
 	if (buflen >= 2) {
-	    buf[0] = ((c >> 8) & 0xff) | 0x80;
-	    buf[1] = (c & 0xff) | 0x80;
-	    etos(buf[0], buf[1]);
-	    return 2;
+	    buf[0] = (c >> 8) & 0x7f;
+	    buf[1] = (c & 0x7f);
+	    return len;
 	}
 	return -1;
     }
-    if (c <= 0x7f)
-	buf[0] = c;
+    if (c <= 0x7f) {
+	if (display_G0map != _JA_ASCII) {
+	    if (buflen <= 3)
+		return -1;
+	    buflen--;
+	    len += 3;
+	    *buf++ = 0x1b; *buf++ = '('; *buf++ = 'B';
+	}
+	if (display_GLmap != _JA_G0) {
+	    if (buflen <= 1)
+		return -1;
+	    buflen--;
+	    len++;
+	    *buf++ = SI;
+	}
+	display_GLmap = _JA_G0;
+	display_G0map = _JA_ASCII;
+	if (buflen >= 1) {
+	    buf[0] = c & 0x7f;
+	    return len;
+	}
+	return -1;
+    }
     else 
-	buf[0] = ' ';
+	buf[0] = '?';
     return 1;
+}
+
+static int
+ja_get_display_code(code, c, buf, buflen)
+int code;
+NG_WCHAR_ta c;
+char *buf;
+int buflen;
+{
+    switch (code) {
+    case NG_CODE_EUCJP:
+	return ja_euc_get_display_code(c, buf, buflen);
+    case NG_CODE_SJIS:
+	return ja_sjis_get_display_code(c, buf, buflen);
+    case NG_CODE_ISO2022JP:
+    case NG_CODE_ISO2022JP_8BIT:
+    case NG_CODE_ISO2022JP_7BIT:
+    case NG_CODE_ISO2022JP_SISO:
+	return ja_jis_get_display_code(code, c, buf, buflen);
+    }
+    return ;
 }
 
 static VOID
@@ -672,28 +834,6 @@ int type, code;
 	    if (p->cm_code == code) {
 		if ((p->cm_type & type) == 0)
 		    break;
-		switch (code) {
-		case NG_CODE_EUCJP:
-		    _ja_lang.lm_get_display_code = ja_euc_get_display_code;
-		    _ja_lang.lm_display_start_code = 
-			_ja_lang.lm_display_end_code = NULL;
-		    break;
-		case NG_CODE_SJIS:
-		    _ja_lang.lm_get_display_code = ja_sjis_get_display_code;
-		    _ja_lang.lm_display_start_code = 
-			_ja_lang.lm_display_end_code = NULL;
-		    break;
-		case NG_CODE_ISO2022JP:
-		case NG_CODE_ISO2022JP_8BIT:
-		case NG_CODE_ISO2022JP_7BIT:
-		case NG_CODE_ISO2022JP_SISO:
-		    _ja_lang.lm_get_keyin_code = ja_jis_get_display_code;
-		    _ja_lang.lm_display_start_code =
-			_ja_lang.lm_display_end_code = ja_jis_display_reset;
-		    break;
-		default:
-		    assert(0);
-		}
 		display_code = code;
 		return TRUE;
 	    }
@@ -775,10 +915,6 @@ static LANG_MODULE _ja_lang = {
     ja_euc_get_keyin_code,
 #endif
     ja_width,
-#ifdef DEFAULT_JA_SJIS
-    ja_sjis_get_display_code,
-#else
-    ja_euc_get_display_code,
-#endif
+    ja_get_display_code,
     ja_displaychar,
 };
