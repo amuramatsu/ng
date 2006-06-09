@@ -1,4 +1,4 @@
-/* $Id: lang_ascii.c,v 1.1.2.8 2006/01/15 09:41:24 amura Exp $ */
+/* $Id: lang_ascii.c,v 1.1.2.9 2006/06/09 16:06:25 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -15,6 +15,7 @@
 
 #include "chrdef.h"
 #include "i_lang.h"
+#include "lang_common.h"
 
 LANG_DEFINE("english", get_ascii_langmodule);
 LANG_DEFINE("ascii", get_ascii_langmodule);
@@ -29,13 +30,6 @@ static CODEMAP ascii_map[] = {
 static LANG_MODULE ascii_lang;
 
 static int display_code = NG_CODE_ASCII;
-
-#define to_hex(p, len, c) do {					\
-    int i;							\
-    for (i=(len)-1; i>=0; i--)					\
-	*p++ = "0123456789abcdef"[((c)>>(i*8))&0xff];		\
-} while (0/*CONSTCOND*/)
-#define ctrl_char(c)	(((c) == 0x7f) ? '?' : ((c)+'@'))
 
 static int
 ascii_code_expect(buf, n)
@@ -255,6 +249,8 @@ int buflen;
 	return -1;
     if (c != NG_EOS)
 	ch = c;
+    if (ch == NG_WSTART || ch == NG_WFINISH)
+	return 0;
     if (!ISASCII(ch) || ISCTRL(ch))
 	buf[0] = ' ';
     else
@@ -326,8 +322,6 @@ static LANG_MODULE ascii_lang = {
     ascii_get_code,
     ascii_get_keyin_code,
     ascii_width,
-    NULL, /* ascii_display_start_code */
-    NULL, /* ascii_display_end_code */
     ascii_get_display_code,
     ascii_displaychar,
 };

@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.18 2006/01/15 19:08:08 amura Exp $ */
+/* $Id: display.c,v 1.20.2.19 2006/06/09 16:06:25 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -61,6 +61,7 @@ typedef struct {
     short v_flag;			/* Flag word.			*/
     short v_color;			/* Color of the line.		*/
     XSHORT v_cost;			/* Cost of display.		*/
+    LANG_MODULE *v_lang;		/* Language of this line	*/
 #ifndef ZEROARRAY
     NG_WCHAR_t v_text[1];		/* The actual characters.	*/
 #else
@@ -136,14 +137,6 @@ static VOID traceback _PRO((void));
 static SCORE *score = NULL;
 #endif
 
-#define TTPUTC(c) do {						\
-    char buf[NG_CODE_MAXLEN];					\
-    int len, i;							\
-    len = terminal_lang->lm_get_display_code((c), buf, sizeof(buf));\
-    for (i = 0; i < len; i++)					\
-	ttputc(buf[i]);						\
-} while (/*CONSTCOND*/0)
-
 VOID
 vtsetsize(col, row)
 int col, row;
@@ -184,11 +177,14 @@ int col, row;
     vp = video;
     for (i=0; i<vnrow-1; ++i) {
 	vscreen[i] = (VIDEO*)vp;
+	vp->v_lang = terminal_lang;
 	vp = (VIDEO*)((char*)vp +SIZEOF_VIDEO);
 	pscreen[i] = (VIDEO*)vp;
+	vp->v_lang = terminal_lang;
 	vp = (VIDEO*)((char*)vp +SIZEOF_VIDEO);
     }
     blanks->v_color = CTEXT;
+    blanks->v_lang = terminal_lang;
     for (i=0; i<vncol; ++i)
 	blanks->v_text[i] = NG_WSPACE;
     sgarbf = TRUE;
@@ -302,48 +298,54 @@ register NG_WCHAR_t c;
 	}
 	return;
     }
-    cwidth = terminal_lang->lm_width(c);
+    vp = vscreen[vtrow];
+    vp->v_lang = curwp->w_bufp->b_lang;
+    cwidth = vp->v_lang->lm_width(c);
     if (vtcol+cwidth >= ncol) {
 	vtmarkyen(NG_WBACKSL);
 	vtrow++;
 	vtcol = 0;
     }
-    vp = vscreen[vtrow];
-    terminal_lang->lm_displaychar(vp->v_text, vtcol, ncol, c);
+    vp->v_lang->lm_displaychar(vp->v_text, vtcol, ncol, c);
     vtcol += cwidth;
 }
 
 #if defined(MEMMAP) && !defined(HAVE_ORIGINAL_PUTLINE)
 VOID
-putline(row, s, color)
+putline(row, s, color, lang)
 int row;
 const NG_WCHAR_t *s;
 int color;
+LANG_MODULE *lang;
 {
+    char buf[NG_CODE_MAXLEN];
+    int len;
     register int i;
+    register int j;
     int oldrow = vtrow;
     int oldcol = vtcol;
+    short disp_code;
 
+    disp_code = NG_CODE_PASCII;
+    if (vvp->v_lang == terminal_lang || IS_NG_CODE_GLOBAL(disp_code))
+	disp_code = terminal_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
+    
     vtrow = row;
     vtcol = 0;
     ttmove(vtrow, 0);
     ttcolor(color);
-    if (terminal_lang->lm_display_start_code != NULL) {
-	const char *p; int n;
-	p = terminal_lang->lm_display_start_code(&n);
-	while (n--)
-	    ttputc(*p++);
-    }
+    len = lang->lm_get_display_code(disp_code, NG_WSTART, buf, sizeof(buf));
+    for (j = 0; j < len; j++)
+	ttputc(buf[i]);
     for (i=0; i<ncol; i++, s++) {
-	if (*s != NG_WFILLER)
-	    TTPUTC(*s);
+	len = lang->lm_get_display_code(disp_code, *s, buf, sizeof(buf));
+	for (j = 0; j < len; j++)
+	    ttputc(buf[j]);
     }
-    if (terminal_lang->lm_display_end_code != NULL) {
-	const char *p; int n;
-	p = terminal_lang->lm_display_end_code(&n);
-	while (n--)
-	    ttputc(*p++);
-    }
+    len = lang->lm_get_display_code(disp_code, NG_WFINISH, buf, sizeof(buf));
+    for (j = 0; j < len; j++)
+	ttputc(buf[j]);
+    
     vtrow = oldrow;
     vtcol = oldcol;
     ttmove(vtrow, vtcol);
@@ -425,7 +427,7 @@ int *lines;
 	    }
 	}
 	else {
-	    n = terminal_lang->lm_width(c);
+	    n = curbp->b_lang->lm_width(c);
 	    if (*curcol+n >= ncol
 #ifdef NOWRAPMODE
 		&& !(curbp->b_flag & BFNOWRAP)
@@ -711,6 +713,7 @@ out:
 		    x = 0;
 		for (lines=i; lines<j; lines++) {
 		    vscreen[lines]->v_color = CTEXT;
+		    vscreen[lines]->v_lang = wp->w_bufp->b_lang;
 		    vscreen[lines]->v_flag |= (VFCHG|VFHBAD);
 		}
 #ifdef NOWRAPMODE
@@ -739,6 +742,7 @@ out:
 		    if (lp == wp->w_bufp->b_linep) {
 			vtmove(i, 0);
 			vscreen[i]->v_color =CTEXT;
+			vscreen[i]->v_lang = wp->w_bufp->b_lang;
 			vscreen[i]->v_flag |= (VFCHG|VFHBAD);
 			vteeol();
 			i++;
@@ -759,6 +763,7 @@ out:
 			x = 0;
 		    for (lines=i; lines<j; lines++) {
 			vscreen[lines]->v_color =CTEXT;
+			vscreen[lines]->v_lang = wp->w_bufp->b_lang;
 			vscreen[lines]->v_flag |= (VFCHG|VFHBAD);
 		    }
 #ifdef NOWRAPMODE
@@ -815,8 +820,10 @@ out:
 
     while (wp != NULL) {
         /* if garbaged then fix up mode lines */
-	if (sgarbf != FALSE)
+	if (sgarbf != FALSE) {
+	    vscreen[wp->w_toprow+wp->w_ntrows]->v_lang = wp->w_bufp->b_lang;
 	    vscreen[wp->w_toprow+wp->w_ntrows]->v_flag |= VFCHG;
+	}
 	/* and onward to the next window */
 	wp = wp->w_wndp;
     }
@@ -928,6 +935,7 @@ int lbound;
 #endif
 
     vp = vscreen[vtrow];
+    vp->v_lang = curwp->w_bufp->b_lang;
     if (vtcol >= ncol)
 	return;
     else if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) {
@@ -946,7 +954,8 @@ int lbound;
     }
     else if (vtcol >= ncol)
 	vp->v_text[ncol-1] = NG_WCODE('$');
-    cwidth = terminal_lang->lm_width(c);
+
+    cwidth = vp->v_lang->lm_width(c);
     if (vtcol < 0) {
 	if ((vtcol+cwidth) > 1) {
 	    for (i=0; i<vtcol+cwidth; i++)
@@ -955,7 +964,7 @@ int lbound;
 	vtcol += cwidth;
     }
     vp = vscreen[vtrow];
-    terminal_lang->lm_displaychar(vp->v_text, vtcol, ncol, c);
+    vp->v_lang->lm_displaychar(vp->v_text, vtcol, ncol, c);
     vtcol += cwidth;
 }
 
@@ -1007,10 +1016,13 @@ uline(row, vvp, pvp)
 int row;
 VIDEO *vvp, *pvp;
 {
-#ifdef	MEMMAP
+#ifdef MEMMAP
     ttflush();	/* 90.06.09  by A.Shirahashi */
-    putline(row, &vvp->v_text[0], vvp->v_color);
-#else   /* not MEMMAP */
+    putline(row, &vvp->v_text[0], vvp->v_color, vvp->v_lang);
+#else  /* not MEMMAP */
+    char buf[NG_CODE_MAXLEN];
+    int len;
+    register int i;
     register NG_WCHAR_t *cp1;
     register NG_WCHAR_t *cp2;
     register NG_WCHAR_t *cp3;
@@ -1018,6 +1030,10 @@ VIDEO *vvp, *pvp;
     NG_WCHAR_t *cp5;
     register int nbflag;
     int w;
+    short disp_code = NG_CODE_PASCII;
+    LANG_MODULE *lang = vvp->v_lang;
+    if (vvp->v_lang == terminal_lang || IS_NG_CODE_GLOBAL(disp_code))
+	disp_code = terminal_lang->lm_get_code(NG_CODE_FOR_DISPLAY);
     
     if (vvp->v_color != pvp->v_color) {	/* Wrong color, do a	*/
 	ttmove(row, 0);			/* full redraw.		*/
@@ -1026,12 +1042,9 @@ VIDEO *vvp, *pvp;
 	    tteeol();
 #endif
 	ttcolor(vvp->v_color);
-	if (terminal_lang->lm_display_start_code != NULL) {
-	    const char *p; int n;
-	    p = terminal_lang->lm_display_start_code(&n);
-	    while (n--)
-		ttputc(*p++);
-	}
+	len = lang->lm_get_display_code(disp_code, NG_WSTART, buf, sizeof(buf));
+	for (i = 0; i < len; i++)
+	    ttputc(buf[i]);
 #ifdef	STANDOUT_GLITCH
 	cp1 = &vvp->v_text[SG > 0 ? SG : 0];
 	/* the odd code for SG==0 is to avoid putting the invisable
@@ -1045,18 +1058,19 @@ VIDEO *vvp, *pvp;
 #endif	/* STANDOUT_GLITCH */
 	while (cp1 < cp2) {
 	    if (*cp1 != NG_WFILLER) {
-		TTPUTC(*cp1);
-		w = terminal_lang->lm_width(*cp1);
+		len = lang->lm_get_display_code(disp_code, *cp1,
+						buf, sizeof(buf));
+		for (i = 0; i < len; i++)
+		    ttputc(buf[i]);
+		w = lang->lm_width(*cp1);
 		ttcol += w;
 		cp1 += w;
 	    }
 	}
-	if (terminal_lang->lm_display_end_code != NULL) {
-	    const char *p; int n;
-	    p = terminal_lang->lm_display_end_code(&n);
-	    while (n--)
-		ttputc(*p++);
-	}
+	len = lang->lm_get_display_code(disp_code, NG_WFINISH,
+					buf, sizeof(buf));
+	for (i = 0; i < len; i++)
+	    ttputc(buf[i]);
 #ifndef MOVE_STANDOUT
 	ttcolor(CTEXT);
 #endif
@@ -1103,26 +1117,22 @@ VIDEO *vvp, *pvp;
     else if (SG < 0)
 #endif /* STANDOUT_GLITCH */
 	ttcolor(vvp->v_color);
-    if (terminal_lang->lm_display_start_code != NULL) {
-	const char *p; int n;
-	p = terminal_lang->lm_display_start_code(&n);
-	while (n--)
-	    ttputc(*p++);
-    }
+    len = lang->lm_get_display_code(disp_code, NG_WSTART, buf, sizeof(buf));
+    for (i = 0; i < len; i++)
+	ttputc(buf[i]);
     while (cp1 < cp5) {
 	if (*cp1 != NG_WFILLER) {
-	    TTPUTC(*cp1);
+	    len = lang->lm_get_display_code(disp_code, *cp1, buf, sizeof(buf));
+	    for (i = 0; i < len; i++)
+		ttputc(buf[i]);
 	    w = terminal_lang->lm_width(*cp1);
 	    ttcol += w;
 	    cp1 += w;
 	}
     }
-    if (terminal_lang->lm_display_end_code != NULL) {
-	const char *p; int n;
-	p = terminal_lang->lm_display_end_code(&n);
-	while (n--)
-	    ttputc(*p++);
-    }
+    len = lang->lm_get_display_code(disp_code, NG_WFINISH, buf, sizeof(buf));
+    for (i = 0; i < len; i++)
+	ttputc(buf[i]);
     if (cp5 != cp3)				/* Do erase.		*/
 	tteeol();
 #ifndef MOVE_STANDOUT	/* 90.03.21  by S.Yoshida */

@@ -1,4 +1,4 @@
-/* $Id: i_lang.h,v 1.1.2.13 2006/01/15 19:08:08 amura Exp $ */
+/* $Id: i_lang.h,v 1.1.2.14 2006/06/09 16:06:25 amura Exp $ */
 /*
  * This file is the language module definition of the NG
  * display editor.
@@ -24,16 +24,16 @@ typedef struct CODEMAP {
 #define NG_CODE_ASCII		1	/* 7bit ascii: MUST NEED */
 #define NG_CODE_BINARY		2	/* MUST NEED? */
 #define NG_CODE_ISO2022		3	/* OPTIONAL */
-#define NG_CODE_EUC		4	/* OPTIONAL */
-#define NG_CODE_UCS2		5	/* OPTIONAL */
-#define NG_CODE_UCS2LE		6	/* OPTIONAL */
-#define NG_CODE_UCS2BE		7	/* OPTIONAL */
-#define NG_CODE_UTF8		8	/* OPTIONAL */
-#define NG_CODE_UTF16		9	/* OPTIONAL */
-#define NG_CODE_UTF16LE		10	/* OPTIONAL */
-#define NG_CODE_UTF16BE		11	/* OPTIONAL */
+#define NG_CODE_UCS2		(64+0)	/* OPTIONAL */
+#define NG_CODE_UCS2LE		(64+1)	/* OPTIONAL */
+#define NG_CODE_UCS2BE		(64+2)	/* OPTIONAL */
+#define NG_CODE_UTF8		(64+3)	/* OPTIONAL */
+#define NG_CODE_UTF16		(64+4)	/* OPTIONAL */
+#define NG_CODE_UTF16LE		(64+5)	/* OPTIONAL */
+#define NG_CODE_UTF16BE		(64+6)	/* OPTIONAL */
 #define NG_CODE_LOCALBASE	256	/* basis of LOCAL code */
 #define IS_NG_CODE_GLOBAL(n)	((n) < NG_CODE_LOCALBASE)
+#define IS_NG_CODE_UNICODE(n)	((n) >= NG_CODE_UCS2 && (n) <= NG_CODE_UTF16BE)
 #define IS_NG_CODE_LOCAL(n)	(!IS_NG_CODE_GLOBAL(n))
 } CODEMAP;
 
@@ -74,12 +74,9 @@ typedef struct LANG_MODULE {
     /* for display */
     /* Return display width at this code*/
     int (*lm_width)_PRO((NG_WCHAR_ta));
-    /* reset display for statefull coding */
-    const char *(*lm_display_start_code)_PRO((int *));
-    const char *(*lm_display_end_code)_PRO((int *));
     /* return display codes to buffer */
-    int (*lm_get_display_code)_PRO((NG_WCHAR_ta, char *, int));
-    /* */
+    int (*lm_get_display_code)_PRO((int, NG_WCHAR_ta, char *, int));
+    /* Buf to T-VRAM convertion routine */
     VOID (*lm_displaychar)_PRO((NG_WCHAR_t*, int, int, NG_WCHAR_ta));
 } LANG_MODULE;
 
