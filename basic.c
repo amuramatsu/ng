@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.6.2.1 2003/03/08 01:22:35 amura Exp $ */
+/* $Id: basic.c,v 1.6.2.2 2006/11/25 14:20:39 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -11,6 +11,9 @@
 
 /*
  * $Log: basic.c,v $
+ * Revision 1.6.2.2  2006/11/25 14:20:39  amura
+ * line-no-mode fixed by komatsu
+ *
  * Revision 1.6.2.1  2003/03/08 01:22:35  amura
  * NOTAB is always enabled
  *
@@ -37,6 +40,10 @@
 
 #include	"config.h"	/* 90.12.20  by S.Yoshida */
 #include	"def.h"
+
+#ifdef	ADDFUNC
+int line_number_mode = FALSE;
+#endif
 
 VOID	setgoal();
 
@@ -81,6 +88,10 @@ register int n;
 			curwp->w_dotp  = lp;
 			curwp->w_doto  = llength(lp);
 			curwp->w_flag |= WFMOVE;
+#ifdef ADDFUNC
+			if (line_number_mode)
+			  curwp->w_flag |= WFHARD;
+#endif
 		} else {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 			if (kanji2nd) {
@@ -164,6 +175,10 @@ register int n;
 			}
 			curwp->w_doto  = 0;
 			curwp->w_flag |= WFMOVE;
+#ifdef ADDFUNC
+			if (line_number_mode)
+			  curwp->w_flag |= WFHARD;
+#endif
 		} else {
 #ifdef	KANJI	/* 90.01.29  by S.Yoshida */
 			if (kanji2nd) {
@@ -253,8 +268,6 @@ nextline(f, n)
 
 
 #ifdef	ADDFUNC
-int line_number_mode = FALSE;
-
 linenumbermode(f, n)
 {
     register int s;

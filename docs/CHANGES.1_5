@@ -1,4 +1,4 @@
-# $Id: CHANGES.1_5,v 1.5.2.6 2004/02/14 14:56:31 amura Exp $
+# $Id: CHANGES.1_5,v 1.5.2.7 2006/11/25 14:20:39 amura Exp $
 ==============================================================================
     CHANGES.doc for Ng (Nihongo micro Gnu emacs)
                                           村松  篤 (amura@tomato.sakura.ne.jp)
@@ -11,9 +11,15 @@
 
 <Ng 1.5beta2 : 200?/??/??>
 
+    [全版共通]
+
+        a) line-number-mode 時に、(forwchar)、(backchar)で行番号が書き換わら
+	   ない事がある bug の修正。
+	   (小松さんの patch)
+
     [UNIX 版]
 
-        a) Windows Services for Unix でコンパイル可能になりました。
+        b) Windows Services for Unix でコンパイル可能になりました。
 	   (小原さんの patch)
 
 ------------------------------------------------------------------------------
