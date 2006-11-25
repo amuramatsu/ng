@@ -1,4 +1,4 @@
-/* $Id: basic.c,v 1.11.2.8 2006/01/14 13:10:05 amura Exp $ */
+/* $Id: basic.c,v 1.11.2.9 2006/11/25 14:13:19 amura Exp $ */
 /*
  *		Basic cursor motion commands.
  *
@@ -23,6 +23,10 @@
 #include "line.h"
 #include "random.h"
 #include "window.h"
+
+#ifdef	ADDFUNC
+int line_number_mode = FALSE;
+#endif
 
 /*
  * Go to beginning of line.
@@ -61,6 +65,10 @@ register int n;
 	    curwp->w_dotp  = lp;
 	    curwp->w_doto  = llength(lp);
 	    curwp->w_flag |= WFMOVE;
+#ifdef ADDFUNC
+	    if (line_number_mode)
+		curwp->w_flag |= WFHARD;
+#endif
 	}
 	else
 	    curwp->w_doto--;
@@ -105,6 +113,10 @@ register int n;
 	    }
 	    curwp->w_doto  = 0;
 	    curwp->w_flag |= WFMOVE;
+#ifdef ADDFUNC
+	    if (line_number_mode)
+		curwp->w_flag |= WFHARD;
+#endif
 	}
 	else
 	    curwp->w_doto++;
@@ -175,8 +187,6 @@ int f, n;
 
 
 #ifdef	ADDFUNC
-int line_number_mode = FALSE;
-
 int
 linenumbermode(f, n)
 int f, n;
