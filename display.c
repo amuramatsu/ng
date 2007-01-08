@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.19 2006/06/09 16:06:25 amura Exp $ */
+/* $Id: display.c,v 1.20.2.20 2007/01/08 19:29:40 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -304,6 +304,8 @@ register NG_WCHAR_t c;
     if (vtcol+cwidth >= ncol) {
 	vtmarkyen(NG_WBACKSL);
 	vtrow++;
+        vp = vscreen[vtrow];
+        vp->v_lang = curwp->w_bufp->b_lang;
 	vtcol = 0;
     }
     vp->v_lang->lm_displaychar(vp->v_text, vtcol, ncol, c);
