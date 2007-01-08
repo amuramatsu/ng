@@ -1,4 +1,4 @@
-/* $Id: version.c,v 1.15.2.6 2006/01/15 01:14:06 amura Exp $ */
+/* $Id: version.c,v 1.15.2.7 2007/01/08 20:11:28 amura Exp $ */
 /*
  * This file contains the string that get written
  * out by the emacs-version command.
@@ -15,7 +15,7 @@
 #include "buffer.h"
 #include "window.h"
 
-#define	VERSION		"1.99.-1"
+#define	VERSION		"1.99.0"
 
 # define PROGNAME	"Ng"
 # define FORMERLY	"[Mg++ Next Generation]"

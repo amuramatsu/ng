@@ -1,4 +1,4 @@
-/* $Id: trex.c,v 1.1.2.11 2006/01/14 13:10:05 amura Exp $ */
+/* $Id: trex.c,v 1.1.2.12 2007/01/08 20:11:28 amura Exp $ */
 /* Modified for NG Next Generation */
 /* see copyright notice in trex.h */
 #include <string.h>
@@ -40,29 +40,28 @@ static const TRexChar *g_nnames[] =
 };
 
 #endif
+#define OP_GREEDY		(MAX_CHAR+1) // * + ? {n}
+#define OP_OR			(MAX_CHAR+2)
+#define OP_EXPR			(MAX_CHAR+3) //parentesis ()
+#define OP_NOCAPEXPR	(MAX_CHAR+4) //parentesis (?:)
+#define OP_DOT			(MAX_CHAR+5)
+#define OP_CLASS		(MAX_CHAR+6)
+#define OP_CCLASS		(MAX_CHAR+7)
+#define OP_NCLASS		(MAX_CHAR+8) //negates class the [^
+#define OP_RANGE		(MAX_CHAR+9)
+#define OP_CHAR			(MAX_CHAR+10)
+#define OP_EOL			(MAX_CHAR+11)
+#define OP_BOL			(MAX_CHAR+12)
+#define OP_WB			(MAX_CHAR+13)
 
-#define OP_GREEDY		MAX_CHAR+1 // * + ? {n}
-#define OP_OR			MAX_CHAR+2
-#define OP_EXPR			MAX_CHAR+3 //parentesis ()
-#define OP_NOCAPEXPR	MAX_CHAR+4 //parentesis (?:)
-#define OP_DOT			MAX_CHAR+5
-#define OP_CLASS		MAX_CHAR+6
-#define OP_CCLASS		MAX_CHAR+7
-#define OP_NCLASS		MAX_CHAR+8 //negates class the [^
-#define OP_RANGE		MAX_CHAR+9
-#define OP_CHAR			MAX_CHAR+10
-#define OP_EOL			MAX_CHAR+11
-#define OP_BOL			MAX_CHAR+12
-#define OP_WB			MAX_CHAR+13
-
-#define TREX_SYMBOL_ANY_CHAR '.'
-#define TREX_SYMBOL_GREEDY_ONE_OR_MORE '+'
-#define TREX_SYMBOL_GREEDY_ZERO_OR_MORE '*'
-#define TREX_SYMBOL_GREEDY_ZERO_OR_ONE '?'
-#define TREX_SYMBOL_BRANCH '|'
-#define TREX_SYMBOL_END_OF_STRING '$'
-#define TREX_SYMBOL_BEGINNING_OF_STRING '^'
-#define TREX_SYMBOL_ESCAPE_CHAR '\\'
+#define TREX_SYMBOL_ANY_CHAR ('.')
+#define TREX_SYMBOL_GREEDY_ONE_OR_MORE ('+')
+#define TREX_SYMBOL_GREEDY_ZERO_OR_MORE ('*')
+#define TREX_SYMBOL_GREEDY_ZERO_OR_ONE ('?')
+#define TREX_SYMBOL_BRANCH ('|')
+#define TREX_SYMBOL_END_OF_STRING ('$')
+#define TREX_SYMBOL_BEGINNING_OF_STRING ('^')
+#define TREX_SYMBOL_ESCAPE_CHAR ('\\')
 
 
 typedef int TRexNodeType;
@@ -88,30 +87,29 @@ struct TRex{
 	int _currsubexp;
 	void *_jmpbuf;
 	const TRexChar **_error;
+#ifdef TREX_MODE_IGNORECASE
 	int _mode;
+#endif
 };
 
 static int trex_list(TRex *exp);
-static void trex_error(TRex *exp,const TRexChar *error);
 
 static int trex_newnode(TRex *exp, TRexNodeType type)
 {
 	TRexNode n;
+	int newid;
 	n.type = type;
 	n.next = n.right = n.left = -1;
 	if(type == OP_EXPR)
 		n.right = exp->_nsubexpr++;
 	if(exp->_nallocated < (exp->_nsize + 1)) {
-#if 0
 		int oldsize = exp->_nallocated;
-#endif
 		exp->_nallocated *= 2;
-		exp->_nodes = (TRexNode *)realloc(exp->_nodes,exp->_nallocated * sizeof(TRexNode));
-		if (exp->_nodes == NULL)
-			trex_error(exp, _SC("memory allocation error"));
+		exp->_nodes = (TRexNode *)realloc(exp->_nodes, exp->_nallocated * sizeof(TRexNode));
 	}
 	exp->_nodes[exp->_nsize++] = n;
-	return (int)exp->_nsize - 1;
+	newid = exp->_nsize - 1;
+	return (int)newid;
 }
 
 static void trex_error(TRex *exp,const TRexChar *error)
@@ -125,20 +123,6 @@ static void trex_expect(TRex *exp, int n){
 		trex_error(exp, _SC("expected paren"));
 	exp->_p++;
 }
-
-#if 0
-static TRexBool trex_ischar(TRexChar c)
-{
-	switch(c) {
-	case TREX_SYMBOL_BRANCH:case TREX_SYMBOL_GREEDY_ZERO_OR_MORE:
-	case TREX_SYMBOL_GREEDY_ZERO_OR_ONE:case TREX_SYMBOL_GREEDY_ONE_OR_MORE:
-	case TREX_SYMBOL_BEGINNING_OF_STRING:case TREX_SYMBOL_END_OF_STRING:
-	case TREX_SYMBOL_ANY_CHAR:case TREX_SYMBOL_ESCAPE_CHAR:case '(':case ')':case '[':case '{': case '}':
-		return TRex_False;
-    }
-	return TRex_True;
-}
-#endif
 
 static TRexChar trex_escapechar(TRex *exp)
 {
@@ -171,6 +155,7 @@ static int trex_charclass(TRex *exp,int classid)
 
 static int trex_charnode(TRex *exp,TRexBool isclass)
 {
+	TRexChar t;
 	if(*exp->_p == TREX_SYMBOL_ESCAPE_CHAR) {
 		exp->_p++;
 		switch(*exp->_p) {
@@ -183,8 +168,7 @@ static int trex_charnode(TRex *exp,TRexBool isclass)
 			case 'd': case 'D': case 'x': case 'X': case 'c': case 'C': 
 			case 'p': case 'P': case 'l': case 'u': 
 				{
-				TRexChar t = *exp->_p;
-				exp->_p++; 
+				t = *exp->_p; exp->_p++; 
 				return trex_charclass(exp,t);
 				}
 			case 'b': 
@@ -195,10 +179,13 @@ static int trex_charnode(TRex *exp,TRexBool isclass)
 					exp->_p++; 
 					return node;
 				} //else default
-			default: return trex_newnode(exp,(*exp->_p++));
+			default: 
+				t = *exp->_p; exp->_p++; 
+				return trex_newnode(exp,t);
 		}
 	}
 	else if(!scisprint(*exp->_p)) {
+		
 		trex_error(exp,_SC("letter expected"));
 	}
 #ifdef TREX_MODE_IGNORECASE
@@ -225,7 +212,8 @@ static int trex_charnode(TRex *exp,TRexBool isclass)
 		return ret;
 	}
 #endif /* TREX_MODE_IGNORECASE */
-	return trex_newnode(exp,*exp->_p++);
+	t = *exp->_p; exp->_p++; 
+	return trex_newnode(exp,t);
 }
 static int trex_class(TRex *exp)
 {
@@ -236,19 +224,19 @@ static int trex_class(TRex *exp)
 		exp->_p++;
 	}else ret = trex_newnode(exp,OP_CLASS);
 	
-	if(*exp->_p == ']' || *exp->_p == '-')
-		first = trex_charnode(exp, TRex_True);
+	if(*exp->_p == ']') trex_error(exp,_SC("empty class"));
 	chain = ret;
 	while(*exp->_p != ']' && exp->_p != exp->_eol) {
 		if(*exp->_p == '-' && first != -1){ 
-			int r;
+			int r,t;
 			if(*exp->_p++ == ']') trex_error(exp,_SC("unfinished range"));
 			r = trex_newnode(exp,OP_RANGE);
 			if(first>*exp->_p) trex_error(exp,_SC("invalid range"));
 			if(exp->_nodes[first].type == OP_CCLASS) trex_error(exp,_SC("cannot use character classes in ranges"));
 			exp->_nodes[r].left = exp->_nodes[first].type;
-			exp->_nodes[r].right = trex_escapechar(exp);
-			exp->_nodes[chain].next = r;
+			t = trex_escapechar(exp);
+			exp->_nodes[r].right = t;
+            exp->_nodes[chain].next = r;
 			chain = r;
 			first = -1;
 		}
@@ -335,14 +323,14 @@ static int trex_parsenumber(TRex *exp)
 
 static int trex_element(TRex *exp)
 {
-	int ret;
+	int ret = -1;
 	switch(*exp->_p)
 	{
 	case '(': {
-		int expr;
+		int expr,newn;
 		exp->_p++;
-		
-		
+
+
 		if(*exp->_p =='?') {
 			exp->_p++;
 			trex_expect(exp,':');
@@ -350,11 +338,12 @@ static int trex_element(TRex *exp)
 		}
 		else
 			expr = trex_newnode(exp,OP_EXPR);
-		exp->_nodes[expr].left = trex_list(exp);
+		newn = trex_list(exp);
+		exp->_nodes[expr].left = newn;
 		ret = expr;
 		trex_expect(exp,')');
-	}
-		break;
+			  }
+			  break;
 	case '[':
 		exp->_p++;
 		ret = trex_class(exp);
@@ -366,26 +355,28 @@ static int trex_element(TRex *exp)
 		ret = trex_charnode(exp,TRex_False);
 		break;
 	}
-	/* scope block */
+
 	{
 		int op;
+		TRexBool isgreedy = TRex_False;
 		unsigned short p0 = 0, p1 = 0;
 		switch(*exp->_p){
-		case TREX_SYMBOL_GREEDY_ZERO_OR_MORE: p0 = 0; p1 = 0xFFFF; exp->_p++; goto __end;
-		case TREX_SYMBOL_GREEDY_ONE_OR_MORE: p0 = 1; p1 = 0xFFFF; exp->_p++; goto __end;
-		case TREX_SYMBOL_GREEDY_ZERO_OR_ONE: p0 = 0; p1 = 1; exp->_p++; goto __end;
-		case '{':{
-			exp->_p++;
+			case TREX_SYMBOL_GREEDY_ZERO_OR_MORE: p0 = 0; p1 = 0xFFFF; exp->_p++; isgreedy = TRex_True; break;
+			case TREX_SYMBOL_GREEDY_ONE_OR_MORE: p0 = 1; p1 = 0xFFFF; exp->_p++; isgreedy = TRex_True; break;
+			case TREX_SYMBOL_GREEDY_ZERO_OR_ONE: p0 = 0; p1 = 1; exp->_p++; isgreedy = TRex_True; break;
+			case '{':
+				exp->_p++;
 #ifdef ng
 			if(!ISASCII(*exp->_p)||!ISDIGIT(*exp->_p)) trex_error(exp,_SC("number expected"));
 #else
 			if(!isdigit(*exp->_p)) trex_error(exp,_SC("number expected"));
 #endif
-			p0 = trex_parsenumber(exp);
-			switch(*exp->_p) {
+				p0 = (unsigned short)trex_parsenumber(exp);
+				/*******************************/
+				switch(*exp->_p) {
 			case '}':
 				p1 = p0; exp->_p++;
-				goto __end;
+				break;
 			case ',':
 				exp->_p++;
 				p1 = 0xFFFF;
@@ -394,25 +385,31 @@ static int trex_element(TRex *exp)
 #else
 				if(isdigit(*exp->_p)){
 #endif
-					p1 = trex_parsenumber(exp);
+					p1 = (unsigned short)trex_parsenumber(exp);
 				}
 				trex_expect(exp,'}');
-				goto __end;
+				break;
 			default:
 				trex_error(exp,_SC(", or } expected"));
-			}
 		}
-		__end: {
-				int nnode = trex_newnode(exp,OP_GREEDY);
-				op = OP_GREEDY;
-				exp->_nodes[nnode].left = ret;
-				exp->_nodes[nnode].right = ((p0)<<16)|p1;
-				ret = nnode;
-			}
+		/*******************************/
+		isgreedy = TRex_True; 
+		break;
+
+		}
+		if(isgreedy) {
+			int nnode = trex_newnode(exp,OP_GREEDY);
+			op = OP_GREEDY;
+			exp->_nodes[nnode].left = ret;
+			exp->_nodes[nnode].right = ((p0)<<16)|p1;
+			ret = nnode;
 		}
 	}
-	if(*exp->_p != TREX_SYMBOL_BRANCH && *exp->_p != ')' && *exp->_p != TREX_SYMBOL_GREEDY_ZERO_OR_MORE && *exp->_p != TREX_SYMBOL_GREEDY_ONE_OR_MORE && *exp->_p != '\0')
-		exp->_nodes[ret].next = trex_element(exp);
+	if((*exp->_p != TREX_SYMBOL_BRANCH) && (*exp->_p != ')') && (*exp->_p != TREX_SYMBOL_GREEDY_ZERO_OR_MORE) && (*exp->_p != TREX_SYMBOL_GREEDY_ONE_OR_MORE) && (*exp->_p != '\0')) {
+		int nnode = trex_element(exp);
+		exp->_nodes[ret].next = nnode;
+	}
+
 	return ret;
 }
 
@@ -430,11 +427,12 @@ static int trex_list(TRex *exp)
 	else ret = e;
 
 	if(*exp->_p == TREX_SYMBOL_BRANCH) {
-		int temp;
+		int temp,tright;
 		exp->_p++;
 		temp = trex_newnode(exp,OP_OR);
 		exp->_nodes[temp].left = ret;
-		exp->_nodes[temp].right = trex_list(exp);
+		tright = trex_list(exp);
+		exp->_nodes[temp].right = tright;
 		ret = temp;
 	}
 	return ret;
@@ -560,7 +558,7 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 	case OP_OR: {
 			const TRexChar *asd = str;
 			TRexNode *temp=&exp->_nodes[node->left];
-			while((asd = trex_matchnode(exp,temp,asd,NULL)) != NULL) {
+			while( (asd = trex_matchnode(exp,temp,asd,NULL)) ) {
 				if(temp->next != -1)
 					temp = &exp->_nodes[temp->next];
 				else
@@ -568,7 +566,7 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 			}
 			asd = str;
 			temp = &exp->_nodes[node->right];
-			while((asd = trex_matchnode(exp,temp,asd,NULL)) != NULL) {
+			while( (asd = trex_matchnode(exp,temp,asd,NULL)) ) {
 				if(temp->next != -1)
 					temp = &exp->_nodes[temp->next];
 				else
@@ -655,12 +653,18 @@ static const TRexChar *trex_matchnode(TRex* exp,TRexNode *node,const TRexChar *s
 }
 
 /* public api */
+#ifdef TREX_MODE_IGNORECASE
 TRex *trex_compile(const TRexChar *pattern,const TRexChar **error)
 {
 	return trex_compile_ex(pattern, TREX_MODE_NORMAL, error);
 }
+#endif
 
+#ifdef TREX_MODE_IGNORECASE
 TRex *trex_compile_ex(const TRexChar *pattern,int mode,const TRexChar **error)
+#else
+TRex *trex_compile(const TRexChar *pattern,const TRexChar **error)
+#endif
 {
 	TRex *exp = (TRex *)malloc(sizeof(TRex));
 	if (exp == NULL) {
@@ -677,14 +681,17 @@ TRex *trex_compile_ex(const TRexChar *pattern,int mode,const TRexChar **error)
 	exp->_first = trex_newnode(exp,OP_EXPR);
 	exp->_error = error;
 	exp->_jmpbuf = malloc(sizeof(jmp_buf));
+#ifdef TREX_MODE_IGNORECASE
 	exp->_mode = mode;
+#endif
 	if (exp->_nodes == NULL || exp->_jmpbuf == NULL) {
-		free(exp);
 		if (error) *error = _SC("memory allocation error");
+		trex_free(exp);
 		return NULL;
 	}
 	if(setjmp(*((jmp_buf*)exp->_jmpbuf)) == 0) {
-		exp->_nodes[exp->_first].left=trex_list(exp);
+		int res = trex_list(exp);
+		exp->_nodes[exp->_first].left = res;
 		if(*exp->_p!='\0')
 			trex_error(exp,_SC("unexpected character"));
 #ifdef _DEBUG
@@ -783,3 +790,4 @@ TRexBool trex_getsubexp(TRex* exp, int n, TRexMatch *subexp)
 	*subexp = exp->_matches[n];
 	return TRex_True;
 }
+

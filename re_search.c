@@ -1,8 +1,8 @@
-/* $Id: re_search.c,v 1.6.2.7 2006/01/15 15:57:46 amura Exp $ */
+/* $Id: re_search.c,v 1.6.2.8 2007/01/08 20:11:28 amura Exp $ */
 /*
  *		Search commands with Regular Expression
  * The functions are remade from 'search.c' to help from GPL.
- * Now, all source code of Ng is not GPL except for win32 port.
+ * Now, all of source codes in Ng are not under GPL except for win32 port.
  *
  * This file use T-Rex, the tiny regular expression routine
  * by Alberto Demichelis.
@@ -18,7 +18,7 @@
  * and the query-replace code, is by Rich Ellison.
  */
 
-#include "config.h"	/* 90.12.20  by S.Yoshida */
+#include "config.h"
 
 #ifdef REGEX
 #include "def.h"
@@ -415,7 +415,7 @@ const char *prompt;
 	if (re_exp != NULL)
 	    trex_free(re_exp);
 	re_exp = trex_compile_ex(re_pat,
-	    casefoldsearch?TREX_MODE_IGNORECASE:TREX_MODE_NORMAL, &errorp);
+	    casefoldsearch ? TREX_MODE_IGNORECASE : TREX_MODE_NORMAL, &errorp);
 	if (re_exp == NULL) {
 	    ewprintf("Regexp Error: %ls", errorp);
 	    re_pat[0] = NG_EOS;

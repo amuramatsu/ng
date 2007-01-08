@@ -1,14 +1,14 @@
-/* $Id: trex.h,v 1.1.2.4 2006/01/09 09:33:48 amura Exp $ */
+/* $Id: trex.h,v 1.1.2.5 2007/01/08 20:11:28 amura Exp $ */
 /*
  * Modified for NG Next Generation
- * Copyright (C) 2006 MURAMATSU Atsushi
+ * Copyright (C) 2006,2007 MURAMATSU Atsushi
  */
 #ifndef _TREX_H_
 #define _TREX_H_
 /***************************************************************
 	T-Rex a tiny regular expression library
 
-	Copyright (C) 2003-2005 Alberto Demichelis
+	Copyright (C) 2003-2006 Alberto Demichelis
 
 	This software is provided 'as-is', without any express 
 	or implied warranty. In no event will the authors be held 
