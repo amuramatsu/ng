@@ -1,4 +1,4 @@
-/* $Id: re_search.c,v 1.6.2.8 2007/01/08 20:11:28 amura Exp $ */
+/* $Id: re_search.c,v 1.6.2.9 2007/01/09 18:10:32 amura Exp $ */
 /*
  *		Search commands with Regular Expression
  * The functions are remade from 'search.c' to help from GPL.
@@ -405,9 +405,9 @@ const char *prompt;
     const NG_WCHAR_t *errorp;
     
     if (re_pat[0] == NG_EOS)
-	s = ereply("%ls: ", tpat, NG_WCHARLEN(tpat), prompt);
+	s = ereply("%s: ", tpat, NG_WCHARLEN(tpat), prompt);
     else
-	s = ereply("%ls: (default %ls) ", tpat, NG_WCHARLEN(tpat),
+	s = ereply("%s: (default %ls) ", tpat, NG_WCHARLEN(tpat),
 		   prompt, re_pat);
     
     if (s == TRUE) {				/* Specified		*/
