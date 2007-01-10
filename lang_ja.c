@@ -1,4 +1,4 @@
-/* $Id: lang_ja.c,v 1.1.2.3 2006/06/09 16:44:29 amura Exp $ */
+/* $Id: lang_ja.c,v 1.1.2.4 2007/01/10 13:11:45 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -6,8 +6,8 @@
  *
  *	Japanese language module
  *
- * This is an example of language module.  Very simple and limited function is
- * supported.
+ * This is an example of language module.  Very simple and limited functions
+ * are supported.
  */
 /*
  * Encoding
@@ -115,6 +115,21 @@ static unsigned int keyin_first = 0; /* common buffer for multibyte input */
 #define SI	0x0e
 #define SO	0x0f
 
+/*** flags for JIS code ***/
+#define _JA_JISESC_NONE		0
+#define _JA_JISESC_START	1
+#define _JA_JISESC_1BYTE	2
+#define _JA_JISESC_2BYTE	3
+#define _JA_JISESC_2BYTE_G0	4
+
+#define _JA_G0		0
+#define _JA_G1		1
+
+#define _JA_ASCII	0
+#define _JA_KANA	1
+#define _JA_KANJI	2
+#define _JA_HOJOKANJI	3
+
 static int
 ja_code_expect(buf, n)
 const char *buf;
@@ -196,7 +211,59 @@ int n;
     case NG_CODE_ISO2022JP_7BIT:
     case NG_CODE_ISO2022JP_8BIT:
     case NG_CODE_ISO2022JP_SISO:
-	/* XXX IMPLEMENT ME */
+	{
+	    int mode1 = _JA_ASCII;
+	    int mode2 = _JA_G0;
+	    int i = 0;
+	    while (n == NG_CODE_CHKLEN ? *s != NG_EOS : n--) {
+		c = *s++;
+		if (ISKANA(c)) {
+		    if (code == NG_CODE_ISO2022JP_8BIT ||
+			mode1 == _JA_KANA || mode2 == _JA_G1)
+			/* NOP */;
+		    else {
+			if (code == NG_CODE_ISO2022JP_SISO) {
+			    mode2 = _JA_G1;
+			    i += 1;
+			}
+			else {
+			    mode1 = _JA_KANA;
+			    i += 3;
+			}
+		    }
+		    i += 1;
+		}
+		else {
+		    if (code == NG_CODE_ISO2022JP_SISO && mode2 == _JA_G1) {
+			mode2 = _JA_G0;
+			i += 1;
+		    }
+		    
+		    if (ISHOJOKANJI(c)) {
+			if (mode1 != _JA_HOJOKANJI) {
+			    i += 4;
+			    mode1 = _JA_HOJOKANJI;
+			}
+			i += 2;
+		    }
+		    else if (ISKANJI(c)) {
+			if (mode1 != _JA_KANJI) {
+			    i += 3;
+			    mode1 = _JA_KANJI;
+			}
+			i += 2;
+		    }
+		    else {
+			if (mode1 != _JA_ASCII) {
+			    i += 3;
+			    mode1 = _JA_ASCII;
+			}
+			i += 1;
+		    }
+		}
+	    }
+	    return i;
+	}
 	break;
     }
     return 0;
@@ -303,21 +370,6 @@ NG_WCHAR_t *dst;
     return p-dst;
 }
 
-
-/*** JIS code input ***/
-#define _JA_JISESC_NONE		0
-#define _JA_JISESC_START	1
-#define _JA_JISESC_1BYTE	2
-#define _JA_JISESC_2BYTE	3
-#define _JA_JISESC_2BYTE_G0	4
-
-#define _JA_G0		0
-#define _JA_G1		1
-
-#define _JA_ASCII	0
-#define _JA_KANA	1
-#define _JA_KANJI	2
-#define _JA_HOJOKANJI	3
 
 static NG_WCHAR_t
 ja_jis_get_keyin_code(c)
@@ -457,7 +509,7 @@ int c;
 {
     if (c > 0x20 && keyin_first) {
 	int c1 = keyin_first;
-	stoj(c1, c);
+	stoe(c1, c);
 	c = ((c1 << 8) | c) & 0x7f7f;
 	keyin_first = 0;
     }
@@ -869,10 +921,10 @@ int type, code;
 	}
 	return FALSE;
 	
-    /* XXX IMPLEMENT ME */
     case NG_CODE_FOR_FILE:
     case NG_CODE_FOR_FILENAME:
     case NG_CODE_FOR_IO:
+	/* XXX IMPLEMENT ME */
 	return FALSE;
     }
     return FALSE;
@@ -889,10 +941,10 @@ int type;
     case NG_CODE_FOR_INPUT:
 	return input_code;
 	
-    /* XXX IMPLEMENT ME */
     case NG_CODE_FOR_FILE:
     case NG_CODE_FOR_FILENAME:
     case NG_CODE_FOR_IO:
+	/* XXX IMPLEMENT ME */
 	return NG_CODE_EUCJP;
     }
     return 0;
