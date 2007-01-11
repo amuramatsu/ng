@@ -1,4 +1,4 @@
-/* $Id: lstring.h,v 1.1.2.1 2006/04/01 14:29:43 amura Exp $ */
+/* $Id: lstring.h,v 1.1.2.2 2007/01/11 14:42:59 amura Exp $ */
 /*
  * strlcpy and strlcat for old platform
  */
@@ -17,6 +17,17 @@ size_t strlcpy _PRO((char *, const char *, size_t));
 #endif
 #ifndef HAVE_STRLCAT
 size_t strlcat _PRO((char *, const char *, size_t));
+#endif
+#ifndef HAVE_STRCASECMP
+# if defined(HAVE_STRICMP)
+#  define strcasecmp(s1, s2)	stricmp(s1, s2)
+#  define HAVE_STRCASECMP 1
+# elif defined(HAVE_STRCMPI)
+#  define strcasecmp(s1, s2)	strcmpi(s1, s2)
+#  define HAVE_STRCASECMP 1
+# else
+int strcasecmp _PRO((const char *, const char *));
+# endif
 #endif
 
 #ifdef __cplusplus

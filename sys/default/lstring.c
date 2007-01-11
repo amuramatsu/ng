@@ -1,6 +1,6 @@
-/* $Id: lstring.c,v 1.1.2.2 2006/04/01 15:19:28 amura Exp $ */
+/* $Id: lstring.c,v 1.1.2.3 2007/01/11 14:42:59 amura Exp $ */
 /*
- * strlcpy and strlcat for old platform
+ * strlcpy, strlcat and strcasecmp for old platform
  */
 
 #include "config.h"
@@ -46,3 +46,34 @@ size_t n;
     return (pdst-dst) + (psrc-src);
 }
 #endif /* HAVE_STRLCAT */
+
+#ifndef HAVE_STRCASECMP
+# include <ctype.h>
+int
+strcasecmp(s1, s2)
+const char *s1;
+const char *s2;
+{
+    while (*s1 && *s2) {
+	int c1, c2;
+	if ((*s1 & 0x80) != 0) {
+	    c1 = tolower(*s1++);
+	    c2 = tolower(*s2++);
+	}
+	else {
+	    c1 = (*s1++) & 0xFF;
+	    c2 = (*s2++) & 0xFF;
+	}
+	if (c1 > c2)
+	    return 1;
+	else if (c1 < c2)
+	    return -1;
+    }
+    if (*s1 == '\0') {
+	if (*s2 == '\0')
+	    return 0;
+	return -1;
+    }
+    return 1;
+}
+#endif /* HAVE_STRCASECMP */

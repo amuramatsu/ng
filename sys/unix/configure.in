@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id: configure.in,v 1.12.2.4 2006/04/01 14:36:35 amura Exp $
-AC_REVISION($Revision: 1.12.2.4 $)
+dnl $Id: configure.in,v 1.12.2.5 2007/01/11 14:42:59 amura Exp $
+AC_REVISION($Revision: 1.12.2.5 $)
 AC_INIT(basic.c)
 AC_CONFIG_HEADER(sysconfig.h:sys/unix/sysconfig.h.in)
 AC_CONFIG_AUX_DIR(sys/unix)
@@ -73,6 +73,7 @@ AC_TYPE_SIGNAL
 AC_FUNC_VFORK
 AC_CHECK_FUNCS(getcwd rmdir rename opendir select mkstemp bcopy bzero bcmp)
 AC_CHECK_FUNCS(rindex symlink dup2 sigprocmask getgroups lstat)
+AC_CHECK_FUNCS(strcasecmp stricmp strcmpi)
 AC_CHECK_FUNCS(strlcpy strlcat)
 
 dnl Checks for commands called from dired
