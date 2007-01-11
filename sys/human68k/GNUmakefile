@@ -1,4 +1,4 @@
-# $Id: GNUmakefile,v 1.7.2.1 2006/04/01 15:19:28 amura Exp $
+# $Id: GNUmakefile,v 1.7.2.2 2007/01/11 14:50:41 amura Exp $
 # GNUmakefile for Ng on Human68k (SHARP X68000)
 #	This makefile requires GNU make		91.01.20  by K.Maeda.
 #
@@ -50,17 +50,17 @@ OBJS	= basic.o dir.o dired.o shell.o version.o window.o \
 IND	= buffer.o complt.o display.o cmode.o echo.o extend.o file.o \
 	  help.o kbd.o keymap.o line.o macro.o main.o match.o modes.o \
 	  paragraph.o random.o region.o regex.o re_search.o search.o \
-	  skg.o kanji.o undo.o word.o lang.o lang_ascii.o
+	  skg.o kanji.o undo.o word.o lang.o lang_ascii.o lang_ja.o
 
 # System dependent objects
-OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o fileio.o in_code.o lstring.o
+OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o fileio.o in_code.o xstring.o
 
 # Human68k additional objects
 HOBJS	= sysinit.o dosutil.o h68kfncmp.o termcap.o fepctrl.o hentrap.o
 
 OBJ	= $(OBJS) $(IND) $(OOBJS) $(HOBJS)
 
-OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c in_code.c lstring.c
+OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c in_code.c xstring.c
 HSRCS	= sysinit.c dosutil.c h68kfncmp.c termcap.c fepctrl.c hentrap.s
 LSRCS	= lang_ascii.c
 SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
@@ -70,7 +70,7 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  kinsoku.c skg.c jump.c undo.c autosave.c lang.c
 
 OINCS =	ttydef.h sysdef.h chrdef.h
-INCS =	config.h def.h extern.h lstring.h
+INCS =	config.h def.h extern.h xstring.h
 REINCS = trex.h trex.c
 
 PROG = ng.x
@@ -188,11 +188,11 @@ hentrap.s:	$(SYSDIR)hentrap.s
 in_code.c:	$(SYSDEF)/in_code.c
 	$(CP) $(SYSDEF)in_code.c .
 
-lstring.c:	$(SYSDEF)/lstring.c
-	$(CP) $(SYSDEF)lstring.c .
+xstring.c:	$(SYSDEF)/xstring.c
+	$(CP) $(SYSDEF)xstring.c .
 
-lstring.h:	$(SYSDEF)/lstring.h
-	$(CP) $(SYSDEF)lstring.h .
+xstring.h:	$(SYSDEF)/xstring.h
+	$(CP) $(SYSDEF)xstring.h .
 
 langlist.h:	$(LSRCS) make_langlist.pl
 	$(PERL) make_langlist.pl $(LSRCS) > langlist.h

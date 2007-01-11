@@ -1,4 +1,4 @@
-/* $Id: lstring.c,v 1.1.2.3 2007/01/11 14:42:59 amura Exp $ */
+/* $Id: xstring.c,v 1.1.2.1 2007/01/11 14:50:41 amura Exp $ */
 /*
  * strlcpy, strlcat and strcasecmp for old platform
  */
@@ -6,7 +6,7 @@
 #include "config.h"
 #include "def.h"
 
-#include "lstring.h"
+#include "xstring.h"
 
 #ifndef HAVE_STRLCPY
 size_t

@@ -1,4 +1,4 @@
-/* $Id: lstring.h,v 1.1.2.2 2007/01/11 14:42:59 amura Exp $ */
+/* $Id: xstring.h,v 1.1.2.1 2007/01/11 14:50:41 amura Exp $ */
 /*
  * strlcpy and strlcat for old platform
  */

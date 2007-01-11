@@ -1,4 +1,4 @@
-/* $Id: extend.c,v 1.7.2.12 2006/04/01 17:15:15 amura Exp $ */
+/* $Id: extend.c,v 1.7.2.13 2007/01/11 14:50:41 amura Exp $ */
 /*
  *	Extended (M-X) commands, rebinding, and 
  *	startup file processing.
@@ -9,7 +9,7 @@
 #include "def.h"
 #include "extend.h"
 
-#include "lstring.h"
+#include "xstring.h"
 #include "i_buffer.h"
 #include "i_lang.h"
 

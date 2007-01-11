@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.8.2.5 2007/01/10 13:11:45 amura Exp $
+# $Id: Makefile.in,v 1.8.2.6 2007/01/11 14:50:41 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # Create from BSD Makefile by MURAMATSU Atsushi
@@ -41,12 +41,12 @@ IND	= buffer.o complt.o display.o cmode.o echo.o extend.o file.o \
 	  skg.o kanji.o undo.o word.o unicode.o lang.o lang_ascii.o lang_ja.o
 
 # System dependent objects
-OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o in_code.o lstring.o
+OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o in_code.o xstring.o
 
 OBJ = $(OBJS) $(IND) $(OOBJS) fileio.o canna.o $(ALLOCA)
 
 OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c canna.c alloca.c \
-	  unicode.c in_code.c lstring.c
+	  unicode.c in_code.c xstring.c
 LSRCS	= lang_ascii.c lang_ja.c
 SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  random.c region.c search.c shell.c version.c window.c word.c \
@@ -55,7 +55,7 @@ SRCS	= basic.c cmode.c dir.c dired.c file.c line.c match.c paragraph.c \
 	  kinsoku.c skg.c jump.c undo.c lang.c
 
 OINCS =	ttydef.h sysdef.h chrdef.h
-INCS =	config.h def.h sysconfig.h extern.h lstring.h
+INCS =	config.h def.h sysconfig.h extern.h xstring.h
 REINCS = trex.h trex.c
 
 #PROG = mg
@@ -173,13 +173,13 @@ in_code.c:	sys/default/in_code.c
 	rm -f in_code.c
 	$(LN_S) sys/default/in_code.c .
 
-lstring.c:	sys/default/lstring.c
-	rm -f lstring.c
-	$(LN_S) sys/default/lstring.c .
+xstring.c:	sys/default/xstring.c
+	rm -f xstring.c
+	$(LN_S) sys/default/xstring.c .
 
-lstring.h:	sys/default/lstring.h
-	rm -f lstring.h
-	$(LN_S) sys/default/lstring.h .
+xstring.h:	sys/default/xstring.h
+	rm -f xstring.h
+	$(LN_S) sys/default/xstring.h .
 
 langlist.h:	$(LSRCS) make_langlist.pl
 	$(PERL) make_langlist.pl $(LSRCS) > langlist.h
