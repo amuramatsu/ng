@@ -1,4 +1,4 @@
-/* $Id: lang_ja.c,v 1.1.2.4 2007/01/10 13:11:45 amura Exp $ */
+/* $Id: lang_ja.c,v 1.1.2.5 2007/07/11 11:18:22 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -284,14 +284,14 @@ char *dst;
 	    while (*src != NG_EOS) {
 		if (*src > 0xff) {
 		    *p++ = '\\'; *p++ = 'w';
-		    to_hex(p, 4, *src);
+		    to_hex_a(p, 4, *src);
 		}
 		else if (ISCTRL(*src) && *src != NG_WTAB) {
 		    *p++ = '^'; *p++ = ctrl_char(*src);
 		}
 		else if (*src >= 0x80) {
 		    *p++ = '\\'; *p++ = 'x';
-		    to_hex(p, 2, *src);
+		    to_hex_a(p, 2, *src);
 		}
 		else
 		    *p++ = *src & 0xFF;
@@ -303,14 +303,14 @@ char *dst;
 	    while (n--) {
 		if (*src > 0xff) {
 		    *p++ = '\\'; *p++ = 'w';
-		    to_hex(p, 4, *src);
+		    to_hex_a(p, 4, *src);
 		}
 		else if (ISCTRL(*src) && *src != NG_WTAB) {
 		    *p++ = '^'; *p++ = ctrl_char(*src);
 		}
 		else if (*src >= 0x80) {
 		    *p++ = '\\'; *p++ = 'x';
-		    to_hex(p, 2, *src);
+		    to_hex_a(p, 2, *src);
 		}
 		else
 		    *p++ = *src & 0xFF;
@@ -837,7 +837,7 @@ NG_WCHAR_ta c;
 	}
 	else if (c < 0x80) {
 	    *p++ = NG_WBACKSL; *p++ = NG_WCODE('w');
-	    to_hex(p, 4, c);
+	    to_hex_w(p, 4, c);
 	    col += 4;
 	}
 	else {

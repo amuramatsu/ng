@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.20 2007/01/08 19:29:40 amura Exp $ */
+/* $Id: display.c,v 1.20.2.21 2007/07/11 11:18:22 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -263,11 +263,12 @@ int row, col;
  * Three guesses how we found this.
  */
 VOID
-vtputc(c)
-register NG_WCHAR_t c;
+vtputc(code)
+register NG_WCHAR_ta code;
 {
     register VIDEO *vp;
     int cwidth;
+    register NG_WCHAR_t c = NG_WCODE(code);
     
     /* vtrow sometimes over-runs the vnrow -1.  In the case, vp at
      * following line becomes an uninitialized pointer.  Then core
@@ -410,7 +411,7 @@ int *curcol;
 int *lines;
 {
     register int i;
-    register char c;
+    register int c;
     register int n;
     LINE_OFF_t offset = (LINE_OFF_t)offset_;
 #ifdef VARIABLE_TAB

@@ -1,4 +1,4 @@
-/* $Id: in_code.c,v 1.1.2.6 2006/01/15 11:00:35 amura Exp $ */
+/* $Id: in_code.c,v 1.1.2.7 2007/07/11 11:18:22 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -145,7 +145,7 @@ size_t n;
 {
     size_t i;
     register const char *p = src;
-    for (i=n-1; i>0 && *p!='\0'; i--)
+    for (i=n-1; i > 0 && *p != '\0'; i--)
 	*dst++ = NG_WCODE(*p++ & 0xff);
     *dst = NG_EOS;
     while (*p++ != NG_EOS)
@@ -164,7 +164,7 @@ size_t n;
     register NG_WCHAR_t *pdst = dst;
     while (*pdst != NG_EOS)
 	pdst++;
-    for (i=n-(pdst-dst)-1; i>0 && *psrc != '\0'; i--)
+    for (i=n-(pdst-dst)-1; i > 0 && *psrc != '\0'; i--)
 	*pdst++ = NG_WCODE(*psrc++ & 0xff);
     *pdst = NG_EOS;
     while (*psrc++ != '\0')
@@ -181,8 +181,8 @@ size_t n;
     size_t i;
     register const NG_WCHAR_t *p = src;
     for (i=n-1; i>0 && *p!=NG_EOS; i--) {
-	if (*p > 0x7f) {
-	    *dst++ = NG_WCODE('?');
+	if ((*p | 0x7f) == 0x7f) {
+	    *dst++ = '?';
 	    ++p;
 	}
 	else
