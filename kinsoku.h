@@ -1,4 +1,4 @@
-/* $Id: kinsoku.h,v 1.1.2.2 2007/07/11 11:18:22 amura Exp $ */
+/* $Id: kinsoku.h,v 1.1.2.3 2007/07/12 02:19:12 amura Exp $ */
 /*
  *		Kinsoku char handling routines.
  *
@@ -20,8 +20,8 @@
 
 extern NG_WCHAR_t bolkchar[MAXBOLKC];
 extern NG_WCHAR_t eolkchar[MAXEOLKC];
-/* extern int nbolkc;		/* Number of BOL KINSOKU chars.	*/
-/* extern int neolkc;		/* Number of EOL KINSOKU chars.	*/
+/* extern int nbolkc;		Number of BOL KINSOKU chars.	*/
+/* extern int neolkc;		Number of EOL KINSOKU chars.	*/
 
 #ifdef __cplusplus
 extern "C" {

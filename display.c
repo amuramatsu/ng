@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.21 2007/07/11 11:18:22 amura Exp $ */
+/* $Id: display.c,v 1.20.2.22 2007/07/12 02:19:12 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -121,6 +121,7 @@ static int vtputs _PRO((const NG_WCHAR_t *));
 static int windowpos _PRO((WINDOW *));
 static VOID moderatio _PRO((WINDOW *));
 #endif
+static int cllength _PRO((BUFFER *, LINE *));
 
 #ifdef GOSLING
 /*
@@ -411,7 +412,7 @@ int *curcol;
 int *lines;
 {
     register int i;
-    register int c;
+    register NG_WCHAR_t c;
     register int n;
     LINE_OFF_t offset = (LINE_OFF_t)offset_;
 #ifdef VARIABLE_TAB
@@ -467,7 +468,7 @@ int col, row;
 {
     register int i;
     register int curcol;
-    register char c;
+    register NG_WCHAR_t c;
     register int width;
     int (*lm_width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
@@ -520,7 +521,7 @@ int lines;
 {
     register int i, n;
     register int curcol;
-    register char c;
+    register NG_WCHAR_t c;
     int (*lm_width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
@@ -564,7 +565,7 @@ const LINE *lp;
     register int i, n;
     register int curcol;
     register int lines;
-    register char c;
+    register NG_WCHAR_t c;
     int (*lm_width)(NG_WCHAR_ta) = curbp->b_lang->lm_width;
 #ifdef VARIABLE_TAB
     int tab = curbp->b_tabwidth;
@@ -707,6 +708,7 @@ out:
 		    j = wp->w_toprow + wp->w_ntrows;
 		}
 		else
+		    //y = cllength(wp->w_bufp, lp);
 		    y = llength(lp);
 		if (i < wp->w_toprow) {
 		    x = skipline(lp, wp->w_toprow - i);
@@ -733,6 +735,7 @@ out:
 		    for (j=x; j<y; ++j)
 			vtputc(lgetc(lp, j));
 		    curwp = old_curwp;
+		    //if (y < cllength(wp->w_bufp, lp))
 		    if (y < llength(lp))
 			vtmarkyen(NG_WBACKSL);
 		    else
@@ -757,6 +760,7 @@ out:
 			j = wp->w_toprow + wp->w_ntrows;
 		    }
 		    else
+			//y = cllength(wp->w_bufp, lp);
 			y = llength(lp);
 		    if (i < wp->w_toprow) {
 			x = skipline(lp, wp->w_toprow - i);
@@ -783,6 +787,7 @@ out:
 			for (j=x; j<y; ++j)
 			    vtputc(lgetc(lp, j));
 			curwp = old_curwp;
+			//if (y < cllength(wp->w_bufp, lp))
 			if (y < llength(lp))
 			    vtmarkyen(NG_WBACKSL);
 			else
@@ -1317,6 +1322,32 @@ register const NG_WCHAR_t *s;
     while (*s != '\0')
 	vtputc(*s++);
     return vtrow - bvtrow;
+}
+
+/*
+ * caluculate line width on display
+ */
+static int
+cllength(bufp, lp)
+BUFFER *bufp;
+LINE *lp;
+{
+    int i, w;
+    NG_WCHAR_t c;
+    w = 0;
+    for (i=0; i<llength(lp); i++) {
+        c = lgetc(lp, i);
+	if (ISTAB(c) && !(bufp->b_flag & BFNOTAB)) {
+#ifdef VARIABLE_TAB
+	    int tab = bufp->b_tabwidth;
+#else
+	    int tab = 8;
+#endif
+	}
+	else
+	    w += bufp->b_lang->lm_width(c);
+    }
+    return w;
 }
 
 #ifdef GOSLING
