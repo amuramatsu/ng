@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.8.2.6 2007/01/11 14:50:41 amura Exp $
+# $Id: Makefile.in,v 1.8.2.7 2007/07/15 20:48:37 amura Exp $
 # Makefile.in for Ng / Mg++
 #
 # Create from BSD Makefile by MURAMATSU Atsushi
@@ -38,12 +38,14 @@ OBJS	= autosave.o basic.o dir.o dired.o shell.o version.o window.o \
 IND	= buffer.o complt.o display.o cmode.o echo.o extend.o file.o \
 	  help.o kbd.o keymap.o line.o macro.o main.o match.o modes.o \
 	  paragraph.o random.o region.o regex.o re_search.o search.o \
-	  skg.o kanji.o undo.o word.o unicode.o lang.o lang_ascii.o lang_ja.o
+	  skg.o kanji.o undo.o word.o unicode.o lang.o
+# Language support codes
+LOBJS   = lang_ascii.o lang_ja.o
 
 # System dependent objects
 OOBJS = cinfo.o spawn.o ttyio.o tty.o ttykbd.o in_code.o xstring.o
 
-OBJ = $(OBJS) $(IND) $(OOBJS) fileio.o canna.o $(ALLOCA)
+OBJ = $(OBJS) $(IND) $(OOBJS) $(LOBJS) fileio.o canna.o $(ALLOCA)
 
 OSRCS	= cinfo.c fileio.c spawn.c ttyio.c tty.c ttykbd.c canna.c alloca.c \
 	  unicode.c in_code.c xstring.c
@@ -83,6 +85,8 @@ sysconfig.h:
 $(OBJ):		$(INCS) $(OINCS)
 
 $(OOBJS):	$(INCS) $(OINCS)
+
+$(LOBJS):	$(INCS) $(OINCS) lang_common.h
 
 buffer.o: 	$(INCS) $(OINCS) kbd.h undo.h
 
