@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.23 2007/07/15 20:31:44 amura Exp $ */
+/* $Id: display.c,v 1.20.2.24 2007/07/15 20:49:45 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -426,7 +426,7 @@ int *lines;
 	    *curcol = tabnext(*curcol, tab);
 	    if (*curcol >= ncol) {
 		*curcol = 0;
-		(*lines)++;
+		++(*lines);
 	    }
 	}
 	else {
@@ -441,6 +441,28 @@ int *lines;
 	    }
 	    else
 		*curcol += n;
+	}
+    }
+
+    if (offset+1 < llength(lp)) {
+	c = lgetc(lp, offset);
+	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB)) { 
+	    n = tabnext(*curcol, tab);
+	    if (n >= ncol) {
+		*curcol = 0;
+		++(*lines);
+	    }
+	}
+	else {
+	    n = curbp->b_lang->lm_width(c);
+	    if (*curcol+n >= ncol
+#ifdef NOWRAPMODE
+		&& !(curbp->b_flag & BFNOWRAP)
+#endif
+		) {
+		*curcol = 0;
+		++(*lines);
+	    }
 	}
     }
     return *lines;
