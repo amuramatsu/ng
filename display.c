@@ -1,4 +1,4 @@
-/* $Id: display.c,v 1.20.2.22 2007/07/12 02:19:12 amura Exp $ */
+/* $Id: display.c,v 1.20.2.23 2007/07/15 20:31:44 amura Exp $ */
 /*
  * The functions in this file handle redisplay. The
  * redisplay system knows almost nothing about the editing
@@ -121,7 +121,6 @@ static int vtputs _PRO((const NG_WCHAR_t *));
 static int windowpos _PRO((WINDOW *));
 static VOID moderatio _PRO((WINDOW *));
 #endif
-static int cllength _PRO((BUFFER *, LINE *));
 
 #ifdef GOSLING
 /*
@@ -530,7 +529,7 @@ int lines;
     curcol = 0;
     for (i=0; i<llength(lp); ++i) {
 	if (lines == 0)
-	    return i - curcol;
+	    return i;
 	c = lgetc(lp, i);
 	if (ISTAB(c) && !(curbp->b_flag & BFNOTAB))
 	    n = tabnext(curcol, tab) - curcol;
@@ -549,7 +548,7 @@ int lines;
 	    curcol += n;
     }
     if (lines == 0)
-	return i - curcol;
+	return i;
     ewprintf("Bug: skipline %d lines left",lines);
     return FALSE;
 }
@@ -708,7 +707,6 @@ out:
 		    j = wp->w_toprow + wp->w_ntrows;
 		}
 		else
-		    //y = cllength(wp->w_bufp, lp);
 		    y = llength(lp);
 		if (i < wp->w_toprow) {
 		    x = skipline(lp, wp->w_toprow - i);
@@ -735,7 +733,6 @@ out:
 		    for (j=x; j<y; ++j)
 			vtputc(lgetc(lp, j));
 		    curwp = old_curwp;
-		    //if (y < cllength(wp->w_bufp, lp))
 		    if (y < llength(lp))
 			vtmarkyen(NG_WBACKSL);
 		    else
@@ -760,7 +757,6 @@ out:
 			j = wp->w_toprow + wp->w_ntrows;
 		    }
 		    else
-			//y = cllength(wp->w_bufp, lp);
 			y = llength(lp);
 		    if (i < wp->w_toprow) {
 			x = skipline(lp, wp->w_toprow - i);
@@ -787,7 +783,6 @@ out:
 			for (j=x; j<y; ++j)
 			    vtputc(lgetc(lp, j));
 			curwp = old_curwp;
-			//if (y < cllength(wp->w_bufp, lp))
 			if (y < llength(lp))
 			    vtmarkyen(NG_WBACKSL);
 			else
@@ -1322,32 +1317,6 @@ register const NG_WCHAR_t *s;
     while (*s != '\0')
 	vtputc(*s++);
     return vtrow - bvtrow;
-}
-
-/*
- * caluculate line width on display
- */
-static int
-cllength(bufp, lp)
-BUFFER *bufp;
-LINE *lp;
-{
-    int i, w;
-    NG_WCHAR_t c;
-    w = 0;
-    for (i=0; i<llength(lp); i++) {
-        c = lgetc(lp, i);
-	if (ISTAB(c) && !(bufp->b_flag & BFNOTAB)) {
-#ifdef VARIABLE_TAB
-	    int tab = bufp->b_tabwidth;
-#else
-	    int tab = 8;
-#endif
-	}
-	else
-	    w += bufp->b_lang->lm_width(c);
-    }
-    return w;
 }
 
 #ifdef GOSLING
