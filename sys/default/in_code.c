@@ -1,4 +1,4 @@
-/* $Id: in_code.c,v 1.1.2.7 2007/07/11 11:18:22 amura Exp $ */
+/* $Id: in_code.c,v 1.1.2.8 2007/07/18 16:40:37 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -181,7 +181,7 @@ size_t n;
     size_t i;
     register const NG_WCHAR_t *p = src;
     for (i=n-1; i>0 && *p!=NG_EOS; i--) {
-	if ((*p | 0x7f) == 0x7f) {
+	if ((*p | 0x7f) != 0x7f) {
 	    *dst++ = '?';
 	    ++p;
 	}
