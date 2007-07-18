@@ -1,4 +1,4 @@
-/* $Id: lang_ja.c,v 1.1.2.6 2007/07/18 16:40:37 amura Exp $ */
+/* $Id: lang_ja.c,v 1.1.2.7 2007/07/18 17:34:55 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -381,7 +381,7 @@ char *dst;
 		    else {
 			if (code == NG_CODE_ISO2022JP_SISO) {
 			    mode2 = _JA_G1;
-			    *p++ = SI;
+			    *p++ = SO;
 			}
 			else {
 			    mode1 = _JA_KANA;
@@ -395,7 +395,7 @@ char *dst;
 		else {
 		    if (code == NG_CODE_ISO2022JP_SISO && mode2 == _JA_G1) {
 			mode2 = _JA_G0;
-			*p++ = SO;
+			*p++ = SI;
 		    }
 		    
 		    if (ISHOJOKANJI(c)) {
@@ -617,16 +617,16 @@ NG_WCHAR_t *dst;
     case NG_CODE_ISO2022JP_8BIT:
     case NG_CODE_ISO2022JP_SISO:
 	{
-	    int mode1 = _JA_G0;
-	    int mode2 = _JA_ASCII;
+	    int mode1 = _JA_ASCII;
+	    int mode2 = _JA_G0;
 	    while (n == NG_CODE_CHKLEN ? *src != '\0' : i--) {
 		unsigned char c = *src++;
 		if (c == SI) {
-		    mode1 = _JA_G1;
+		    mode2 = _JA_G0;
 		    continue;
 		}
 		if (c == SO) {
-		    mode1 = _JA_G1;
+		    mode2 = _JA_G1;
 		    continue;
 		}
 		if (c == ESC) {
@@ -636,10 +636,10 @@ NG_WCHAR_t *dst;
 			switch (c) {
 			case 'B':
 			case 'J':
-			    mode2 = _JA_ASCII;
+			    mode1 = _JA_ASCII;
 			    continue;
 			case 'I':
-			    mode2 = _JA_KANA;
+			    mode1 = _JA_KANA;
 			    continue;
 			default:
 			    c = ESC;
@@ -651,12 +651,12 @@ NG_WCHAR_t *dst;
 			switch (c) {
 			case '@':
 			case 'B':
-			    mode2 = _JA_KANJI;
+			    mode1 = _JA_KANJI;
 			    continue;
 			case '(':
 			    c = *src++;
 			    if (c == 'D') {
-				mode2 = _JA_HOJOKANJI;
+				mode1 = _JA_HOJOKANJI;
 				continue;
 			    }
 			    c = ESC;
@@ -670,13 +670,13 @@ NG_WCHAR_t *dst;
 		    }
 		}
 		
-		if (mode1 == _JA_G1 || mode2 == _JA_KANA)
+		if (mode2 == _JA_G1 || mode1 == _JA_KANA)
 		    *p++ = c | 0x180;
-		else if (mode2 == _JA_KANJI) {
+		else if (mode1 == _JA_KANJI) {
 		    unsigned char c1 = *src++;
 		    *p++ = ((c1 << 8) | c) & 0x7f7f;
 		}
-		else if (mode2 == _JA_HOJOKANJI) {
+		else if (mode1 == _JA_HOJOKANJI) {
 		    unsigned char c1 = *src++;
 		    *p++ = (((c1 << 8) | c) & 0x7f7f) | 0x8000;
 		}
