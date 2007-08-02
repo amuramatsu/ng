@@ -1,4 +1,4 @@
-/* $Id: lang_ja.c,v 1.1.2.7 2007/07/18 17:34:55 amura Exp $ */
+/* $Id: lang_ja.c,v 1.1.2.8 2007/08/02 23:10:50 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -284,84 +284,109 @@ char *dst;
 
     switch (code) {
     case NG_CODE_PASCII:
-	while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i--) {
+	while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i > 0) {
 	    if ((*src | 0xff) != 0xff) {
+		if (i < 6) break;
+		i -= 6;
 		*p++ = '\\'; *p++ = 'w';
 		to_hex_a(p, 4, *src);
 		p += 4;
 	    }
 	    else if (ISCTRL(*src) && *src != NG_WTAB) {
+		if (i < 2) break;
 		*p++ = '^'; *p++ = ctrl_char(*src);
+		i -= 2;
 	    }
 	    else if ((*src & 0x80) != 0) {
+		if (i < 4) break;
+		i -= 4;
 		*p++ = '\\'; *p++ = 'x';
 		to_hex_a(p, 2, *src);
 		p += 2;
 	    }
-	    else
+	    else {
 		*p++ = *src & 0x7F;
+		i--;
+	    }
 	    src++;
 	}
-	if (n == NG_CODE_CHKLEN)
+	if (n == NG_CODE_CHKLEN && i > 0)
 	    *p = '\0';
 	break;
 
     case NG_CODE_ASCII:
-	while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i--) {
-	    if ((*src | 0xff) != 0xff)
+	while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i > 0) {
+	    if ((*src | 0xff) != 0xff) 
 		*p++ = ' ';
 	    else
 		*p++ = *src & 0xFF;
+	    i--;
 	    src++;
 	}
-	if (n == NG_CODE_CHKLEN)
+	if (n == NG_CODE_CHKLEN && i > 0)
 	    *p = '\0';
 	break;
 	
     case NG_CODE_EUCJP:
-	while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i--) {
+	while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i > 0) {
 	    NG_WCHAR_t c = *src++;
 	    if (ISKANA(c)) {
+		if (i < 2) break;
+		i -= 2;
 		*p++ = SS2;
 		*p++ = c & 0xff;
 	    }
 	    else if (ISHOJOKANJI(c)) {
+		if (i < 3) break;
+		i -= 3;
 		*p++ = SS2;
 		*p++ = (c >> 8) | 0x80;
 		*p++ = (c & 0x7f) | 0x80;
 	    }
 	    else if (ISKANJI(c)) {
+		if (i < 2) break;
+		i -= 2;
 		*p++ = (c >> 8) | 0x80;
 		*p++ = (c & 0x7f) | 0x80;
 	    }
-	    else
+	    else {
+		i--;
 		*p++ = c & 0x7f;
+	    }
 	}
-	if (n == NG_CODE_CHKLEN)
+	if (n == NG_CODE_CHKLEN && i > 0)
 	    *p = '\0';
 	break;
 
     case NG_CODE_SJIS:
-	while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i--) {
+	while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i > 0) {
 	    NG_WCHAR_t c = *src++;
-	    if (ISKANA(c))
+	    if (ISKANA(c)) {
+		i--;
 		*p++ = c & 0xff;
+	    }
 	    else if (ISHOJOKANJI(c)) {
+		if (i < 2) break;
+		i -= 2;
 		*p++ = ' ';
 		*p++ = ' ';
 	    }
 	    else if (ISKANJI(c)) {
 		unsigned char c1, c2;
+		if (i < 2) break;
+		i -= 2;
 		c1 = (c >> 8) | 0x80;
 		c2 = (c & 0x7f) | 0x80;
 		etos(c1, c2);
 		*p++ = c1;
 		*p++ = c2;
 	    }
-	    else
+	    else {
+		i--;
 		*p++ = c & 0x7f;
+	    }
 	}
-	if (n == NG_CODE_CHKLEN)
+	if (n == NG_CODE_CHKLEN && i > 0)
 	    *p = '\0';
 	break;
 	
@@ -372,18 +397,24 @@ char *dst;
 	{
 	    int mode1 = _JA_ASCII;
 	    int mode2 = _JA_G0;
-	    while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i--) {
+	    while (n == NG_CODE_CHKLEN ? *src != NG_EOS : i > 0) {
 		NG_WCHAR_t c = *src++;
 		if (ISKANA(c)) {
 		    if (code == NG_CODE_ISO2022JP_8BIT ||
-			mode1 == _JA_KANA || mode2 == _JA_G1)
+			mode1 == _JA_KANA || mode2 == _JA_G1) {
+			i--;
 			*p++ = c & 0xff;
+		    }
 		    else {
 			if (code == NG_CODE_ISO2022JP_SISO) {
+			    if (i < 2) break;
+			    i -= 2;
 			    mode2 = _JA_G1;
 			    *p++ = SO;
 			}
 			else {
+			    if (i < 4) break;
+			    i -= 4;
 			    mode1 = _JA_KANA;
 			    *p++ = ESC;
 			    *p++ = '(';
@@ -394,12 +425,18 @@ char *dst;
 		}
 		else {
 		    if (code == NG_CODE_ISO2022JP_SISO && mode2 == _JA_G1) {
+			if (i < 2) break;
+			i -= 2;
 			mode2 = _JA_G0;
 			*p++ = SI;
 		    }
 		    
 		    if (ISHOJOKANJI(c)) {
+			if (i < 2) break;
+			i -= 2;
 			if (mode1 != _JA_HOJOKANJI) {
+			    if (i < 4) break;
+			    i -= 4;
 			    mode1 = _JA_HOJOKANJI;
 			    *p++ = ESC;
 			    *p++ = '$';
@@ -410,7 +447,11 @@ char *dst;
 			*p++ = c & 0x7f;
 		    }
 		    else if (ISKANJI(c)) {
+			if (i < 2) break;
+			i -= 2;
 			if (mode1 != _JA_KANJI) {
+			    if (i < 3) break;
+			    i -= 3;
 			    mode1 = _JA_KANJI;
 			    *p++ = ESC;
 			    *p++ = '$';
@@ -420,7 +461,11 @@ char *dst;
 			*p++ = c & 0x7f;
 		    }
 		    else {
+			if (i < 1) break;
+			i--;
 			if (mode1 != _JA_ASCII) {
+			    if (i < 3) break;
+			    i -= 3;
 			    mode1 = _JA_ASCII;
 			    *p++ = ESC;
 			    *p++ = '(';
@@ -431,7 +476,7 @@ char *dst;
 		}
 	    }
 	}
-	if (n == NG_CODE_CHKLEN)
+	if (n == NG_CODE_CHKLEN && i > 0)
 	    *p = '\0';
 	break;
     }
@@ -453,26 +498,38 @@ int n;
 	return (n == NG_CODE_CHKLEN) ? strlen(s) : n;
 	
     case NG_CODE_EUCJP:
-	while (n == NG_CODE_CHKLEN ? *s != '\0' : i--) {
+	while (n == NG_CODE_CHKLEN ? *s != '\0' : i > 0) {
 	    if ((*s | 0x7f) == 0x7f)
 		s++;
-	    else if (*s == SS3)
+	    else if (*s == SS3) {
+		if (n == NG_CODE_CHKLEN ?
+		     (s[1] == '\0' || s[2] == '\0') : i < 3) break;
 		s += 3;
-	    else
+		i -= 2;
+	    }
+	    else {
+		if (n == NG_CODE_CHKLEN ? s[1] == '\0' : i < 2) break;
 		s += 2;
+		i--;
+	    }
+	    i--;
 	    result++;
 	}
 	break;
 
     case NG_CODE_SJIS:
 	{
-	    while (n == NG_CODE_CHKLEN ? *s != '\0' : i--) {
+	    while (n == NG_CODE_CHKLEN ? *s != '\0' : i > 0) {
 		if ((*s | 0x7f) == 0x7f)
 		    s++;
 		else if (*s >= 0xa0 && *s < 0xe0)
 		    s++;
-		else
+		else {
+		    if (n == NG_CODE_CHKLEN ? s[1] == '\0' : i < 2) break;
 		    s += 2;
+		    i--;
+		}
+		i--;
 		result++;
 	    }
 	}
@@ -485,8 +542,9 @@ int n;
 	{
 	    int mode1 = _JA_G0;
 	    int mode2 = _JA_ASCII;
-	    while (n == NG_CODE_CHKLEN ? *s != '\0' : i--) {
+	    while (n == NG_CODE_CHKLEN ? *s != '\0' : i > 0) {
 		unsigned char c = *s;
+		i--;
 		if (c == SI) {
 		    mode1 = _JA_G1;
 		    s++;
@@ -497,10 +555,14 @@ int n;
 		    s++;
 		    continue;
 		}
-		if (c == ESC) {
+		if (c == ESC && (n == NG_CODE_CHKLEN ? *s != '\0' : i > 0)) {
 		    c = *s++;
-		    if (c == '(') {
-			c = *s++;
+		    i--;
+		    if (n == NG_CODE_CHKLEN ? *s == '\0' : i <= 0) {
+			s--;
+			i++;
+		    }
+		    else if (c == '(') {
 			switch (c) {
 			case 'B':
 			case 'J':
@@ -510,36 +572,52 @@ int n;
 			    mode2 = _JA_KANA;
 			    continue;
 			default:
+			    i += 2;
 			    s -= 2;
 			}
 		    }
 		    else if (c == '$') {
 			c = *s++;
-			switch (c) {
-			case '@':
-			case 'B':
+		        i--;
+			if (c == '@' || c == 'B') {
 			    mode2 = _JA_KANJI;
 			    continue;
-			case '(':
+			}
+			else if (c == '(' && 
+				  (n == NG_CODE_CHKLEN ? c != '\0' : i > 0)) {
 			    c = *s++;
-			    if (c == 'D') {
+		            i--;
+			    switch (c) {
+			    case '@':
+			    case 'B':
+				mode2 = _JA_KANJI;
+				continue;
+			    case 'D':
 				mode2 = _JA_HOJOKANJI;
 				continue;
 			    }
+			    i += 3;
 			    s -= 3;
-			    break;
-			    
-			default:
+			}
+			else {
+			    i += 2;
 			    s -= 2;
 			}
 		    }
 		}
-		if (mode1 == _JA_G1 || mode2 == _JA_KANA)
+		if (mode1 == _JA_G1 || mode2 == _JA_KANA) {
+		    i--;
 		    s++;
-		else if (mode2 == _JA_KANJI || mode2 == _JA_HOJOKANJI)
+		}
+		else if (mode2 == _JA_KANJI || mode2 == _JA_HOJOKANJI) {
+		    if (n == NG_CODE_CHKLEN ? s[1] == '\0' : i > 1) break;
+		    i -= 2;
 		    s += 2;
-		else
+		}
+		else {
+		    i--;
 		    s++;
+		}
 		result++;
 	    }
 	}
@@ -568,22 +646,29 @@ NG_WCHAR_t *dst;
 	break;
 	
     case NG_CODE_EUCJP:
-	while (n == NG_CODE_CHKLEN ? *src != '\0' : i--) {
+	while (n == NG_CODE_CHKLEN ? *src != '\0' : i > 0) {
 	    unsigned char c1, c2;
-	    if ((*src | 0x7f) == 0x7f)
-		*p++ = *src++ & 0x7f;
-	    else if (*src == SS2) {
-		src++;
+	    c1 = *src++;
+	    i--;
+	    if ((c1 | 0x7f) == 0x7f)
+		*p++ = c1 & 0x7f;
+	    else if (c1 == SS2) {
+		i--;
+		if (n == NG_CODE_CHKLEN ? *src == '\0 : i <= 0) break;
 		*p++ = *src++ | 0x180;
 	    }
-	    else if (*src == SS3) {
-		src++;
+	    else if (c1 == SS3) {
+		i -= 2;
+		if (n == NG_CODE_CHKLEN ?
+		     (src[0] == '\0' || src[1] == '\0'): i <= 0)) break;
 		c1 = *src++ | 0x80;
 		c2 = *src++ & 0x7f;
 		*p++ = (c1 << 8) | c2;
 	    }
 	    else {
-		c1 = *src++ & 0x7f;
+		i--;
+		if (n == NG_CODE_CHKLEN ? *src == '\0' : i <= 0) break;
+		c1 = c1 & 0x7f;
 		c2 = *src++ & 0x7f;
 		*p++ = (c1 << 8) | c2;
 	    }
@@ -593,8 +678,9 @@ NG_WCHAR_t *dst;
     case NG_CODE_SJIS:
 	{
 	    unsigned char c1 = '\0';
-	    while (n == NG_CODE_CHKLEN ? *src != '\0' : i--) {
+	    while (n == NG_CODE_CHKLEN ? *src != '\0' : i > 0) {
 		unsigned char c = *src++;
+		i--;
 		if (c1 != '\0') {
 		    stoe(c1, c);
 		    *p++ = ((c1 << 8) | c) & 0x7f7f;
@@ -619,8 +705,9 @@ NG_WCHAR_t *dst;
 	{
 	    int mode1 = _JA_ASCII;
 	    int mode2 = _JA_G0;
-	    while (n == NG_CODE_CHKLEN ? *src != '\0' : i--) {
+	    while (n == NG_CODE_CHKLEN ? *src != '\0' : i > 0) {
 		unsigned char c = *src++;
+		i--;
 		if (c == SI) {
 		    mode2 = _JA_G0;
 		    continue;
@@ -629,8 +716,10 @@ NG_WCHAR_t *dst;
 		    mode2 = _JA_G1;
 		    continue;
 		}
-		if (c == ESC) {
+		if (c == ESC &&
+		    (n == NG_CODE_CHKLEN ? *src != '\0' : i > 0)) {
 		    c = *src++;
+		    i--;
 		    if (c == '(') {
 			c = *src++;
 			switch (c) {
