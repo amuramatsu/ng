@@ -1,4 +1,4 @@
-/* $Id: lang_ja.c,v 1.1.2.8 2007/08/02 23:10:50 amura Exp $ */
+/* $Id: lang_ja.c,v 1.1.2.9 2007/08/03 02:29:01 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -543,16 +543,14 @@ int n;
 	    int mode1 = _JA_G0;
 	    int mode2 = _JA_ASCII;
 	    while (n == NG_CODE_CHKLEN ? *s != '\0' : i > 0) {
-		unsigned char c = *s;
+		unsigned char c = *s++;
 		i--;
 		if (c == SI) {
 		    mode1 = _JA_G1;
-		    s++;
 		    continue;
 		}
 		if (c == SO) {
 		    mode1 = _JA_G0;
-		    s++;
 		    continue;
 		}
 		if (c == ESC && (n == NG_CODE_CHKLEN ? *s != '\0' : i > 0)) {
@@ -654,13 +652,13 @@ NG_WCHAR_t *dst;
 		*p++ = c1 & 0x7f;
 	    else if (c1 == SS2) {
 		i--;
-		if (n == NG_CODE_CHKLEN ? *src == '\0 : i <= 0) break;
+		if (n == NG_CODE_CHKLEN ? *src == '\0' : i <= 0) break;
 		*p++ = *src++ | 0x180;
 	    }
 	    else if (c1 == SS3) {
 		i -= 2;
 		if (n == NG_CODE_CHKLEN ?
-		     (src[0] == '\0' || src[1] == '\0'): i <= 0)) break;
+		     (src[0] == '\0' || src[1] == '\0'): i <= 0) break;
 		c1 = *src++ | 0x80;
 		c2 = *src++ & 0x7f;
 		*p++ = (c1 << 8) | c2;
@@ -720,8 +718,13 @@ NG_WCHAR_t *dst;
 		    (n == NG_CODE_CHKLEN ? *src != '\0' : i > 0)) {
 		    c = *src++;
 		    i--;
-		    if (c == '(') {
+		    if (n == NG_CODE_CHKLEN ? *src == '\0' : i <= 0) {
+			src--;
+			i++;
+		    }
+		    else if (c == '(') {
 			c = *src++;
+			i++;
 			switch (c) {
 			case 'B':
 			case 'J':
@@ -732,28 +735,37 @@ NG_WCHAR_t *dst;
 			    continue;
 			default:
 			    c = ESC;
+			    i += 2;
 			    src -= 2;
 			}
 		    }
 		    else if (c == '$') {
 			c = *src++;
-			switch (c) {
-			case '@':
-			case 'B':
+			i--;
+			if (c == '@' || c == 'B') {
 			    mode1 = _JA_KANJI;
 			    continue;
-			case '(':
+			}
+			else if (c == '(' &&
+				  (n == NG_CODE_CHKLEN ? c != '\0' : i > 0)) {
 			    c = *src++;
-			    if (c == 'D') {
-				mode1 = _JA_HOJOKANJI;
+			    i--;
+			    switch (c) {
+			    case '@':
+			    case 'B':
+				mode2 = _JA_KANJI;
+				continue;
+			    case 'D':
+				mode2 = _JA_HOJOKANJI;
 				continue;
 			    }
 			    c = ESC;
+			    i += 3;
 			    src -= 3;
-			    break;
-			    
-			default:
+			}
+			else {	    
 			    c = ESC;
+			    i += 2;
 			    src -= 2;
 			}
 		    }
@@ -763,10 +775,14 @@ NG_WCHAR_t *dst;
 		    *p++ = c | 0x180;
 		else if (mode1 == _JA_KANJI) {
 		    unsigned char c1 = *src++;
+		    i--;
+		    if (n == NG_CODE_CHKLEN ? c1 == '\0' : i <= 0) break;
 		    *p++ = ((c1 << 8) | c) & 0x7f7f;
 		}
 		else if (mode1 == _JA_HOJOKANJI) {
 		    unsigned char c1 = *src++;
+		    i--;
+		    if (n == NG_CODE_CHKLEN ? c1 == '\0' : i <= 0) break;
 		    *p++ = (((c1 << 8) | c) & 0x7f7f) | 0x8000;
 		}
 		else {
