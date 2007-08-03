@@ -1,4 +1,4 @@
-/* $Id: in_code.c,v 1.1.2.8 2007/07/18 16:40:37 amura Exp $ */
+/* $Id: in_code.c,v 1.1.2.9 2007/08/03 14:32:28 amura Exp $ */
 /*
  * Some special charactors of buffer internal code
  */
@@ -148,7 +148,7 @@ size_t n;
     for (i=n-1; i > 0 && *p != '\0'; i--)
 	*dst++ = NG_WCODE(*p++ & 0xff);
     *dst = NG_EOS;
-    while (*p++ != NG_EOS)
+    while (*p++ != '\0')
 	/*NOP*/;
     return p - src;
 }
@@ -188,7 +188,7 @@ size_t n;
 	else
 	    *dst++ = *p++ & 0x7f;
     }
-    *dst = NG_EOS;
+    *dst = '\0';
     while (*p++ != NG_EOS)
 	/*NOP*/;
     return p - src;
