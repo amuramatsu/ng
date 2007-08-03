@@ -1,4 +1,4 @@
-/* $Id: lang_ja.c,v 1.1.2.9 2007/08/03 02:29:01 amura Exp $ */
+/* $Id: lang_ja.c,v 1.1.2.10 2007/08/03 13:45:18 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -490,7 +490,7 @@ const unsigned char *s;
 int n;
 {
     int i = n;
-    int result;
+    int result = 0;
     
     switch (code) {
     case NG_CODE_ASCII:
