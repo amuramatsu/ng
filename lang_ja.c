@@ -1,4 +1,4 @@
-/* $Id: lang_ja.c,v 1.1.2.10 2007/08/03 13:45:18 amura Exp $ */
+/* $Id: lang_ja.c,v 1.1.2.11 2008/08/28 02:12:09 amura Exp $ */
 /*
  * Copyright (C) 2006  MURAMATSU Atsushi, all rights reserved.
  * 
@@ -136,7 +136,39 @@ ja_code_expect(buf, n)
 const char *buf;
 int n;
 {
-    return NG_CODE_EUCJP; /* XXX IMPLEMENT ME */
+    int i;
+    int esc, siso, bit8, sjis;
+
+    esc = siso = bit8 = sjis = 0;
+    for (i = 0; i < n; i++) {
+	unsigned char c = buf[i];
+        if (c == ESC)
+	    esc++;
+	else if (c == SI || c == SO)
+	    siso++;
+	if (c & 0x80) {
+	    bit8++;
+	    if (c > 0xa0 && c <= 0xdf)
+		continue;
+	    if (i+1 < n) {
+		if (buf[i] & 0x80)
+		    sjis--;
+		else
+		    sjis++;
+	    }
+	}
+    }
+    if (esc > 2) {
+	if (bit8 > 0)
+	    return NG_CODE_ISO2022JP_8BIT;
+	if (siso > 0)
+            return NG_CODE_ISO2022JP_SISO;
+	return NG_CODE_ISO2022JP_7BIT;
+    }
+
+    if (esc > 1)
+	return NG_CODE_SJIS;
+    return NG_CODE_EUCJP;
 }
 
 LANG_MODULE *
